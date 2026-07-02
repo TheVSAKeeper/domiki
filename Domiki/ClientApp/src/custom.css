@@ -1,132 +1,435 @@
-/* Provide sufficient contrast against white background */
+﻿:root {
+    --field: #90a878;
+    --field-dark: #879e70;
+    --plank: #fbf3df;
+    --plank-dark: #ecdcb8;
+    --grass: #a9bd8d;
+    --grass-dark: #7f9863;
+    --ink: #33291a;
+    --pine: #40632f;
+    --pine-dark: #345126;
+    --coin: #e7a83b;
+    --roof: #c25b33;
+    --px: 5px;
+    --cut: polygon(0 var(--px), var(--px) var(--px), var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px), 100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%, var(--px) 100%, var(--px) calc(100% - var(--px)), 0 calc(100% - var(--px)));
+}
+
+body {
+    font-family: 'Golos Text', 'Segoe UI', sans-serif;
+    color: var(--ink);
+    background-color: var(--field);
+    background-image: repeating-conic-gradient(var(--field-dark) 0% 25%, var(--field) 0% 50%);
+    background-size: 56px 56px;
+}
+
 a {
-    color: #0366d6;
+    color: var(--pine-dark);
 }
 
 code {
-    color: #E01A76;
+    color: #e01a76;
 }
 
 .btn-primary {
     color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    background-color: var(--pine);
+    border-color: var(--pine-dark);
 }
 
-.break {
-    flex-basis: 100%;
-    height: 0;
+.navbar {
+    background: var(--plank);
+    border-bottom: 3px solid var(--ink) !important;
+}
+
+.navbar .navbar-brand {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    color: var(--pine);
+}
+
+.navbar .nav-link {
+    font-weight: 600;
+}
+
+.pixel-panel {
+    background: var(--plank);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.hud {
+    position: sticky;
+    top: 8px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    padding: 10px 18px;
+    margin-bottom: 24px;
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.hud-plodder {
+    margin-left: auto;
+}
+
+.resources {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 16px;
+}
+
+.resource-box {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+    .resource-box img {
+        width: 26px;
+        height: 26px;
+        image-rendering: pixelated;
+    }
+
+.resource-value {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding-top: 3px;
 }
 
 .workspace {
     display: flex;
-    flex-direction: row;
+    align-items: flex-start;
+    gap: 24px;
+    padding-bottom: 40px;
+}
+
+.village {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.village-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.section-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    margin: 0;
+    padding: 9px 12px 7px;
+    color: var(--plank);
+    background: var(--pine);
+    clip-path: var(--cut);
+}
+
+.domiks,
+.purchase-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.purchase-box {
+    padding: 14px;
+    border: 3px dashed var(--ink);
+    background: rgba(251, 243, 223, .45);
+}
+
+.plot {
+    width: 136px;
+    padding: 12px 8px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font: inherit;
+    color: inherit;
+    text-align: center;
+    background: var(--plank);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -8px 0 var(--grass-dark), inset 0 -16px 0 var(--grass);
+    cursor: pointer;
+    transition: transform .15s steps(2, end);
+}
+
+    .plot:hover {
+        transform: translateY(-4px);
+    }
+
+    .plot:focus-visible {
+        outline: none;
+        border-color: var(--coin);
+    }
+
+.plot-selected {
+    border-color: var(--coin);
+    background: #fff7e0;
+}
+
+.plot-shop,
+.plot-shop:hover {
+    cursor: default;
+    transform: none;
+}
+
+.plot-sprite {
+    width: 96px;
+    height: 96px;
+    image-rendering: pixelated;
+}
+
+.plot-name {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.plot-status {
+    display: flex;
+    gap: 6px;
+    min-height: 22px;
+}
+
+.status-icon {
+    width: 22px;
+    height: 22px;
+    image-rendering: pixelated;
+}
+
+.icon-busy {
+    animation: bump 1s steps(2, end) infinite;
+}
+
+@keyframes bump {
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+.upgrade-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    margin-top: auto;
+}
+
+.plot-shop .btn-game {
+    margin-top: auto;
+}
+
+.domik-level {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 4px 7px 3px;
+    color: var(--plank);
+    background: var(--pine);
+}
+
+.timer {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--roof);
 }
 
 .actions {
-    display: flex;
-    width: 30%;
-    flex-wrap: wrap;
+    flex: 0 0 320px;
+    position: sticky;
+    top: 76px;
+    padding: 18px;
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
-.domiks {
-    display: flex;
-    width: 70%;
-    flex-wrap: wrap;
+.panel-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    margin: 0 0 10px;
 }
 
-    .domiks .domik-box {
-        display: flex;
-        flex-wrap: wrap;
-        width: 100px;
-        cursor: pointer;
+.panel-block {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 3px dotted rgba(51, 41, 26, .3);
+}
+
+    .panel-block .resources {
+        margin-bottom: 10px;
     }
 
-        .domiks .domik-box .domik-level {
-            /* position: absolute;*/
-            background: green;
-            color: white;
-            padding: 0 5px;
-        }
-
-        .domiks .domik-box img {
-            max-width: 64px;
-            max-height: 64px;
-        }
-
-        .domiks .domik-box .manufacture-icon {
-            width: 32px;
-            height: 32px;
-        }
-
-.purchase-box {
-    display: flex;
-}
-    .purchase-box .domik-box {
-        width: 100px;
-        display: flex;
-        flex-wrap: wrap;
-    }
-
-.resources {
-    display: flex;
-    margin-bottom: 20px;
+.panel-label {
+    display: block;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--pine);
+    margin-bottom: 10px;
 }
 
-    .resources .resource-box {
-        display: flex;
-        flex-wrap: wrap;
-        width: 50px;
+.hint {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(51, 41, 26, .75);
+}
+
+.note-warn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--roof);
+}
+
+    .note-warn img {
+        width: 20px;
+        height: 20px;
+        image-rendering: pixelated;
     }
 
-        .resources .resource-box img {
-            max-width: 32px;
-            max-height: 32px;
-        }
+.btn-game {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 16px;
+    color: #fff;
+    background: var(--pine);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+    transition: transform .15s steps(2, end), background-color .15s;
+}
 
-.upgrade-box {
-    padding-bottom: 10px;
+    .btn-game:hover:enabled {
+        background: var(--pine-dark);
+        transform: translateY(-2px);
+    }
+
+    .btn-game:active:enabled {
+        transform: translateY(1px);
+    }
+
+    .btn-game:focus-visible {
+        outline: none;
+        border-color: var(--coin);
+    }
+
+    .btn-game:disabled {
+        background: #97927e;
+        cursor: not-allowed;
+    }
+
+.receipt-list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
 }
 
 .manufacture-box {
-    border: 1px solid darkgray;
-    border-radius: 5px;
-    margin: 1px;
-    padding: 5px;
+    padding: 10px;
+    margin-top: 10px;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.manufacture-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+    .manufacture-info img {
+        width: 20px;
+        height: 20px;
+        image-rendering: pixelated;
+    }
+
+.manufacture-name {
+    font-size: 13px;
+    font-weight: 600;
 }
 
 progress {
-    text-align: center;
-    height: 1.5em;
+    display: block;
     width: 100%;
-    -webkit-appearance: none;
-    border: none;
-    /* Set the progressbar to relative */
+    height: 18px;
     position: relative;
+    text-align: center;
+    border: none;
+    background-color: var(--ink);
+    -webkit-appearance: none;
+    appearance: none;
 }
 
     progress:before {
         content: attr(data-label);
-        font-size: 0.8em;
-        vertical-align: 0;
-        /*Position text over the progress bar */
         position: absolute;
         left: 0;
         right: 0;
+        top: 3px;
+        font-family: 'Press Start 2P', monospace;
+        font-size: 8px;
+        color: #fff;
+        text-shadow: 1px 1px 0 var(--ink);
     }
 
     progress::-webkit-progress-bar {
-        background-color: #c9c9c9;
+        background-color: var(--ink);
     }
 
     progress::-webkit-progress-value {
-        background-color: #7cc4ff;
+        background-color: var(--coin);
     }
 
     progress::-moz-progress-bar {
-        background-color: #7cc4ff;
+        background-color: var(--coin);
     }
 
 .hidden {
     display: none;
+}
+
+@media (max-width: 900px) {
+    .workspace {
+        flex-direction: column;
+    }
+
+    .actions {
+        position: static;
+        flex-basis: auto;
+        width: 100%;
+    }
+
+    .plot {
+        width: calc(50% - 8px);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .plot,
+    .btn-game {
+        transition: none;
+    }
+
+        .plot:hover {
+            transform: none;
+        }
+
+    .icon-busy {
+        animation: none;
+    }
 }

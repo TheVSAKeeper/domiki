@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import authService from './api-authorization/AuthorizeService'
 import { ResourcesBox } from './ResourcesBox';
 import { UpgradeBox } from './UpgradeBox';
@@ -259,14 +259,18 @@ export const DomikiPage = () => {
 
     // todo переместить в сервис какойнить
     async function sendRequest(method, url, succesAction) {
-        const token = await authService.getAccessToken();
-        const requestOptions = {
-            method: method,
-            headers: !token ? {} : { 'Authorization': `Bearer ${token}` }
-        };
-        fetch(url, requestOptions)
-            .then((res) => res.json())
+        fetch(url, { method: method, credentials: 'same-origin' })
+            .then((res) => {
+                if (res.status === 401) {
+                    authService.signIn();
+                    return null;
+                }
+                return res.json();
+            })
             .then((data) => {
+                if (data == null) {
+                    return;
+                }
                 if (data.type === 2) {
                     alert(data.content);
                 } else {
@@ -279,125 +283,141 @@ export const DomikiPage = () => {
     }
 
     return (
-        <div className="App">
-            <div>
-                {plodderCount != null &&
-                    <div>
-                        <img src="/images/modificatorTypes/plodder.png" alt="Трудяги"></img>
-                        <label>{plodderCount.free}/{plodderCount.max}</label>
-                    </div>
-                }
-            </div>
-            <div className="resources">
-                {resourceTypes != null && resourceTypes.length > 0 &&
-                    resources.map((resource, index) => {
-                        let resourceType = resourceTypes.filter(x => x.id === resource.typeId)[0];
-                        let image = "/images/resourceTypes/" + resourceType.logicName + ".png";
-                        return (
-                            <div key={index} className="resource-box">
-                                <img src={image} alt={resourceType.name} />
-                                <label className="resource-value">{resource.value}</label>
-                            </div>
-                        );
-                    })
-                }</div>
-            <div className="workspace">
-                <div className="domiks">
-                    {domikTypes != null && domikTypes.length > 0 && domiks.items != null &&
-                        domiks.items.map((domik, index) => {
-                            let domikType = domikTypes.filter(x => x.id === domik.typeId)[0];
-                            let image = "/images/domikTypes/" + domikType.logicName + ".png";
-                            let hasManufacture = domik.manufactures != null && domik.manufactures.length > 0;
+        <div className="game">
+            <header className="hud pixel-panel">
+                <div className="resources">
+                    {resourceTypes != null && resourceTypes.length > 0 &&
+                        resources.map((resource, index) => {
+                            let resourceType = resourceTypes.filter(x => x.id === resource.typeId)[0];
+                            let image = "/images/resourceTypes/" + resourceType.logicName + ".png";
                             return (
-                                <div key={index} className="domik-box" onClick={() => selectDomik(domik.id)}>
-                                    <img src={image} alt={domikType.name} />
-                                    <div className="break" />
-                                    <UpgradeBox durationSeconds={domik.durationSecondsText} level={domik.level} />
-                                    <div className="break" />
-                                    {domik.level < domikType.maxLevel && domik.durationSeconds == null &&
-                                        <img className="manufacture-icon" src="/images/upgrade_available.png" alt="Доступно улучшение" />
-
-                                    }
-                                    {domik.durationSeconds != null &&
-                                        <img className="manufacture-icon" src="/images/upgrade_in_process.png" alt="Доступно улучшение" />
-                                    }
-                                    {domik.manufactures != null && domik.manufactures.length > 0 &&
-                                        <img className="manufacture-icon" src="/images/manufacture.png" alt="Производство в процессе" />
-                                    }
+                                <div key={index} className="resource-box" title={resourceType.name}>
+                                    <img src={image} alt={resourceType.name} />
+                                    <span className="resource-value">{resource.value}</span>
                                 </div>
                             );
                         })
                     }
                 </div>
-                <div className="actions">
-                    <div>
-                        {selectedDomik != null && selectedDomik.domikType != null &&
-                            <div>
-                                <label>{selectedDomik.domikType.name}</label>
-                                <label style={{ paddingLeft: '10px' }}>{selectedDomik.level}</label>
-                            </div>
-                        }
-                        {selectedDomik != null
-                            && selectedDomik.upgradeAvailable
-                            && !selectedDomik.upgradeHasResources &&
-                            <div>
-                                <img src="/images/upgrade_no_resources.png" alt="Не хватает ресурсов" />
-                            </div>
-                        }
-                        {selectedDomik != null
-                            && selectedDomik.upgradeAvailable
-                            && selectedDomik.upgradeHasResources &&
-                            <div>
-                                <button onClick={() => upgrade(selectedDomik.id)}>
-                                    <ResourcesBox resources={selectedDomik.upgradeResources} resourceTypes={resourceTypes} />улучшить</button>
-                            </div>
+                {plodderCount != null &&
+                    <div className="resource-box hud-plodder" title="Трудяги">
+                        <img src="/images/modificatorTypes/plodder.png" alt="Трудяги" />
+                        <span className="resource-value">{plodderCount.free}/{plodderCount.max}</span>
+                    </div>
+                }
+            </header>
+            <div className="workspace">
+                <section className="village">
+                    <div className="village-header">
+                        <h2 className="section-title">Деревня</h2>
+                        {purchaseDomikTypes != null && purchaseDomikTypes.length > 0 &&
+                            <button className="btn-game" onClick={() => showPurchaseDomikWindow()}>
+                                {purchaseDomikTypesVisible === true ? "Закрыть магазин" : "Магазин"}
+                            </button>
                         }
                     </div>
-                    <div>
-                        <label>Добавить производство:</label>
-                        {selectedDomik != null && selectedDomik.receipts != null &&
-                            selectedDomik.receipts.map((receipt, index) => {
-                                return (
-                                    <div key={index}>
-                                        <button onClick={() => startManufacture(selectedDomik.id, receipt.id)}>{receipt.name}</button>
-                                    </div>
-                                );
-                            })
-                        }
-                    </div>
-                    <div>
-                        <label>Текущие производство:</label>
-                        {selectedDomik != null && selectedDomik.manufactures != null && receipts != null &&
-                            selectedDomik.manufactures.map((manufacture, index) => {
-                                return (
-                                    <div key={index}>
-                                        <ManufactureBox manufacture={manufacture} receipts={receipts}></ManufactureBox>
-                                    </div>
-                                );
-                            })
-                        }
-                    </div>
-                </div>
-            </div>
-            {purchaseDomikTypes != null && purchaseDomikTypes.length > 0 &&
-                <div style={{ marginTop:"10px"}} >
-                    <button onClick={() => showPurchaseDomikWindow()}>Магазин</button>
-                    <div className="purchase-box">
-                        {purchaseDomikTypesVisible === true &&
-                            purchaseDomikTypes.map((purchaseDomikType, index) => {
+                    {purchaseDomikTypesVisible === true && purchaseDomikTypes != null &&
+                        <div className="purchase-box">
+                            {purchaseDomikTypes.map((purchaseDomikType, index) => {
                                 let image = "/images/domikTypes/" + purchaseDomikType.logicName + ".png";
                                 return (
-                                    <div key={index} className="domik-box">
-                                        <img src={image} alt={purchaseDomikType.name} />
+                                    <div key={index} className="plot plot-shop">
+                                        <img className="plot-sprite" src={image} alt={purchaseDomikType.name} />
+                                        <span className="plot-name">{purchaseDomikType.name}</span>
                                         <ResourcesBox resources={purchaseDomikType.levels[0].resources} resourceTypes={resourceTypes} />
-                                        <button onClick={() => buy(purchaseDomikType.id)}>купить</button>
+                                        <button className="btn-game" onClick={() => buy(purchaseDomikType.id)}>Купить</button>
                                     </div>
+                                );
+                            })
+                            }
+                        </div>
+                    }
+                    <div className="domiks">
+                        {domikTypes != null && domikTypes.length > 0 && domiks.items != null &&
+                            domiks.items.map((domik, index) => {
+                                let domikType = domikTypes.filter(x => x.id === domik.typeId)[0];
+                                let image = "/images/domikTypes/" + domikType.logicName + ".png";
+                                let hasManufacture = domik.manufactures != null && domik.manufactures.length > 0;
+                                return (
+                                    <button key={index}
+                                        className={"plot" + (selectedDomikId === domik.id ? " plot-selected" : "")}
+                                        onClick={() => selectDomik(domik.id)}>
+                                        <img className="plot-sprite" src={image} alt={domikType.name} />
+                                        <span className="plot-name">{domikType.name}</span>
+                                        <UpgradeBox durationSeconds={domik.durationSecondsText} level={domik.level} />
+                                        <span className="plot-status">
+                                            {domik.level < domikType.maxLevel && domik.durationSeconds == null &&
+                                                <img className="status-icon" src="/images/upgrade_available.png" alt="Доступно улучшение" title="Доступно улучшение" />
+                                            }
+                                            {domik.durationSeconds != null &&
+                                                <img className="status-icon icon-busy" src="/images/upgrade_in_process.png" alt="Идёт улучшение" title="Идёт улучшение" />
+                                            }
+                                            {hasManufacture &&
+                                                <img className="status-icon" src="/images/manufacture.png" alt="Идёт производство" title="Идёт производство" />
+                                            }
+                                        </span>
+                                    </button>
                                 );
                             })
                         }
                     </div>
-                </div>
-            }
+                </section>
+                <aside className="actions pixel-panel">
+                    {(selectedDomik == null || selectedDomik.domikType == null) &&
+                        <p className="hint">Выберите домик в деревне – здесь появятся улучшение и производство.</p>
+                    }
+                    {selectedDomik != null && selectedDomik.domikType != null &&
+                        <div>
+                            <h3 className="panel-title">{selectedDomik.domikType.name}</h3>
+                            <span className="domik-level">ур. {selectedDomik.level}</span>
+                            {selectedDomik.upgradeAvailable &&
+                                <div className="panel-block">
+                                    <span className="panel-label">Улучшение до ур. {selectedDomik.level + 1}</span>
+                                    <ResourcesBox resources={selectedDomik.upgradeResources} resourceTypes={resourceTypes} />
+                                    <button className="btn-game"
+                                        disabled={!selectedDomik.upgradeHasResources}
+                                        onClick={() => upgrade(selectedDomik.id)}>Улучшить</button>
+                                    {!selectedDomik.upgradeHasResources &&
+                                        <p className="note-warn">
+                                            <img src="/images/upgrade_no_resources.png" alt="" />
+                                            Не хватает ресурсов
+                                        </p>
+                                    }
+                                </div>
+                            }
+                            {selectedDomik.durationSeconds != null &&
+                                <div className="panel-block">
+                                    <span className="panel-label">Строится</span>
+                                    <span className="timer">{selectedDomik.durationSecondsText}</span>
+                                </div>
+                            }
+                            {selectedDomik.receipts != null && selectedDomik.receipts.length > 0 &&
+                                <div className="panel-block">
+                                    <span className="panel-label">Запустить производство</span>
+                                    <div className="receipt-list">
+                                        {selectedDomik.receipts.map((receipt, index) => {
+                                            return (
+                                                <button key={index} className="btn-game"
+                                                    onClick={() => startManufacture(selectedDomik.id, receipt.id)}>{receipt.name}</button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            }
+                            {selectedDomik.manufactures != null && selectedDomik.manufactures.length > 0 && receipts != null &&
+                                <div className="panel-block">
+                                    <span className="panel-label">Сейчас производится</span>
+                                    {selectedDomik.manufactures.map((manufacture, index) => {
+                                        return (
+                                            <ManufactureBox key={index} manufacture={manufacture} receipts={receipts} />
+                                        );
+                                    })}
+                                </div>
+                            }
+                        </div>
+                    }
+                </aside>
+            </div>
         </div>
     );
 };
