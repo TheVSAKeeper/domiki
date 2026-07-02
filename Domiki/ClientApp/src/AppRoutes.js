@@ -1,5 +1,4 @@
-import ApiAuthorzationRoutes from './components/api-authorization/ApiAuthorizationRoutes';
-import { DomikiPage } from "./components/DomikiPage";
+﻿import { DomikiPage } from "./components/DomikiPage";
 import { Home } from "./components/Home";
 
 const AppRoutes = [
@@ -10,8 +9,7 @@ const AppRoutes = [
     {
         path: '/domiki-page',
         element: <DomikiPage />
-    },
-    ...ApiAuthorzationRoutes
+    }
 ];
 
 export default AppRoutes;

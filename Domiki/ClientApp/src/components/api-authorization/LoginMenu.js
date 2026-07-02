@@ -1,8 +1,6 @@
-import React, { Component, Fragment } from 'react';
+﻿import React, { Component, Fragment } from 'react';
 import { NavItem, NavLink } from 'reactstrap';
-import { Link } from 'react-router-dom';
 import authService from './AuthorizeService';
-import { ApplicationPaths } from './ApiAuthorizationConstants';
 
 export class LoginMenu extends Component {
   constructor(props) {
@@ -34,35 +32,26 @@ export class LoginMenu extends Component {
   render() {
     const { isAuthenticated, userName } = this.state;
     if (!isAuthenticated) {
-      const registerPath = `${ApplicationPaths.Register}`;
-      const loginPath = `${ApplicationPaths.Login}`;
-      return this.anonymousView(registerPath, loginPath);
-    } else {
-      const profilePath = `${ApplicationPaths.Profile}`;
-      const logoutPath = `${ApplicationPaths.LogOut}`;
-      const logoutState = { local: true };
-      return this.authenticatedView(userName, profilePath, logoutPath, logoutState);
+      return this.anonymousView();
     }
+    return this.authenticatedView(userName);
   }
 
-  authenticatedView(userName, profilePath, logoutPath, logoutState) {
+  authenticatedView(userName) {
     return (<Fragment>
       <NavItem>
-        <NavLink tag={Link} className="text-dark" to={profilePath}>Hello {userName}</NavLink>
+        <span className="nav-link text-dark">{userName}</span>
       </NavItem>
       <NavItem>
-        <NavLink replace tag={Link} className="text-dark" to={logoutPath} state={logoutState}>Logout</NavLink>
+        <NavLink tag="a" className="text-dark" href="/authentication/logout">Выйти</NavLink>
       </NavItem>
     </Fragment>);
   }
 
-  anonymousView(registerPath, loginPath) {
+  anonymousView() {
     return (<Fragment>
       <NavItem>
-        <NavLink tag={Link} className="text-dark" to={registerPath}>Register</NavLink>
-      </NavItem>
-      <NavItem>
-        <NavLink tag={Link} className="text-dark" to={loginPath}>Login</NavLink>
+        <NavLink tag="a" className="text-dark" href="/authentication/login">Войти</NavLink>
       </NavItem>
     </Fragment>);
   }
