@@ -1,39 +1,72 @@
-using Domiki.Web.Business.Core;
+﻿using Domiki.Web.Business.Core;
 using Domiki.Web.Data;
 using Domiki.Models;
 using Domiki.Web;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Domiki.Web.Business;
 using NLog.Web;
 using NLog;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 
 var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("init main");
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString).ConfigureWarnings(w => w.Ignore(SqlServerEventId.SavepointsDisabledBecauseOfMARS)));
+{
+    options.UseNpgsql(connectionString);
+    options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
+});
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Logging.ClearProviders();
 builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
 builder.Host.UseNLog();
 
-builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services
+    .AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
-builder.Services.AddIdentityServer()
-    .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/Domiki"))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+});
 
 builder.Services.AddAuthentication()
-    .AddIdentityServerJwt();
-//builder.Services.Configure<JwtBearerOptions>("IdentityServerJwtBearer", o => o.Authority = "https://localhost:44444"/*"https://domiki.bob217.ru"*/);
+    .AddOpenIdConnect("BOB.ID", "BOB.ID", options =>
+    {
+        options.SignInScheme = IdentityConstants.ExternalScheme;
+        options.Authority = builder.Configuration["Oidc:Authority"];
+        options.ClientId = builder.Configuration["Oidc:ClientId"];
+        options.ClientSecret = builder.Configuration["Oidc:ClientSecret"];
+        options.ResponseType = "code";
+        options.UsePkce = true;
+        options.SaveTokens = true;
+        options.CallbackPath = "/signin-oidc";
+        options.SignedOutCallbackPath = "/signout-callback-oidc";
+        options.Scope.Clear();
+        options.Scope.Add("openid");
+        options.Scope.Add("email");
+        options.Scope.Add("profile");
+        options.Scope.Add("roles");
+    });
+
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
@@ -45,35 +78,61 @@ builder.Services.AddScoped<CalculatorTick>();
 builder.Services.AddHostedService<CalculatorBackgroundService>();
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
+}
 
-// Configure the HTTP request pipeline.
+var forwardedHeadersOptions = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedProto };
+forwardedHeadersOptions.KnownIPNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
+
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
 }
-else
-{
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
 
-app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
-app.UseIdentityServer();
 app.UseAuthorization();
 
+app.MapControllers();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller}/{action=Index}/{id?}");
 app.MapRazorPages();
 
+app.MapGet("/authentication/login", (string returnUrl) =>
+{
+    var target = !string.IsNullOrEmpty(returnUrl) && Uri.IsWellFormedUriString(returnUrl, UriKind.Relative)
+        ? returnUrl
+        : "/";
+    return Results.Redirect($"/Identity/Account/Login?returnUrl={Uri.EscapeDataString(target)}");
+});
+
+app.MapGet("/authentication/logout", () => Results.SignOut(
+    new AuthenticationProperties { RedirectUri = "/" },
+    new[] { IdentityConstants.ApplicationScheme }));
+
+app.MapGet("/authentication/user", (HttpContext http) =>
+{
+    var user = http.User;
+    if (user.Identity?.IsAuthenticated != true)
+    {
+        return Results.Ok(new { isAuthenticated = false });
+    }
+
+    var name = user.FindFirstValue("name")
+               ?? user.FindFirstValue("preferred_username")
+               ?? user.FindFirstValue("email")
+               ?? user.Identity?.Name;
+    return Results.Ok(new { isAuthenticated = true, name });
+});
+
 app.MapFallbackToFile("index.html");
-//app.UseCors(
-//    options => options.WithOrigins("https://localhost:44444"/*"https://domiki.bob217.ru"*/).AllowAnyHeader().AllowAnyMethod().AllowCredentials()
-//);
 
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseMiddleware<UnitOfWorkMiddleware>();
