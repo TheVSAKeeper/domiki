@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import authService from './api-authorization/AuthorizeService'
 import { ResourcesBox } from './ResourcesBox';
 import { UpgradeBox } from './UpgradeBox';
@@ -8,14 +8,12 @@ export const DomikiPage = () => {
     const [domiks, setDomiks] = useState({});
     const [selectedDomik, setSelectedDomik] = useState(null);
     const [selectedDomikId, setSelectedDomikId] = useState(null);
-    const [selectedDomikReceipts, setSelectedDomikReceipts] = useState(null);
 
     const [domikTypes, setDomikTypes] = useState([]);
     const [resources, setResources] = useState([]);
     const [resourceTypes, setResourceTypes] = useState([]);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState([]);
     const [purchaseDomikTypesVisible, setPurchaseDomikTypesVisible] = useState([]);
-    const [modificatorTypes, setModificatorTypes] = useState([]);
     const [receipts, setReceipts] = useState([]);
     const [plodderCount, setPlodderCount] = useState(null);
 
@@ -28,9 +26,6 @@ export const DomikiPage = () => {
             });
             sendRequest('GET', 'Domiki/GetResourceTypes', function (data) {
                 setResourceTypes(data);
-            });
-            sendRequest('GET', 'Domiki/GetModificatorTypes', function (data) {
-                setModificatorTypes(data);
             });
             sendRequest('GET', 'Domiki/GetReceipts', function (data) {
                 setReceipts(data);

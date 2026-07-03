@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 
 export const ManufactureBox = ({ manufacture, receipts }) => {
     let receipt = receipts.filter(x => x.id === manufacture.receiptId)[0];

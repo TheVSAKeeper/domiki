@@ -1,4 +1,4 @@
-﻿:root {
+:root {
     --field: #90a878;
     --field-dark: #879e70;
     --plank: #fbf3df;
@@ -49,7 +49,13 @@ code {
 
 .navbar .nav-link {
     font-weight: 600;
+    color: var(--ink);
+    transition: color .12s;
 }
+
+    .navbar .nav-link:hover {
+        color: var(--pine);
+    }
 
 .pixel-panel {
     background: var(--plank);
@@ -421,7 +427,8 @@ progress {
 
 @media (prefers-reduced-motion: reduce) {
     .plot,
-    .btn-game {
+    .btn-game,
+    .btn-ghost {
         transition: none;
     }
 
@@ -429,7 +436,188 @@ progress {
             transform: none;
         }
 
-    .icon-busy {
+    .icon-busy,
+    .village-strip img {
         animation: none;
     }
+}
+
+.nav-user {
+    display: inline-block;
+    padding: 7px 11px 5px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--plank);
+    background: var(--pine);
+    clip-path: var(--cut);
+}
+
+.nav-cta {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 7px 16px;
+    color: var(--ink);
+    background: var(--coin);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+    transition: transform .15s steps(2, end);
+}
+
+    .nav-cta:hover {
+        transform: translateY(-2px);
+    }
+
+    .nav-cta:focus-visible {
+        outline: none;
+        border-color: var(--pine);
+    }
+
+@media (min-width: 576px) {
+    .navbar .navbar-nav {
+        align-items: center;
+    }
+}
+
+.home {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 24px 0 48px;
+}
+
+.hero {
+    padding: 40px 32px 0;
+    text-align: center;
+    overflow: hidden;
+}
+
+.hero-eyebrow {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    color: var(--pine);
+    margin: 0 0 18px;
+}
+
+.hero-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(32px, 9vw, 64px);
+    line-height: 1;
+    color: var(--pine);
+    text-shadow: 4px 4px 0 var(--coin);
+    margin: 0;
+}
+
+.hero-tagline {
+    max-width: 30em;
+    margin: 22px auto 0;
+    font-size: 17px;
+    line-height: 1.55;
+    color: var(--ink);
+}
+
+.hero-cta {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 28px 0 40px;
+}
+
+    .hero-cta .btn-game {
+        font-size: 16px;
+        padding: 12px 28px;
+    }
+
+    .hero-cta a {
+        text-decoration: none;
+    }
+
+.btn-ghost {
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 12px 28px;
+    color: var(--ink);
+    background: transparent;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+    transition: background-color .15s, transform .15s steps(2, end);
+}
+
+    .btn-ghost:hover {
+        background: var(--plank-dark);
+        transform: translateY(-2px);
+    }
+
+    .btn-ghost:focus-visible {
+        outline: none;
+        border-color: var(--coin);
+    }
+
+.village-strip {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 3px;
+    margin: 0 -32px;
+    padding: 20px 16px 22px;
+    background: var(--grass);
+    box-shadow: inset 0 8px 0 var(--grass-dark);
+}
+
+    .village-strip img {
+        width: clamp(40px, 11vw, 84px);
+        height: auto;
+        image-rendering: pixelated;
+        animation: rise .5s steps(3, end) backwards;
+        animation-delay: calc(var(--i) * .08s);
+    }
+
+@keyframes rise {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+}
+
+.steps {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 28px;
+}
+
+.step {
+    flex: 1 1 200px;
+    padding: 20px 18px;
+    background: var(--plank);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.step-num {
+    display: inline-block;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding: 6px 8px 4px;
+    color: var(--ink);
+    background: var(--coin);
+    margin-bottom: 14px;
+}
+
+.step-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    color: var(--pine);
+    margin: 0 0 10px;
+}
+
+.step-text {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: rgba(51, 41, 26, .8);
 }

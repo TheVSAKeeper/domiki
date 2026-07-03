@@ -1,4 +1,4 @@
-﻿import { DomikiPage } from "./components/DomikiPage";
+import { DomikiPage } from "./components/DomikiPage";
 import { Home } from "./components/Home";
 
 const AppRoutes = [

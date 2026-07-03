@@ -1,4 +1,4 @@
-﻿import React, { Component, Fragment } from 'react';
+import React, { Component, Fragment } from 'react';
 import { NavItem, NavLink } from 'reactstrap';
 import authService from './AuthorizeService';
 
@@ -40,10 +40,10 @@ export class LoginMenu extends Component {
   authenticatedView(userName) {
     return (<Fragment>
       <NavItem>
-        <span className="nav-link text-dark">{userName}</span>
+        <span className="nav-user">{userName}</span>
       </NavItem>
       <NavItem>
-        <NavLink tag="a" className="text-dark" href="/authentication/logout">Выйти</NavLink>
+        <NavLink tag="a" href="/authentication/logout">Выйти</NavLink>
       </NavItem>
     </Fragment>);
   }
@@ -59,10 +59,10 @@ export class LoginMenu extends Component {
   anonymousView() {
     return (<Fragment>
       <NavItem>
-        <NavLink tag="a" className="text-dark" href="#" onClick={this.loginDemo}>Демо</NavLink>
+        <button type="button" className="nav-cta" onClick={this.loginDemo}>Играть демо</button>
       </NavItem>
       <NavItem>
-        <NavLink tag="a" className="text-dark" href="/authentication/login">Войти</NavLink>
+        <NavLink tag="a" href="/authentication/login">Войти</NavLink>
       </NavItem>
     </Fragment>);
   }

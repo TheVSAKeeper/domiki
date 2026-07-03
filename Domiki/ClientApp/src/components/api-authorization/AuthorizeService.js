@@ -1,4 +1,4 @@
-﻿export class AuthorizeService {
+export class AuthorizeService {
     _callbacks = [];
     _nextSubscriptionId = 0;
     _user = null;

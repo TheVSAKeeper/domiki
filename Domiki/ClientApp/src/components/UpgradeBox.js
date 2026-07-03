@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 
 export const UpgradeBox = ({ durationSeconds, level }) => {
     let levelText = durationSeconds == null ? 'ур. ' + level : level + ' → ' + (level * 1 + 1);
