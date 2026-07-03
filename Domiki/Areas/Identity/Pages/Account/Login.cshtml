@@ -1,0 +1,47 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Вход";
+}
+
+<div class="auth-card">
+    <a class="auth-brand" href="~/">DOMIKI</a>
+    <h1 class="auth-title">Вход в деревню</h1>
+
+    <div asp-validation-summary="ModelOnly" class="auth-error" role="alert"></div>
+
+    @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+    {
+        <form class="auth-provider" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+            @foreach (var provider in Model.ExternalLogins!)
+            {
+                <button type="submit" class="btn-game" name="provider" value="@provider.Name" title="Войти через @provider.DisplayName">Войти через @provider.DisplayName</button>
+            }
+        </form>
+        <div class="auth-divider">или</div>
+    }
+
+    <form id="account" method="post">
+        <div class="auth-field">
+            <label asp-for="Input.Email" class="auth-label">Почта</label>
+            <input asp-for="Input.Email" class="auth-input" autocomplete="username" aria-required="true" required placeholder="name@example.com" />
+            <span asp-validation-for="Input.Email" class="field-error"></span>
+        </div>
+        <div class="auth-field">
+            <label asp-for="Input.Password" class="auth-label">Пароль</label>
+            <input asp-for="Input.Password" class="auth-input" type="password" autocomplete="current-password" aria-required="true" required placeholder="••••••••" />
+            <span asp-validation-for="Input.Password" class="field-error"></span>
+        </div>
+        <label class="auth-check">
+            <input asp-for="Input.RememberMe" />
+            Запомнить меня
+        </label>
+        <button id="login-submit" type="submit" class="btn-game" style="width: 100%;">Войти</button>
+    </form>
+
+    <div class="auth-links">
+        <a asp-page="./ForgotPassword">Забыли пароль?</a>
+        <a href="~/">← На главную</a>
+    </div>
+</div>

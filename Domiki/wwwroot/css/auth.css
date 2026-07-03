@@ -1,0 +1,236 @@
+﻿:root {
+    --field: #90a878;
+    --field-dark: #879e70;
+    --plank: #fbf3df;
+    --plank-dark: #ecdcb8;
+    --grass: #a9bd8d;
+    --grass-dark: #7f9863;
+    --ink: #33291a;
+    --pine: #40632f;
+    --pine-dark: #345126;
+    --coin: #e7a83b;
+    --roof: #c25b33;
+    --px: 5px;
+    --cut: polygon(0 var(--px), var(--px) var(--px), var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px), 100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%, var(--px) 100%, var(--px) calc(100% - var(--px)), 0 calc(100% - var(--px)));
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Golos Text', 'Segoe UI', sans-serif;
+    color: var(--ink);
+    background-color: var(--field);
+    background-image: repeating-conic-gradient(var(--field-dark) 0% 25%, var(--field) 0% 50%);
+    background-size: 56px 56px;
+}
+
+.auth-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 24px 16px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 28px 26px 24px;
+    background: var(--plank);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -6px 0 var(--plank-dark);
+}
+
+.auth-brand {
+    display: block;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 22px;
+    text-align: center;
+    text-decoration: none;
+    color: var(--pine);
+    text-shadow: 3px 3px 0 var(--coin);
+    margin-bottom: 6px;
+}
+
+.auth-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    text-align: center;
+    color: var(--ink);
+    margin: 0 0 22px;
+}
+
+.auth-error {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding: 11px 13px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    background: var(--roof);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.auth-error ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.auth-error::before {
+    content: '⚠';
+    flex: 0 0 auto;
+}
+
+.auth-provider {
+    margin-bottom: 20px;
+}
+
+.auth-provider button {
+    width: 100%;
+}
+
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 18px 0;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: rgba(51, 41, 26, .55);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 3px;
+    background: var(--plank-dark);
+}
+
+.auth-field {
+    margin-bottom: 14px;
+}
+
+.auth-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 10px 12px;
+    font: inherit;
+    color: var(--ink);
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    outline: none;
+    transition: border-color .12s;
+}
+
+.auth-input:focus {
+    border-color: var(--coin);
+}
+
+.auth-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auth-check input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--pine);
+}
+
+.field-error {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--roof);
+}
+
+.btn-game {
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 11px 16px;
+    color: #fff;
+    background: var(--pine);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+    transition: transform .15s steps(2, end), background-color .15s;
+}
+
+.btn-game:hover:enabled {
+    background: var(--pine-dark);
+    transform: translateY(-2px);
+}
+
+.btn-game:active:enabled {
+    transform: translateY(1px);
+}
+
+.btn-game:focus-visible {
+    outline: none;
+    border-color: var(--coin);
+}
+
+.auth-links {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+    font-size: 13px;
+}
+
+.auth-links a {
+    color: var(--pine-dark);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-links a:hover {
+    color: var(--pine);
+    text-decoration: underline;
+}
+
+.text-danger {
+    color: var(--roof);
+}
+
+.validation-summary-valid {
+    display: none;
+}
+
+.auth-input.input-validation-error {
+    border-color: var(--roof);
+    background: #fbe9e2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn-game {
+        transition: none;
+    }
+
+    .btn-game:hover:enabled {
+        transform: none;
+    }
+}
