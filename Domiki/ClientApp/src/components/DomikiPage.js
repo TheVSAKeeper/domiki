@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import authService from './api-authorization/AuthorizeService'
 import { ResourcesBox } from './ResourcesBox';
 import { UpgradeBox } from './UpgradeBox';
@@ -305,7 +305,7 @@ export const DomikiPage = () => {
                 <section className="village">
                     <div className="village-header">
                         <h2 className="section-title">Деревня</h2>
-                        {purchaseDomikTypes != null && purchaseDomikTypes.length > 0 &&
+                        {purchaseDomikTypes != null &&
                             <button className="btn-game" onClick={() => showPurchaseDomikWindow()}>
                                 {purchaseDomikTypesVisible === true ? "Закрыть магазин" : "Магазин"}
                             </button>
@@ -313,12 +313,16 @@ export const DomikiPage = () => {
                     </div>
                     {purchaseDomikTypesVisible === true && purchaseDomikTypes != null &&
                         <div className="purchase-box">
+                            {purchaseDomikTypes.length === 0 &&
+                                <span className="hint">Магазин пуст</span>
+                            }
                             {purchaseDomikTypes.map((purchaseDomikType, index) => {
                                 let image = "/images/domikTypes/" + purchaseDomikType.logicName + ".png";
                                 return (
                                     <div key={index} className="plot plot-shop">
                                         <img className="plot-sprite" src={image} alt={purchaseDomikType.name} />
                                         <span className="plot-name">{purchaseDomikType.name}</span>
+                                        <span className="plot-status">Доступно: {purchaseDomikType.availableCount}/{purchaseDomikType.maxCount}</span>
                                         <ResourcesBox resources={purchaseDomikType.levels[0].resources} resourceTypes={resourceTypes} />
                                         <button className="btn-game" onClick={() => buy(purchaseDomikType.id)}>Купить</button>
                                     </div>

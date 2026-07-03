@@ -34,16 +34,17 @@ namespace Domiki.Web.Business.Core
             return dbPlayer.Id;
         }
 
-        public IEnumerable<DomikType> GetPurchaseAvailableDomiks(int playerId)
+        public IEnumerable<(DomikType Type, int AvailableCount)> GetPurchaseAvailableDomiks(int playerId)
         {
-            var available = new List<DomikType>();
+            var available = new List<(DomikType Type, int AvailableCount)>();
             var domiks = GetDomiks(playerId);
             foreach (var domikType in _resourceManager.GetDomikTypes())
             {
                 var current = domiks.Count(x => x.Type.Id == domikType.Id);
-                if (current < domikType.MaxCount)
+                var availableCount = domikType.MaxCount - current;
+                if (availableCount > 0)
                 {
-                    available.Add(domikType);
+                    available.Add((domikType, availableCount));
                 }
             }
             return available;
@@ -75,7 +76,7 @@ namespace Domiki.Web.Business.Core
         {
             _context.Players.First(x => x.Id == playerId).Version = Guid.NewGuid();
             var available = GetPurchaseAvailableDomiks(playerId);
-            if (available.Any(x => x.Id == typeId))
+            if (available.Any(x => x.Type.Id == typeId))
             {
                 var domikType = _resourceManager.GetDomikTypes().First(x => x.Id == typeId);
                 var domikLevel = domikType.Levels.First(x => x.Value == 1);
