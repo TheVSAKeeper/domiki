@@ -30,15 +30,7 @@ builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
 builder.Host.UseNLog();
 
 builder.Services
-    .AddDefaultIdentity<ApplicationUser>(options =>
-    {
-        options.SignIn.RequireConfirmedAccount = false;
-        options.Password.RequiredLength = 4;
-        options.Password.RequireNonAlphanumeric = false;
-        options.Password.RequireDigit = false;
-        options.Password.RequireUppercase = false;
-        options.Password.RequireLowercase = false;
-    })
+    .AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.ConfigureApplicationCookie(options =>
@@ -94,7 +86,8 @@ using (var scope = app.Services.CreateScope())
     if (await userManager.FindByNameAsync("demo") == null)
     {
         var demo = new ApplicationUser { UserName = "demo", Email = "demo@domiki.local", EmailConfirmed = true };
-        await userManager.CreateAsync(demo, "demo");
+        demo.PasswordHash = userManager.PasswordHasher.HashPassword(demo, "demo");
+        await userManager.CreateAsync(demo);
     }
 }
 
@@ -116,8 +109,10 @@ app.UseAuthorization();
 
 app.Use(async (context, next) =>
 {
+    var path = context.Request.Path;
     if (context.User.Identity?.Name == "demo"
-        && context.Request.Path.StartsWithSegments("/Identity/Account/Manage"))
+        && (path.StartsWithSegments("/Identity/Account/Manage")
+            || path.StartsWithSegments("/Identity/Account/ExternalLogin")))
     {
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
         return;
@@ -158,8 +153,12 @@ app.MapGet("/authentication/user", (HttpContext http) =>
     return Results.Ok(new { isAuthenticated = true, name });
 });
 
-app.MapPost("/authentication/demo", async (SignInManager<ApplicationUser> signInManager) =>
+app.MapPost("/authentication/demo", async (HttpContext http, SignInManager<ApplicationUser> signInManager) =>
 {
+    if (http.User.Identity?.IsAuthenticated == true)
+    {
+        return Results.Ok(new { isAuthenticated = true, name = http.User.Identity.Name });
+    }
     var result = await signInManager.PasswordSignInAsync("demo", "demo", isPersistent: false, lockoutOnFailure: false);
     return result.Succeeded
         ? Results.Ok(new { isAuthenticated = true, name = "demo" })
