@@ -78,15 +78,19 @@ builder.Services.AddScoped<CalculatorTick>();
 builder.Services.AddHostedService<CalculatorBackgroundService>();
 var app = builder.Build();
 
+var demoUserName = app.Configuration["Demo:UserName"];
+var demoEmail = app.Configuration["Demo:Email"];
+var demoPassword = app.Configuration["Demo:Password"];
+
 using (var scope = app.Services.CreateScope())
 {
     scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
 
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    if (await userManager.FindByNameAsync("demo") == null)
+    if (await userManager.FindByNameAsync(demoUserName) == null)
     {
-        var demo = new ApplicationUser { UserName = "demo", Email = "demo@domiki.local", EmailConfirmed = true };
-        demo.PasswordHash = userManager.PasswordHasher.HashPassword(demo, "demo");
+        var demo = new ApplicationUser { UserName = demoUserName, Email = demoEmail, EmailConfirmed = true };
+        demo.PasswordHash = userManager.PasswordHasher.HashPassword(demo, demoPassword);
         await userManager.CreateAsync(demo);
     }
 }
@@ -110,7 +114,7 @@ app.UseAuthorization();
 app.Use(async (context, next) =>
 {
     var path = context.Request.Path;
-    if (context.User.Identity?.Name == "demo"
+    if (context.User.Identity?.Name == demoUserName
         && (path.StartsWithSegments("/Identity/Account/Manage")
             || path.StartsWithSegments("/Identity/Account/ExternalLogin")))
     {
@@ -159,9 +163,9 @@ app.MapPost("/authentication/demo", async (HttpContext http, SignInManager<Appli
     {
         return Results.Ok(new { isAuthenticated = true, name = http.User.Identity.Name });
     }
-    var result = await signInManager.PasswordSignInAsync("demo", "demo", isPersistent: false, lockoutOnFailure: false);
+    var result = await signInManager.PasswordSignInAsync(demoUserName, demoPassword, isPersistent: false, lockoutOnFailure: false);
     return result.Succeeded
-        ? Results.Ok(new { isAuthenticated = true, name = "demo" })
+        ? Results.Ok(new { isAuthenticated = true, name = demoUserName })
         : Results.Unauthorized();
 });
 
