@@ -72,6 +72,14 @@ if (!string.IsNullOrWhiteSpace(oidcAuthority))
         options.Scope.Add("email");
         options.Scope.Add("profile");
         options.Scope.Add("roles");
+        options.Events.OnRemoteFailure = context =>
+        {
+            logger.Warn(context.Failure, "OIDC remote failure on {0}: {1}", oidcScheme, context.Failure?.Message);
+
+            context.HandleResponse();
+            context.Response.Redirect($"/Identity/Account/Login?remoteError={Uri.EscapeDataString(context.Failure?.Message ?? "External sign-in failed.")}");
+            return Task.CompletedTask;
+        };
     });
 }
 
