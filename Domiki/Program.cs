@@ -47,24 +47,33 @@ builder.Services.ConfigureApplicationCookie(options =>
     };
 });
 
-builder.Services.AddAuthentication()
-    .AddOpenIdConnect("BOB.ID", "BOB.ID", options =>
+var authenticationBuilder = builder.Services.AddAuthentication();
+
+var oidcAuthority = builder.Configuration["Oidc:Authority"];
+if (!string.IsNullOrWhiteSpace(oidcAuthority))
+{
+    var oidcScheme = builder.Configuration["Oidc:Scheme"];
+    if (string.IsNullOrWhiteSpace(oidcScheme)) oidcScheme = "oidc";
+    var oidcDisplayName = builder.Configuration["Oidc:DisplayName"];
+    if (string.IsNullOrWhiteSpace(oidcDisplayName)) oidcDisplayName = oidcScheme;
+    authenticationBuilder.AddOpenIdConnect(oidcScheme, oidcDisplayName, options =>
     {
         options.SignInScheme = IdentityConstants.ExternalScheme;
-        options.Authority = builder.Configuration["Oidc:Authority"];
+        options.Authority = oidcAuthority;
         options.ClientId = builder.Configuration["Oidc:ClientId"];
         options.ClientSecret = builder.Configuration["Oidc:ClientSecret"];
         options.ResponseType = "code";
         options.UsePkce = true;
         options.SaveTokens = true;
-        options.CallbackPath = "/signin-oidc";
-        options.SignedOutCallbackPath = "/signout-callback-oidc";
+        options.CallbackPath = builder.Configuration["Oidc:CallbackPath"] ?? "/signin-oidc";
+        options.SignedOutCallbackPath = builder.Configuration["Oidc:SignedOutCallbackPath"] ?? "/signout-callback-oidc";
         options.Scope.Clear();
         options.Scope.Add("openid");
         options.Scope.Add("email");
         options.Scope.Add("profile");
         options.Scope.Add("roles");
     });
+}
 
 builder.Services.AddAuthorization();
 
