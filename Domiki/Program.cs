@@ -30,7 +30,15 @@ builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
 builder.Host.UseNLog();
 
 builder.Services
-    .AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddDefaultIdentity<ApplicationUser>(options =>
+    {
+        options.SignIn.RequireConfirmedAccount = false;
+        options.Password.RequiredLength = 4;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireDigit = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireLowercase = false;
+    })
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 builder.Services.ConfigureApplicationCookie(options =>
@@ -81,6 +89,13 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
+
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    if (await userManager.FindByNameAsync("demo") == null)
+    {
+        var demo = new ApplicationUser { UserName = "demo", Email = "demo@domiki.local", EmailConfirmed = true };
+        await userManager.CreateAsync(demo, "demo");
+    }
 }
 
 var forwardedHeadersOptions = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedProto };
@@ -98,6 +113,17 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.Use(async (context, next) =>
+{
+    if (context.User.Identity?.Name == "demo"
+        && context.Request.Path.StartsWithSegments("/Identity/Account/Manage"))
+    {
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return;
+    }
+    await next();
+});
 
 app.MapControllers();
 app.MapControllerRoute(
@@ -130,6 +156,14 @@ app.MapGet("/authentication/user", (HttpContext http) =>
                ?? user.FindFirstValue("email")
                ?? user.Identity?.Name;
     return Results.Ok(new { isAuthenticated = true, name });
+});
+
+app.MapPost("/authentication/demo", async (SignInManager<ApplicationUser> signInManager) =>
+{
+    var result = await signInManager.PasswordSignInAsync("demo", "demo", isPersistent: false, lockoutOnFailure: false);
+    return result.Succeeded
+        ? Results.Ok(new { isAuthenticated = true, name = "demo" })
+        : Results.Unauthorized();
 });
 
 app.MapFallbackToFile("index.html");

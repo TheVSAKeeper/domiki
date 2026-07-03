@@ -48,8 +48,19 @@ export class LoginMenu extends Component {
     </Fragment>);
   }
 
+  loginDemo = async (e) => {
+    e.preventDefault();
+    const response = await fetch('/authentication/demo', { method: 'POST', credentials: 'same-origin' });
+    if (response.ok) {
+      window.location.assign('/domiki-page');
+    }
+  };
+
   anonymousView() {
     return (<Fragment>
+      <NavItem>
+        <NavLink tag="a" className="text-dark" href="#" onClick={this.loginDemo}>Демо</NavLink>
+      </NavItem>
       <NavItem>
         <NavLink tag="a" className="text-dark" href="/authentication/login">Войти</NavLink>
       </NavItem>
