@@ -65,6 +65,14 @@ body {
     margin: 0 0 22px;
 }
 
+.auth-lead {
+    margin: 0 0 20px;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: center;
+    color: rgba(51, 41, 26, .8);
+}
+
 .auth-error {
     display: flex;
     gap: 8px;

@@ -1,0 +1,29 @@
+﻿@page
+@model ExternalLoginModel
+
+@{
+    ViewData["Title"] = "Регистрация";
+}
+
+<div class="auth-card">
+    <a class="auth-brand" href="~/">DOMIKI</a>
+    <h1 class="auth-title">Почти в деревне</h1>
+
+    <p class="auth-lead">Вход через <strong>@Model.ProviderDisplayName</strong> прошёл успешно. Укажите почту, чтобы завершить создание аккаунта.</p>
+
+    <div asp-validation-summary="ModelOnly" class="auth-error" role="alert"></div>
+
+    <form id="external-account" asp-page-handler="Confirmation" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+        <div class="auth-field">
+            <label asp-for="Input.Email" class="auth-label">Почта</label>
+            <input asp-for="Input.Email" class="auth-input" autocomplete="email" aria-required="true" required placeholder="name@example.com" />
+            <span asp-validation-for="Input.Email" class="field-error"></span>
+        </div>
+        <button type="submit" class="btn-game" style="width: 100%;">Завершить регистрацию</button>
+    </form>
+
+    <div class="auth-links">
+        <a asp-page="./Login">← Другой способ входа</a>
+        <a href="~/">На главную</a>
+    </div>
+</div>
