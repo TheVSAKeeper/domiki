@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { type CSSProperties, type MouseEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import authService from './api-authorization/AuthorizeService';
+import { authService } from '../services/auth';
 
 const buildings = ['market', 'lumber_mill', 'clay_mine', 'stone_mine', 'gold_mine', 'forge', 'barracks'];
 
@@ -20,10 +20,10 @@ export const Home = () => {
         return () => authService.unsubscribe(subscription);
     }, []);
 
-    const loginDemo = async (e) => {
+    const loginDemo = async (e: MouseEvent) => {
         e.preventDefault();
-        const response = await fetch('/authentication/demo', { method: 'POST', credentials: 'same-origin' });
-        if (response.ok) {
+        const ok = await authService.loginDemo();
+        if (ok) {
             window.location.assign('/domiki-page');
         }
     };
@@ -45,7 +45,7 @@ export const Home = () => {
                 </div>
                 <div className="village-strip" aria-hidden="true">
                     {buildings.map((name, i) => (
-                        <img key={name} src={'/images/domikTypes/' + name + '.png'} alt="" style={{ '--i': i }} />
+                        <img key={name} src={'/images/domikTypes/' + name + '.png'} alt="" style={{ '--i': i } as CSSProperties} />
                     ))}
                 </div>
             </section>

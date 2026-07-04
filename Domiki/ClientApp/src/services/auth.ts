@@ -1,14 +1,28 @@
-export class AuthorizeService {
-    _callbacks = [];
-    _nextSubscriptionId = 0;
-    _user = null;
+interface AuthUser {
+    name: string;
+}
 
-    async isAuthenticated() {
+interface UserResponse {
+    isAuthenticated: boolean;
+    name: string;
+}
+
+interface Subscription {
+    callback: () => void;
+    subscription: number;
+}
+
+class AuthorizeService {
+    private _callbacks: Subscription[] = [];
+    private _nextSubscriptionId = 0;
+    private _user: AuthUser | null = null;
+
+    async isAuthenticated(): Promise<boolean> {
         const user = await this.getUser();
         return !!user;
     }
 
-    async getUser() {
+    async getUser(): Promise<AuthUser | null> {
         if (this._user) {
             return this._user;
         }
@@ -18,46 +32,41 @@ export class AuthorizeService {
             return null;
         }
 
-        const data = await response.json();
+        const data = (await response.json()) as UserResponse;
         this._user = data.isAuthenticated ? { name: data.name } : null;
         return this._user;
     }
 
-    signIn(returnUrl) {
+    signIn(returnUrl?: string): void {
         const target = returnUrl || `${window.location.pathname}${window.location.search}`;
         window.location.assign(`/authentication/login?returnUrl=${encodeURIComponent(target)}`);
     }
 
-    signOut() {
+    signOut(): void {
         window.location.assign('/authentication/logout');
     }
 
-    subscribe(callback) {
+    async loginDemo(): Promise<boolean> {
+        const response = await fetch('/authentication/demo', { method: 'POST', credentials: 'same-origin' });
+        return response.ok;
+    }
+
+    subscribe(callback: () => void): number {
         this._callbacks.push({ callback, subscription: this._nextSubscriptionId++ });
         return this._nextSubscriptionId - 1;
     }
 
-    unsubscribe(subscriptionId) {
+    unsubscribe(subscriptionId: number): void {
         const subscriptionIndex = this._callbacks
-            .map((element, index) => element.subscription === subscriptionId ? { found: true, index } : { found: false })
-            .filter(element => element.found === true);
+            .map((element, index) => (element.subscription === subscriptionId ? { found: true, index } : { found: false, index: -1 }))
+            .filter(element => element.found);
         if (subscriptionIndex.length !== 1) {
             throw new Error(`Found an invalid number of subscriptions ${subscriptionIndex.length}`);
         }
 
         this._callbacks.splice(subscriptionIndex[0].index, 1);
     }
-
-    notifySubscribers() {
-        for (let i = 0; i < this._callbacks.length; i++) {
-            const callback = this._callbacks[i].callback;
-            callback();
-        }
-    }
-
-    static get instance() { return authService }
 }
 
-const authService = new AuthorizeService();
-
+export const authService = new AuthorizeService();
 export default authService;

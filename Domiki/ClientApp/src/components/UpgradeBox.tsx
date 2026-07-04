@@ -1,7 +1,10 @@
-import React from 'react';
+interface UpgradeBoxProps {
+    durationSeconds: string | null;
+    level: number;
+}
 
-export const UpgradeBox = ({ durationSeconds, level }) => {
-    let levelText = durationSeconds == null ? 'ур. ' + level : level + ' → ' + (level * 1 + 1);
+export const UpgradeBox = ({ durationSeconds, level }: UpgradeBoxProps) => {
+    const levelText = durationSeconds == null ? 'ур. ' + level : level + ' → ' + (level + 1);
 
     return (
         <span className="upgrade-box">
