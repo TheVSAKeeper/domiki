@@ -744,13 +744,18 @@ progress {
 }
 
 .toast {
+    width: 100%;
     padding: 10px 14px;
+    font-family: inherit;
     font-size: 14px;
     line-height: 1.4;
+    text-align: left;
     color: var(--plank);
     background: var(--roof);
     border: 3px solid var(--ink);
     clip-path: var(--cut);
     cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
     box-shadow: 0 4px 0 rgba(51, 41, 26, .3);
 }

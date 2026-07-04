@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { DomikiPage } from './components/DomikiPage';
 import { Home } from './components/Home';
 

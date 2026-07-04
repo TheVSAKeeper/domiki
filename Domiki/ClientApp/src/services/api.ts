@@ -1,5 +1,6 @@
+import { z } from 'zod';
 import { authService } from './auth';
-import { ApiResult, ResponseType } from '../types/api';
+import { ResponseType } from '../types/api';
 
 export class ApiError extends Error {
     constructor(message: string) {
@@ -8,10 +9,17 @@ export class ApiError extends Error {
     }
 }
 
-async function request<T>(method: 'GET' | 'POST', url: string, signal?: AbortSignal): Promise<T> {
+const envelopeSchema = z.object({
+    type: z.number(),
+    content: z.unknown().optional(),
+});
+
+const errorMessageType: number = ResponseType.ErrorMessage;
+
+async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType<T> | null, signal?: AbortSignal): Promise<T> {
     let res: Response;
     try {
-        res = await fetch(url, { method, credentials: 'same-origin', signal });
+        res = await fetch(url, { method, credentials: 'same-origin', signal: signal ?? null });
     } catch (err) {
         if (signal?.aborted) {
             throw err;
@@ -24,20 +32,38 @@ async function request<T>(method: 'GET' | 'POST', url: string, signal?: AbortSig
         return new Promise<T>(() => {});
     }
 
-    let data: ApiResult<T>;
+    let json: unknown;
     try {
-        data = (await res.json()) as ApiResult<T>;
+        json = await res.json();
     } catch {
         throw new ApiError('Некорректный ответ сервера.');
     }
 
-    if (data.type === ResponseType.ErrorMessage) {
-        throw new ApiError(data.content);
+    const envelope = envelopeSchema.safeParse(json);
+    if (!envelope.success) {
+        throw new ApiError('Некорректный ответ сервера.');
     }
 
-    return (data as { content: T }).content;
+    if (envelope.data.type === errorMessageType) {
+        const message = typeof envelope.data.content === 'string' ? envelope.data.content : 'Неизвестная ошибка сервера.';
+        throw new ApiError(message);
+    }
+
+    if (schema == null) {
+        return undefined as T;
+    }
+
+    const parsed = schema.safeParse(envelope.data.content);
+    if (!parsed.success) {
+        throw new ApiError('Сервер вернул данные в неожиданном формате.');
+    }
+
+    return parsed.data;
 }
 
-export const apiGet = <T>(url: string, signal?: AbortSignal): Promise<T> => request<T>('GET', url, signal);
+export const apiGet = <T>(url: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> =>
+    request<T>('GET', url, schema, signal);
 
-export const apiPost = (url: string, signal?: AbortSignal): Promise<void> => request<void>('POST', url, signal);
+export async function apiPost(url: string, signal?: AbortSignal): Promise<void> {
+    await request('POST', url, null, signal);
+}

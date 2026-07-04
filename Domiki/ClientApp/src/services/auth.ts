@@ -38,7 +38,7 @@ class AuthorizeService {
     }
 
     signIn(returnUrl?: string): void {
-        const target = returnUrl || `${window.location.pathname}${window.location.search}`;
+        const target = returnUrl != null && returnUrl.length > 0 ? returnUrl : `${window.location.pathname}${window.location.search}`;
         window.location.assign(`/authentication/login?returnUrl=${encodeURIComponent(target)}`);
     }
 
@@ -57,14 +57,12 @@ class AuthorizeService {
     }
 
     unsubscribe(subscriptionId: number): void {
-        const subscriptionIndex = this._callbacks
-            .map((element, index) => (element.subscription === subscriptionId ? { found: true, index } : { found: false, index: -1 }))
-            .filter(element => element.found);
-        if (subscriptionIndex.length !== 1) {
-            throw new Error(`Found an invalid number of subscriptions ${subscriptionIndex.length}`);
+        const index = this._callbacks.findIndex(element => element.subscription === subscriptionId);
+        if (index < 0) {
+            throw new Error('Found an invalid number of subscriptions 0');
         }
 
-        this._callbacks.splice(subscriptionIndex[0].index, 1);
+        this._callbacks.splice(index, 1);
     }
 }
 

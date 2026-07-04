@@ -1,4 +1,5 @@
-import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 
 interface ToastItem {
     id: number;
@@ -55,9 +56,9 @@ export const Toaster = () => {
     return (
         <div className="toast-container" aria-live="assertive" aria-atomic="false">
             {toasts.map(toast => (
-                <div key={toast.id} className="toast" onClick={() => dismiss(toast.id)}>
+                <button type="button" key={toast.id} className="toast" onClick={() => dismiss(toast.id)}>
                     {toast.message}
-                </div>
+                </button>
             ))}
         </div>
     );

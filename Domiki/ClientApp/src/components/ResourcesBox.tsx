@@ -1,4 +1,4 @@
-import { ResourceDto, ResourceTypeDto } from '../types/api';
+import type { ResourceDto, ResourceTypeDto } from '../types/api';
 
 interface ResourcesBoxProps {
     resources: ResourceDto[];

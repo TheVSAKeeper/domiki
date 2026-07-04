@@ -1,4 +1,4 @@
-import { DomikDto, DomikTypeDto, ManufactureDto, PlodderCount, ReceiptDto, ResourceDto, SelectedDomikView, UpgradeView } from '../types/api';
+import type { DomikDto, DomikTypeDto, ManufactureDto, PlodderCount, ReceiptDto, ResourceDto, SelectedDomikView, UpgradeView } from '../types/api';
 import { formatDuration, remainingSeconds } from './time';
 
 const plodderTypeId = 1;

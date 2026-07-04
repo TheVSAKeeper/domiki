@@ -16,10 +16,10 @@ export const LoginMenu = () => {
             setUserName(user ? user.name : null);
         };
 
-        const subscription = authService.subscribe(populateState);
+        const subscription = authService.subscribe(() => { void populateState(); });
         void populateState();
 
-        return () => authService.unsubscribe(subscription);
+        return () => { authService.unsubscribe(subscription); };
     }, []);
 
     const loginDemo = async (e: MouseEvent) => {

@@ -1,4 +1,4 @@
-import { ManufactureDto, ReceiptDto } from '../types/api';
+import type { ManufactureDto, ReceiptDto } from '../types/api';
 import { manufactureProgressPercent } from '../utils/game';
 
 interface ManufactureBoxProps {

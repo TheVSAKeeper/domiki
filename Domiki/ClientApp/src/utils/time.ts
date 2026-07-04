@@ -1,5 +1,5 @@
 function pad(value: number): string {
-    return value < 10 ? '0' + value : String(value);
+    return value < 10 ? `0${value}` : String(value);
 }
 
 export function formatDuration(totalSeconds: number): string {

@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import ArrowUpIcon from 'pixelarticons/svg/arrow-up.svg?react';
 import PlayIcon from 'pixelarticons/svg/play.svg?react';
-import { apiGet, apiPost, ApiError } from '../services/api';
+import { apiPost, ApiError } from '../services/api';
 import { useToast } from '../services/toast';
-import { DomikDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto } from '../types/api';
+import { useGameData } from '../hooks/useGameData';
 import { computePlodderCount, computeSelectedDomikView } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ManufactureBox } from './ManufactureBox';
@@ -14,99 +14,11 @@ import { UpgradeBox } from './UpgradeBox';
 
 export const DomikiPage = () => {
     const toast = useToast();
+    const { domiks, domikTypes, resourceTypes, receipts, resources, purchaseDomikTypes, now, reload, refreshPurchaseTypes } =
+        useGameData();
 
-    const [domiks, setDomiks] = useState<DomikDto[]>([]);
-    const [domikTypes, setDomikTypes] = useState<DomikTypeDto[]>([]);
-    const [resourceTypes, setResourceTypes] = useState<ResourceTypeDto[]>([]);
-    const [receipts, setReceipts] = useState<ReceiptDto[]>([]);
-    const [resources, setResources] = useState<ResourceDto[]>([]);
-    const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [shopVisible, setShopVisible] = useState(false);
     const [selectedDomikId, setSelectedDomikId] = useState<number | null>(null);
-    const [now, setNow] = useState(() => Date.now());
-
-    const refetching = useRef(false);
-    const domiksRef = useRef(domiks);
-
-    useEffect(() => {
-        domiksRef.current = domiks;
-    }, [domiks]);
-
-    const reloadDomiksAndResources = useCallback(async () => {
-        const [domiksData, resourcesData] = await Promise.all([
-            apiGet<DomikDto[]>('Domiki/GetDomiks'),
-            apiGet<ResourceDto[]>('Domiki/GetResources'),
-        ]);
-        setDomiks(domiksData);
-        setResources(resourcesData);
-    }, []);
-
-    useEffect(() => {
-        const id = setInterval(() => setNow(Date.now()), 1000);
-        return () => clearInterval(id);
-    }, []);
-
-    useEffect(() => {
-        const controller = new AbortController();
-        const { signal } = controller;
-
-        const safeLoad = async <T,>(url: string, setter: (data: T) => void) => {
-            try {
-                const data = await apiGet<T>(url, signal);
-                setter(data);
-            } catch (err) {
-                if (err instanceof DOMException && err.name === 'AbortError') {
-                    return;
-                }
-                if (err instanceof ApiError) {
-                    toast.error(err.message);
-                    return;
-                }
-            }
-        };
-
-        void Promise.all([
-            safeLoad<DomikTypeDto[]>('Domiki/GetDomikTypes', setDomikTypes),
-            safeLoad<ResourceTypeDto[]>('Domiki/GetResourceTypes', setResourceTypes),
-            safeLoad<ReceiptDto[]>('Domiki/GetReceipts', setReceipts),
-            safeLoad<DomikDto[]>('Domiki/GetDomiks', setDomiks),
-            safeLoad<ResourceDto[]>('Domiki/GetResources', setResources),
-            safeLoad<DomikTypeDto[]>('Domiki/GetPurchaseAvaialableDomiks', setPurchaseDomikTypes),
-        ]);
-
-        return () => controller.abort();
-    }, [toast]);
-
-    useEffect(() => {
-        if (refetching.current) {
-            return;
-        }
-
-        const expired = domiksRef.current.some(domik => {
-            if (domik.finishDate != null && remainingSeconds(domik.finishDate, now) <= 0) {
-                return true;
-            }
-            return domik.manufactures?.some(manufacture => remainingSeconds(manufacture.finishDate, now) <= 0) ?? false;
-        });
-
-        if (!expired) {
-            return;
-        }
-
-        refetching.current = true;
-
-        reloadDomiksAndResources()
-            .catch(err => {
-                if (err instanceof ApiError) {
-                    toast.error(err.message);
-                    return;
-                }
-                throw err;
-            })
-            .finally(() => {
-                refetching.current = false;
-            });
-    }, [now, toast, reloadDomiksAndResources]);
 
     const plodder = useMemo(() => computePlodderCount(domiks, domikTypes), [domiks, domikTypes]);
     const selected = useMemo(
@@ -128,25 +40,25 @@ export const DomikiPage = () => {
 
     const buy = (typeId: number) => runAction(async () => {
         await apiPost(`Domiki/BuyDomik/${typeId}`);
-        await reloadDomiksAndResources();
-        setPurchaseDomikTypes(await apiGet<DomikTypeDto[]>('Domiki/GetPurchaseAvaialableDomiks'));
+        await reload();
+        await refreshPurchaseTypes();
     });
 
     const upgrade = (id: number) => runAction(async () => {
         await apiPost(`Domiki/UpgradeDomik/${id}`);
-        await reloadDomiksAndResources();
+        await reload();
     });
 
     const startManufacture = (domikId: number, receiptId: number) => runAction(async () => {
         await apiPost(`Domiki/StartManufacture/${domikId}/${receiptId}`);
-        await reloadDomiksAndResources();
+        await reload();
     });
 
     const toggleShop = () => runAction(async () => {
         const willShow = !shopVisible;
         setShopVisible(willShow);
         if (willShow && purchaseDomikTypes == null) {
-            setPurchaseDomikTypes(await apiGet<DomikTypeDto[]>('Domiki/GetPurchaseAvaialableDomiks'));
+            await refreshPurchaseTypes();
         }
     });
 
@@ -198,12 +110,13 @@ export const DomikiPage = () => {
                             }
                             {purchaseDomikTypes.map(purchaseDomikType => {
                                 const image = '/images/domikTypes/' + purchaseDomikType.logicName + '.png';
+                                const firstLevel = purchaseDomikType.levels[0];
                                 return (
                                     <div key={purchaseDomikType.id} className="plot plot-shop">
                                         <img className="plot-sprite" src={image} alt={purchaseDomikType.name} />
                                         <span className="plot-name">{purchaseDomikType.name}</span>
                                         <span className="plot-status">Доступно: {purchaseDomikType.availableCount}/{purchaseDomikType.maxCount}</span>
-                                        <ResourcesBox resources={purchaseDomikType.levels[0].resources} resourceTypes={resourceTypes} />
+                                        <ResourcesBox resources={firstLevel?.resources ?? []} resourceTypes={resourceTypes} />
                                         <button className="btn-game" onClick={() => buy(purchaseDomikType.id)}>
                                             <BuildingIcon className="btn-ico" aria-hidden="true" />
                                             Купить

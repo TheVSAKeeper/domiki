@@ -10,11 +10,15 @@ export default tseslint.config(
         files: ['**/*.{ts,tsx}'],
         extends: [
             js.configs.recommended,
-            ...tseslint.configs.recommended,
+            ...tseslint.configs.strictTypeChecked,
         ],
         languageOptions: {
             ecmaVersion: 2022,
             globals: { ...globals.browser },
+            parserOptions: {
+                projectService: true,
+                tsconfigRootDir: import.meta.dirname,
+            },
         },
         plugins: {
             'react-hooks': reactHooks,
@@ -24,6 +28,16 @@ export default tseslint.config(
             ...reactHooks.configs['recommended-latest'].rules,
             'react-hooks/exhaustive-deps': 'error',
             'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+            '@typescript-eslint/no-misused-promises': ['error', { checksVoidReturn: { attributes: false } }],
+            '@typescript-eslint/no-confusing-void-expression': ['error', { ignoreArrowShorthand: true }],
+            '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
+        },
+    },
+    {
+        files: ['vite.config.ts'],
+        extends: [tseslint.configs.disableTypeChecked],
+        languageOptions: {
+            parserOptions: { projectService: false },
         },
     },
 );

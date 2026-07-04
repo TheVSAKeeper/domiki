@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto } from '../types/api';
+import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto } from '../types/api';
 import { computePlodderCount, manufactureProgressPercent } from './game';
 
 const domikTypes: DomikTypeDto[] = [

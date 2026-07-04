@@ -1,69 +1,75 @@
+import { z } from 'zod';
+
 export enum ResponseType {
     Success = 1,
     ErrorMessage = 2,
 }
 
-export type ApiResult<T> =
-    | { type: ResponseType.Success; content: T }
-    | { type: ResponseType.ErrorMessage; content: string };
+export const resourceSchema = z.object({
+    typeId: z.number(),
+    value: z.number(),
+});
+export type ResourceDto = z.infer<typeof resourceSchema>;
 
-export interface DomikDto {
-    id: number;
-    typeId: number;
-    level: number;
-    finishDate: string | null;
-    manufactures: ManufactureDto[] | null;
-}
+export const modificatorSchema = z.object({
+    typeId: z.number(),
+    value: z.number(),
+});
+export type ModificatorDto = z.infer<typeof modificatorSchema>;
 
-export interface ManufactureDto {
-    id: number;
-    finishDate: string;
-    plodderCount: number;
-    receiptId: number;
-}
+export const manufactureSchema = z.object({
+    id: z.number(),
+    finishDate: z.string(),
+    plodderCount: z.number(),
+    receiptId: z.number(),
+});
+export type ManufactureDto = z.infer<typeof manufactureSchema>;
 
-export interface DomikTypeDto {
-    id: number;
-    name: string;
-    logicName: string;
-    maxCount: number;
-    availableCount: number;
-    maxLevel: number;
-    levels: UpgradeLevelDto[];
-}
+export const domikSchema = z.object({
+    id: z.number(),
+    typeId: z.number(),
+    level: z.number(),
+    finishDate: z.string().nullable(),
+    manufactures: z.array(manufactureSchema).nullable(),
+});
+export type DomikDto = z.infer<typeof domikSchema>;
 
-export interface UpgradeLevelDto {
-    value: number;
-    resources: ResourceDto[];
-    modificators: ModificatorDto[];
-    receiptIds: number[];
-}
+export const upgradeLevelSchema = z.object({
+    value: z.number(),
+    resources: z.array(resourceSchema),
+    modificators: z.array(modificatorSchema),
+    receiptIds: z.array(z.number()),
+});
+export type UpgradeLevelDto = z.infer<typeof upgradeLevelSchema>;
 
-export interface ResourceDto {
-    typeId: number;
-    value: number;
-}
+export const domikTypeSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    logicName: z.string(),
+    maxCount: z.number(),
+    availableCount: z.number(),
+    maxLevel: z.number(),
+    levels: z.array(upgradeLevelSchema),
+});
+export type DomikTypeDto = z.infer<typeof domikTypeSchema>;
 
-export interface ResourceTypeDto {
-    id: number;
-    name: string;
-    logicName: string;
-}
+export const resourceTypeSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    logicName: z.string(),
+});
+export type ResourceTypeDto = z.infer<typeof resourceTypeSchema>;
 
-export interface ModificatorDto {
-    typeId: number;
-    value: number;
-}
-
-export interface ReceiptDto {
-    id: number;
-    name: string;
-    logicName: string;
-    inputResources: ResourceDto[];
-    durationSeconds: number;
-    outputResources: ResourceDto[];
-    plodderCount: number;
-}
+export const receiptSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    logicName: z.string(),
+    inputResources: z.array(resourceSchema),
+    durationSeconds: z.number(),
+    outputResources: z.array(resourceSchema),
+    plodderCount: z.number(),
+});
+export type ReceiptDto = z.infer<typeof receiptSchema>;
 
 export interface PlodderCount {
     max: number;

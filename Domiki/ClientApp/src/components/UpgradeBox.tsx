@@ -4,7 +4,7 @@ interface UpgradeBoxProps {
 }
 
 export const UpgradeBox = ({ durationSeconds, level }: UpgradeBoxProps) => {
-    const levelText = durationSeconds == null ? 'ур. ' + level : level + ' → ' + (level + 1);
+    const levelText = durationSeconds == null ? `ур. ${level}` : `${level} → ${level + 1}`;
 
     return (
         <span className="upgrade-box">

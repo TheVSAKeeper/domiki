@@ -17,10 +17,12 @@ export const Home = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-        const update = async () => setIsAuthenticated(await authService.isAuthenticated());
+        const update = () => {
+            void authService.isAuthenticated().then(setIsAuthenticated);
+        };
         const subscription = authService.subscribe(update);
         update();
-        return () => authService.unsubscribe(subscription);
+        return () => { authService.unsubscribe(subscription); };
     }, []);
 
     const loginDemo = async (e: MouseEvent) => {
@@ -56,7 +58,7 @@ export const Home = () => {
             <section className="steps">
                 {steps.map((step, i) => (
                     <div key={step.title} className="step">
-                        <span className="step-num">{'0' + (i + 1)}</span>
+                        <span className="step-num">{`0${i + 1}`}</span>
                         <h2 className="step-title">{step.title}</h2>
                         <p className="step-text">{step.text}</p>
                     </div>
