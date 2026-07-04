@@ -16,7 +16,11 @@ const certificateName = 'Domiki';
 const certFilePath = path.join(baseFolder, `${certificateName}.pem`);
 const keyFilePath = path.join(baseFolder, `${certificateName}.key`);
 
-if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
+function ensureDevCertificate() {
+    if (fs.existsSync(certFilePath) && fs.existsSync(keyFilePath)) {
+        return;
+    }
+
     const result = child_process.spawnSync(
         'dotnet',
         ['dev-certs', 'https', '--export-path', certFilePath, '--format', 'Pem', '--no-password'],
@@ -47,27 +51,37 @@ const backendPaths = [
 
 const proxy = Object.fromEntries(backendPaths.map((p) => [p, { target, secure: false }]));
 
-export default defineConfig({
-    base: '/',
-    plugins: [react(), svgr()],
-    build: {
-        outDir: 'build',
-        emptyOutDir: true,
-    },
-    server: {
-        host: '127.0.0.1',
-        port: 44444,
-        strictPort: true,
-        proxy,
-        https: {
-            key: fs.readFileSync(keyFilePath),
-            cert: fs.readFileSync(certFilePath),
+export default defineConfig(({ command, mode }) => {
+    const useDevServer = command === 'serve' && mode !== 'test';
+
+    if (useDevServer) {
+        ensureDevCertificate();
+    }
+
+    return {
+        base: '/',
+        plugins: [react(), svgr()],
+        build: {
+            outDir: 'build',
+            emptyOutDir: true,
         },
-    },
-    test: {
-        globals: true,
-        environment: 'jsdom',
-        setupFiles: './src/setupTests.ts',
-        css: false,
-    },
+        server: useDevServer
+            ? {
+                host: '127.0.0.1',
+                port: 44444,
+                strictPort: true,
+                proxy,
+                https: {
+                    key: fs.readFileSync(keyFilePath),
+                    cert: fs.readFileSync(certFilePath),
+                },
+            }
+            : undefined,
+        test: {
+            globals: true,
+            environment: 'jsdom',
+            setupFiles: './src/setupTests.ts',
+            css: false,
+        },
+    };
 });
