@@ -1,6 +1,7 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import svgr from 'vite-plugin-svgr';
 import fs from 'node:fs';
 import path from 'node:path';
 import child_process from 'node:child_process';
@@ -48,7 +49,7 @@ const proxy = Object.fromEntries(backendPaths.map((p) => [p, { target, secure: f
 
 export default defineConfig({
     base: '/',
-    plugins: [react()],
+    plugins: [react(), svgr()],
     build: {
         outDir: 'build',
         emptyOutDir: true,

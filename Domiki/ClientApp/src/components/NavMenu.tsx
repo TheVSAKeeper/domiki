@@ -1,26 +1,38 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Collapse, Navbar, NavbarBrand, NavbarToggler, NavItem, NavLink } from 'reactstrap';
+import MenuIcon from 'pixelarticons/svg/menu.svg?react';
+import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import { LoginMenu } from './api-authorization/LoginMenu';
-import './NavMenu.css';
 
 export const NavMenu = () => {
-    const [collapsed, setCollapsed] = useState(true);
+    const [open, setOpen] = useState(false);
+    const close = () => setOpen(false);
 
     return (
-        <header>
-            <Navbar className="navbar-expand-sm navbar-toggleable-sm border-bottom box-shadow mb-3" container light>
-                <NavbarBrand tag={Link} to="/">Domiki</NavbarBrand>
-                <NavbarToggler onClick={() => setCollapsed(!collapsed)} className="mr-2" />
-                <Collapse className="d-sm-inline-flex flex-sm-row-reverse" isOpen={!collapsed} navbar>
-                    <ul className="navbar-nav flex-grow">
-                        <NavItem>
-                            <NavLink tag={Link} to="/domiki-page">Домики</NavLink>
-                        </NavItem>
+        <header className="site-header">
+            <nav className="topnav">
+                <div className="topnav-inner">
+                    <Link className="brand" to="/" onClick={close}>Domiki</Link>
+                    <button
+                        type="button"
+                        className="nav-toggle"
+                        aria-label="Меню"
+                        aria-expanded={open}
+                        onClick={() => setOpen(value => !value)}
+                    >
+                        <MenuIcon className="nav-ico" aria-hidden="true" />
+                    </button>
+                    <ul className={'nav-links' + (open ? ' nav-links-open' : '')}>
+                        <li>
+                            <Link className="nav-link" to="/domiki-page" onClick={close}>
+                                <BuildingIcon className="nav-ico" aria-hidden="true" />
+                                Домики
+                            </Link>
+                        </li>
                         <LoginMenu />
                     </ul>
-                </Collapse>
-            </Navbar>
+                </div>
+            </nav>
         </header>
     );
 };

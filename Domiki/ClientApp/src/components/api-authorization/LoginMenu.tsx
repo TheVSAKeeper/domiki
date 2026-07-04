@@ -1,5 +1,8 @@
 import { type MouseEvent, useEffect, useState } from 'react';
-import { NavItem, NavLink } from 'reactstrap';
+import PlayIcon from 'pixelarticons/svg/play.svg?react';
+import LoginIcon from 'pixelarticons/svg/login.svg?react';
+import LogoutIcon from 'pixelarticons/svg/logout.svg?react';
+import UserIcon from 'pixelarticons/svg/user.svg?react';
 import { authService } from '../../services/auth';
 
 export const LoginMenu = () => {
@@ -30,24 +33,36 @@ export const LoginMenu = () => {
     if (!isAuthenticated) {
         return (
             <>
-                <NavItem>
-                    <button type="button" className="nav-cta" onClick={loginDemo}>Играть демо</button>
-                </NavItem>
-                <NavItem>
-                    <NavLink tag="a" href="/authentication/login">Войти</NavLink>
-                </NavItem>
+                <li>
+                    <button type="button" className="nav-cta" onClick={loginDemo}>
+                        <PlayIcon className="nav-ico" aria-hidden="true" />
+                        Играть демо
+                    </button>
+                </li>
+                <li>
+                    <a className="nav-link" href="/authentication/login">
+                        <LoginIcon className="nav-ico" aria-hidden="true" />
+                        Войти
+                    </a>
+                </li>
             </>
         );
     }
 
     return (
         <>
-            <NavItem>
-                <span className="nav-user">{userName}</span>
-            </NavItem>
-            <NavItem>
-                <NavLink tag="a" href="/authentication/logout">Выйти</NavLink>
-            </NavItem>
+            <li>
+                <span className="nav-user">
+                    <UserIcon className="nav-ico" aria-hidden="true" />
+                    {userName}
+                </span>
+            </li>
+            <li>
+                <a className="nav-link" href="/authentication/logout">
+                    <LogoutIcon className="nav-ico" aria-hidden="true" />
+                    Выйти
+                </a>
+            </li>
         </>
     );
 };

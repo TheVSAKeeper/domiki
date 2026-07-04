@@ -11,14 +11,17 @@ export default tseslint.config(
         extends: [
             js.configs.recommended,
             ...tseslint.configs.recommended,
-            reactHooks.configs['recommended-latest'],
         ],
         languageOptions: {
             ecmaVersion: 2022,
             globals: { ...globals.browser },
         },
-        plugins: { 'react-refresh': reactRefresh },
+        plugins: {
+            'react-hooks': reactHooks,
+            'react-refresh': reactRefresh,
+        },
         rules: {
+            ...reactHooks.configs['recommended-latest'].rules,
             'react-hooks/exhaustive-deps': 'error',
             'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
         },

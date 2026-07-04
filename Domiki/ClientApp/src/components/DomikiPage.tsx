@@ -1,4 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import StoreIcon from 'pixelarticons/svg/store.svg?react';
+import BuildingIcon from 'pixelarticons/svg/building.svg?react';
+import ArrowUpIcon from 'pixelarticons/svg/arrow-up.svg?react';
+import PlayIcon from 'pixelarticons/svg/play.svg?react';
 import { apiGet, apiPost, ApiError } from '../services/api';
 import { useToast } from '../services/toast';
 import { DomikDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto } from '../types/api';
@@ -19,11 +23,14 @@ export const DomikiPage = () => {
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [shopVisible, setShopVisible] = useState(false);
     const [selectedDomikId, setSelectedDomikId] = useState<number | null>(null);
-    const [now, setNow] = useState(Date.now());
+    const [now, setNow] = useState(() => Date.now());
 
     const refetching = useRef(false);
     const domiksRef = useRef(domiks);
-    domiksRef.current = domiks;
+
+    useEffect(() => {
+        domiksRef.current = domiks;
+    }, [domiks]);
 
     const reloadDomiksAndResources = useCallback(async () => {
         const [domiksData, resourcesData] = await Promise.all([
@@ -179,6 +186,7 @@ export const DomikiPage = () => {
                         <h2 className="section-title">Деревня</h2>
                         {purchaseDomikTypes != null &&
                             <button className="btn-game" onClick={() => toggleShop()}>
+                                <StoreIcon className="btn-ico" aria-hidden="true" />
                                 {shopVisible ? 'Закрыть магазин' : 'Магазин'}
                             </button>
                         }
@@ -196,7 +204,10 @@ export const DomikiPage = () => {
                                         <span className="plot-name">{purchaseDomikType.name}</span>
                                         <span className="plot-status">Доступно: {purchaseDomikType.availableCount}/{purchaseDomikType.maxCount}</span>
                                         <ResourcesBox resources={purchaseDomikType.levels[0].resources} resourceTypes={resourceTypes} />
-                                        <button className="btn-game" onClick={() => buy(purchaseDomikType.id)}>Купить</button>
+                                        <button className="btn-game" onClick={() => buy(purchaseDomikType.id)}>
+                                            <BuildingIcon className="btn-ico" aria-hidden="true" />
+                                            Купить
+                                        </button>
                                     </div>
                                 );
                             })
@@ -254,7 +265,10 @@ export const DomikiPage = () => {
                                     <ResourcesBox resources={selected.upgrade.resources} resourceTypes={resourceTypes} />
                                     <button className="btn-game"
                                         disabled={!selected.upgrade.hasResources}
-                                        onClick={() => upgrade(selected.domik.id)}>Улучшить</button>
+                                        onClick={() => upgrade(selected.domik.id)}>
+                                        <ArrowUpIcon className="btn-ico" aria-hidden="true" />
+                                        Улучшить
+                                    </button>
                                     {!selected.upgrade.hasResources &&
                                         <p className="note-warn">
                                             <img src="/images/upgrade_no_resources.png" alt="" />
@@ -275,7 +289,10 @@ export const DomikiPage = () => {
                                     <div className="receipt-list">
                                         {selected.receipts.map(receipt => (
                                             <button key={receipt.id} className="btn-game"
-                                                onClick={() => startManufacture(selected.domik.id, receipt.id)}>{receipt.name}</button>
+                                                onClick={() => startManufacture(selected.domik.id, receipt.id)}>
+                                                <PlayIcon className="btn-ico" aria-hidden="true" />
+                                                {receipt.name}
+                                            </button>
                                         ))}
                                     </div>
                                 </div>

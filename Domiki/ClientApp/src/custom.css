@@ -14,12 +14,37 @@
     --cut: polygon(0 var(--px), var(--px) var(--px), var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px), 100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%, var(--px) 100%, var(--px) calc(100% - var(--px)), 0 calc(100% - var(--px)));
 }
 
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
 body {
+    margin: 0;
     font-family: 'Golos Text', 'Segoe UI', sans-serif;
+    line-height: 1.5;
     color: var(--ink);
     background-color: var(--field);
     background-image: repeating-conic-gradient(var(--field-dark) 0% 25%, var(--field) 0% 50%);
     background-size: 56px 56px;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 16px;
 }
 
 a {
@@ -36,26 +61,104 @@ code {
     border-color: var(--pine-dark);
 }
 
-.navbar {
-    background: var(--plank);
-    border-bottom: 3px solid var(--ink) !important;
+.site-header {
+    margin-bottom: 24px;
 }
 
-.navbar .navbar-brand {
+.topnav {
+    background: var(--plank);
+    border-bottom: 3px solid var(--ink);
+    box-shadow: 0 4px 0 var(--plank-dark);
+}
+
+.topnav-inner {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px 16px;
+}
+
+.brand {
+    margin-right: auto;
     font-family: 'Press Start 2P', monospace;
     font-size: 14px;
     color: var(--pine);
+    text-decoration: none;
 }
 
-.navbar .nav-link {
+.nav-toggle {
+    display: none;
+    align-items: center;
+    padding: 6px;
+    color: var(--ink);
+    background: var(--plank-dark);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 8px 18px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 4px;
     font-weight: 600;
     color: var(--ink);
+    text-decoration: none;
     transition: color .12s;
 }
 
-    .navbar .nav-link:hover {
+    .nav-link:hover {
         color: var(--pine);
     }
+
+.nav-ico {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.btn-ico {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 575px) {
+    .brand {
+        margin-right: 0;
+    }
+
+    .nav-toggle {
+        display: inline-flex;
+        margin-left: auto;
+    }
+
+    .nav-links {
+        flex-basis: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        display: none;
+    }
+
+    .nav-links-open {
+        display: flex;
+    }
+}
 
 .pixel-panel {
     background: var(--plank);
@@ -304,6 +407,10 @@ code {
     }
 
 .btn-game {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     font-family: inherit;
     font-size: 14px;
     font-weight: 600;
@@ -443,7 +550,9 @@ progress {
 }
 
 .nav-user {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 7px 11px 5px;
     font-family: 'Press Start 2P', monospace;
     font-size: 9px;
@@ -453,6 +562,9 @@ progress {
 }
 
 .nav-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     font-family: inherit;
     font-size: 14px;
     font-weight: 700;
@@ -473,12 +585,6 @@ progress {
         outline: none;
         border-color: var(--pine);
     }
-
-@media (min-width: 576px) {
-    .navbar .navbar-nav {
-        align-items: center;
-    }
-}
 
 .home {
     max-width: 860px;
@@ -535,6 +641,10 @@ progress {
     }
 
 .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     font-family: inherit;
     font-size: 16px;
     font-weight: 600;

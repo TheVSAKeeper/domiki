@@ -1,5 +1,8 @@
 import { type CSSProperties, type MouseEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import PlayIcon from 'pixelarticons/svg/play.svg?react';
+import LoginIcon from 'pixelarticons/svg/login.svg?react';
+import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import { authService } from '../services/auth';
 
 const buildings = ['market', 'lumber_mill', 'clay_mine', 'stone_mine', 'gold_mine', 'forge', 'barracks'];
@@ -36,10 +39,10 @@ export const Home = () => {
                 <p className="hero-tagline">Маленькая деревня, которая работает на тебя. Строй домики, запускай производства и собирай ресурсы – хоть с закрытой вкладкой.</p>
                 <div className="hero-cta">
                     {isAuthenticated
-                        ? <Link className="btn-game" to="/domiki-page">В деревню</Link>
+                        ? <Link className="btn-game" to="/domiki-page"><BuildingIcon className="btn-ico" aria-hidden="true" />В деревню</Link>
                         : <>
-                            <button className="btn-game" onClick={loginDemo}>Играть демо</button>
-                            <a className="btn-ghost" href="/authentication/login">Войти</a>
+                            <button className="btn-game" onClick={loginDemo}><PlayIcon className="btn-ico" aria-hidden="true" />Играть демо</button>
+                            <a className="btn-ghost" href="/authentication/login"><LoginIcon className="btn-ico" aria-hidden="true" />Войти</a>
                         </>
                     }
                 </div>

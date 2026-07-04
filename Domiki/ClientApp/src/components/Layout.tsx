@@ -1,5 +1,4 @@
 import { ReactNode } from 'react';
-import { Container } from 'reactstrap';
 import { Toaster } from '../services/toast';
 import { NavMenu } from './NavMenu';
 
@@ -11,9 +10,9 @@ export const Layout = ({ children }: LayoutProps) => {
     return (
         <div>
             <NavMenu />
-            <Container>
+            <main className="app-container">
                 {children}
-            </Container>
+            </main>
             <Toaster />
         </div>
     );
