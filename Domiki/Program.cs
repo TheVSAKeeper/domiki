@@ -10,6 +10,8 @@ using NLog.Web;
 using NLog;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.ResponseCompression;
+using System.IO.Compression;
 using System.Security.Claims;
 
 var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
@@ -93,6 +95,24 @@ builder.Services.AddScoped<ResourceManager>();
 builder.Services.AddSingleton<ICalculator, Calculator>();
 builder.Services.AddScoped<CalculatorTick>();
 builder.Services.AddHostedService<CalculatorBackgroundService>();
+
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[]
+    {
+        "application/wasm",
+        "image/svg+xml",
+        "application/manifest+json",
+    });
+});
+builder.Services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Optimal);
+builder.Services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Optimal);
+
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
 var demoUserName = app.Configuration["Demo:UserName"];
@@ -121,8 +141,43 @@ if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
 }
+else
+{
+    app.UseHsts();
+}
 
-app.UseStaticFiles();
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers["X-Content-Type-Options"] = "nosniff";
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    headers["X-Frame-Options"] = "DENY";
+    headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+    context.Response.OnStarting(() =>
+    {
+        if (context.Response.ContentType?.Contains("text/html", StringComparison.OrdinalIgnoreCase) == true
+            && !headers.ContainsKey("Cache-Control"))
+        {
+            headers.CacheControl = "no-cache";
+        }
+        return Task.CompletedTask;
+    });
+    await next();
+});
+
+app.UseResponseCompression();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = context =>
+    {
+        var path = context.Context.Request.Path.Value;
+        if (path != null && path.StartsWith("/assets/", StringComparison.Ordinal))
+        {
+            context.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+        }
+    }
+});
 app.UseRouting();
 
 app.UseAuthentication();
@@ -146,6 +201,8 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller}/{action=Index}/{id?}");
 app.MapRazorPages();
+
+app.MapHealthChecks("/healthz");
 
 app.MapGet("/authentication/login", (string returnUrl) =>
 {
