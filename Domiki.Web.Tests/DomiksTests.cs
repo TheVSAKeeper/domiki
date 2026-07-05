@@ -291,6 +291,91 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Домик ещё строится"));
         }
 
+        [TestCase(5, 14, 4, 8)]
+        [TestCase(5, 18, 4, 24)]
+        [TestCase(3, 15, 2, 8)]
+        [TestCase(4, 21, 5, 24)]
+        public void LongDigProducesCorrectAmountTest(int mineTypeId, int receiptId, int outResourceTypeId, int amount)
+        {
+            var playerId = GetPlayerId();
+            var barakTypeId = 2;
+            var coinResourceTypeId = 1;
+            BuyDomik(playerId, barakTypeId);
+            BuyDomik(playerId, mineTypeId);
+            var beforeCoin = GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value;
+            StartManufacture(playerId, 2, receiptId);
+            var after = GetResources(playerId);
+            var outValue = after.First(x => x.Type.Id == outResourceTypeId).Value;
+            var coinDiff = after.First(x => x.Type.Id == coinResourceTypeId).Value - beforeCoin;
+            Assert.That(outValue, Is.EqualTo(amount));
+            Assert.That(coinDiff, Is.EqualTo(-amount));
+        }
+
+        [Test]
+        public void UpgradeToLevel3RequiresMaterialsTest()
+        {
+            var playerId = GetPlayerId();
+            var stoneMineTypeId = 3;
+            BuyDomik(playerId, stoneMineTypeId);
+            UpgradeDomik(playerId, 1);
+            Assert.Throws<BusinessException>(() => UpgradeDomik(playerId, 1));
+        }
+
+        [Test]
+        public void ForgeBrickAndSellTest()
+        {
+            var playerId = GetPlayerId();
+            var barakTypeId = 2;
+            var clayMineTypeId = 5;
+            var forgeTypeId = 1;
+            var marketTypeId = 7;
+            var coinResourceTypeId = 1;
+            var clayResourceTypeId = 4;
+            var brickResourceTypeId = 6;
+            var clayDig8hReceiptId = 14;
+            var makeBrickReceiptId = 22;
+            var sellBrickReceiptId = 25;
+            BuyDomik(playerId, barakTypeId);
+            BuyDomik(playerId, clayMineTypeId);
+            BuyDomik(playerId, forgeTypeId);
+            BuyDomik(playerId, marketTypeId);
+            StartManufacture(playerId, 2, clayDig8hReceiptId);
+            StartManufacture(playerId, 3, makeBrickReceiptId);
+            var afterBrick = GetResources(playerId);
+            Assert.That(afterBrick.First(x => x.Type.Id == brickResourceTypeId).Value, Is.EqualTo(1));
+            Assert.That(afterBrick.First(x => x.Type.Id == clayResourceTypeId).Value, Is.EqualTo(6));
+            var beforeSellCoin = afterBrick.First(x => x.Type.Id == coinResourceTypeId).Value;
+            StartManufacture(playerId, 4, sellBrickReceiptId);
+            var afterSell = GetResources(playerId);
+            Assert.That(afterSell.First(x => x.Type.Id == brickResourceTypeId).Value, Is.EqualTo(0));
+            Assert.That(afterSell.First(x => x.Type.Id == coinResourceTypeId).Value - beforeSellCoin, Is.EqualTo(35));
+        }
+
+        [TestCase(1, 20)]
+        [TestCase(2, 100)]
+        [TestCase(3, 300)]
+        [TestCase(4, 1000)]
+        [TestCase(5, 6000)]
+        public void UpgradeCoinCostPerLevelTest(int level, int expectedCoin)
+        {
+            var coinResourceTypeId = 1;
+            var forge = GetDomikTypes().First(x => x.Id == 1);
+            var levelData = forge.Levels.First(x => x.Value == level);
+            var coin = levelData.Resources.First(x => x.Type.Id == coinResourceTypeId).Value;
+            Assert.That(coin, Is.EqualTo(expectedCoin));
+        }
+
+        [TestCase(2, 1)]
+        [TestCase(3, 3)]
+        [TestCase(4, 4)]
+        [TestCase(5, 5)]
+        public void UpgradeCostMaterialsShapeTest(int level, int expectedResourceCount)
+        {
+            var forge = GetDomikTypes().First(x => x.Id == 1);
+            var levelData = forge.Levels.First(x => x.Value == level);
+            Assert.That(levelData.Resources.Length, Is.EqualTo(expectedResourceCount));
+        }
+
         private int GetPlayerId()
         {
             using (var uow = GetUow())
