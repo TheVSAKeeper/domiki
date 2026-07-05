@@ -1,43 +1,27 @@
-function pad(value: number): string {
-    return value < 10 ? `0${value}` : String(value);
-}
-
 export function formatDuration(totalSeconds: number): string {
-    const total = Math.round(totalSeconds);
+    let total = Math.max(0, Math.round(totalSeconds));
+    const days = Math.floor(total / 86400);
+    total %= 86400;
+    const hours = Math.floor(total / 3600);
+    total %= 3600;
+    const minutes = Math.floor(total / 60);
     const seconds = total % 60;
-    let minutes = Math.floor(total / 60);
-    let hours = 0;
-    let days = 0;
 
-    if (minutes > 0) {
-        hours = Math.floor(minutes / 60);
-        minutes = minutes % 60;
-    }
-
-    if (hours > 0) {
-        days = Math.floor(hours / 24);
-        hours = hours % 24;
-    }
-
-    let result = '';
-
+    const parts: string[] = [];
     if (days > 0) {
-        result += pad(days) + 'д ';
+        parts.push(days + 'д');
+    }
+    if (hours > 0) {
+        parts.push(hours + 'ч');
+    }
+    if (minutes > 0) {
+        parts.push(minutes + 'м');
+    }
+    if (seconds > 0) {
+        parts.push(seconds + 'с');
     }
 
-    if (hours > 0 || days > 0) {
-        result += pad(hours) + 'ч ';
-    }
-
-    if (minutes > 0 || days > 0 || hours > 0) {
-        result += pad(minutes) + 'м ';
-    }
-
-    if (days === 0) {
-        result += pad(seconds) + 'с ';
-    }
-
-    return result;
+    return parts.length > 0 ? parts.join(' ') : '0с';
 }
 
 export function remainingSeconds(finishDate: string, now: number): number {
