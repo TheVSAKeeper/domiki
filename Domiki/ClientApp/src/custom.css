@@ -457,16 +457,56 @@ code {
 }
 
 .receipt-optional {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.85em;
+    gap: 7px;
+    padding: 4px 9px 4px 6px;
+    font-size: 0.82em;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--plank);
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
     cursor: pointer;
+    user-select: none;
 }
 
-.receipt-optional input {
-    cursor: pointer;
-}
+    .receipt-optional:hover {
+        background: var(--plank-dark);
+    }
+
+    .receipt-optional input {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 15px;
+        height: 15px;
+        margin: 0;
+        background: #fffaec;
+        border: 2px solid var(--ink);
+        cursor: pointer;
+        display: grid;
+        place-content: center;
+    }
+
+        .receipt-optional input::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            background: var(--pine);
+            transform: scale(0);
+        }
+
+        .receipt-optional input:checked {
+            background: var(--coin);
+        }
+
+            .receipt-optional input:checked::before {
+                transform: scale(1);
+            }
+
+    .receipt-optional:has(input:checked) {
+        background: var(--coin);
+    }
 
 .manufacture-box {
     padding: 10px;
