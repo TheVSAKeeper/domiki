@@ -21,11 +21,12 @@ namespace Domiki.Web.Tests
         public void SetVillageValidSavesNormalizedNameAndCrestTest()
         {
             var playerId = GetPlayerId();
+            var name = UniqueVillageName("Тихая Долина");
 
-            SetVillage(playerId, "  Тихая   Долина  ", 2, 3);
+            SetVillage(playerId, "  " + name.Replace(" ", "   ") + "  ", 2, 3);
 
             var village = GetVillage(playerId);
-            Assert.That(village.VillageName, Is.EqualTo("Тихая Долина"));
+            Assert.That(village.VillageName, Is.EqualTo(name));
             Assert.That(village.CrestIcon, Is.EqualTo(2));
             Assert.That(village.CrestColor, Is.EqualTo(3));
         }
@@ -35,15 +36,22 @@ namespace Domiki.Web.Tests
         {
             var firstPlayerId = GetPlayerId();
             var secondPlayerId = GetPlayerId();
-            SetVillage(firstPlayerId, "Тихий Бор", 1, 2);
-            SetVillage(secondPlayerId, "Ясная Поляна", 3, 4);
+            var takenName = UniqueVillageName("Тихий Бор");
+            var keptName = UniqueVillageName("Ясная Поляна");
+            SetVillage(firstPlayerId, takenName, 1, 2);
+            SetVillage(secondPlayerId, keptName, 3, 4);
 
-            Assert.Throws<BusinessException>(() => SetVillage(secondPlayerId, "Тихий Бор", 5, 6));
+            Assert.Throws<BusinessException>(() => SetVillage(secondPlayerId, takenName, 5, 6));
 
             var village = GetVillage(secondPlayerId);
-            Assert.That(village.VillageName, Is.EqualTo("Ясная Поляна"));
+            Assert.That(village.VillageName, Is.EqualTo(keptName));
             Assert.That(village.CrestIcon, Is.EqualTo(3));
             Assert.That(village.CrestColor, Is.EqualTo(4));
+        }
+
+        private static string UniqueVillageName(string prefix)
+        {
+            return prefix + " " + Guid.NewGuid().ToString("N").Substring(0, 8);
         }
 
         [TestCaseSource(nameof(InvalidLengthNames))]
