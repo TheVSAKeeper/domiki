@@ -124,13 +124,6 @@ export const DomikiPage = () => {
     return (
         <div className="game">
             <header className="hud pixel-panel">
-                <div className="village-identity">
-                    <span className="crest-badge" style={{ backgroundColor: villageColor }}>{villageIcon}</span>
-                    <span className="village-name">{villageName}</span>
-                    <button type="button" className="identity-button" title="Настроить деревню" onClick={openIdentity}>
-                        <SettingsIcon className="btn-ico" aria-hidden="true" />
-                    </button>
-                </div>
                 <div className="resources">
                     {resourceTypes.length > 0 &&
                         resources.map(resource => {
@@ -203,7 +196,13 @@ export const DomikiPage = () => {
             <OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes}
                 resources={resources} now={now} onComplete={completeOrder} />
             <div className="village-header">
-                <h2 className="section-title">Деревня</h2>
+                <div className="village-identity">
+                    <span className="crest-badge" style={{ backgroundColor: villageColor }}>{villageIcon}</span>
+                    <h2 className="section-title village-name">{villageName}</h2>
+                    <button type="button" className="identity-button" title="Настроить деревню" onClick={openIdentity}>
+                        <SettingsIcon className="btn-ico" aria-hidden="true" />
+                    </button>
+                </div>
                 {purchaseDomikTypes != null &&
                     <button className="btn-game" onClick={() => toggleShop()}>
                         <StoreIcon className="btn-ico" aria-hidden="true" />
