@@ -208,12 +208,15 @@ namespace Domiki.Web.Business.Core
             var currentPlodderCount = dbManufactures.Sum(x => x.PlodderCount);
             var currentManufactureCount = dbManufactures.Where(x => x.DomikId == domikId).Count();
 
-            var needPlodderCount = 1;
             var domiks = _context.Domiks.Where(x=>x.PlayerId == playerId).ToArray();
             var domikTypes = _resourceManager.GetDomikTypes();
             var maxPlodderCount = 0;
             foreach (var domik in domiks)
             {
+                if (domik.Level == 0)
+                {
+                    continue;
+                }
                 var domikType = domikTypes.First(x => x.Id == domik.TypeId);
                 var level = domikType.Levels.First(x => x.Value == domik.Level);
                 var plodderModificatorId = 1;
@@ -222,9 +225,14 @@ namespace Domiki.Web.Business.Core
             }
 
             var dbDomik = domiks.First(x => x.PlayerId == playerId && x.Id == domikId);
+            if (dbDomik.Level == 0)
+            {
+                throw new BusinessException("Домик ещё строится");
+            }
             var domikLevel = domikTypes.First(x => x.Id == dbDomik.TypeId).Levels.First(x => x.Value == dbDomik.Level);
             var levelReceipt = domikLevel.Receipts.First(x => x.Id == receiptId);
             var receipt = _resourceManager.GetReceipts().First(x => x.Id == levelReceipt.Id);
+            var needPlodderCount = receipt.PlodderCount;
             if (currentPlodderCount + needPlodderCount > maxPlodderCount)
             {
                 throw new BusinessException("Недостаточно трудяг");
