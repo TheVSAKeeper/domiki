@@ -6,7 +6,7 @@ import PlayIcon from 'pixelarticons/svg/play.svg?react';
 import { apiPost, ApiError } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
-import { computePlodderCount, computeSelectedDomikView } from '../utils/game';
+import { computePlodderCount, computeReceiptView, computeSelectedDomikView } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ManufactureBox } from './ManufactureBox';
 import { ResourcesBox } from './ResourcesBox';
@@ -186,7 +186,7 @@ export const DomikiPage = () => {
                             {selected.upgrade != null &&
                                 <div className="panel-block">
                                     <span className="panel-label">Улучшение до ур. {selected.upgrade.nextLevel}</span>
-                                    <ResourcesBox resources={selected.upgrade.resources} resourceTypes={resourceTypes} />
+                                    <ResourcesBox resources={selected.upgrade.resources} resourceTypes={resourceTypes} have={resources} />
                                     <button className="btn-game"
                                         disabled={!selected.upgrade.hasResources}
                                         onClick={() => upgrade(selected.domik.id)}>
@@ -214,19 +214,51 @@ export const DomikiPage = () => {
                                         {selected.receipts.map(receipt => {
                                             const hasOptional = receipt.optionalInputResources.length > 0;
                                             const useOptional = optionalReceiptIds.has(receipt.id);
+                                            const view = computeReceiptView(receipt, resources, plodder.free, hasOptional && useOptional);
                                             return (
                                                 <div key={receipt.id} className="receipt-row">
-                                                    <button className="btn-game"
-                                                        onClick={() => startManufacture(selected.domik.id, receipt.id, hasOptional && useOptional)}>
-                                                        <PlayIcon className="btn-ico" aria-hidden="true" />
-                                                        {receipt.name}
-                                                    </button>
+                                                    <div className="receipt-head">
+                                                        <span className="receipt-name">{receipt.name}</span>
+                                                        <span className="receipt-cost">
+                                                            <span className="resource-box" title="Трудяги">
+                                                                <img src="/images/modificatorTypes/plodder.png" alt="Трудяги" />
+                                                                <span className="resource-value">{receipt.plodderCount}</span>
+                                                            </span>
+                                                            <span className="timer">{formatDuration(view.durationSeconds)}</span>
+                                                        </span>
+                                                    </div>
+                                                    <div className="receipt-io">
+                                                        {view.inputs.length > 0 &&
+                                                            <div className="receipt-io-row">
+                                                                <span className="receipt-io-label">Нужно</span>
+                                                                <ResourcesBox resources={view.inputs} resourceTypes={resourceTypes} have={resources} />
+                                                            </div>
+                                                        }
+                                                        {receipt.outputResources.length > 0 &&
+                                                            <div className="receipt-io-row">
+                                                                <span className="receipt-io-label">Даёт</span>
+                                                                <ResourcesBox resources={receipt.outputResources} resourceTypes={resourceTypes} />
+                                                            </div>
+                                                        }
+                                                    </div>
                                                     {hasOptional &&
                                                         <label className="receipt-optional">
                                                             <input type="checkbox" checked={useOptional}
                                                                 onChange={() => toggleOptional(receipt.id)} />
                                                             с инструментом (−{receipt.speedupPercent}%)
                                                         </label>
+                                                    }
+                                                    <button className="btn-game"
+                                                        disabled={!view.canRun}
+                                                        onClick={() => startManufacture(selected.domik.id, receipt.id, hasOptional && useOptional)}>
+                                                        <PlayIcon className="btn-ico" aria-hidden="true" />
+                                                        Запустить
+                                                    </button>
+                                                    {!view.canRun &&
+                                                        <p className="note-warn">
+                                                            <img src="/images/upgrade_no_resources.png" alt="" />
+                                                            {!view.hasPlodders ? 'Нет свободных трудяг' : 'Не хватает ресурсов'}
+                                                        </p>
                                                     }
                                                 </div>
                                             );

@@ -1,4 +1,4 @@
-import type { DomikDto, DomikTypeDto, ManufactureDto, PlodderCount, ReceiptDto, ResourceDto, SelectedDomikView, UpgradeView } from '../types/api';
+import type { DomikDto, DomikTypeDto, ManufactureDto, PlodderCount, ReceiptDto, ReceiptView, ResourceDto, SelectedDomikView, UpgradeView } from '../types/api';
 import { formatDuration, remainingSeconds } from './time';
 
 const plodderTypeId = 1;
@@ -77,6 +77,34 @@ export function computeSelectedDomikView(
     const remainingText = domik.finishDate != null ? formatDuration(remainingSeconds(domik.finishDate, now)) : null;
 
     return { domik, domikType, receipts: domikReceipts, upgrade, remainingText };
+}
+
+function mergeResources(resources: ResourceDto[]): ResourceDto[] {
+    const byType = new Map<number, number>();
+    resources.forEach(res => byType.set(res.typeId, (byType.get(res.typeId) ?? 0) + res.value));
+    return [...byType].map(([typeId, value]) => ({ typeId, value }));
+}
+
+export function computeReceiptView(
+    receipt: ReceiptDto,
+    resources: ResourceDto[],
+    freePlodders: number,
+    useOptional: boolean,
+): ReceiptView {
+    const withOptional = useOptional && receipt.optionalInputResources.length > 0;
+    const inputs = mergeResources(
+        withOptional ? [...receipt.inputResources, ...receipt.optionalInputResources] : receipt.inputResources,
+    );
+    const durationSeconds = withOptional
+        ? Math.floor((receipt.durationSeconds * (100 - receipt.speedupPercent)) / 100)
+        : receipt.durationSeconds;
+    const hasResources = inputs.every(input => {
+        const owned = resources.find(x => x.typeId === input.typeId);
+        return owned != null && owned.value >= input.value;
+    });
+    const hasPlodders = freePlodders >= receipt.plodderCount;
+
+    return { receipt, inputs, durationSeconds, hasResources, hasPlodders, canRun: hasResources && hasPlodders };
 }
 
 export function manufactureProgressPercent(manufacture: ManufactureDto, receipt: ReceiptDto, now: number): number {

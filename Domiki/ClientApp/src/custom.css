@@ -238,22 +238,24 @@ code {
     clip-path: var(--cut);
 }
 
-.domiks,
-.purchase-box {
-    display: flex;
-    flex-wrap: wrap;
+.domiks {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
     gap: 16px;
     margin-top: 16px;
 }
 
 .purchase-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 16px;
     padding: 14px;
     border: 3px dashed var(--ink);
     background: rgba(251, 243, 223, .45);
 }
 
 .plot {
-    width: 136px;
     padding: 12px 8px 24px;
     display: flex;
     flex-direction: column;
@@ -284,11 +286,15 @@ code {
     background: #fff7e0;
 }
 
-.plot-shop,
-.plot-shop:hover {
-    cursor: default;
-    transform: none;
+.plot-shop {
+    width: 136px;
 }
+
+    .plot-shop,
+    .plot-shop:hover {
+        cursor: default;
+        transform: none;
+    }
 
 .plot-sprite {
     width: 96px;
@@ -445,18 +451,82 @@ code {
 .receipt-list {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    gap: 12px;
 }
 
 .receipt-row {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.receipt-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.receipt-name {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.receipt-cost {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+    .receipt-cost img {
+        width: 18px;
+        height: 18px;
+        image-rendering: pixelated;
+    }
+
+    .receipt-cost .resource-box {
+        gap: 5px;
+    }
+
+.receipt-io {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.receipt-io-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.receipt-io-label {
+    flex: 0 0 44px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    color: var(--pine);
+}
+
+    .receipt-io-row .resources {
+        gap: 4px 12px;
+    }
+
+.receipt-row .note-warn {
+    margin: 0;
+}
+
+.resource-lack .resource-value {
+    color: var(--roof);
 }
 
 .receipt-optional {
+    align-self: flex-start;
     display: inline-flex;
     align-items: center;
     gap: 7px;
@@ -584,10 +654,6 @@ progress {
         position: static;
         flex-basis: auto;
         width: 100%;
-    }
-
-    .plot {
-        width: calc(50% - 8px);
     }
 }
 

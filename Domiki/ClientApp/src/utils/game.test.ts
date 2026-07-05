@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto } from '../types/api';
-import { computePlodderCount, manufactureProgressPercent } from './game';
+import { computePlodderCount, computeReceiptView, manufactureProgressPercent } from './game';
 
 const domikTypes: DomikTypeDto[] = [
     {
@@ -34,6 +34,38 @@ describe('computePlodderCount', () => {
         ];
 
         expect(computePlodderCount(domiks, domikTypes)).toEqual({ max: 0, free: 0 });
+    });
+});
+
+describe('computeReceiptView', () => {
+    const receipt: ReceiptDto = {
+        id: 1,
+        name: 'Доски',
+        logicName: 'planks',
+        inputResources: [{ typeId: 2, value: 10 }],
+        optionalInputResources: [{ typeId: 2, value: 5 }],
+        outputResources: [{ typeId: 3, value: 1 }],
+        durationSeconds: 100,
+        speedupPercent: 20,
+        plodderCount: 2,
+    };
+
+    it('runnable when resources and free plodders suffice', () => {
+        const view = computeReceiptView(receipt, [{ typeId: 2, value: 10 }], 2, false);
+        expect(view).toMatchObject({ hasResources: true, hasPlodders: true, canRun: true, durationSeconds: 100 });
+        expect(view.inputs).toEqual([{ typeId: 2, value: 10 }]);
+    });
+
+    it('blocks on missing resources and on missing plodders independently', () => {
+        expect(computeReceiptView(receipt, [{ typeId: 2, value: 9 }], 5, false)).toMatchObject({ hasResources: false, canRun: false });
+        expect(computeReceiptView(receipt, [{ typeId: 2, value: 10 }], 1, false)).toMatchObject({ hasPlodders: false, canRun: false });
+    });
+
+    it('with optional tool merges inputs by type and shortens duration', () => {
+        const view = computeReceiptView(receipt, [{ typeId: 2, value: 15 }], 2, true);
+        expect(view.inputs).toEqual([{ typeId: 2, value: 15 }]);
+        expect(view.durationSeconds).toBe(80);
+        expect(view.canRun).toBe(true);
     });
 });
 

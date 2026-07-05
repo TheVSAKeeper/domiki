@@ -84,6 +84,15 @@ export interface UpgradeView {
     hasResources: boolean;
 }
 
+export interface ReceiptView {
+    receipt: ReceiptDto;
+    inputs: ResourceDto[];
+    durationSeconds: number;
+    hasResources: boolean;
+    hasPlodders: boolean;
+    canRun: boolean;
+}
+
 export interface SelectedDomikView {
     domik: DomikDto;
     domikType: DomikTypeDto;
