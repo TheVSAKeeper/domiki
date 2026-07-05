@@ -4,6 +4,9 @@ import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import ArrowUpIcon from 'pixelarticons/svg/arrow-up.svg?react';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import PlayIcon from 'pixelarticons/svg/play.svg?react';
+import SettingsIcon from 'pixelarticons/svg/settings-cog.svg?react';
+import CloseIcon from 'pixelarticons/svg/close.svg?react';
+import SaveIcon from 'pixelarticons/svg/save.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
@@ -13,16 +16,22 @@ import { ManufactureBox } from './ManufactureBox';
 import { ResourcesBox } from './ResourcesBox';
 import { UpgradeBox } from './UpgradeBox';
 import { OrdersBox } from './OrdersBox';
+import { VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, purchaseDomikTypes, now, reload, refreshPurchaseTypes } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, village, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
     const [selectedDomikId, setSelectedDomikId] = useState<number | null>(null);
     const [expandedReceiptId, setExpandedReceiptId] = useState<number | null>(null);
     const [optionalReceiptIds, setOptionalReceiptIds] = useState<ReadonlySet<number>>(new Set());
+    const [identityOpen, setIdentityOpen] = useState(false);
+    const [identityDismissed, setIdentityDismissed] = useState(false);
+    const [draftVillageName, setDraftVillageName] = useState('');
+    const [draftCrestIcon, setDraftCrestIcon] = useState(0);
+    const [draftCrestColor, setDraftCrestColor] = useState(0);
 
     const toggleExpand = (receiptId: number) =>
         setExpandedReceiptId(prev => (prev === receiptId ? null : receiptId));
@@ -42,6 +51,26 @@ export const DomikiPage = () => {
         () => computeSelectedDomikView(selectedDomikId, domiks, domikTypes, receipts, resources, now),
         [selectedDomikId, domiks, domikTypes, receipts, resources, now],
     );
+
+    const currentCrestIcon = village?.crestIcon ?? 0;
+    const currentCrestColor = village?.crestColor ?? 0;
+    const villageIcon = VILLAGE_CREST_ICONS[currentCrestIcon] ?? VILLAGE_CREST_ICONS[0];
+    const villageColor = VILLAGE_CREST_COLORS[currentCrestColor] ?? VILLAGE_CREST_COLORS[0];
+    const villageName = village?.villageName ?? 'Безымянная деревня';
+    const identityVisible = identityOpen || village?.villageName === null && !identityDismissed;
+
+    const openIdentity = () => {
+        setDraftVillageName(village?.villageName ?? '');
+        setDraftCrestIcon(village?.crestIcon ?? 0);
+        setDraftCrestColor(village?.crestColor ?? 0);
+        setIdentityDismissed(false);
+        setIdentityOpen(true);
+    };
+
+    const closeIdentity = () => {
+        setIdentityDismissed(true);
+        setIdentityOpen(false);
+    };
 
     const runAction = async (action: () => Promise<void>) => {
         try {
@@ -76,6 +105,12 @@ export const DomikiPage = () => {
         await reload();
     });
 
+    const saveIdentity = () => runAction(async () => {
+        await setVillage(draftVillageName, draftCrestIcon, draftCrestColor);
+        setIdentityDismissed(true);
+        setIdentityOpen(false);
+    });
+
     const toggleShop = () => runAction(async () => {
         const willShow = !shopVisible;
         setShopVisible(willShow);
@@ -89,6 +124,13 @@ export const DomikiPage = () => {
     return (
         <div className="game">
             <header className="hud pixel-panel">
+                <div className="village-identity">
+                    <span className="crest-badge" style={{ backgroundColor: villageColor }}>{villageIcon}</span>
+                    <span className="village-name">{villageName}</span>
+                    <button type="button" className="identity-button" title="Настроить деревню" onClick={openIdentity}>
+                        <SettingsIcon className="btn-ico" aria-hidden="true" />
+                    </button>
+                </div>
                 <div className="resources">
                     {resourceTypes.length > 0 &&
                         resources.map(resource => {
@@ -114,6 +156,50 @@ export const DomikiPage = () => {
                     </div>
                 }
             </header>
+            {identityVisible &&
+                <div className="modal-backdrop" role="presentation">
+                    <form className="identity-modal pixel-panel" onSubmit={event => { event.preventDefault(); void saveIdentity(); }}>
+                        <div className="identity-modal-head">
+                            <h2 className="panel-title">Деревня</h2>
+                            <button type="button" className="identity-button" title="Закрыть" onClick={closeIdentity}>
+                                <CloseIcon className="btn-ico" aria-hidden="true" />
+                            </button>
+                        </div>
+                        <label className="identity-field">
+                            <span className="panel-label">Название деревни</span>
+                            <input value={draftVillageName} maxLength={24} onChange={event => setDraftVillageName(event.target.value)} />
+                        </label>
+                        <div className="identity-field">
+                            <span className="panel-label">Герб</span>
+                            <div className="crest-options">
+                                {VILLAGE_CREST_ICONS.map((icon, index) =>
+                                    <button key={icon} type="button"
+                                        className={'crest-option' + (draftCrestIcon === index ? ' crest-option-selected' : '')}
+                                        onClick={() => setDraftCrestIcon(index)}>
+                                        {icon}
+                                    </button>,
+                                )}
+                            </div>
+                        </div>
+                        <div className="identity-field">
+                            <span className="panel-label">Цвет</span>
+                            <div className="color-options">
+                                {VILLAGE_CREST_COLORS.map((color, index) =>
+                                    <button key={color} type="button"
+                                        className={'color-option' + (draftCrestColor === index ? ' color-option-selected' : '')}
+                                        style={{ backgroundColor: color }}
+                                        aria-label={`Цвет ${index + 1}`}
+                                        onClick={() => setDraftCrestColor(index)} />,
+                                )}
+                            </div>
+                        </div>
+                        <button className="btn-game" type="submit">
+                            <SaveIcon className="btn-ico" aria-hidden="true" />
+                            Сохранить
+                        </button>
+                    </form>
+                </div>
+            }
             <OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes}
                 resources={resources} now={now} onComplete={completeOrder} />
             <div className="village-header">

@@ -55,6 +55,11 @@ namespace Domiki.Web.Data
                 .IsUnique();
 
             modelBuilder.Entity<Player>()
+                .HasIndex(u => u.VillageName)
+                .IsUnique()
+                .HasFilter("\"VillageName\" IS NOT NULL");
+
+            modelBuilder.Entity<Player>()
                 .Navigation(e => e.Resources)
                 .UsePropertyAccessMode(PropertyAccessMode.Property);
 

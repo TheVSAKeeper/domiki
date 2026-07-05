@@ -4,8 +4,10 @@ import {
     neighborReputationSchema,
     orderSchema,
     ResponseType,
+    villageSchema,
     type NeighborReputationDto,
     type OrderDto,
+    type VillageDto,
 } from '../types/api';
 
 export class ApiError extends Error {
@@ -22,10 +24,19 @@ const envelopeSchema = z.object({
 
 const errorMessageType: number = ResponseType.ErrorMessage;
 
-async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType<T> | null, signal?: AbortSignal): Promise<T> {
+async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType<T> | null, signal?: AbortSignal, body?: unknown): Promise<T> {
     let res: Response;
     try {
-        res = await fetch(url, { method, credentials: 'same-origin', signal: signal ?? null });
+        const init: RequestInit = {
+            method,
+            credentials: 'same-origin',
+            signal: signal ?? null,
+        };
+        if (body != null) {
+            init.headers = { 'Content-Type': 'application/json' };
+            init.body = JSON.stringify(body);
+        }
+        res = await fetch(url, init);
     } catch (err) {
         if (signal?.aborted) {
             throw err;
@@ -82,3 +93,9 @@ export const getReputation = (signal?: AbortSignal): Promise<NeighborReputationD
 
 export const completeOrder = (orderId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/CompleteOrder/${orderId}`, signal);
+
+export const getVillage = (signal?: AbortSignal): Promise<VillageDto> =>
+    apiGet('Domiki/GetVillage', villageSchema, signal);
+
+export const setVillage = (name: string, crestIcon: number, crestColor: number, signal?: AbortSignal): Promise<void> =>
+    request('POST', 'Domiki/SetVillage', null, signal, { name, crestIcon, crestColor });

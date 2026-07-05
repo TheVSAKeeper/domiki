@@ -98,6 +98,13 @@ export const neighborReputationSchema = z.object({
 });
 export type NeighborReputationDto = z.infer<typeof neighborReputationSchema>;
 
+export const villageSchema = z.object({
+    villageName: z.string().nullable(),
+    crestIcon: z.number(),
+    crestColor: z.number(),
+});
+export type VillageDto = z.infer<typeof villageSchema>;
+
 export interface PlodderCount {
     max: number;
     free: number;

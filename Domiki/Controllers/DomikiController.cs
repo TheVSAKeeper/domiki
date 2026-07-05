@@ -50,6 +50,25 @@ namespace Domiki.Controllers
             return new Response<DomikDto[]>(content);
         }
 
+        [HttpGet]
+        [Route("/Domiki/GetVillage")]
+        public Response<VillageDto> GetVillage()
+        {
+            int playerId = GetPlayerId();
+
+            var content = _domikManager.GetVillage(playerId).ToDto();
+            return new Response<VillageDto>(content);
+        }
+
+        [HttpPost]
+        [Route("/Domiki/SetVillage")]
+        public Response SetVillage([FromBody] SetVillageDto request)
+        {
+            int playerId = GetPlayerId();
+            _domikManager.SetVillageIdentity(playerId, request?.Name, request?.CrestIcon ?? -1, request?.CrestColor ?? -1);
+            return new Response { Type = ResponseType.Success };
+        }
+
         [HttpPost]
         [Route("/Domiki/UpgradeDomik/{id}")]
         public Response UpgradeDomik(int id)

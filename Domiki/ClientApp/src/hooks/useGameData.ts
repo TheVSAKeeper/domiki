@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { z } from 'zod';
-import { apiGet, ApiError, getOrders, getReputation } from '../services/api';
+import { apiGet, ApiError, getOrders, getReputation, getVillage, setVillage as setVillageApi } from '../services/api';
 import { useToast } from '../services/toast';
 import {
     domikSchema,
@@ -10,6 +10,7 @@ import {
     receiptSchema,
     resourceSchema,
     resourceTypeSchema,
+    villageSchema,
     type DomikDto,
     type DomikTypeDto,
     type NeighborReputationDto,
@@ -17,6 +18,7 @@ import {
     type ReceiptDto,
     type ResourceDto,
     type ResourceTypeDto,
+    type VillageDto,
 } from '../types/api';
 import { remainingSeconds } from '../utils/time';
 
@@ -28,10 +30,12 @@ export interface GameData {
     resources: ResourceDto[];
     orders: OrderDto[];
     reputation: NeighborReputationDto[];
+    village: VillageDto | null;
     purchaseDomikTypes: DomikTypeDto[] | null;
     now: number;
     reload: () => Promise<void>;
     refreshPurchaseTypes: () => Promise<void>;
+    setVillage: (name: string, crestIcon: number, crestColor: number) => Promise<void>;
 }
 
 export function useGameData(): GameData {
@@ -44,6 +48,7 @@ export function useGameData(): GameData {
     const [resources, setResources] = useState<ResourceDto[]>([]);
     const [orders, setOrders] = useState<OrderDto[]>([]);
     const [reputation, setReputation] = useState<NeighborReputationDto[]>([]);
+    const [village, setVillageState] = useState<VillageDto | null>(null);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [now, setNow] = useState(() => Date.now());
 
@@ -60,20 +65,27 @@ export function useGameData(): GameData {
     }, [orders]);
 
     const reload = useCallback(async () => {
-        const [domiksData, resourcesData, ordersData, reputationData] = await Promise.all([
+        const [domiksData, resourcesData, ordersData, reputationData, villageData] = await Promise.all([
             apiGet('Domiki/GetDomiks', domikSchema.array()),
             apiGet('Domiki/GetResources', resourceSchema.array()),
             getOrders(),
             getReputation(),
+            getVillage(),
         ]);
         setDomiks(domiksData);
         setResources(resourcesData);
         setOrders(ordersData);
         setReputation(reputationData);
+        setVillageState(villageData);
     }, []);
 
     const refreshPurchaseTypes = useCallback(async () => {
         setPurchaseDomikTypes(await apiGet('Domiki/GetPurchaseAvaialableDomiks', domikTypeSchema.array()));
+    }, []);
+
+    const setVillage = useCallback(async (name: string, crestIcon: number, crestColor: number) => {
+        await setVillageApi(name, crestIcon, crestColor);
+        setVillageState(await getVillage());
     }, []);
 
     useEffect(() => {
@@ -107,6 +119,7 @@ export function useGameData(): GameData {
             safeLoad('Domiki/GetResources', resourceSchema.array(), setResources),
             safeLoad('Domiki/GetOrders', orderSchema.array(), setOrders),
             safeLoad('Domiki/GetReputation', neighborReputationSchema.array(), setReputation),
+            safeLoad('Domiki/GetVillage', villageSchema, setVillageState),
             safeLoad('Domiki/GetPurchaseAvaialableDomiks', domikTypeSchema.array(), setPurchaseDomikTypes),
         ]);
 
@@ -152,9 +165,11 @@ export function useGameData(): GameData {
         resources,
         orders,
         reputation,
+        village,
         purchaseDomikTypes,
         now,
         reload,
         refreshPurchaseTypes,
+        setVillage,
     };
 }

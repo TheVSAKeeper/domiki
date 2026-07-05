@@ -14,6 +14,13 @@ namespace Domiki.Web.Data
         [Required(AllowEmptyStrings = false)]
         public string Name { get; set; }
 
+        [MaxLength(100)]
+        public string VillageName { get; set; }
+
+        public int CrestIcon { get; set; }
+
+        public int CrestColor { get; set; }
+
         [MaxLength(450)]
         [Required(AllowEmptyStrings = false)]
         public string AspNetUserId { get; set; }

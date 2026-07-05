@@ -1,10 +1,36 @@
 ﻿using Domiki.Web.Business.Models;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Domiki.Web.Business.Core
 {
     public class DomikManager
     {
+        private const int CrestIconCount = 8;
+        private const int CrestColorCount = 8;
+
+        private static readonly Regex SpaceRegex = new Regex(" +", RegexOptions.Compiled);
+        private static readonly string[] VillageNameForbiddenWords =
+        {
+            "admin",
+            "moderator",
+            "keep",
+            "domiki",
+            "fuck",
+            "shit",
+            "админ",
+            "модератор",
+            "домики",
+            "хуй",
+            "пизд",
+            "еба",
+            "ёба",
+            "бля",
+            "сука",
+        };
+
         private Data.ApplicationDbContext _context;
         private ICalculator _calculator;
         private Data.UnitOfWork _uow;
@@ -34,6 +60,45 @@ namespace Domiki.Web.Business.Core
                 _context.SaveChanges();
             }
             return dbPlayer.Id;
+        }
+
+        public Village GetVillage(int playerId)
+        {
+            var dbPlayer = _context.Players.Single(x => x.Id == playerId);
+            return new Village
+            {
+                VillageName = dbPlayer.VillageName,
+                CrestIcon = dbPlayer.CrestIcon,
+                CrestColor = dbPlayer.CrestColor,
+            };
+        }
+
+        public void SetVillageIdentity(int playerId, string name, int crestIcon, int crestColor)
+        {
+            _playerResourceManager.LockDbPlayerRow(playerId);
+
+            var villageName = NormalizeVillageName(name);
+            ValidateVillageName(villageName);
+            ValidateCrest(crestIcon, crestColor);
+
+            if (_context.Players.Any(x => x.Id != playerId && x.VillageName == villageName))
+            {
+                throw new BusinessException("Имя деревни занято");
+            }
+
+            var dbPlayer = _context.Players.Single(x => x.Id == playerId);
+            dbPlayer.VillageName = villageName;
+            dbPlayer.CrestIcon = crestIcon;
+            dbPlayer.CrestColor = crestColor;
+
+            try
+            {
+                _context.SaveChanges();
+            }
+            catch (DbUpdateException ex) when (IsVillageNameUniqueViolation(ex))
+            {
+                throw new BusinessException("Имя деревни занято");
+            }
         }
 
         public IEnumerable<(DomikType Type, int AvailableCount)> GetPurchaseAvailableDomiks(int playerId)
@@ -269,6 +334,67 @@ namespace Domiki.Web.Business.Core
                 return true;
             }
             return false;
+        }
+
+        private string NormalizeVillageName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return string.Empty;
+            }
+
+            return SpaceRegex.Replace(name.Trim(), " ");
+        }
+
+        private void ValidateVillageName(string name)
+        {
+            if (name.Length < 3 || name.Length > 24)
+            {
+                throw new BusinessException("Имя деревни должно быть 3–24 символа");
+            }
+
+            if (name.Any(x => !IsAllowedVillageNameChar(x)))
+            {
+                throw new BusinessException("В имени деревни можно использовать буквы, цифры, пробел и дефис");
+            }
+
+            var lowerName = name.ToLowerInvariant();
+            if (VillageNameForbiddenWords.Any(x => lowerName.Contains(x)))
+            {
+                throw new BusinessException("Имя деревни содержит запрещённое слово");
+            }
+        }
+
+        private bool IsAllowedVillageNameChar(char value)
+        {
+            return value == ' '
+                || value == '-'
+                || char.IsDigit(value)
+                || value >= 'A' && value <= 'Z'
+                || value >= 'a' && value <= 'z'
+                || value >= 'А' && value <= 'я'
+                || value == 'Ё'
+                || value == 'ё';
+        }
+
+        private void ValidateCrest(int crestIcon, int crestColor)
+        {
+            if (crestIcon < 0 || crestIcon >= CrestIconCount)
+            {
+                throw new BusinessException("Неизвестная пиктограмма герба");
+            }
+
+            if (crestColor < 0 || crestColor >= CrestColorCount)
+            {
+                throw new BusinessException("Неизвестный цвет герба");
+            }
+        }
+
+        private bool IsVillageNameUniqueViolation(DbUpdateException ex)
+        {
+            return ex.InnerException is PostgresException postgresException
+                && postgresException.SqlState == PostgresErrorCodes.UniqueViolation
+                && postgresException.ConstraintName == "IX_Players_VillageName";
         }
     }
 }
