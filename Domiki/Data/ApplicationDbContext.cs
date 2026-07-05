@@ -14,6 +14,10 @@ namespace Domiki.Web.Data
 
         public DbSet<Domik> Domiks { get; set; }
         public DbSet<Manufacture> Manufactures { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderResource> OrderResources { get; set; }
+        public DbSet<Neighbor> Neighbors { get; set; }
+        public DbSet<NeighborReputation> NeighborReputations { get; set; }
         public DbSet<Player> Players { get; set; }
         public DbSet<Resource> Resources { get; set; }
         public DbSet<ResourceType> ResourceTypes { get; set; }
@@ -62,6 +66,55 @@ namespace Domiki.Web.Data
                 .HasOne(s => s.Domik)
                 .WithMany(x => x.Manufactures)
                 .HasForeignKey(e => new { e.DomikPlayerId, e.DomikId});
+
+            modelBuilder.Entity<Order>()
+                .HasOne(s => s.Player)
+                .WithMany()
+                .HasForeignKey(e => e.PlayerId);
+
+            modelBuilder.Entity<Order>()
+                .HasOne(s => s.Neighbor)
+                .WithMany()
+                .HasForeignKey(e => e.NeighborId);
+
+            modelBuilder.Entity<OrderResource>()
+                .HasKey(p => new
+                {
+                    p.OrderId,
+                    p.ResourceTypeId,
+                });
+
+            modelBuilder.Entity<OrderResource>()
+                .Navigation(e => e.Order)
+                .UsePropertyAccessMode(PropertyAccessMode.Property);
+
+            modelBuilder.Entity<OrderResource>()
+                .Navigation(e => e.ResourceType)
+                .UsePropertyAccessMode(PropertyAccessMode.Property);
+
+            modelBuilder.Entity<NeighborReputation>()
+                .HasKey(p => new
+                {
+                    p.PlayerId,
+                    p.NeighborId,
+                });
+
+            modelBuilder.Entity<NeighborReputation>()
+                .HasOne(s => s.Player)
+                .WithMany()
+                .HasForeignKey(e => e.PlayerId);
+
+            modelBuilder.Entity<NeighborReputation>()
+                .HasOne(s => s.Neighbor)
+                .WithMany()
+                .HasForeignKey(e => e.NeighborId);
+
+            modelBuilder.Entity<Neighbor>().HasData(
+                new Neighbor { Id = 1, Name = "Заречье", LogicName = "zarechye", PrimaryResourceTypeId = 6 },
+                new Neighbor { Id = 2, Name = "Боровое", LogicName = "borovoe", PrimaryResourceTypeId = 7 },
+                new Neighbor { Id = 3, Name = "Каменка", LogicName = "kamenka", PrimaryResourceTypeId = 2 },
+                new Neighbor { Id = 4, Name = "Глинищи", LogicName = "glinischi", PrimaryResourceTypeId = 4 },
+                new Neighbor { Id = 5, Name = "Дубрава", LogicName = "dubrava", PrimaryResourceTypeId = 3 });
 
 
             modelBuilder.Entity<DomikTypeLevel>()

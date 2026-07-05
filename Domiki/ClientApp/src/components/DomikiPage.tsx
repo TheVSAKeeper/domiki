@@ -4,7 +4,7 @@ import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import ArrowUpIcon from 'pixelarticons/svg/arrow-up.svg?react';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import PlayIcon from 'pixelarticons/svg/play.svg?react';
-import { apiPost, ApiError } from '../services/api';
+import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
 import { canAffordUpgrade, computePlodderCount, computeReceiptView, computeSelectedDomikView } from '../utils/game';
@@ -12,10 +12,11 @@ import { formatDuration, remainingSeconds } from '../utils/time';
 import { ManufactureBox } from './ManufactureBox';
 import { ResourcesBox } from './ResourcesBox';
 import { UpgradeBox } from './UpgradeBox';
+import { OrdersBox } from './OrdersBox';
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, purchaseDomikTypes, now, reload, refreshPurchaseTypes } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, purchaseDomikTypes, now, reload, refreshPurchaseTypes } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -70,6 +71,11 @@ export const DomikiPage = () => {
         await reload();
     });
 
+    const completeOrder = (orderId: number) => runAction(async () => {
+        await completeOrderApi(orderId);
+        await reload();
+    });
+
     const toggleShop = () => runAction(async () => {
         const willShow = !shopVisible;
         setShopVisible(willShow);
@@ -108,6 +114,8 @@ export const DomikiPage = () => {
                     </div>
                 }
             </header>
+            <OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes}
+                resources={resources} now={now} onComplete={completeOrder} />
             <div className="village-header">
                 <h2 className="section-title">Деревня</h2>
                 {purchaseDomikTypes != null &&

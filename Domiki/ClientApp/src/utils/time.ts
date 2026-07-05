@@ -9,16 +9,16 @@ export function formatDuration(totalSeconds: number): string {
 
     const parts: string[] = [];
     if (days > 0) {
-        parts.push(days + 'д');
+        parts.push(`${days}д`);
     }
     if (hours > 0) {
-        parts.push(hours + 'ч');
+        parts.push(`${hours}ч`);
     }
     if (minutes > 0) {
-        parts.push(minutes + 'м');
+        parts.push(`${minutes}м`);
     }
     if (seconds > 0) {
-        parts.push(seconds + 'с');
+        parts.push(`${seconds}с`);
     }
 
     return parts.length > 0 ? parts.join(' ') : '0с';

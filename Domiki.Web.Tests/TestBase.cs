@@ -27,8 +27,18 @@ namespace Domiki.Web.Tests
 
         public DomikManager GetDomikManager(UnitOfWork uow, bool calculatorJustFinishMode = true)
         {
-            var domikManager = new DomikManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), new ResourceManager(uow.Context));
+            var resourceManager = new ResourceManager(uow.Context);
+            var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
+            var domikManager = new DomikManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager);
             return domikManager;
+        }
+
+        public OrderManager GetOrderManager(UnitOfWork uow, bool calculatorJustFinishMode = false)
+        {
+            var resourceManager = new ResourceManager(uow.Context);
+            var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
+            var orderManager = new OrderManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager);
+            return orderManager;
         }
 
         public ResourceManager GetResourceManager(UnitOfWork uow)
@@ -39,7 +49,7 @@ namespace Domiki.Web.Tests
 
         private ICalculator GetCalculator(bool justFinishMode = true)
         {
-            return new TestCalculator(() => GetUow(), (UnitOfWork uow) => { return new CalculatorTick(GetDomikManager(uow)); }, justFinishMode);
+            return new TestCalculator(() => GetUow(), (UnitOfWork uow) => { return new CalculatorTick(GetDomikManager(uow), GetOrderManager(uow)); }, justFinishMode);
         }
 
         public static IConfiguration InitConfiguration()

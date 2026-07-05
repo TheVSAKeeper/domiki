@@ -3,7 +3,7 @@ import { formatDuration, remainingSeconds } from './time';
 
 const plodderTypeId = 1;
 
-function hasResourcesFor(cost: ResourceDto[], owned: ResourceDto[]): boolean {
+export function hasResourcesFor(cost: ResourceDto[], owned: ResourceDto[]): boolean {
     return cost.every(resource => {
         const have = owned.find(x => x.typeId === resource.typeId);
         return have != null && have.value >= resource.value;

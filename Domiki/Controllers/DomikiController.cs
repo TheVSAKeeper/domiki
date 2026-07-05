@@ -14,12 +14,14 @@ namespace Domiki.Controllers
         private readonly ILogger<DomikiController> _logger;
         private readonly DomikManager _domikManager;
         private readonly ResourceManager _resourceManager;
+        private readonly OrderManager _orderManager;
 
-        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager)
+        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager)
         {
             _logger = logger;
             _domikManager = domikManager;
             _resourceManager = resourceManager;
+            _orderManager = orderManager;
         }
 
         [HttpGet]
@@ -108,6 +110,35 @@ namespace Domiki.Controllers
         {
             var content = _resourceManager.GetReceipts().Select(x => x.ToDto()).ToArray();
             return new Response<ReceiptDto[]>(content);
+        }
+
+        [HttpGet]
+        [Route("/Domiki/GetOrders")]
+        public Response<OrderDto[]> GetOrders()
+        {
+            int playerId = GetPlayerId();
+
+            var content = _orderManager.GetOrders(playerId).Select(x => x.ToDto()).ToArray();
+            return new Response<OrderDto[]>(content);
+        }
+
+        [HttpPost]
+        [Route("/Domiki/CompleteOrder/{orderId}")]
+        public Response CompleteOrder(int orderId)
+        {
+            int playerId = GetPlayerId();
+            _orderManager.CompleteOrder(playerId, orderId);
+            return new Response { Type = ResponseType.Success };
+        }
+
+        [HttpGet]
+        [Route("/Domiki/GetReputation")]
+        public Response<NeighborReputationDto[]> GetReputation()
+        {
+            int playerId = GetPlayerId();
+
+            var content = _orderManager.GetReputation(playerId).Select(x => x.ToDto()).ToArray();
+            return new Response<NeighborReputationDto[]>(content);
         }
 
         private int GetPlayerId()

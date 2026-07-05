@@ -3,6 +3,7 @@ using System;
 using Domiki.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domiki.Web.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260705182916_Stage1Orders")]
+    partial class Stage1Orders
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -295,43 +298,6 @@ namespace Domiki.Web.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Neighbors");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            LogicName = "zarechye",
-                            Name = "Заречье",
-                            PrimaryResourceTypeId = 6
-                        },
-                        new
-                        {
-                            Id = 2,
-                            LogicName = "borovoe",
-                            Name = "Боровое",
-                            PrimaryResourceTypeId = 7
-                        },
-                        new
-                        {
-                            Id = 3,
-                            LogicName = "kamenka",
-                            Name = "Каменка",
-                            PrimaryResourceTypeId = 2
-                        },
-                        new
-                        {
-                            Id = 4,
-                            LogicName = "glinischi",
-                            Name = "Глинищи",
-                            PrimaryResourceTypeId = 4
-                        },
-                        new
-                        {
-                            Id = 5,
-                            LogicName = "dubrava",
-                            Name = "Дубрава",
-                            PrimaryResourceTypeId = 3
-                        });
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.NeighborReputation", b =>

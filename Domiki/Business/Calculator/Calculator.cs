@@ -169,6 +169,18 @@ namespace Domiki.Web.Business
                     });
                 }
 
+                var dbOrders = uow.Context.Orders.ToList();
+                foreach (var dbOrder in dbOrders)
+                {
+                    dates.Add(new CalculateInfo
+                    {
+                        PlayerId = dbOrder.PlayerId,
+                        ObjectId = dbOrder.Id,
+                        Date = dbOrder.ExpireDate,
+                        Type = CalculateTypes.OrderExpire,
+                    });
+                }
+
                 dates = dates.OrderBy(x => x.Date).ToList();
                 return dates;
             }

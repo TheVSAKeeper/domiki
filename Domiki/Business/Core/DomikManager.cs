@@ -9,13 +9,15 @@ namespace Domiki.Web.Business.Core
         private ICalculator _calculator;
         private Data.UnitOfWork _uow;
         private ResourceManager _resourceManager;
+        private PlayerResourceManager _playerResourceManager;
 
-        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager)
+        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager)
         {
             _context = context;
             _calculator = calculator;
             _uow = uow;
             _resourceManager = resourceManager;
+            _playerResourceManager = playerResourceManager;
         }
 
         public int GetPlayerId(string aspNetUserId)
@@ -74,13 +76,13 @@ namespace Domiki.Web.Business.Core
 
         public void BuyDomik(int playerId, int typeId)
         {
-            _context.Players.First(x => x.Id == playerId).Version = Guid.NewGuid();
+            _playerResourceManager.LockDbPlayerRow(playerId);
             var available = GetPurchaseAvailableDomiks(playerId);
             if (available.Any(x => x.Type.Id == typeId))
             {
                 var domikType = _resourceManager.GetDomikTypes().First(x => x.Id == typeId);
                 var domikLevel = domikType.Levels.First(x => x.Value == 1);
-                WriteOffResources(playerId, domikLevel.Resources);
+                _playerResourceManager.WriteOffResources(playerId, domikLevel.Resources);
 
                 var currentId = _context.Domiks.Where(x => x.PlayerId == playerId).Max(x => (int?)x.Id) ?? 0;
                 var nextId = currentId + 1;
@@ -109,7 +111,7 @@ namespace Domiki.Web.Business.Core
             var date = DateTimeHelper.GetNowDate();
 
             // todo перечитать и попробовать повтоно выполнить. обработка оптимистика
-            LockDbPlayerRow(playerId);
+            _playerResourceManager.LockDbPlayerRow(playerId);
 
             var dbDomik = _context.Domiks.First(x => x.PlayerId == playerId && x.Id == id);
             var domikType = _resourceManager.GetDomikTypes().First(x => x.Id == dbDomik.TypeId);
@@ -124,7 +126,7 @@ namespace Domiki.Web.Business.Core
 
             var nextLevel = dbDomik.Level + 1;
             var domikLevel = domikType.Levels.First(x => x.Value == nextLevel);
-            WriteOffResources(playerId, domikLevel.Resources);
+            _playerResourceManager.WriteOffResources(playerId, domikLevel.Resources);
             dbDomik.UpgradeSeconds = domikLevel.UpgradeSeconds;
             dbDomik.UpgradeCalculateDate = date;
 
@@ -152,33 +154,9 @@ namespace Domiki.Web.Business.Core
                 }).ToList();
         }
 
-        // пессимистичная блокировка строки в БД, для борьбы с конкурентными потоками
-        private void LockDbPlayerRow(int playerId)
-        {
-            _context.Players.First(x => x.Id == playerId).Version = Guid.NewGuid();
-        }
-
-        private void WriteOffResources(int playerId, Resource[] resources)
-        {
-            var dbResources = _context.Resources.Where(x => x.PlayerId == playerId).ToArray();
-            foreach (var domikNeedResource in resources)
-            {
-                var dbResource = dbResources.FirstOrDefault(x => x.TypeId == domikNeedResource.Type.Id);
-                if (dbResource == null)
-                {
-                    throw new BusinessException("Недостаточно " + domikNeedResource.Type.Name);
-                }
-                dbResource.Value -= domikNeedResource.Value;
-                if (dbResource.Value < 0)
-                {
-                    throw new BusinessException("Недостаточно " + domikNeedResource.Type.Name);
-                }
-            }
-        }
-
         public bool FinishDomik(DateTime date, CalculateInfo calcInfo)
         {
-            LockDbPlayerRow(calcInfo.PlayerId);
+            _playerResourceManager.LockDbPlayerRow(calcInfo.PlayerId);
 
             var dbDomik = _context.Domiks.Single(x => x.Id == calcInfo.ObjectId && x.PlayerId == calcInfo.PlayerId);
             if (dbDomik.UpgradeSeconds != null)
@@ -202,7 +180,7 @@ namespace Domiki.Web.Business.Core
         {
             var date = DateTimeHelper.GetNowDate();
 
-            LockDbPlayerRow(playerId);
+            _playerResourceManager.LockDbPlayerRow(playerId);
 
             var dbManufactures = _context.Manufactures.Where(x => x.DomikPlayerId == playerId);
             var currentPlodderCount = dbManufactures.Sum(x => x.PlodderCount);
@@ -250,7 +228,7 @@ namespace Domiki.Web.Business.Core
                 duration = receipt.DurationSeconds * (100 - receipt.SpeedupPercent) / 100;
             }
 
-            WriteOffResources(playerId, writeOffResources);
+            _playerResourceManager.WriteOffResources(playerId, writeOffResources);
 
             var manufacture = new Data.Manufacture
             {
@@ -277,7 +255,7 @@ namespace Domiki.Web.Business.Core
 
         public bool FinishManufacture(DateTime date, CalculateInfo calcInfo)
         {
-            LockDbPlayerRow(calcInfo.PlayerId);
+            _playerResourceManager.LockDbPlayerRow(calcInfo.PlayerId);
 
             var dbManufacture = _context.Manufactures.Single(x => x.Id == calcInfo.ObjectId);
             if (date >= dbManufacture.FinishDate)
@@ -285,14 +263,7 @@ namespace Domiki.Web.Business.Core
                 var recept = _resourceManager.GetReceipts().First(x => x.Id == dbManufacture.ReceiptId);
                 foreach (var resource in recept.OutputResources)
                 {
-                    var dbResource = _context.Resources.FirstOrDefault(x => x.PlayerId == calcInfo.PlayerId && x.TypeId == resource.Type.Id);
-                    if (dbResource == null)
-                    {
-                        dbResource = new Data.Resource { PlayerId = calcInfo.PlayerId, TypeId = resource.Type.Id };
-                        _context.Resources.Add(dbResource);
-                    }
-
-                    dbResource.Value += resource.Value;
+                    _playerResourceManager.GrantResource(calcInfo.PlayerId, resource.Type.Id, resource.Value);
                 }
                 _context.Manufactures.Remove(dbManufacture);
                 return true;

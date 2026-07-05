@@ -1,15 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { z } from 'zod';
-import { apiGet, ApiError } from '../services/api';
+import { apiGet, ApiError, getOrders, getReputation } from '../services/api';
 import { useToast } from '../services/toast';
 import {
     domikSchema,
     domikTypeSchema,
+    neighborReputationSchema,
+    orderSchema,
     receiptSchema,
     resourceSchema,
     resourceTypeSchema,
     type DomikDto,
     type DomikTypeDto,
+    type NeighborReputationDto,
+    type OrderDto,
     type ReceiptDto,
     type ResourceDto,
     type ResourceTypeDto,
@@ -22,6 +26,8 @@ export interface GameData {
     resourceTypes: ResourceTypeDto[];
     receipts: ReceiptDto[];
     resources: ResourceDto[];
+    orders: OrderDto[];
+    reputation: NeighborReputationDto[];
     purchaseDomikTypes: DomikTypeDto[] | null;
     now: number;
     reload: () => Promise<void>;
@@ -36,23 +42,34 @@ export function useGameData(): GameData {
     const [resourceTypes, setResourceTypes] = useState<ResourceTypeDto[]>([]);
     const [receipts, setReceipts] = useState<ReceiptDto[]>([]);
     const [resources, setResources] = useState<ResourceDto[]>([]);
+    const [orders, setOrders] = useState<OrderDto[]>([]);
+    const [reputation, setReputation] = useState<NeighborReputationDto[]>([]);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [now, setNow] = useState(() => Date.now());
 
     const refetching = useRef(false);
     const domiksRef = useRef(domiks);
+    const ordersRef = useRef(orders);
 
     useEffect(() => {
         domiksRef.current = domiks;
     }, [domiks]);
 
+    useEffect(() => {
+        ordersRef.current = orders;
+    }, [orders]);
+
     const reload = useCallback(async () => {
-        const [domiksData, resourcesData] = await Promise.all([
+        const [domiksData, resourcesData, ordersData, reputationData] = await Promise.all([
             apiGet('Domiki/GetDomiks', domikSchema.array()),
             apiGet('Domiki/GetResources', resourceSchema.array()),
+            getOrders(),
+            getReputation(),
         ]);
         setDomiks(domiksData);
         setResources(resourcesData);
+        setOrders(ordersData);
+        setReputation(reputationData);
     }, []);
 
     const refreshPurchaseTypes = useCallback(async () => {
@@ -88,6 +105,8 @@ export function useGameData(): GameData {
             safeLoad('Domiki/GetReceipts', receiptSchema.array(), setReceipts),
             safeLoad('Domiki/GetDomiks', domikSchema.array(), setDomiks),
             safeLoad('Domiki/GetResources', resourceSchema.array(), setResources),
+            safeLoad('Domiki/GetOrders', orderSchema.array(), setOrders),
+            safeLoad('Domiki/GetReputation', neighborReputationSchema.array(), setReputation),
             safeLoad('Domiki/GetPurchaseAvaialableDomiks', domikTypeSchema.array(), setPurchaseDomikTypes),
         ]);
 
@@ -104,7 +123,7 @@ export function useGameData(): GameData {
                 return true;
             }
             return domik.manufactures?.some(manufacture => remainingSeconds(manufacture.finishDate, now) <= 0) ?? false;
-        });
+        }) || ordersRef.current.some(order => remainingSeconds(order.expireDate, now) <= 0);
 
         if (!expired) {
             return;
@@ -131,6 +150,8 @@ export function useGameData(): GameData {
         resourceTypes,
         receipts,
         resources,
+        orders,
+        reputation,
         purchaseDomikTypes,
         now,
         reload,

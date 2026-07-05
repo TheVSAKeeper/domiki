@@ -12,6 +12,7 @@ namespace Domiki.Web.Business.Core
         private static ResourceType[] _resourceTypes;
         private static Receipt[] _receipts;
         private static DomikType[] _domikTypes;
+        private static Neighbor[] _neighbors;
 
         public ResourceManager(Data.ApplicationDbContext context)
         {
@@ -77,6 +78,22 @@ namespace Domiki.Web.Business.Core
                 }).ToArray();
             }
             return _receipts;
+        }
+
+        public Neighbor[] GetNeighbors()
+        {
+            if (_neighbors == null)
+            {
+                _neighbors = _context.Neighbors.Select(x => new Neighbor
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    LogicName = x.LogicName,
+                    PrimaryResourceTypeId = x.PrimaryResourceTypeId,
+                }).ToArray();
+            }
+
+            return _neighbors;
         }
 
         public DomikType[] GetDomikTypes()

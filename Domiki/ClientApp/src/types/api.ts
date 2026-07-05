@@ -73,6 +73,31 @@ export const receiptSchema = z.object({
 });
 export type ReceiptDto = z.infer<typeof receiptSchema>;
 
+export const orderResourceSchema = z.object({
+    resourceTypeId: z.number(),
+    value: z.number(),
+});
+export type OrderResourceDto = z.infer<typeof orderResourceSchema>;
+
+export const orderSchema = z.object({
+    id: z.number(),
+    neighborId: z.number(),
+    neighborName: z.string(),
+    expireDate: z.string(),
+    required: z.array(orderResourceSchema),
+    rewardCoins: z.number(),
+    rewardGold: z.number(),
+    rewardReputation: z.number(),
+});
+export type OrderDto = z.infer<typeof orderSchema>;
+
+export const neighborReputationSchema = z.object({
+    neighborId: z.number(),
+    neighborName: z.string(),
+    points: z.number(),
+});
+export type NeighborReputationDto = z.infer<typeof neighborReputationSchema>;
+
 export interface PlodderCount {
     max: number;
     free: number;

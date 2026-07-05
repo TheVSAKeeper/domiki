@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { authService } from './auth';
-import { ResponseType } from '../types/api';
+import {
+    neighborReputationSchema,
+    orderSchema,
+    ResponseType,
+    type NeighborReputationDto,
+    type OrderDto,
+} from '../types/api';
 
 export class ApiError extends Error {
     constructor(message: string) {
@@ -67,3 +73,12 @@ export const apiGet = <T>(url: string, schema: z.ZodType<T>, signal?: AbortSigna
 export async function apiPost(url: string, signal?: AbortSignal): Promise<void> {
     await request('POST', url, null, signal);
 }
+
+export const getOrders = (signal?: AbortSignal): Promise<OrderDto[]> =>
+    apiGet('Domiki/GetOrders', orderSchema.array(), signal);
+
+export const getReputation = (signal?: AbortSignal): Promise<NeighborReputationDto[]> =>
+    apiGet('Domiki/GetReputation', neighborReputationSchema.array(), signal);
+
+export const completeOrder = (orderId: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/CompleteOrder/${orderId}`, signal);
