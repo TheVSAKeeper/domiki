@@ -38,24 +38,22 @@ describe('computePlodderCount', () => {
 });
 
 describe('canAffordUpgrade', () => {
-    const types: DomikTypeDto[] = [
-        {
-            id: 1,
-            name: 'Шахта',
-            logicName: 'mine',
-            maxCount: 1,
-            availableCount: 0,
-            maxLevel: 2,
-            levels: [
-                { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
-                { value: 2, resources: [], modificators: [], receiptIds: [] },
-            ],
-        },
-    ];
+    const mineType: DomikTypeDto = {
+        id: 1,
+        name: 'Шахта',
+        logicName: 'mine',
+        maxCount: 1,
+        availableCount: 0,
+        maxLevel: 2,
+        levels: [
+            { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
+            { value: 2, resources: [], modificators: [], receiptIds: [] },
+        ],
+    };
     const base: DomikDto = { id: 1, typeId: 1, level: 1, finishDate: null, manufactures: null };
 
     it('true only when upgrade available and resources suffice', () => {
-        expect(canAffordUpgrade(base, types[0], [{ typeId: 1, value: 100 }])).toBe(true);
+        expect(canAffordUpgrade(base, mineType, [{ typeId: 1, value: 100 }])).toBe(true);
     });
 
     it.each<[string, DomikDto, ResourceDto[]]>([
@@ -64,7 +62,7 @@ describe('canAffordUpgrade', () => {
         ['at max level', { ...base, level: 2 }, [{ typeId: 1, value: 100 }]],
         ['level zero', { ...base, level: 0 }, [{ typeId: 1, value: 100 }]],
     ])('false when %s', (_label, domik, resources) => {
-        expect(canAffordUpgrade(domik, types[0], resources)).toBe(false);
+        expect(canAffordUpgrade(domik, mineType, resources)).toBe(false);
     });
 });
 
