@@ -55,7 +55,14 @@ namespace Domiki.Web.Business.Core
                     Name = x.Name,
                     PlodderCount = x.PlodderCount,
                     DurationSeconds = x.DurationSeconds,
-                    InputResources = x.Resources.Where(x => x.IsInput)
+                    SpeedupPercent = x.SpeedupPercent,
+                    InputResources = x.Resources.Where(x => x.IsInput && !x.IsOptional)
+                        .Select(x => new Resource
+                        {
+                            Type = new ResourceType { Id = x.ResourceTypeId },
+                            Value = x.Value
+                        }).ToArray(),
+                    OptionalInputResources = x.Resources.Where(x => x.IsInput && x.IsOptional)
                         .Select(x => new Resource
                         {
                             Type = new ResourceType { Id = x.ResourceTypeId },

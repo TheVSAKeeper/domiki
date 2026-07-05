@@ -7,7 +7,9 @@
         public string LogicName { get; set; }
 
         public ResourceDto[] InputResources { get; set; }
+        public ResourceDto[] OptionalInputResources { get; set; }
         public int DurationSeconds { get; set; }
+        public int SpeedupPercent { get; set; }
         public ResourceDto[] OutputResources { get; set; }
         public int PlodderCount { get; set; }
     }

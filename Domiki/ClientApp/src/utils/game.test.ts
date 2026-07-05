@@ -43,8 +43,10 @@ describe('manufactureProgressPercent', () => {
         name: 'Доски',
         logicName: 'planks',
         inputResources: [],
+        optionalInputResources: [],
         outputResources: [],
         durationSeconds: 100,
+        speedupPercent: 0,
         plodderCount: 1,
     };
 

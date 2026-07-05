@@ -65,7 +65,9 @@ export const receiptSchema = z.object({
     name: z.string(),
     logicName: z.string(),
     inputResources: z.array(resourceSchema),
+    optionalInputResources: z.array(resourceSchema),
     durationSeconds: z.number(),
+    speedupPercent: z.number(),
     outputResources: z.array(resourceSchema),
     plodderCount: z.number(),
 });

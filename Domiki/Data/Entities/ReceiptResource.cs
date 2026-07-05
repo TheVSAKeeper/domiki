@@ -19,6 +19,8 @@ namespace Domiki.Web.Data
         [Column(Order = 3)]
         public bool IsInput { get; set; } 
 
+        public bool IsOptional { get; set; }
+
         public int Value { get; set; }
 
         public Receipt Receipt { get; set; }

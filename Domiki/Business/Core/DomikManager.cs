@@ -198,7 +198,7 @@ namespace Domiki.Web.Business.Core
             return true;
         }
 
-        public void StartManufacture(int playerId, int domikId, int receiptId)
+        public void StartManufacture(int playerId, int domikId, int receiptId, bool useOptional = false)
         {
             var date = DateTimeHelper.GetNowDate();
 
@@ -242,14 +242,22 @@ namespace Domiki.Web.Business.Core
                 throw new BusinessException("Максимальное количество одновременных производств");
             }
 
-            WriteOffResources(playerId, receipt.InputResources);
+            var writeOffResources = receipt.InputResources;
+            var duration = receipt.DurationSeconds;
+            if (useOptional && receipt.OptionalInputResources is not null && receipt.OptionalInputResources.Length > 0)
+            {
+                writeOffResources = writeOffResources.Concat(receipt.OptionalInputResources).ToArray();
+                duration = receipt.DurationSeconds * (100 - receipt.SpeedupPercent) / 100;
+            }
+
+            WriteOffResources(playerId, writeOffResources);
 
             var manufacture = new Data.Manufacture
             {
                 DomikId = domikId,
                 DomikPlayerId = playerId,
                 ReceiptId = receiptId,
-                FinishDate = date.AddSeconds(receipt.DurationSeconds),
+                FinishDate = date.AddSeconds(duration),
                 PlodderCount = needPlodderCount,
             };
             _context.Manufactures.Add(manufacture);

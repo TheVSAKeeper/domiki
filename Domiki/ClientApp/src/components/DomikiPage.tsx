@@ -19,6 +19,17 @@ export const DomikiPage = () => {
 
     const [shopVisible, setShopVisible] = useState(false);
     const [selectedDomikId, setSelectedDomikId] = useState<number | null>(null);
+    const [optionalReceiptIds, setOptionalReceiptIds] = useState<ReadonlySet<number>>(new Set());
+
+    const toggleOptional = (receiptId: number) => setOptionalReceiptIds(prev => {
+        const next = new Set(prev);
+        if (next.has(receiptId)) {
+            next.delete(receiptId);
+        } else {
+            next.add(receiptId);
+        }
+        return next;
+    });
 
     const plodder = useMemo(() => computePlodderCount(domiks, domikTypes), [domiks, domikTypes]);
     const selected = useMemo(
@@ -49,8 +60,8 @@ export const DomikiPage = () => {
         await reload();
     });
 
-    const startManufacture = (domikId: number, receiptId: number) => runAction(async () => {
-        await apiPost(`Domiki/StartManufacture/${domikId}/${receiptId}`);
+    const startManufacture = (domikId: number, receiptId: number, useOptional: boolean) => runAction(async () => {
+        await apiPost(`Domiki/StartManufacture/${domikId}/${receiptId}?useOptional=${String(useOptional)}`);
         await reload();
     });
 
@@ -200,13 +211,26 @@ export const DomikiPage = () => {
                                 <div className="panel-block">
                                     <span className="panel-label">Запустить производство</span>
                                     <div className="receipt-list">
-                                        {selected.receipts.map(receipt => (
-                                            <button key={receipt.id} className="btn-game"
-                                                onClick={() => startManufacture(selected.domik.id, receipt.id)}>
-                                                <PlayIcon className="btn-ico" aria-hidden="true" />
-                                                {receipt.name}
-                                            </button>
-                                        ))}
+                                        {selected.receipts.map(receipt => {
+                                            const hasOptional = receipt.optionalInputResources.length > 0;
+                                            const useOptional = optionalReceiptIds.has(receipt.id);
+                                            return (
+                                                <div key={receipt.id} className="receipt-row">
+                                                    <button className="btn-game"
+                                                        onClick={() => startManufacture(selected.domik.id, receipt.id, hasOptional && useOptional)}>
+                                                        <PlayIcon className="btn-ico" aria-hidden="true" />
+                                                        {receipt.name}
+                                                    </button>
+                                                    {hasOptional &&
+                                                        <label className="receipt-optional">
+                                                            <input type="checkbox" checked={useOptional}
+                                                                onChange={() => toggleOptional(receipt.id)} />
+                                                            с инструментом (−{receipt.speedupPercent}%)
+                                                        </label>
+                                                    }
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             }

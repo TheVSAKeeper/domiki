@@ -1,4 +1,4 @@
-using Domiki.Web.Business;
+﻿using Domiki.Web.Business;
 using Domiki.Web.Business.Core;
 using Domiki.Web.Business.Models;
 
@@ -351,6 +351,60 @@ namespace Domiki.Web.Tests
             Assert.That(afterSell.First(x => x.Type.Id == coinResourceTypeId).Value - beforeSellCoin, Is.EqualTo(35));
         }
 
+        [TestCase(false, 28800, 3)]
+        [TestCase(true, 17280, 2)]
+        public void OptionalToolShortensDurationTest(bool useOptional, int expectedDuration, int expectedToolLeft)
+        {
+            var playerId = GetPlayerId();
+            var barakTypeId = 2;
+            var clayMineTypeId = 5;
+            var toolResourceTypeId = 8;
+            var clayDig8hReceiptId = 14;
+            BuyDomik(playerId, barakTypeId);
+            BuyDomik(playerId, clayMineTypeId);
+            GrantResource(playerId, toolResourceTypeId, 3);
+
+            var start = DateTimeHelper.GetNowDate();
+            StartManufacture(playerId, 2, clayDig8hReceiptId, false, useOptional);
+
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+            Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(expectedDuration).Within(2));
+            Assert.That(GetResources(playerId).First(x => x.Type.Id == toolResourceTypeId).Value, Is.EqualTo(expectedToolLeft));
+        }
+
+        [Test]
+        public void OptionalToolRequiresToolTest()
+        {
+            var playerId = GetPlayerId();
+            var barakTypeId = 2;
+            var clayMineTypeId = 5;
+            var clayDig8hReceiptId = 14;
+            BuyDomik(playerId, barakTypeId);
+            BuyDomik(playerId, clayMineTypeId);
+
+            Assert.Throws<BusinessException>(() => StartManufacture(playerId, 2, clayDig8hReceiptId, useOptional: true));
+        }
+
+        [Test]
+        public void OptionalToolIgnoredWhenReceiptHasNoOptionalTest()
+        {
+            var playerId = GetPlayerId();
+            var barakTypeId = 2;
+            var clayMineTypeId = 5;
+            var clayResourceTypeId = 4;
+            var toolResourceTypeId = 8;
+            var clayDigReceiptId = 1;
+            BuyDomik(playerId, barakTypeId);
+            BuyDomik(playerId, clayMineTypeId);
+            GrantResource(playerId, toolResourceTypeId, 3);
+
+            StartManufacture(playerId, 2, clayDigReceiptId, useOptional: true);
+
+            var resources = GetResources(playerId);
+            Assert.That(resources.First(x => x.Type.Id == clayResourceTypeId).Value, Is.EqualTo(1));
+            Assert.That(resources.First(x => x.Type.Id == toolResourceTypeId).Value, Is.EqualTo(3));
+        }
+
         [TestCase(1, 20)]
         [TestCase(2, 100)]
         [TestCase(3, 300)]
@@ -436,12 +490,30 @@ namespace Domiki.Web.Tests
                 uow.Commit();
             }
         }
-        private void StartManufacture(int playerId, int domikId, int receiptId, bool calculatorJustFinishMod = true)
+
+        private void GrantResource(int playerId, int typeId, int value)
+        {
+            using (var uow = GetUow())
+            {
+                var resource = uow.Context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
+                if (resource == null)
+                {
+                    resource = new Domiki.Web.Data.Resource { PlayerId = playerId, TypeId = typeId };
+                    uow.Context.Resources.Add(resource);
+                }
+
+                resource.Value += value;
+                uow.Context.SaveChanges();
+                uow.Commit();
+            }
+        }
+
+        private void StartManufacture(int playerId, int domikId, int receiptId, bool calculatorJustFinishMod = true, bool useOptional = false)
         {
             using (var uow = GetUow())
             {
                 var domikManager = GetDomikManager(uow, calculatorJustFinishMod);
-                domikManager.StartManufacture(playerId, domikId, receiptId);
+                domikManager.StartManufacture(playerId, domikId, receiptId, useOptional);
                 uow.Commit();
             }
         }
