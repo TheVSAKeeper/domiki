@@ -226,6 +226,7 @@ code {
     justify-content: space-between;
     flex-wrap: wrap;
     gap: 12px;
+    margin-bottom: 16px;
 }
 
 .section-title {
@@ -242,14 +243,13 @@ code {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
     gap: 16px;
-    margin-top: 16px;
 }
 
 .purchase-box {
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
-    margin-top: 16px;
+    margin-bottom: 16px;
     padding: 14px;
     border: 3px dashed var(--ink);
     background: rgba(251, 243, 223, .45);
@@ -389,6 +389,19 @@ code {
     margin-bottom: 10px;
 }
 
+.upgrade-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin-bottom: 12px;
+}
+
+    .upgrade-row .panel-label,
+    .upgrade-row .resources {
+        margin-bottom: 0;
+    }
+
 .hint {
     margin: 0;
     font-size: 14px;
@@ -458,8 +471,6 @@ code {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
-    padding: 10px;
     background: #fffaec;
     border: 3px solid var(--ink);
     clip-path: var(--cut);
@@ -470,11 +481,27 @@ code {
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    background: none;
+    border: none;
+    font: inherit;
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
 }
+
+    .receipt-head:hover {
+        background: var(--plank);
+    }
 
 .receipt-name {
     font-size: 13px;
     font-weight: 700;
+}
+
+.receipt-blocked .receipt-name {
+    color: var(--roof);
 }
 
 .receipt-cost {
@@ -493,6 +520,24 @@ code {
     .receipt-cost .resource-box {
         gap: 5px;
     }
+
+.receipt-caret {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.12s;
+}
+
+.receipt-open .receipt-caret {
+    transform: rotate(180deg);
+}
+
+.receipt-body {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 0 10px 10px;
+}
 
 .receipt-io {
     display: flex;

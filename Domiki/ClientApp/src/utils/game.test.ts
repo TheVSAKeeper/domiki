@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto } from '../types/api';
-import { computePlodderCount, computeReceiptView, manufactureProgressPercent } from './game';
+import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ResourceDto } from '../types/api';
+import { canAffordUpgrade, computePlodderCount, computeReceiptView, manufactureProgressPercent } from './game';
 
 const domikTypes: DomikTypeDto[] = [
     {
@@ -34,6 +34,37 @@ describe('computePlodderCount', () => {
         ];
 
         expect(computePlodderCount(domiks, domikTypes)).toEqual({ max: 0, free: 0 });
+    });
+});
+
+describe('canAffordUpgrade', () => {
+    const types: DomikTypeDto[] = [
+        {
+            id: 1,
+            name: 'Шахта',
+            logicName: 'mine',
+            maxCount: 1,
+            availableCount: 0,
+            maxLevel: 2,
+            levels: [
+                { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
+                { value: 2, resources: [], modificators: [], receiptIds: [] },
+            ],
+        },
+    ];
+    const base: DomikDto = { id: 1, typeId: 1, level: 1, finishDate: null, manufactures: null };
+
+    it('true only when upgrade available and resources suffice', () => {
+        expect(canAffordUpgrade(base, types[0], [{ typeId: 1, value: 100 }])).toBe(true);
+    });
+
+    it.each<[string, DomikDto, ResourceDto[]]>([
+        ['not enough resources', base, [{ typeId: 1, value: 99 }]],
+        ['upgrade in progress', { ...base, finishDate: '2026-01-01T00:00:00.000Z' }, [{ typeId: 1, value: 100 }]],
+        ['at max level', { ...base, level: 2 }, [{ typeId: 1, value: 100 }]],
+        ['level zero', { ...base, level: 0 }, [{ typeId: 1, value: 100 }]],
+    ])('false when %s', (_label, domik, resources) => {
+        expect(canAffordUpgrade(domik, types[0], resources)).toBe(false);
     });
 });
 

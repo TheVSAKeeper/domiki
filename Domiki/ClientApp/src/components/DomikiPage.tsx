@@ -2,11 +2,12 @@ import { useMemo, useState } from 'react';
 import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import ArrowUpIcon from 'pixelarticons/svg/arrow-up.svg?react';
+import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import PlayIcon from 'pixelarticons/svg/play.svg?react';
 import { apiPost, ApiError } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
-import { computePlodderCount, computeReceiptView, computeSelectedDomikView } from '../utils/game';
+import { canAffordUpgrade, computePlodderCount, computeReceiptView, computeSelectedDomikView } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ManufactureBox } from './ManufactureBox';
 import { ResourcesBox } from './ResourcesBox';
@@ -19,7 +20,11 @@ export const DomikiPage = () => {
 
     const [shopVisible, setShopVisible] = useState(false);
     const [selectedDomikId, setSelectedDomikId] = useState<number | null>(null);
+    const [expandedReceiptId, setExpandedReceiptId] = useState<number | null>(null);
     const [optionalReceiptIds, setOptionalReceiptIds] = useState<ReadonlySet<number>>(new Set());
+
+    const toggleExpand = (receiptId: number) =>
+        setExpandedReceiptId(prev => (prev === receiptId ? null : receiptId));
 
     const toggleOptional = (receiptId: number) => setOptionalReceiptIds(prev => {
         const next = new Set(prev);
@@ -103,17 +108,17 @@ export const DomikiPage = () => {
                     </div>
                 }
             </header>
+            <div className="village-header">
+                <h2 className="section-title">Деревня</h2>
+                {purchaseDomikTypes != null &&
+                    <button className="btn-game" onClick={() => toggleShop()}>
+                        <StoreIcon className="btn-ico" aria-hidden="true" />
+                        {shopVisible ? 'Закрыть магазин' : 'Магазин'}
+                    </button>
+                }
+            </div>
             <div className="workspace">
                 <section className="village">
-                    <div className="village-header">
-                        <h2 className="section-title">Деревня</h2>
-                        {purchaseDomikTypes != null &&
-                            <button className="btn-game" onClick={() => toggleShop()}>
-                                <StoreIcon className="btn-ico" aria-hidden="true" />
-                                {shopVisible ? 'Закрыть магазин' : 'Магазин'}
-                            </button>
-                        }
-                    </div>
                     {shopVisible && purchaseDomikTypes != null &&
                         <div className="purchase-box">
                             {purchaseDomikTypes.length === 0 &&
@@ -159,7 +164,7 @@ export const DomikiPage = () => {
                                         <span className="plot-name">{domikType.name}</span>
                                         <UpgradeBox durationSeconds={durationSecondsText} level={domik.level} />
                                         <span className="plot-status">
-                                            {domik.level < domikType.maxLevel && domik.finishDate == null &&
+                                            {canAffordUpgrade(domik, domikType, resources) &&
                                                 <img className="status-icon" src="/images/upgrade_available.png" alt="Доступно улучшение" title="Доступно улучшение" />
                                             }
                                             {domik.finishDate != null &&
@@ -185,20 +190,17 @@ export const DomikiPage = () => {
                             <span className="domik-level">ур. {selected.domik.level}</span>
                             {selected.upgrade != null &&
                                 <div className="panel-block">
-                                    <span className="panel-label">Улучшение до ур. {selected.upgrade.nextLevel}</span>
-                                    <ResourcesBox resources={selected.upgrade.resources} resourceTypes={resourceTypes} have={resources} />
+                                    <div className="upgrade-row">
+                                        <span className="panel-label">Улучшение до ур. {selected.upgrade.nextLevel}</span>
+                                        <ResourcesBox resources={selected.upgrade.resources} resourceTypes={resourceTypes} have={resources} />
+                                    </div>
                                     <button className="btn-game"
                                         disabled={!selected.upgrade.hasResources}
+                                        title={selected.upgrade.hasResources ? undefined : 'Не хватает ресурсов'}
                                         onClick={() => upgrade(selected.domik.id)}>
                                         <ArrowUpIcon className="btn-ico" aria-hidden="true" />
                                         Улучшить
                                     </button>
-                                    {!selected.upgrade.hasResources &&
-                                        <p className="note-warn">
-                                            <img src="/images/upgrade_no_resources.png" alt="" />
-                                            Не хватает ресурсов
-                                        </p>
-                                    }
                                 </div>
                             }
                             {selected.domik.finishDate != null &&
@@ -215,50 +217,63 @@ export const DomikiPage = () => {
                                             const hasOptional = receipt.optionalInputResources.length > 0;
                                             const useOptional = optionalReceiptIds.has(receipt.id);
                                             const view = computeReceiptView(receipt, resources, plodder.free, hasOptional && useOptional);
+                                            const expanded = expandedReceiptId === receipt.id;
                                             return (
-                                                <div key={receipt.id} className="receipt-row">
-                                                    <div className="receipt-head">
+                                                <div key={receipt.id}
+                                                    className={'receipt-row' + (expanded ? ' receipt-open' : '') + (view.canRun ? '' : ' receipt-blocked')}>
+                                                    <button type="button" className="receipt-head"
+                                                        aria-expanded={expanded}
+                                                        onClick={() => toggleExpand(receipt.id)}>
                                                         <span className="receipt-name">{receipt.name}</span>
                                                         <span className="receipt-cost">
+                                                            {!view.canRun &&
+                                                                <img className="receipt-warn" src="/images/upgrade_no_resources.png"
+                                                                    alt="" title={!view.hasPlodders ? 'Нет свободных трудяг' : 'Не хватает ресурсов'} />
+                                                            }
                                                             <span className="resource-box" title="Трудяги">
                                                                 <img src="/images/modificatorTypes/plodder.png" alt="Трудяги" />
                                                                 <span className="resource-value">{receipt.plodderCount}</span>
                                                             </span>
                                                             <span className="timer">{formatDuration(view.durationSeconds)}</span>
+                                                            <ChevronDownIcon className="receipt-caret" aria-hidden="true" />
                                                         </span>
-                                                    </div>
-                                                    <div className="receipt-io">
-                                                        {view.inputs.length > 0 &&
-                                                            <div className="receipt-io-row">
-                                                                <span className="receipt-io-label">Нужно</span>
-                                                                <ResourcesBox resources={view.inputs} resourceTypes={resourceTypes} have={resources} />
-                                                            </div>
-                                                        }
-                                                        {receipt.outputResources.length > 0 &&
-                                                            <div className="receipt-io-row">
-                                                                <span className="receipt-io-label">Даёт</span>
-                                                                <ResourcesBox resources={receipt.outputResources} resourceTypes={resourceTypes} />
-                                                            </div>
-                                                        }
-                                                    </div>
-                                                    {hasOptional &&
-                                                        <label className="receipt-optional">
-                                                            <input type="checkbox" checked={useOptional}
-                                                                onChange={() => toggleOptional(receipt.id)} />
-                                                            с инструментом (−{receipt.speedupPercent}%)
-                                                        </label>
-                                                    }
-                                                    <button className="btn-game"
-                                                        disabled={!view.canRun}
-                                                        onClick={() => startManufacture(selected.domik.id, receipt.id, hasOptional && useOptional)}>
-                                                        <PlayIcon className="btn-ico" aria-hidden="true" />
-                                                        Запустить
                                                     </button>
-                                                    {!view.canRun &&
-                                                        <p className="note-warn">
-                                                            <img src="/images/upgrade_no_resources.png" alt="" />
-                                                            {!view.hasPlodders ? 'Нет свободных трудяг' : 'Не хватает ресурсов'}
-                                                        </p>
+                                                    {expanded &&
+                                                        <div className="receipt-body">
+                                                            <div className="receipt-io">
+                                                                {view.inputs.length > 0 &&
+                                                                    <div className="receipt-io-row">
+                                                                        <span className="receipt-io-label">Нужно</span>
+                                                                        <ResourcesBox resources={view.inputs} resourceTypes={resourceTypes} have={resources} />
+                                                                    </div>
+                                                                }
+                                                                {receipt.outputResources.length > 0 &&
+                                                                    <div className="receipt-io-row">
+                                                                        <span className="receipt-io-label">Даёт</span>
+                                                                        <ResourcesBox resources={receipt.outputResources} resourceTypes={resourceTypes} />
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                            {hasOptional &&
+                                                                <label className="receipt-optional">
+                                                                    <input type="checkbox" checked={useOptional}
+                                                                        onChange={() => toggleOptional(receipt.id)} />
+                                                                    с инструментом (−{receipt.speedupPercent}%)
+                                                                </label>
+                                                            }
+                                                            <button className="btn-game"
+                                                                disabled={!view.canRun}
+                                                                onClick={() => startManufacture(selected.domik.id, receipt.id, hasOptional && useOptional)}>
+                                                                <PlayIcon className="btn-ico" aria-hidden="true" />
+                                                                Запустить
+                                                            </button>
+                                                            {!view.canRun &&
+                                                                <p className="note-warn">
+                                                                    <img src="/images/upgrade_no_resources.png" alt="" />
+                                                                    {!view.hasPlodders ? 'Нет свободных трудяг' : 'Не хватает ресурсов'}
+                                                                </p>
+                                                            }
+                                                        </div>
                                                     }
                                                 </div>
                                             );

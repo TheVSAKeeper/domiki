@@ -3,6 +3,22 @@ import { formatDuration, remainingSeconds } from './time';
 
 const plodderTypeId = 1;
 
+function hasResourcesFor(cost: ResourceDto[], owned: ResourceDto[]): boolean {
+    return cost.every(resource => {
+        const have = owned.find(x => x.typeId === resource.typeId);
+        return have != null && have.value >= resource.value;
+    });
+}
+
+export function canAffordUpgrade(domik: DomikDto, domikType: DomikTypeDto, resources: ResourceDto[]): boolean {
+    if (domik.level <= 0 || domik.level >= domikType.maxLevel || domik.finishDate != null) {
+        return false;
+    }
+
+    const domikLevel = domikType.levels.find(x => x.value === domik.level);
+    return domikLevel != null && hasResourcesFor(domikLevel.resources, resources);
+}
+
 export function computePlodderCount(domiks: DomikDto[], domikTypes: DomikTypeDto[]): PlodderCount {
     let maxPlodderCount = 0;
     let workingPlodderCount = 0;
@@ -60,10 +76,7 @@ export function computeSelectedDomikView(
                 .filter((receipt): receipt is ReceiptDto => receipt != null);
 
             if (domik.level < domikType.maxLevel && domik.finishDate == null) {
-                const hasResources = domikLevel.resources.every(resource => {
-                    const resourceForUpgrade = resources.find(x => x.typeId === resource.typeId);
-                    return resourceForUpgrade != null && resourceForUpgrade.value >= resource.value;
-                });
+                const hasResources = hasResourcesFor(domikLevel.resources, resources);
 
                 upgrade = {
                     nextLevel: domik.level + 1,
@@ -98,10 +111,7 @@ export function computeReceiptView(
     const durationSeconds = withOptional
         ? Math.floor((receipt.durationSeconds * (100 - receipt.speedupPercent)) / 100)
         : receipt.durationSeconds;
-    const hasResources = inputs.every(input => {
-        const owned = resources.find(x => x.typeId === input.typeId);
-        return owned != null && owned.value >= input.value;
-    });
+    const hasResources = hasResourcesFor(inputs, resources);
     const hasPlodders = freePlodders >= receipt.plodderCount;
 
     return { receipt, inputs, durationSeconds, hasResources, hasPlodders, canRun: hasResources && hasPlodders };
