@@ -59,6 +59,8 @@ export function useGameData(): GameData {
     const refetching = useRef(false);
     const domiksRef = useRef(domiks);
     const ordersRef = useRef(orders);
+    const workersRef = useRef(workers);
+    const reloadedRestDeadlinesRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
         domiksRef.current = domiks;
@@ -67,6 +69,10 @@ export function useGameData(): GameData {
     useEffect(() => {
         ordersRef.current = orders;
     }, [orders]);
+
+    useEffect(() => {
+        workersRef.current = workers;
+    }, [workers]);
 
     const reload = useCallback(async () => {
         const [domiksData, resourcesData, ordersData, reputationData, villageData, workersData] = await Promise.all([
@@ -143,7 +149,24 @@ export function useGameData(): GameData {
                 return true;
             }
             return domik.manufactures?.some(manufacture => remainingSeconds(manufacture.finishDate, now) <= 0) ?? false;
-        }) || ordersRef.current.some(order => remainingSeconds(order.expireDate, now) <= 0);
+        }) || ordersRef.current.some(order => remainingSeconds(order.expireDate, now) <= 0)
+            || workersRef.current.some(worker => {
+                if (worker.restUntil == null) {
+                    return false;
+                }
+
+                const key = `${worker.id}:${worker.restUntil}`;
+                if (reloadedRestDeadlinesRef.current.has(key)) {
+                    return false;
+                }
+
+                if (remainingSeconds(worker.restUntil, now) > 0) {
+                    return false;
+                }
+
+                reloadedRestDeadlinesRef.current.add(key);
+                return true;
+            });
 
         if (!expired) {
             return;

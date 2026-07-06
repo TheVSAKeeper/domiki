@@ -67,9 +67,10 @@ namespace Domiki.Web.Data
                 .UsePropertyAccessMode(PropertyAccessMode.Property);
 
             modelBuilder.Entity<Trait>().HasData(
-                new Trait { Id = 1, Name = "Обычный", LogicName = "ordinary", DurationPercent = 0 },
-                new Trait { Id = 2, Name = "Проворный", LogicName = "nimble", DurationPercent = -10 },
-                new Trait { Id = 3, Name = "Работящий", LogicName = "diligent", DurationPercent = -20 });
+                new Trait { Id = 1, Name = "Обычный", LogicName = "ordinary", DurationPercent = 0, NoFatigue = false },
+                new Trait { Id = 2, Name = "Проворный", LogicName = "nimble", DurationPercent = -10, NoFatigue = false },
+                new Trait { Id = 3, Name = "Работящий", LogicName = "diligent", DurationPercent = -20, NoFatigue = false },
+                new Trait { Id = 4, Name = "Соня", LogicName = "sonya", DurationPercent = 15, NoFatigue = true });
 
             modelBuilder.Entity<Worker>()
                 .HasOne(s => s.Player)

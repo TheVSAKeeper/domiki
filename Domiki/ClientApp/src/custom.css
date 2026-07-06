@@ -1193,12 +1193,18 @@ progress {
     border-color: var(--roof);
 }
 
+.worker-resting {
+    background: #eef6ff;
+    border-color: #517ea6;
+}
+
 .worker-name {
     font-weight: 700;
 }
 
 .worker-trait,
-.worker-state {
+.worker-state,
+.worker-effect {
     font-size: 12px;
     font-weight: 700;
 }
@@ -1209,6 +1215,10 @@ progress {
 
 .worker-state {
     color: var(--roof);
+}
+
+.worker-effect {
+    color: #517e2d;
 }
 
 .worker-skills {

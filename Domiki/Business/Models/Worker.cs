@@ -6,6 +6,8 @@
         public string Name { get; set; }
         public Trait Trait { get; set; }
         public int? ManufactureId { get; set; }
+        public int WorkedSeconds { get; set; }
+        public DateTime? RestUntil { get; set; }
         public WorkerSkill[] Skills { get; set; }
     }
 }

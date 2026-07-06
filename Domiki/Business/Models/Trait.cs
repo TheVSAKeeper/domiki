@@ -6,5 +6,6 @@
         public string Name { get; set; }
         public string LogicName { get; set; }
         public int DurationPercent { get; set; }
+        public bool NoFatigue { get; set; }
     }
 }

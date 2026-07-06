@@ -30,7 +30,7 @@ namespace Domiki.Web.Tests
             using (var uow = _uowFactory())
             {
                 CalculatorTick calculatorTick = _calculatorTickFactory(uow);
-                calculatorTick.Calculate(DateTime.Now.AddYears(217), calcDate);
+                calculatorTick.Calculate(DateTimeHelper.GetNowDate().AddYears(217), calcDate);
                 uow.Context.SaveChanges();
                 uow.Commit();
             }

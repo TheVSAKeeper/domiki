@@ -118,7 +118,9 @@ export const workerSchema = z.object({
     traitId: z.number(),
     traitName: z.string(),
     traitDurationPercent: z.number(),
+    noFatigue: z.boolean(),
     manufactureId: z.number().nullable(),
+    restUntil: z.string().nullable(),
     skills: z.array(workerSkillSchema),
 });
 export type WorkerDto = z.infer<typeof workerSchema>;

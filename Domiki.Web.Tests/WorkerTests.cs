@@ -204,6 +204,86 @@ namespace Domiki.Web.Tests
             Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(20967).Within(2));
         }
 
+
+        [TestCase(25, 60)]
+        public void FinishManufactureAccumulatesWorkerWorkedSecondsTest(int receiptId, int expectedWorkedSeconds)
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 7);
+            GrantResource(playerId, 6, 1);
+            var worker = GetWorkers(playerId).Single();
+            SetWorkerTrait(worker.Id, 1);
+
+            StartManufacture(playerId, 2, receiptId, true);
+
+            worker = GetWorkers(playerId).Single();
+            Assert.That(worker.WorkedSeconds, Is.EqualTo(expectedWorkedSeconds));
+            Assert.That(worker.RestUntil, Is.Null);
+        }
+
+        [TestCase(14)]
+        public void FinishManufactureFatigueThresholdSendsWorkerToRestTest(int receiptId)
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+            var worker = GetWorkers(playerId).Single();
+            SetWorkerTrait(worker.Id, 1);
+
+            StartManufacture(playerId, 2, receiptId, true);
+
+            worker = GetWorkers(playerId).Single();
+            Assert.That(worker.WorkedSeconds, Is.EqualTo(0));
+            Assert.That(worker.RestUntil, Is.Not.Null);
+            Assert.That(worker.RestUntil, Is.GreaterThan(DateTimeHelper.GetNowDate()));
+        }
+
+        [TestCase(14)]
+        public void RestingWorkerDoesNotStartManufactureTest(int receiptId)
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+            var worker = GetWorkers(playerId).Single();
+            SetWorkerRest(worker.Id, DateTimeHelper.GetNowDate().AddHours(1));
+
+            var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 2, receiptId, false));
+            Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
+        }
+
+        [TestCase(14)]
+        public void WorkerWithExpiredRestUntilStartsManufactureTest(int receiptId)
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+            var worker = GetWorkers(playerId).Single();
+            SetWorkerRest(worker.Id, DateTimeHelper.GetNowDate().AddSeconds(-1));
+
+            StartManufacture(playerId, 2, receiptId, false);
+
+            worker = GetWorkers(playerId).Single();
+            Assert.That(worker.ManufactureId, Is.Not.Null);
+        }
+
+        [TestCase(18)]
+        public void SonyaWorkerDoesNotAccumulateFatigueTest(int receiptId)
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+            var worker = GetWorkers(playerId).Single();
+            SetWorkerTrait(worker.Id, 4);
+            SetWorkerWorked(worker.Id, 0);
+
+            StartManufacture(playerId, 2, receiptId, true);
+
+            worker = GetWorkers(playerId).Single();
+            Assert.That(worker.WorkedSeconds, Is.EqualTo(0));
+            Assert.That(worker.RestUntil, Is.Null);
+        }
+
         private int GetPlayerId()
         {
             using (var uow = GetUow())
@@ -284,12 +364,53 @@ namespace Domiki.Web.Tests
             }
         }
 
+        private void GrantResource(int playerId, int resourceTypeId, int value)
+        {
+            using (var uow = GetUow())
+            {
+                var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
+                if (resource == null)
+                {
+                    resource = new Domiki.Web.Data.Resource
+                    {
+                        PlayerId = playerId,
+                        TypeId = resourceTypeId,
+                    };
+                    uow.Context.Resources.Add(resource);
+                }
+
+                resource.Value += value;
+                uow.Context.SaveChanges();
+                uow.Commit();
+            }
+        }
+
         private void SetWorkerTrait(int workerId, int traitId)
         {
             using (var uow = GetUow())
             {
                 var worker = uow.Context.Workers.Single(x => x.Id == workerId);
                 worker.TraitId = traitId;
+                uow.Commit();
+            }
+        }
+
+        private void SetWorkerWorked(int workerId, int workedSeconds)
+        {
+            using (var uow = GetUow())
+            {
+                var worker = uow.Context.Workers.Single(x => x.Id == workerId);
+                worker.WorkedSeconds = workedSeconds;
+                uow.Commit();
+            }
+        }
+
+        private void SetWorkerRest(int workerId, DateTime? restUntil)
+        {
+            using (var uow = GetUow())
+            {
+                var worker = uow.Context.Workers.Single(x => x.Id == workerId);
+                worker.RestUntil = restUntil;
                 uow.Commit();
             }
         }

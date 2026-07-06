@@ -20,6 +20,9 @@ namespace Domiki.Web.Data
 
         public int? ManufactureId { get; set; }
 
+        public int WorkedSeconds { get; set; }
+
+        public DateTime? RestUntil { get; set; }
         public Player Player { get; set; }
 
         public Trait Trait { get; set; }

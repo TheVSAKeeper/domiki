@@ -7,6 +7,11 @@ namespace Domiki.Web.Business.Core
     {
         private const int PlodderModificatorId = 1;
 
+        public static bool IsFree(Data.Worker worker, DateTime now)
+        {
+            return worker.ManufactureId == null && (worker.RestUntil == null || worker.RestUntil <= now);
+        }
+
         private static readonly string[] WorkerNames =
         {
             "Аким",
@@ -75,7 +80,7 @@ namespace Domiki.Web.Business.Core
             }
 
             _context.SaveChanges();
-            ReconcileManufactures(playerId, currentWorkers);
+            ReconcileManufactures(playerId, currentWorkers, DateTimeHelper.GetNowDate());
             return currentWorkers;
         }
 
@@ -98,7 +103,7 @@ namespace Domiki.Web.Business.Core
             return capacity;
         }
 
-        private void ReconcileManufactures(int playerId, Data.Worker[] currentWorkers)
+        private void ReconcileManufactures(int playerId, Data.Worker[] currentWorkers, DateTime now)
         {
             var manufactures = _context.Manufactures.Where(x => x.DomikPlayerId == playerId).OrderBy(x => x.Id).ToArray();
             foreach (var manufacture in manufactures)
@@ -110,7 +115,7 @@ namespace Domiki.Web.Business.Core
                     continue;
                 }
 
-                var freeWorkers = currentWorkers.Where(x => x.ManufactureId == null).OrderBy(x => x.Id).Take(missing).ToArray();
+                var freeWorkers = currentWorkers.Where(x => IsFree(x, now)).OrderBy(x => x.Id).Take(missing).ToArray();
                 foreach (var worker in freeWorkers)
                 {
                     worker.ManufactureId = manufacture.Id;
@@ -138,6 +143,8 @@ namespace Domiki.Web.Business.Core
                 Name = x.Name,
                 Trait = traits[x.TraitId],
                 ManufactureId = x.ManufactureId,
+                WorkedSeconds = x.WorkedSeconds,
+                RestUntil = x.RestUntil,
                 Skills = skills.GetValueOrDefault(x.Id, Array.Empty<WorkerSkill>()),
             }).ToArray();
         }

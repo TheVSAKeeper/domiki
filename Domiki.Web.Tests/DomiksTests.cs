@@ -339,6 +339,7 @@ namespace Domiki.Web.Tests
             BuyDomik(playerId, clayMineTypeId);
             BuyDomik(playerId, forgeTypeId);
             BuyDomik(playerId, marketTypeId);
+            BuyDomik(playerId, barakTypeId);
             StartManufacture(playerId, 2, clayDig8hReceiptId);
             StartManufacture(playerId, 3, makeBrickReceiptId);
             var afterBrick = GetResources(playerId);

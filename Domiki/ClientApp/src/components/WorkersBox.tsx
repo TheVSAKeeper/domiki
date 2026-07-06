@@ -1,11 +1,13 @@
 import type { DomikTypeDto, WorkerDto } from '../types/api';
+import { formatDuration, remainingSeconds } from '../utils/time';
 
 interface WorkersBoxProps {
     workers: WorkerDto[];
     domikTypes: DomikTypeDto[];
+    now: number;
 }
 
-export const WorkersBox = ({ workers, domikTypes }: WorkersBoxProps) => {
+export const WorkersBox = ({ workers, domikTypes, now }: WorkersBoxProps) => {
     return (
         <section className="workers-panel pixel-panel">
             <h3 className="panel-title">Трудяги</h3>
@@ -17,12 +19,25 @@ export const WorkersBox = ({ workers, domikTypes }: WorkersBoxProps) => {
                     const effect = worker.traitDurationPercent === 0
                         ? ''
                         : ` ${worker.traitDurationPercent} %`;
+                    const restingSeconds = worker.restUntil == null ? 0 : remainingSeconds(worker.restUntil, now);
+                    const isResting = worker.manufactureId == null && worker.restUntil != null && restingSeconds > 0;
+                    const state = worker.manufactureId != null
+                        ? 'работает'
+                        : isResting
+                            ? `отдыхает до ${new Date(worker.restUntil as string).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${formatDuration(restingSeconds)})`
+                            : 'свободен';
+                    const className = 'worker-chip'
+                        + (worker.manufactureId == null ? '' : ' worker-busy')
+                        + (isResting ? ' worker-resting' : '');
                     const visibleSkills = worker.skills.filter(skill => skill.bonusPercent > 0);
                     return (
-                        <div key={worker.id} className={'worker-chip' + (worker.manufactureId == null ? '' : ' worker-busy')}>
+                        <div key={worker.id} className={className}>
                             <span className="worker-name">{worker.name}</span>
                             <span className="worker-trait">{worker.traitName}{effect}</span>
-                            <span className="worker-state">{worker.manufactureId == null ? 'свободен' : 'работает'}</span>
+                            <span className="worker-state">{state}</span>
+                            {worker.noFatigue &&
+                                <span className="worker-effect">не устаёт</span>
+                            }
                             {visibleSkills.length > 0 &&
                                 <span className="worker-skills">
                                     {visibleSkills.map(skill => {

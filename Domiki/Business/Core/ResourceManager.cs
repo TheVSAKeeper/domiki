@@ -45,6 +45,7 @@ namespace Domiki.Web.Business.Core
                     LogicName = x.LogicName,
                     Name = x.Name,
                     DurationPercent = x.DurationPercent,
+                    NoFatigue = x.NoFatigue,
                 }).ToArray();
             }
 

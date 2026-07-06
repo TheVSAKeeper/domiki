@@ -10,6 +10,8 @@ namespace Domiki.Web.Business.Core
     {
         private const int CrestIconCount = 8;
         private const int CrestColorCount = 8;
+        private const int FatigueThresholdSeconds = 8 * 3600;
+        private const int RestSeconds = 2 * 3600;
 
         private static readonly Regex SpaceRegex = new Regex(" +", RegexOptions.Compiled);
         private static readonly string[] VillageNameForbiddenWords =
@@ -253,7 +255,7 @@ namespace Domiki.Web.Business.Core
             var currentManufactureCount = dbManufactures.Where(x => x.DomikId == domikId).Count();
 
             var workers = _workerManager.EnsureWorkers(playerId);
-            var freeWorkers = workers.Where(x => x.ManufactureId == null).OrderBy(x => x.Id).ToArray();
+            var freeWorkers = workers.Where(x => WorkerManager.IsFree(x, date)).OrderBy(x => x.Id).ToArray();
 
             var domiks = _context.Domiks.Where(x=>x.PlayerId == playerId).ToArray();
             var domikTypes = _resourceManager.GetDomikTypes();
@@ -338,9 +340,20 @@ namespace Domiki.Web.Business.Core
                     _playerResourceManager.GrantResource(calcInfo.PlayerId, resource.Type.Id, resource.Value);
                 }
                 var dbDomik = _context.Domiks.Single(x => x.PlayerId == calcInfo.PlayerId && x.Id == dbManufacture.DomikId);
+                var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
                 foreach (var worker in _context.Workers.Where(x => x.ManufactureId == dbManufacture.Id).ToArray())
                 {
                     IncrementWorkerSkill(worker.Id, dbDomik.TypeId);
+                    if (!traits[worker.TraitId].NoFatigue)
+                    {
+                        worker.WorkedSeconds += recept.DurationSeconds;
+                        if (worker.WorkedSeconds >= FatigueThresholdSeconds)
+                        {
+                            worker.RestUntil = date.AddSeconds(RestSeconds);
+                            worker.WorkedSeconds = 0;
+                        }
+                    }
+
                     worker.ManufactureId = null;
                 }
                 _context.Manufactures.Remove(dbManufacture);

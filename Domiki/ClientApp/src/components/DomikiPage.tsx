@@ -49,8 +49,8 @@ export const DomikiPage = () => {
 
     const plodder = useMemo(() => ({
         max: workers.length,
-        free: workers.filter(worker => worker.manufactureId == null).length,
-    }), [workers]);
+        free: workers.filter(worker => worker.manufactureId == null && (worker.restUntil == null || remainingSeconds(worker.restUntil, now) <= 0)).length,
+    }), [workers, now]);
     const selected = useMemo(
         () => computeSelectedDomikView(selectedDomikId, domiks, domikTypes, receipts, resources, now),
         [selectedDomikId, domiks, domikTypes, receipts, resources, now],
@@ -199,7 +199,7 @@ export const DomikiPage = () => {
             }
             <OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes}
                 resources={resources} now={now} onComplete={completeOrder} />
-            <WorkersBox workers={workers} domikTypes={domikTypes} />
+            <WorkersBox workers={workers} domikTypes={domikTypes} now={now} />
             <div className="village-header">
                 <div className="village-identity">
                     <span className="crest-badge" style={{ backgroundColor: villageColor }}>{villageIcon}</span>
