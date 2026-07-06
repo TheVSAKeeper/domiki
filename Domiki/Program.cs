@@ -94,6 +94,7 @@ builder.Services.AddScoped<DomikManager>();
 builder.Services.AddScoped<OrderManager>();
 builder.Services.AddScoped<ResourceManager>();
 builder.Services.AddScoped<PlayerResourceManager>();
+builder.Services.AddScoped<WorkerManager>();
 builder.Services.AddSingleton<ICalculator, Calculator>();
 builder.Services.AddScoped<CalculatorTick>();
 builder.Services.AddHostedService<CalculatorBackgroundService>();

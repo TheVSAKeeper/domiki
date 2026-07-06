@@ -13,6 +13,7 @@ namespace Domiki.Web.Business.Core
         private static Receipt[] _receipts;
         private static DomikType[] _domikTypes;
         private static Neighbor[] _neighbors;
+        private static Trait[] _traits;
 
         public ResourceManager(Data.ApplicationDbContext context)
         {
@@ -32,6 +33,22 @@ namespace Domiki.Web.Business.Core
             }
 
             return _modificatorTypes;
+        }
+
+        public Trait[] GetTraits()
+        {
+            if (_traits == null)
+            {
+                _traits = _context.Traits.Select(x => new Trait
+                {
+                    Id = x.Id,
+                    LogicName = x.LogicName,
+                    Name = x.Name,
+                    DurationPercent = x.DurationPercent,
+                }).ToArray();
+            }
+
+            return _traits;
         }
 
         public ResourceType[] GetResourceTypes()

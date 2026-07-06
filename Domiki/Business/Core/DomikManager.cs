@@ -36,14 +36,16 @@ namespace Domiki.Web.Business.Core
         private Data.UnitOfWork _uow;
         private ResourceManager _resourceManager;
         private PlayerResourceManager _playerResourceManager;
+        private WorkerManager _workerManager;
 
-        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager)
+        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager)
         {
             _context = context;
             _calculator = calculator;
             _uow = uow;
             _resourceManager = resourceManager;
             _playerResourceManager = playerResourceManager;
+            _workerManager = workerManager;
         }
 
         public int GetPlayerId(string aspNetUserId)
@@ -248,24 +250,13 @@ namespace Domiki.Web.Business.Core
             _playerResourceManager.LockDbPlayerRow(playerId);
 
             var dbManufactures = _context.Manufactures.Where(x => x.DomikPlayerId == playerId);
-            var currentPlodderCount = dbManufactures.Sum(x => x.PlodderCount);
             var currentManufactureCount = dbManufactures.Where(x => x.DomikId == domikId).Count();
+
+            var workers = _workerManager.EnsureWorkers(playerId);
+            var freeWorkers = workers.Where(x => x.ManufactureId == null).OrderBy(x => x.Id).ToArray();
 
             var domiks = _context.Domiks.Where(x=>x.PlayerId == playerId).ToArray();
             var domikTypes = _resourceManager.GetDomikTypes();
-            var maxPlodderCount = 0;
-            foreach (var domik in domiks)
-            {
-                if (domik.Level == 0)
-                {
-                    continue;
-                }
-                var domikType = domikTypes.First(x => x.Id == domik.TypeId);
-                var level = domikType.Levels.First(x => x.Value == domik.Level);
-                var plodderModificatorId = 1;
-                var modificatorValue = level.Modificators.FirstOrDefault(x => x.Type.Id == plodderModificatorId)?.Value ?? 0;
-                maxPlodderCount += modificatorValue;
-            }
 
             var dbDomik = domiks.First(x => x.PlayerId == playerId && x.Id == domikId);
             if (dbDomik.Level == 0)
@@ -276,7 +267,7 @@ namespace Domiki.Web.Business.Core
             var levelReceipt = domikLevel.Receipts.First(x => x.Id == receiptId);
             var receipt = _resourceManager.GetReceipts().First(x => x.Id == levelReceipt.Id);
             var needPlodderCount = receipt.PlodderCount;
-            if (currentPlodderCount + needPlodderCount > maxPlodderCount)
+            if (freeWorkers.Length < needPlodderCount)
             {
                 throw new BusinessException("Недостаточно трудяг");
             }
@@ -293,6 +284,11 @@ namespace Domiki.Web.Business.Core
                 duration = receipt.DurationSeconds * (100 - receipt.SpeedupPercent) / 100;
             }
 
+            var selectedWorkers = freeWorkers.Take(needPlodderCount).ToArray();
+            var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
+            var avgSpeedup = selectedWorkers.Average(x => -traits[x.TraitId].DurationPercent);
+            duration = (int)Math.Ceiling(duration * (100 - avgSpeedup) / 100);
+
             _playerResourceManager.WriteOffResources(playerId, writeOffResources);
 
             var manufacture = new Data.Manufacture
@@ -305,6 +301,10 @@ namespace Domiki.Web.Business.Core
             };
             _context.Manufactures.Add(manufacture);
             _context.SaveChanges();
+            foreach (var worker in selectedWorkers)
+            {
+                worker.ManufactureId = manufacture.Id;
+            }
 
             _uow.AfterEventAction = () =>
             {
@@ -329,6 +329,10 @@ namespace Domiki.Web.Business.Core
                 foreach (var resource in recept.OutputResources)
                 {
                     _playerResourceManager.GrantResource(calcInfo.PlayerId, resource.Type.Id, resource.Value);
+                }
+                foreach (var worker in _context.Workers.Where(x => x.ManufactureId == dbManufacture.Id).ToArray())
+                {
+                    worker.ManufactureId = null;
                 }
                 _context.Manufactures.Remove(dbManufacture);
                 return true;

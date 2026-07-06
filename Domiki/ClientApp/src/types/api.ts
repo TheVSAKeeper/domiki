@@ -105,6 +105,16 @@ export const villageSchema = z.object({
 });
 export type VillageDto = z.infer<typeof villageSchema>;
 
+export const workerSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    traitId: z.number(),
+    traitName: z.string(),
+    traitDurationPercent: z.number(),
+    manufactureId: z.number().nullable(),
+});
+export type WorkerDto = z.infer<typeof workerSchema>;
+
 export interface PlodderCount {
     max: number;
     free: number;

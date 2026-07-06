@@ -5,9 +5,11 @@ import {
     orderSchema,
     ResponseType,
     villageSchema,
+    workerSchema,
     type NeighborReputationDto,
     type OrderDto,
     type VillageDto,
+    type WorkerDto,
 } from '../types/api';
 
 export class ApiError extends Error {
@@ -99,3 +101,6 @@ export const getVillage = (signal?: AbortSignal): Promise<VillageDto> =>
 
 export const setVillage = (name: string, crestIcon: number, crestColor: number, signal?: AbortSignal): Promise<void> =>
     request('POST', 'Domiki/SetVillage', null, signal, { name, crestIcon, crestColor });
+
+export const getWorkers = (signal?: AbortSignal): Promise<WorkerDto[]> =>
+    apiGet('Domiki/GetWorkers', workerSchema.array(), signal);

@@ -22,6 +22,8 @@ namespace Domiki.Web.Data
         public DbSet<Resource> Resources { get; set; }
         public DbSet<ResourceType> ResourceTypes { get; set; }
         public DbSet<ModificatorType> ModificatorTypes { get; set; }
+        public DbSet<Trait> Traits { get; set; }
+        public DbSet<Worker> Workers { get; set; }
 
         public DbSet<Receipt> Receipts { get; set; }
         public DbSet<ReceiptResource> ReceiptResources { get; set; }
@@ -62,6 +64,26 @@ namespace Domiki.Web.Data
             modelBuilder.Entity<Player>()
                 .Navigation(e => e.Resources)
                 .UsePropertyAccessMode(PropertyAccessMode.Property);
+
+            modelBuilder.Entity<Trait>().HasData(
+                new Trait { Id = 1, Name = "Обычный", LogicName = "ordinary", DurationPercent = 0 },
+                new Trait { Id = 2, Name = "Проворный", LogicName = "nimble", DurationPercent = -10 },
+                new Trait { Id = 3, Name = "Работящий", LogicName = "diligent", DurationPercent = -20 });
+
+            modelBuilder.Entity<Worker>()
+                .HasOne(s => s.Player)
+                .WithMany()
+                .HasForeignKey(e => e.PlayerId);
+
+            modelBuilder.Entity<Worker>()
+                .HasOne(s => s.Trait)
+                .WithMany()
+                .HasForeignKey(e => e.TraitId);
+
+            modelBuilder.Entity<Worker>()
+                .HasOne(s => s.Manufacture)
+                .WithMany()
+                .HasForeignKey(e => e.ManufactureId);
 
             modelBuilder.Entity<Resource>()
                 .Navigation(e => e.Player)

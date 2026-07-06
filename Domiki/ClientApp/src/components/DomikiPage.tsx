@@ -10,17 +10,18 @@ import SaveIcon from 'pixelarticons/svg/save.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
-import { canAffordUpgrade, computePlodderCount, computeReceiptView, computeSelectedDomikView } from '../utils/game';
+import { canAffordUpgrade, computeReceiptView, computeSelectedDomikView } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ManufactureBox } from './ManufactureBox';
 import { ResourcesBox } from './ResourcesBox';
 import { UpgradeBox } from './UpgradeBox';
 import { OrdersBox } from './OrdersBox';
+import { WorkersBox } from './WorkersBox';
 import { VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, village, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, village, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -46,7 +47,10 @@ export const DomikiPage = () => {
         return next;
     });
 
-    const plodder = useMemo(() => computePlodderCount(domiks, domikTypes), [domiks, domikTypes]);
+    const plodder = useMemo(() => ({
+        max: workers.length,
+        free: workers.filter(worker => worker.manufactureId == null).length,
+    }), [workers]);
     const selected = useMemo(
         () => computeSelectedDomikView(selectedDomikId, domiks, domikTypes, receipts, resources, now),
         [selectedDomikId, domiks, domikTypes, receipts, resources, now],
@@ -195,6 +199,7 @@ export const DomikiPage = () => {
             }
             <OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes}
                 resources={resources} now={now} onComplete={completeOrder} />
+            <WorkersBox workers={workers} />
             <div className="village-header">
                 <div className="village-identity">
                     <span className="crest-badge" style={{ backgroundColor: villageColor }}>{villageIcon}</span>

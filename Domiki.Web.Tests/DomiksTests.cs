@@ -363,6 +363,7 @@ namespace Domiki.Web.Tests
             BuyDomik(playerId, barakTypeId);
             BuyDomik(playerId, clayMineTypeId);
             GrantResource(playerId, toolResourceTypeId, 3);
+            ResetWorkerTraits(playerId);
 
             var start = DateTimeHelper.GetNowDate();
             StartManufacture(playerId, 2, clayDig8hReceiptId, false, useOptional);
@@ -503,6 +504,20 @@ namespace Domiki.Web.Tests
                 }
 
                 resource.Value += value;
+                uow.Context.SaveChanges();
+                uow.Commit();
+            }
+        }
+
+        private void ResetWorkerTraits(int playerId)
+        {
+            using (var uow = GetUow())
+            {
+                GetWorkerManager(uow).EnsureWorkers(playerId);
+                foreach (var worker in uow.Context.Workers.Where(x => x.PlayerId == playerId).ToArray())
+                {
+                    worker.TraitId = 1;
+                }
                 uow.Context.SaveChanges();
                 uow.Commit();
             }

@@ -15,13 +15,15 @@ namespace Domiki.Controllers
         private readonly DomikManager _domikManager;
         private readonly ResourceManager _resourceManager;
         private readonly OrderManager _orderManager;
+        private readonly WorkerManager _workerManager;
 
-        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager)
+        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager)
         {
             _logger = logger;
             _domikManager = domikManager;
             _resourceManager = resourceManager;
             _orderManager = orderManager;
+            _workerManager = workerManager;
         }
 
         [HttpGet]
@@ -102,6 +104,16 @@ namespace Domiki.Controllers
         {
             var content = _resourceManager.GetResourceTypes().Select(x => x.ToDto()).ToArray();
             return new Response<ResourceTypeDto[]>(content);
+        }
+
+        [HttpGet]
+        [Route("/Domiki/GetWorkers")]
+        public Response<WorkerDto[]> GetWorkers()
+        {
+            int playerId = GetPlayerId();
+
+            var content = _workerManager.GetWorkers(playerId).Select(x => x.ToDto()).ToArray();
+            return new Response<WorkerDto[]>(content);
         }
 
         [HttpGet]

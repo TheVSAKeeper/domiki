@@ -29,8 +29,16 @@ namespace Domiki.Web.Tests
         {
             var resourceManager = new ResourceManager(uow.Context);
             var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
-            var domikManager = new DomikManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager);
+            var workerManager = new WorkerManager(uow.Context, resourceManager, playerResourceManager);
+            var domikManager = new DomikManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager);
             return domikManager;
+        }
+
+        public WorkerManager GetWorkerManager(UnitOfWork uow)
+        {
+            var resourceManager = new ResourceManager(uow.Context);
+            var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
+            return new WorkerManager(uow.Context, resourceManager, playerResourceManager);
         }
 
         public OrderManager GetOrderManager(UnitOfWork uow, bool calculatorJustFinishMode = false)
