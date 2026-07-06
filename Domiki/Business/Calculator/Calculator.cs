@@ -181,6 +181,19 @@ namespace Domiki.Web.Business
                     });
                 }
 
+                var now = DateTimeHelper.GetNowDate();
+                var weatherManager = scope.ServiceProvider.GetRequiredService<WeatherManager>();
+                weatherManager.EnsureWeatherSchedule(now);
+                var currentWeatherPeriod = uow.Context.WeatherPeriods.Single(x => x.StartDate <= now && now < x.EndDate);
+                dates.Add(new CalculateInfo
+                {
+                    PlayerId = 0,
+                    ObjectId = currentWeatherPeriod.Id,
+                    Date = currentWeatherPeriod.EndDate,
+                    Type = CalculateTypes.WeatherRotation,
+                });
+                uow.Commit();
+
                 dates = dates.OrderBy(x => x.Date).ToList();
                 return dates;
             }

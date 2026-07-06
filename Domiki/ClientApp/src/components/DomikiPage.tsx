@@ -7,6 +7,9 @@ import PlayIcon from 'pixelarticons/svg/play.svg?react';
 import SettingsIcon from 'pixelarticons/svg/settings-cog.svg?react';
 import CloseIcon from 'pixelarticons/svg/close.svg?react';
 import SaveIcon from 'pixelarticons/svg/save.svg?react';
+import CloudSunIcon from 'pixelarticons/svg/cloud-sun.svg?react';
+import CloudIcon from 'pixelarticons/svg/cloud.svg?react';
+import FireIcon from 'pixelarticons/svg/fire.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
@@ -17,11 +20,17 @@ import { ResourcesBox } from './ResourcesBox';
 import { UpgradeBox } from './UpgradeBox';
 import { OrdersBox } from './OrdersBox';
 import { WorkersBox } from './WorkersBox';
-import { VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
+import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
+
+const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
+    clear: CloudSunIcon,
+    rain: CloudIcon,
+    drought: FireIcon,
+};
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, village, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, village, weather, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -85,10 +94,15 @@ export const DomikiPage = () => {
         () => computeSelectedDomikView(selectedDomikId, domiks, domikTypes, receipts, resources, now),
         [selectedDomikId, domiks, domikTypes, receipts, resources, now],
     );
+    const currentWeather = weather?.current ?? null;
+    const weatherEffect = selected == null
+        ? null
+        : currentWeather?.effects.find(effect => effect.domikTypeId === selected.domikType.id) ?? null;
+    const CurrentWeatherIcon = currentWeather == null ? null : WEATHER_ICONS[currentWeather.logicName] ?? CloudSunIcon;
 
     const currentCrestIcon = village?.crestIcon ?? 0;
     const currentCrestColor = village?.crestColor ?? 0;
-    const villageIcon = VILLAGE_CREST_ICONS[currentCrestIcon] ?? VILLAGE_CREST_ICONS[0];
+    const VillageIcon = VILLAGE_CREST_ICONS[currentCrestIcon] ?? DEFAULT_VILLAGE_ICON;
     const villageColor = VILLAGE_CREST_COLORS[currentCrestColor] ?? VILLAGE_CREST_COLORS[0];
     const villageName = village?.villageName ?? 'Безымянная деревня';
     const identityVisible = identityOpen || village?.villageName === null && !identityDismissed;
@@ -184,6 +198,24 @@ export const DomikiPage = () => {
                         <span className="resource-value">{plodder.free}/{plodder.max}</span>
                     </div>
                 }
+                {weather != null && currentWeather != null && CurrentWeatherIcon != null &&
+                    <div className="weather-strip" title={currentWeather.weatherName}>
+                        <CurrentWeatherIcon className="weather-ico" aria-hidden="true" />
+                        <span className="weather-name">{currentWeather.weatherName}</span>
+                        <div className="weather-forecast">
+                            {weather.forecast.map(period => {
+                                const ForecastIcon = WEATHER_ICONS[period.logicName] ?? CloudSunIcon;
+                                const hoursAhead = Math.max(1, Math.round(remainingSeconds(period.startDate, now) / 3600));
+                                return (
+                                    <span key={period.startDate} className="weather-chip" title={period.weatherName}>
+                                        <ForecastIcon className="weather-chip-ico" aria-hidden="true" />
+                                        через {hoursAhead}ч
+                                    </span>
+                                );
+                            })}
+                        </div>
+                    </div>
+                }
             </header>
             {identityVisible &&
                 <div className="modal-backdrop" role="presentation">
@@ -201,11 +233,11 @@ export const DomikiPage = () => {
                         <div className="identity-field">
                             <span className="panel-label">Герб</span>
                             <div className="crest-options">
-                                {VILLAGE_CREST_ICONS.map((icon, index) =>
-                                    <button key={icon} type="button"
+                                {VILLAGE_CREST_ICONS.map((Icon, index) =>
+                                    <button key={index} type="button"
                                         className={'crest-option' + (draftCrestIcon === index ? ' crest-option-selected' : '')}
                                         onClick={() => setDraftCrestIcon(index)}>
-                                        {icon}
+                                        <Icon className="crest-ico" aria-hidden="true" />
                                     </button>,
                                 )}
                             </div>
@@ -234,7 +266,9 @@ export const DomikiPage = () => {
             <WorkersBox workers={workers} domikTypes={domikTypes} now={now} />
             <div className="village-header">
                 <div className="village-identity">
-                    <span className="crest-badge" style={{ backgroundColor: villageColor }}>{villageIcon}</span>
+                    <span className="crest-badge" style={{ backgroundColor: villageColor }}>
+                        <VillageIcon className="crest-ico" aria-hidden="true" />
+                    </span>
                     <h2 className="section-title village-name">{villageName}</h2>
                     <button type="button" className="identity-button" title="Настроить деревню" onClick={openIdentity}>
                         <SettingsIcon className="btn-ico" aria-hidden="true" />
@@ -401,6 +435,11 @@ export const DomikiPage = () => {
                                                                         onChange={() => toggleOptional(receipt.id)} />
                                                                     с инструментом (−{receipt.speedupPercent}%)
                                                                 </label>
+                                                            }
+                                                            {weatherEffect != null &&
+                                                                <p className="weather-modifier">
+                                                                    Погода: {weatherEffect.outputPercent >= 100 ? '+' : ''}{weatherEffect.outputPercent - 100} % выход
+                                                                </p>
                                                             }
                                                             <div className="receipt-mode">
                                                                 <label className="receipt-optional">

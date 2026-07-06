@@ -4,11 +4,13 @@
     {
         private DomikManager _domikManager;
         private OrderManager _orderManager;
+        private WeatherManager _weatherManager;
 
-        public CalculatorTick(DomikManager domikManager, OrderManager orderManager)
+        public CalculatorTick(DomikManager domikManager, OrderManager orderManager, WeatherManager weatherManager)
         {
             _domikManager = domikManager;
             _orderManager = orderManager;
+            _weatherManager = weatherManager;
         }
 
         public bool Calculate(DateTime date, CalculateInfo calcInfo)
@@ -21,6 +23,8 @@
                     return _domikManager.FinishManufacture(date, calcInfo);
                 case CalculateTypes.OrderExpire:
                     return _orderManager.FinishOrder(date, calcInfo);
+                case CalculateTypes.WeatherRotation:
+                    return _weatherManager.RotateWeather(date);
             }
             return false;
         }

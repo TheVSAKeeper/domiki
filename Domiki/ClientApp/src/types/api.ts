@@ -125,6 +125,28 @@ export const workerSchema = z.object({
 });
 export type WorkerDto = z.infer<typeof workerSchema>;
 
+export const weatherEffectSchema = z.object({
+    domikTypeId: z.number(),
+    outputPercent: z.number(),
+});
+export type WeatherEffectDto = z.infer<typeof weatherEffectSchema>;
+
+export const weatherPeriodSchema = z.object({
+    weatherTypeId: z.number(),
+    weatherName: z.string(),
+    logicName: z.string(),
+    startDate: z.string(),
+    endDate: z.string(),
+    effects: z.array(weatherEffectSchema),
+});
+export type WeatherPeriodDto = z.infer<typeof weatherPeriodSchema>;
+
+export const weatherStateSchema = z.object({
+    current: weatherPeriodSchema.nullable(),
+    forecast: z.array(weatherPeriodSchema),
+});
+export type WeatherStateDto = z.infer<typeof weatherStateSchema>;
+
 export interface PlodderCount {
     max: number;
     free: number;

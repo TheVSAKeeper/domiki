@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { z } from 'zod';
-import { apiGet, ApiError, getOrders, getReputation, getVillage, getWorkers, setVillage as setVillageApi } from '../services/api';
+import { apiGet, ApiError, getOrders, getReputation, getVillage, getWeather, getWorkers, setVillage as setVillageApi } from '../services/api';
 import { useToast } from '../services/toast';
 import {
     domikSchema,
@@ -11,6 +11,7 @@ import {
     resourceSchema,
     resourceTypeSchema,
     villageSchema,
+    weatherStateSchema,
     workerSchema,
     type DomikDto,
     type DomikTypeDto,
@@ -20,6 +21,7 @@ import {
     type ResourceDto,
     type ResourceTypeDto,
     type VillageDto,
+    type WeatherStateDto,
     type WorkerDto,
 } from '../types/api';
 import { remainingSeconds } from '../utils/time';
@@ -33,6 +35,7 @@ export interface GameData {
     orders: OrderDto[];
     reputation: NeighborReputationDto[];
     village: VillageDto | null;
+    weather: WeatherStateDto | null;
     workers: WorkerDto[];
     purchaseDomikTypes: DomikTypeDto[] | null;
     now: number;
@@ -52,6 +55,7 @@ export function useGameData(): GameData {
     const [orders, setOrders] = useState<OrderDto[]>([]);
     const [reputation, setReputation] = useState<NeighborReputationDto[]>([]);
     const [village, setVillageState] = useState<VillageDto | null>(null);
+    const [weather, setWeather] = useState<WeatherStateDto | null>(null);
     const [workers, setWorkers] = useState<WorkerDto[]>([]);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [now, setNow] = useState(() => Date.now());
@@ -60,6 +64,7 @@ export function useGameData(): GameData {
     const domiksRef = useRef(domiks);
     const ordersRef = useRef(orders);
     const workersRef = useRef(workers);
+    const weatherRef = useRef(weather);
     const reloadedRestDeadlinesRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
@@ -74,14 +79,19 @@ export function useGameData(): GameData {
         workersRef.current = workers;
     }, [workers]);
 
+    useEffect(() => {
+        weatherRef.current = weather;
+    }, [weather]);
+
     const reload = useCallback(async () => {
-        const [domiksData, resourcesData, ordersData, reputationData, villageData, workersData] = await Promise.all([
+        const [domiksData, resourcesData, ordersData, reputationData, villageData, workersData, weatherData] = await Promise.all([
             apiGet('Domiki/GetDomiks', domikSchema.array()),
             apiGet('Domiki/GetResources', resourceSchema.array()),
             getOrders(),
             getReputation(),
             getVillage(),
             getWorkers(),
+            getWeather(),
         ]);
         setDomiks(domiksData);
         setResources(resourcesData);
@@ -89,6 +99,7 @@ export function useGameData(): GameData {
         setReputation(reputationData);
         setVillageState(villageData);
         setWorkers(workersData);
+        setWeather(weatherData);
     }, []);
 
     const refreshPurchaseTypes = useCallback(async () => {
@@ -134,6 +145,7 @@ export function useGameData(): GameData {
             safeLoad('Domiki/GetVillage', villageSchema, setVillageState),
             safeLoad('Domiki/GetWorkers', workerSchema.array(), setWorkers),
             safeLoad('Domiki/GetPurchaseAvaialableDomiks', domikTypeSchema.array(), setPurchaseDomikTypes),
+            safeLoad('Domiki/GetWeather', weatherStateSchema, setWeather),
         ]);
 
         return () => controller.abort();
@@ -150,6 +162,7 @@ export function useGameData(): GameData {
             }
             return domik.manufactures?.some(manufacture => remainingSeconds(manufacture.finishDate, now) <= 0) ?? false;
         }) || ordersRef.current.some(order => remainingSeconds(order.expireDate, now) <= 0)
+            || (weatherRef.current?.current != null && remainingSeconds(weatherRef.current.current.endDate, now) <= 0)
             || workersRef.current.some(worker => {
                 if (worker.restUntil == null) {
                     return false;
@@ -196,6 +209,7 @@ export function useGameData(): GameData {
         orders,
         reputation,
         village,
+        weather,
         workers,
         purchaseDomikTypes,
         now,

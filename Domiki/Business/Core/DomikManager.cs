@@ -39,8 +39,9 @@ namespace Domiki.Web.Business.Core
         private ResourceManager _resourceManager;
         private PlayerResourceManager _playerResourceManager;
         private WorkerManager _workerManager;
+        private WeatherManager _weatherManager;
 
-        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager)
+        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager)
         {
             _context = context;
             _calculator = calculator;
@@ -48,6 +49,7 @@ namespace Domiki.Web.Business.Core
             _resourceManager = resourceManager;
             _playerResourceManager = playerResourceManager;
             _workerManager = workerManager;
+            _weatherManager = weatherManager;
         }
 
         public int GetPlayerId(string aspNetUserId)
@@ -324,6 +326,8 @@ namespace Domiki.Web.Business.Core
             var avgSkill = selectedWorkers.Average(x => WorkerSkillCalculator.GetBonusPercent(skillByWorkerId.GetValueOrDefault(x.Id)));
             duration = (int)Math.Ceiling(duration * (100 - avgSkill) / 100);
 
+            var outputPercent = _weatherManager.GetOutputPercent(date, domikType.Id);
+
             _playerResourceManager.WriteOffResources(playerId, writeOffResources);
 
             var manufacture = new Data.Manufacture
@@ -333,6 +337,7 @@ namespace Domiki.Web.Business.Core
                 ReceiptId = receiptId,
                 FinishDate = date.AddSeconds(duration),
                 PlodderCount = needPlodderCount,
+                OutputPercent = outputPercent,
             };
             _context.Manufactures.Add(manufacture);
             _context.SaveChanges();
@@ -363,7 +368,8 @@ namespace Domiki.Web.Business.Core
                 var recept = _resourceManager.GetReceipts().First(x => x.Id == dbManufacture.ReceiptId);
                 foreach (var resource in recept.OutputResources)
                 {
-                    _playerResourceManager.GrantResource(calcInfo.PlayerId, resource.Type.Id, resource.Value);
+                    var granted = Math.Max(1, (int)Math.Round(resource.Value * dbManufacture.OutputPercent / 100.0));
+                    _playerResourceManager.GrantResource(calcInfo.PlayerId, resource.Type.Id, granted);
                 }
                 var dbDomik = _context.Domiks.Single(x => x.PlayerId == calcInfo.PlayerId && x.Id == dbManufacture.DomikId);
                 var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);

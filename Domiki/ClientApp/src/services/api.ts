@@ -5,10 +5,12 @@ import {
     orderSchema,
     ResponseType,
     villageSchema,
+    weatherStateSchema,
     workerSchema,
     type NeighborReputationDto,
     type OrderDto,
     type VillageDto,
+    type WeatherStateDto,
     type WorkerDto,
 } from '../types/api';
 
@@ -104,3 +106,6 @@ export const setVillage = (name: string, crestIcon: number, crestColor: number, 
 
 export const getWorkers = (signal?: AbortSignal): Promise<WorkerDto[]> =>
     apiGet('Domiki/GetWorkers', workerSchema.array(), signal);
+
+export const getWeather = (signal?: AbortSignal): Promise<WeatherStateDto> =>
+    apiGet('Domiki/GetWeather', weatherStateSchema, signal);

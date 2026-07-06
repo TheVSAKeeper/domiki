@@ -1,4 +1,5 @@
 ﻿using Domiki.Web;
+using Domiki.Web.Business;
 using Domiki.Web.Business.Core;
 using Domiki.Web.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -16,14 +17,16 @@ namespace Domiki.Controllers
         private readonly ResourceManager _resourceManager;
         private readonly OrderManager _orderManager;
         private readonly WorkerManager _workerManager;
+        private readonly WeatherManager _weatherManager;
 
-        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager)
+        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager)
         {
             _logger = logger;
             _domikManager = domikManager;
             _resourceManager = resourceManager;
             _orderManager = orderManager;
             _workerManager = workerManager;
+            _weatherManager = weatherManager;
         }
 
         [HttpGet]
@@ -170,6 +173,14 @@ namespace Domiki.Controllers
 
             var content = _orderManager.GetReputation(playerId).Select(x => x.ToDto()).ToArray();
             return new Response<NeighborReputationDto[]>(content);
+        }
+
+        [HttpGet]
+        [Route("/Domiki/GetWeather")]
+        public Response<WeatherStateDto> GetWeather()
+        {
+            var content = _weatherManager.GetWeather(DateTimeHelper.GetNowDate()).ToDto();
+            return new Response<WeatherStateDto>(content);
         }
 
         private int GetPlayerId()

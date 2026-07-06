@@ -35,6 +35,10 @@ namespace Domiki.Web.Data
         public DbSet<DomikTypeLevelModificator> DomikTypeLevelModificators { get; set; }
         public DbSet<DomikTypeLevelReceipt> DomikTypeLevelRecepts { get; set; }
 
+        public DbSet<WeatherType> WeatherTypes { get; set; }
+        public DbSet<WeatherTypeEffect> WeatherTypeEffects { get; set; }
+        public DbSet<WeatherPeriod> WeatherPeriods { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -235,6 +239,23 @@ namespace Domiki.Web.Data
             modelBuilder.Entity<ReceiptResource>()
                 .Navigation(e => e.ResourceType)
                 .UsePropertyAccessMode(PropertyAccessMode.Property);
+
+            modelBuilder.Entity<WeatherTypeEffect>()
+                .HasKey(p => new
+                {
+                    p.WeatherTypeId,
+                    p.DomikTypeId,
+                });
+
+            modelBuilder.Entity<WeatherTypeEffect>()
+                .HasOne(s => s.WeatherType)
+                .WithMany()
+                .HasForeignKey(e => e.WeatherTypeId);
+
+            modelBuilder.Entity<WeatherPeriod>()
+                .HasOne(s => s.WeatherType)
+                .WithMany()
+                .HasForeignKey(e => e.WeatherTypeId);
         }
     }
 }

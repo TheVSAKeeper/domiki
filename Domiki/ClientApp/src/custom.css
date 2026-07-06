@@ -183,6 +183,49 @@ code {
     margin-left: auto;
 }
 
+.weather-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.weather-ico {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.weather-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding-top: 3px;
+}
+
+.weather-forecast {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.weather-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    opacity: .7;
+}
+
+.weather-chip-ico {
+    width: 16px;
+    height: 16px;
+}
+
+.weather-modifier {
+    margin: 0;
+    font-size: 12px;
+    color: var(--coin);
+}
+
 .village-identity {
     display: inline-flex;
     align-items: center;
@@ -196,10 +239,13 @@ code {
     width: 38px;
     height: 38px;
     flex: 0 0 auto;
-    font-size: 22px;
-    line-height: 1;
     border: 3px solid var(--ink);
     clip-path: var(--cut);
+}
+
+.crest-ico {
+    width: 22px;
+    height: 22px;
 }
 
 .village-name {
@@ -303,16 +349,10 @@ code {
     width: 42px;
     height: 42px;
     padding: 0;
-    font-size: 23px;
-    line-height: 1;
     background: #fffaec;
     border: 3px solid var(--ink);
     clip-path: var(--cut);
     cursor: pointer;
-}
-
-.color-option {
-    font-size: 0;
 }
 
 .crest-option-selected,

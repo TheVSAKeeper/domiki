@@ -14,6 +14,7 @@ namespace Domiki.Web.Business.Core
         private static DomikType[] _domikTypes;
         private static Neighbor[] _neighbors;
         private static Trait[] _traits;
+        private static WeatherType[] _weatherTypes;
 
         public ResourceManager(Data.ApplicationDbContext context)
         {
@@ -112,6 +113,31 @@ namespace Domiki.Web.Business.Core
             }
 
             return _neighbors;
+        }
+
+        public WeatherType[] GetWeatherTypes()
+        {
+            if (_weatherTypes == null)
+            {
+                var effects = _context.WeatherTypeEffects.ToArray();
+                _weatherTypes = _context.WeatherTypes.Select(x => new WeatherType
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    LogicName = x.LogicName,
+                    RotationWeight = x.RotationWeight,
+                }).ToArray();
+
+                foreach (var weatherType in _weatherTypes)
+                {
+                    weatherType.Effects = effects
+                        .Where(x => x.WeatherTypeId == weatherType.Id)
+                        .Select(x => new WeatherTypeEffect { DomikTypeId = x.DomikTypeId, OutputPercent = x.OutputPercent })
+                        .ToArray();
+                }
+            }
+
+            return _weatherTypes;
         }
 
         public DomikType[] GetDomikTypes()

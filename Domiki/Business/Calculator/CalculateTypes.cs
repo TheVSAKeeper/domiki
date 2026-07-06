@@ -6,5 +6,6 @@
         Domiks = 1,
         Manufacture = 2,
         OrderExpire = 3,
+        WeatherRotation = 4,
     }
 }

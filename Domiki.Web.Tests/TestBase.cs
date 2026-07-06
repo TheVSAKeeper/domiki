@@ -30,7 +30,8 @@ namespace Domiki.Web.Tests
             var resourceManager = new ResourceManager(uow.Context);
             var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
             var workerManager = new WorkerManager(uow.Context, resourceManager, playerResourceManager);
-            var domikManager = new DomikManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager);
+            var weatherManager = GetWeatherManager(uow, calculatorJustFinishMode);
+            var domikManager = new DomikManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager, weatherManager);
             return domikManager;
         }
 
@@ -55,9 +56,15 @@ namespace Domiki.Web.Tests
             return manager;
         }
 
+        public WeatherManager GetWeatherManager(UnitOfWork uow, bool calculatorJustFinishMode = true)
+        {
+            var resourceManager = new ResourceManager(uow.Context);
+            return new WeatherManager(uow.Context, uow, GetCalculator(calculatorJustFinishMode), resourceManager);
+        }
+
         private ICalculator GetCalculator(bool justFinishMode = true)
         {
-            return new TestCalculator(() => GetUow(), (UnitOfWork uow) => { return new CalculatorTick(GetDomikManager(uow), GetOrderManager(uow)); }, justFinishMode);
+            return new TestCalculator(() => GetUow(), (UnitOfWork uow) => { return new CalculatorTick(GetDomikManager(uow), GetOrderManager(uow), GetWeatherManager(uow)); }, justFinishMode);
         }
 
         public static IConfiguration InitConfiguration()
