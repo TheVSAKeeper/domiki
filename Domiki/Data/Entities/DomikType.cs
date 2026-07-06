@@ -15,6 +15,8 @@ namespace Domiki.Web.Data
 
         public int MaxCount { get; set; }
 
+        public int UnlockLevel { get; set; }
+
         public ICollection<DomikTypeLevel> Levels { get; set; }
     }
 }

@@ -96,6 +96,7 @@ builder.Services.AddScoped<ResourceManager>();
 builder.Services.AddScoped<PlayerResourceManager>();
 builder.Services.AddScoped<WorkerManager>();
 builder.Services.AddScoped<WeatherManager>();
+builder.Services.AddScoped<VillageLevelCalculator>();
 builder.Services.AddSingleton<ICalculator, Calculator>();
 builder.Services.AddScoped<CalculatorTick>();
 builder.Services.AddHostedService<CalculatorBackgroundService>();

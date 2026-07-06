@@ -31,7 +31,8 @@ namespace Domiki.Web.Tests
             var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
             var workerManager = new WorkerManager(uow.Context, resourceManager, playerResourceManager);
             var weatherManager = GetWeatherManager(uow, calculatorJustFinishMode);
-            var domikManager = new DomikManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager, weatherManager);
+            var villageLevelCalculator = new VillageLevelCalculator(uow.Context, resourceManager, workerManager);
+            var domikManager = new DomikManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager, weatherManager, villageLevelCalculator);
             return domikManager;
         }
 
@@ -46,8 +47,18 @@ namespace Domiki.Web.Tests
         {
             var resourceManager = new ResourceManager(uow.Context);
             var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
-            var orderManager = new OrderManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager);
+            var workerManager = new WorkerManager(uow.Context, resourceManager, playerResourceManager);
+            var villageLevelCalculator = new VillageLevelCalculator(uow.Context, resourceManager, workerManager);
+            var orderManager = new OrderManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, villageLevelCalculator);
             return orderManager;
+        }
+
+        public VillageLevelCalculator GetVillageLevelCalculator(UnitOfWork uow)
+        {
+            var resourceManager = new ResourceManager(uow.Context);
+            var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
+            var workerManager = new WorkerManager(uow.Context, resourceManager, playerResourceManager);
+            return new VillageLevelCalculator(uow.Context, resourceManager, workerManager);
         }
 
         public ResourceManager GetResourceManager(UnitOfWork uow)

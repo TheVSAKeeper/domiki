@@ -40,8 +40,9 @@ namespace Domiki.Web.Business.Core
         private PlayerResourceManager _playerResourceManager;
         private WorkerManager _workerManager;
         private WeatherManager _weatherManager;
+        private VillageLevelCalculator _villageLevelCalculator;
 
-        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager)
+        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator)
         {
             _context = context;
             _calculator = calculator;
@@ -50,6 +51,7 @@ namespace Domiki.Web.Business.Core
             _playerResourceManager = playerResourceManager;
             _workerManager = workerManager;
             _weatherManager = weatherManager;
+            _villageLevelCalculator = villageLevelCalculator;
         }
 
         public int GetPlayerId(string aspNetUserId)
@@ -152,6 +154,11 @@ namespace Domiki.Web.Business.Core
             if (available.Any(x => x.Type.Id == typeId))
             {
                 var domikType = _resourceManager.GetDomikTypes().First(x => x.Id == typeId);
+                if (!_villageLevelCalculator.CanBuyDomik(playerId, domikType))
+                {
+                    throw new BusinessException($"Откроется при обжитости {domikType.UnlockLevel}");
+                }
+
                 var domikLevel = domikType.Levels.First(x => x.Value == 1);
                 _playerResourceManager.WriteOffResources(playerId, domikLevel.Resources);
 
@@ -299,9 +306,19 @@ namespace Domiki.Web.Business.Core
             Data.Worker[] selectedWorkers;
             if (workerIds == null || workerIds.Length == 0)
             {
-                selectedWorkers = freeWorkers
-                    .OrderByDescending(w => -traits[w.TraitId].DurationPercent + WorkerSkillCalculator.GetBonusPercent(skillByWorkerId.GetValueOrDefault(w.Id)))
-                    .ThenBy(w => w.Id)
+                var autoWorkers = freeWorkers.AsEnumerable();
+                if (_villageLevelCalculator.IsSmartAutoUnlocked(playerId))
+                {
+                    autoWorkers = autoWorkers
+                        .OrderByDescending(w => -traits[w.TraitId].DurationPercent + WorkerSkillCalculator.GetBonusPercent(skillByWorkerId.GetValueOrDefault(w.Id)))
+                        .ThenBy(w => w.Id);
+                }
+                else
+                {
+                    autoWorkers = autoWorkers.OrderBy(w => w.Id);
+                }
+
+                selectedWorkers = autoWorkers
                     .Take(needPlodderCount)
                     .ToArray();
             }

@@ -109,6 +109,7 @@ namespace Domiki.Web.Business.Core
                     Name = x.Name,
                     LogicName = x.LogicName,
                     PrimaryResourceTypeId = x.PrimaryResourceTypeId,
+                    UnlockLevel = x.UnlockLevel,
                 }).ToArray();
             }
 
@@ -153,6 +154,7 @@ namespace Domiki.Web.Business.Core
                     LogicName = domikType.LogicName,
                     Name = domikType.Name,
                     MaxCount = domikType.MaxCount,
+                    UnlockLevel = domikType.UnlockLevel,
                     Levels = domikType.Levels.Select(level => new UpgradeLevel
                     {
                         Value = level.Value,

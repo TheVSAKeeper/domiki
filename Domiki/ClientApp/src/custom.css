@@ -183,6 +183,54 @@ code {
     margin-left: auto;
 }
 
+.village-level-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 9px;
+    color: var(--ink);
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+.village-level-label {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.village-level-value {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding-top: 3px;
+    color: var(--pine);
+}
+
+.village-level-popover {
+    position: fixed;
+    z-index: 120;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: max-content;
+    max-width: 240px;
+    padding: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+    background: var(--plank);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.village-level-next {
+    margin-top: 4px;
+    color: var(--pine);
+}
+
 .weather-strip {
     display: flex;
     align-items: center;
@@ -464,6 +512,11 @@ code {
     background: #fff7e0;
 }
 
+.plot-locked {
+    filter: grayscale(.75);
+    opacity: .72;
+}
+
 .plot-shop {
     width: 136px;
 }
@@ -488,8 +541,11 @@ code {
 
 .plot-status {
     display: flex;
+    justify-content: center;
     gap: 6px;
     min-height: 22px;
+    font-size: 12px;
+    line-height: 1.25;
 }
 
 .status-icon {

@@ -8,6 +8,7 @@
         public int MaxCount { get; internal set; }
         public int AvailableCount { get; internal set; }
         public int MaxLevel { get; internal set; }
+        public int UnlockLevel { get; internal set; }
 
         public UpgradeLevelDto[] Levels { get; set; }
     }

@@ -32,7 +32,7 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             var beforeResources = GetResources(playerId);
             var types = GetDomikTypes();
-            var buyType = types.First();
+            var buyType = types.First(x => x.UnlockLevel == 0);
             BuyDomik(playerId, buyType.Id);
 
             var afterResources = GetResources(playerId);
@@ -62,7 +62,7 @@ namespace Domiki.Web.Tests
             {
                 var playerId = GetPlayerId();
                 var types = GetDomikTypes();
-                var domikType = types.First();
+                var domikType = types.First(x => x.UnlockLevel == 0 && x.MaxCount == 1);
                 Assert.That(domikType.MaxCount, Is.EqualTo(1));
                 var domikTypeId = domikType.Id;
 
@@ -89,7 +89,7 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             var types = GetDomikTypes();
-            var buyType = types.First();
+            var buyType = types.First(x => x.UnlockLevel == 0);
             BuyDomik(playerId, buyType.Id);
             var beforeResources = GetResources(playerId);
             UpgradeDomik(playerId, 1);
@@ -120,7 +120,7 @@ namespace Domiki.Web.Tests
             {
                 var playerId = GetPlayerId();
                 var types = GetDomikTypes();
-                var domikType = types.First();
+                var domikType = types.First(x => x.UnlockLevel == 0 && x.MaxCount == 1);
                 Assert.That(domikType.MaxCount, Is.EqualTo(1));
                 var domikTypeId = domikType.Id;
                 BuyDomik(playerId, domikTypeId);
@@ -315,9 +315,10 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             var stoneMineTypeId = 3;
+            BuyDomik(playerId, 2);
             BuyDomik(playerId, stoneMineTypeId);
-            UpgradeDomik(playerId, 1);
-            Assert.Throws<BusinessException>(() => UpgradeDomik(playerId, 1));
+            UpgradeDomik(playerId, 2);
+            Assert.Throws<BusinessException>(() => UpgradeDomik(playerId, 2));
         }
 
         [Test]
@@ -336,16 +337,17 @@ namespace Domiki.Web.Tests
             var sellBrickReceiptId = 25;
             BuyDomik(playerId, barakTypeId);
             BuyDomik(playerId, clayMineTypeId);
+            BuyDomik(playerId, barakTypeId);
+            BuyDomik(playerId, barakTypeId);
             BuyDomik(playerId, forgeTypeId);
             BuyDomik(playerId, marketTypeId);
-            BuyDomik(playerId, barakTypeId);
             StartManufacture(playerId, 2, clayDig8hReceiptId);
-            StartManufacture(playerId, 3, makeBrickReceiptId);
+            StartManufacture(playerId, 5, makeBrickReceiptId);
             var afterBrick = GetResources(playerId);
             Assert.That(afterBrick.First(x => x.Type.Id == brickResourceTypeId).Value, Is.EqualTo(1));
             Assert.That(afterBrick.First(x => x.Type.Id == clayResourceTypeId).Value, Is.EqualTo(6));
             var beforeSellCoin = afterBrick.First(x => x.Type.Id == coinResourceTypeId).Value;
-            StartManufacture(playerId, 4, sellBrickReceiptId);
+            StartManufacture(playerId, 6, sellBrickReceiptId);
             var afterSell = GetResources(playerId);
             Assert.That(afterSell.First(x => x.Type.Id == brickResourceTypeId).Value, Is.EqualTo(0));
             Assert.That(afterSell.First(x => x.Type.Id == coinResourceTypeId).Value - beforeSellCoin, Is.EqualTo(35));

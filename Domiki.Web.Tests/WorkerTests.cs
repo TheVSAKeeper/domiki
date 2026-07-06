@@ -290,6 +290,7 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             BuyDomik(playerId, 2);
             BuyDomik(playerId, 2);
+            BuyDomik(playerId, 2);
             BuyDomik(playerId, 5);
 
             var workers = GetWorkers(playerId);
@@ -298,7 +299,7 @@ namespace Domiki.Web.Tests
             SetWorkerTrait(weakWorker.Id, 1);
             SetWorkerTrait(strongWorker.Id, 3);
 
-            StartManufacture(playerId, 3, 1, false);
+            StartManufacture(playerId, 4, 1, false);
 
             var busyWorker = GetWorkers(playerId).Single(x => x.ManufactureId != null);
             Assert.That(busyWorker.Id, Is.EqualTo(strongWorker.Id));

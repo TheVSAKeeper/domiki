@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import ArrowUpIcon from 'pixelarticons/svg/arrow-up.svg?react';
@@ -30,7 +31,7 @@ const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, village, weather, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, village, villageLevel, weather, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -40,6 +41,9 @@ export const DomikiPage = () => {
     const [manualReceiptIds, setManualReceiptIds] = useState<ReadonlySet<number>>(new Set());
     const [selectedWorkerIdsByReceipt, setSelectedWorkerIdsByReceipt] = useState<Record<number, number[]>>({});
     const [identityOpen, setIdentityOpen] = useState(false);
+    const [villageLevelOpen, setVillageLevelOpen] = useState(false);
+    const [villageLevelPos, setVillageLevelPos] = useState<{ top: number; right: number } | null>(null);
+    const villageLevelBtnRef = useRef<HTMLButtonElement>(null);
     const [identityDismissed, setIdentityDismissed] = useState(false);
     const [draftVillageName, setDraftVillageName] = useState('');
     const [draftCrestIcon, setDraftCrestIcon] = useState(0);
@@ -198,6 +202,37 @@ export const DomikiPage = () => {
                         <span className="resource-value">{plodder.free}/{plodder.max}</span>
                     </div>
                 }
+                {villageLevel != null &&
+                    <>
+                        <button type="button" className="village-level-box"
+                            ref={villageLevelBtnRef}
+                            title={`Постройки ${villageLevel.buildings}, жители ${villageLevel.residents}, репутация ${villageLevel.reputation}, уют ${villageLevel.comfort}`}
+                            aria-expanded={villageLevelOpen}
+                            onClick={() => {
+                                const rect = villageLevelBtnRef.current?.getBoundingClientRect();
+                                if (rect != null) {
+                                    setVillageLevelPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+                                }
+                                setVillageLevelOpen(prev => !prev);
+                            }}>
+                            <span className="village-level-label">Обжитость</span>
+                            <span className="village-level-value">{villageLevel.level}</span>
+                        </button>
+                        {villageLevelOpen && villageLevelPos != null && createPortal(
+                            <div className="village-level-popover" style={{ top: villageLevelPos.top, right: villageLevelPos.right }}>
+                                <span>Постройки: {villageLevel.buildings}</span>
+                                <span>Жители: {villageLevel.residents}</span>
+                                <span>Репутация: {villageLevel.reputation}</span>
+                                <span>Уют: {villageLevel.comfort}</span>
+                                {villageLevel.upcomingUnlocks[0] != null &&
+                                    <span className="village-level-next">
+                                        {villageLevel.upcomingUnlocks[0].label}: {villageLevel.upcomingUnlocks[0].level}
+                                    </span>
+                                }
+                            </div>,
+                            document.body)}
+                    </>
+                }
                 {weather != null && currentWeather != null && CurrentWeatherIcon != null &&
                     <div className="weather-strip" title={currentWeather.weatherName}>
                         <CurrentWeatherIcon className="weather-ico" aria-hidden="true" />
@@ -291,13 +326,17 @@ export const DomikiPage = () => {
                             {purchaseDomikTypes.map(purchaseDomikType => {
                                 const image = '/images/domikTypes/' + purchaseDomikType.logicName + '.png';
                                 const firstLevel = purchaseDomikType.levels[0];
+                                const isLocked = villageLevel != null && purchaseDomikType.unlockLevel > villageLevel.level;
+                                const lockTitle = `Откроется при обжитости ${purchaseDomikType.unlockLevel}`;
                                 return (
-                                    <div key={purchaseDomikType.id} className="plot plot-shop">
+                                    <div key={purchaseDomikType.id} className={'plot plot-shop' + (isLocked ? ' plot-locked' : '')} title={isLocked ? lockTitle : undefined}>
                                         <img className="plot-sprite" src={image} alt={purchaseDomikType.name} />
                                         <span className="plot-name">{purchaseDomikType.name}</span>
-                                        <span className="plot-status">Доступно: {purchaseDomikType.availableCount}/{purchaseDomikType.maxCount}</span>
+                                        <span className="plot-status">
+                                            {isLocked ? lockTitle : `Доступно: ${purchaseDomikType.availableCount}/${purchaseDomikType.maxCount}`}
+                                        </span>
                                         <ResourcesBox resources={firstLevel?.resources ?? []} resourceTypes={resourceTypes} />
-                                        <button className="btn-game" onClick={() => buy(purchaseDomikType.id)}>
+                                        <button className="btn-game" disabled={isLocked} title={isLocked ? lockTitle : undefined} onClick={() => buy(purchaseDomikType.id)}>
                                             <BuildingIcon className="btn-ico" aria-hidden="true" />
                                             Купить
                                         </button>

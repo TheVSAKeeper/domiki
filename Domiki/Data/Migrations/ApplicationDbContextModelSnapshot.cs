@@ -130,6 +130,9 @@ namespace Domiki.Web.Data.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
+                    b.Property<int>("UnlockLevel")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.ToTable("DomikTypes");
@@ -295,6 +298,9 @@ namespace Domiki.Web.Data.Migrations
                     b.Property<int>("PrimaryResourceTypeId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("UnlockLevel")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.ToTable("Neighbors");
@@ -305,35 +311,40 @@ namespace Domiki.Web.Data.Migrations
                             Id = 1,
                             LogicName = "zarechye",
                             Name = "Заречье",
-                            PrimaryResourceTypeId = 6
+                            PrimaryResourceTypeId = 6,
+                            UnlockLevel = 8
                         },
                         new
                         {
                             Id = 2,
                             LogicName = "borovoe",
                             Name = "Боровое",
-                            PrimaryResourceTypeId = 7
+                            PrimaryResourceTypeId = 7,
+                            UnlockLevel = 8
                         },
                         new
                         {
                             Id = 3,
                             LogicName = "kamenka",
                             Name = "Каменка",
-                            PrimaryResourceTypeId = 2
+                            PrimaryResourceTypeId = 2,
+                            UnlockLevel = 3
                         },
                         new
                         {
                             Id = 4,
                             LogicName = "glinischi",
                             Name = "Глинищи",
-                            PrimaryResourceTypeId = 4
+                            PrimaryResourceTypeId = 4,
+                            UnlockLevel = 0
                         },
                         new
                         {
                             Id = 5,
                             LogicName = "dubrava",
                             Name = "Дубрава",
-                            PrimaryResourceTypeId = 3
+                            PrimaryResourceTypeId = 3,
+                            UnlockLevel = 0
                         });
                 });
 

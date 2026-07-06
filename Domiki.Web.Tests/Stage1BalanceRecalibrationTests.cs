@@ -45,11 +45,13 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             BuyDomik(playerId, 2);
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 2);
             BuyDomik(playerId, 1);
             GrantResource(playerId, 4, 16);
             var before = GetResources(playerId);
 
-            StartManufacture(playerId, 2, 27, true);
+            StartManufacture(playerId, 4, 27, true);
 
             var after = GetResources(playerId);
             Assert.That(ResourceValue(before, 4) - ResourceValue(after, 4), Is.EqualTo(16));

@@ -10,6 +10,7 @@ const domikTypes: DomikTypeDto[] = [
         maxCount: 1,
         availableCount: 0,
         maxLevel: 2,
+        unlockLevel: 0,
         levels: [
             { value: 1, resources: [], modificators: [{ typeId: 1, value: 3 }], receiptIds: [] },
             { value: 2, resources: [], modificators: [{ typeId: 1, value: 5 }], receiptIds: [] },
@@ -45,6 +46,7 @@ describe('canAffordUpgrade', () => {
         maxCount: 1,
         availableCount: 0,
         maxLevel: 2,
+        unlockLevel: 0,
         levels: [
             { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
             { value: 2, resources: [], modificators: [], receiptIds: [] },

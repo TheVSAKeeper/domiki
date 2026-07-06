@@ -14,6 +14,7 @@ namespace Domiki.Web.Models
                 MaxCount = t.MaxCount,
                 AvailableCount = availableCount,
                 MaxLevel = t.MaxLevel,
+                UnlockLevel = t.UnlockLevel,
                 Levels = t.Levels.Select(x => x.ToDto()).ToArray(),
             };
         }

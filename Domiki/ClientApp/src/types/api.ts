@@ -49,6 +49,7 @@ export const domikTypeSchema = z.object({
     maxCount: z.number(),
     availableCount: z.number(),
     maxLevel: z.number(),
+    unlockLevel: z.number(),
     levels: z.array(upgradeLevelSchema),
 });
 export type DomikTypeDto = z.infer<typeof domikTypeSchema>;
@@ -104,6 +105,22 @@ export const villageSchema = z.object({
     crestColor: z.number(),
 });
 export type VillageDto = z.infer<typeof villageSchema>;
+
+export const villageLevelUnlockSchema = z.object({
+    level: z.number(),
+    label: z.string(),
+});
+export type VillageLevelUnlockDto = z.infer<typeof villageLevelUnlockSchema>;
+
+export const villageLevelSchema = z.object({
+    level: z.number(),
+    buildings: z.number(),
+    residents: z.number(),
+    reputation: z.number(),
+    comfort: z.number(),
+    upcomingUnlocks: z.array(villageLevelUnlockSchema),
+});
+export type VillageLevelDto = z.infer<typeof villageLevelSchema>;
 
 export const workerSkillSchema = z.object({
     domikTypeId: z.number(),

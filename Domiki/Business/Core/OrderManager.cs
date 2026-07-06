@@ -14,6 +14,7 @@ namespace Domiki.Web.Business.Core
         private Data.UnitOfWork _uow;
         private ResourceManager _resourceManager;
         private PlayerResourceManager _playerResourceManager;
+        private VillageLevelCalculator _villageLevelCalculator;
 
         private readonly OrderTier[] _tiers =
         {
@@ -27,23 +28,26 @@ namespace Domiki.Web.Business.Core
             Data.ApplicationDbContext context,
             ICalculator calculator,
             ResourceManager resourceManager,
-            PlayerResourceManager playerResourceManager)
+            PlayerResourceManager playerResourceManager,
+            VillageLevelCalculator villageLevelCalculator)
         {
             _context = context;
             _calculator = calculator;
             _uow = uow;
             _resourceManager = resourceManager;
             _playerResourceManager = playerResourceManager;
+            _villageLevelCalculator = villageLevelCalculator;
         }
 
         public void EnsureOrderBoard(int playerId)
         {
             var count = _context.Orders.Count(x => x.PlayerId == playerId);
+            var villageLevel = _villageLevelCalculator.GetLevel(playerId).Level;
             var created = new List<CalculateInfo>();
 
             while (count < BoardSize)
             {
-                var calcInfo = CreateOrder(playerId);
+                var calcInfo = CreateOrder(playerId, villageLevel);
                 created.Add(calcInfo);
                 count++;
             }
@@ -135,9 +139,9 @@ namespace Domiki.Web.Business.Core
             }).ToArray();
         }
 
-        private CalculateInfo CreateOrder(int playerId)
+        private CalculateInfo CreateOrder(int playerId, int villageLevel)
         {
-            var neighbors = _resourceManager.GetNeighbors();
+            var neighbors = _villageLevelCalculator.GetOpenNeighbors(villageLevel);
             var neighbor = neighbors[Random.Shared.Next(neighbors.Length)];
             var tier = _tiers[Random.Shared.Next(_tiers.Length)];
             var now = DateTimeHelper.GetNowDate();

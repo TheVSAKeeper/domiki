@@ -15,5 +15,7 @@ namespace Domiki.Web.Data
         public string LogicName { get; set; }
 
         public int PrimaryResourceTypeId { get; set; }
+
+        public int UnlockLevel { get; set; }
     }
 }

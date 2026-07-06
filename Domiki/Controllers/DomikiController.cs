@@ -18,8 +18,9 @@ namespace Domiki.Controllers
         private readonly OrderManager _orderManager;
         private readonly WorkerManager _workerManager;
         private readonly WeatherManager _weatherManager;
+        private readonly VillageLevelCalculator _villageLevelCalculator;
 
-        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager)
+        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator)
         {
             _logger = logger;
             _domikManager = domikManager;
@@ -27,6 +28,7 @@ namespace Domiki.Controllers
             _orderManager = orderManager;
             _workerManager = workerManager;
             _weatherManager = weatherManager;
+            _villageLevelCalculator = villageLevelCalculator;
         }
 
         [HttpGet]
@@ -173,6 +175,16 @@ namespace Domiki.Controllers
 
             var content = _orderManager.GetReputation(playerId).Select(x => x.ToDto()).ToArray();
             return new Response<NeighborReputationDto[]>(content);
+        }
+
+        [HttpGet]
+        [Route("/Domiki/GetVillageLevel")]
+        public Response<VillageLevelDto> GetVillageLevel()
+        {
+            int playerId = GetPlayerId();
+
+            var content = _villageLevelCalculator.GetLevel(playerId).ToDto();
+            return new Response<VillageLevelDto>(content);
         }
 
         [HttpGet]

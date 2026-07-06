@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { z } from 'zod';
-import { apiGet, ApiError, getOrders, getReputation, getVillage, getWeather, getWorkers, setVillage as setVillageApi } from '../services/api';
+import { apiGet, ApiError, getOrders, getReputation, getVillage, getVillageLevel, getWeather, getWorkers, setVillage as setVillageApi } from '../services/api';
 import { useToast } from '../services/toast';
 import {
     domikSchema,
@@ -10,6 +10,7 @@ import {
     receiptSchema,
     resourceSchema,
     resourceTypeSchema,
+    villageLevelSchema,
     villageSchema,
     weatherStateSchema,
     workerSchema,
@@ -21,6 +22,7 @@ import {
     type ResourceDto,
     type ResourceTypeDto,
     type VillageDto,
+    type VillageLevelDto,
     type WeatherStateDto,
     type WorkerDto,
 } from '../types/api';
@@ -35,6 +37,7 @@ export interface GameData {
     orders: OrderDto[];
     reputation: NeighborReputationDto[];
     village: VillageDto | null;
+    villageLevel: VillageLevelDto | null;
     weather: WeatherStateDto | null;
     workers: WorkerDto[];
     purchaseDomikTypes: DomikTypeDto[] | null;
@@ -55,6 +58,7 @@ export function useGameData(): GameData {
     const [orders, setOrders] = useState<OrderDto[]>([]);
     const [reputation, setReputation] = useState<NeighborReputationDto[]>([]);
     const [village, setVillageState] = useState<VillageDto | null>(null);
+    const [villageLevel, setVillageLevel] = useState<VillageLevelDto | null>(null);
     const [weather, setWeather] = useState<WeatherStateDto | null>(null);
     const [workers, setWorkers] = useState<WorkerDto[]>([]);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
@@ -84,12 +88,13 @@ export function useGameData(): GameData {
     }, [weather]);
 
     const reload = useCallback(async () => {
-        const [domiksData, resourcesData, ordersData, reputationData, villageData, workersData, weatherData] = await Promise.all([
+        const [domiksData, resourcesData, ordersData, reputationData, villageData, villageLevelData, workersData, weatherData] = await Promise.all([
             apiGet('Domiki/GetDomiks', domikSchema.array()),
             apiGet('Domiki/GetResources', resourceSchema.array()),
             getOrders(),
             getReputation(),
             getVillage(),
+            getVillageLevel(),
             getWorkers(),
             getWeather(),
         ]);
@@ -98,6 +103,7 @@ export function useGameData(): GameData {
         setOrders(ordersData);
         setReputation(reputationData);
         setVillageState(villageData);
+        setVillageLevel(villageLevelData);
         setWorkers(workersData);
         setWeather(weatherData);
     }, []);
@@ -143,6 +149,7 @@ export function useGameData(): GameData {
             safeLoad('Domiki/GetOrders', orderSchema.array(), setOrders),
             safeLoad('Domiki/GetReputation', neighborReputationSchema.array(), setReputation),
             safeLoad('Domiki/GetVillage', villageSchema, setVillageState),
+            safeLoad('Domiki/GetVillageLevel', villageLevelSchema, setVillageLevel),
             safeLoad('Domiki/GetWorkers', workerSchema.array(), setWorkers),
             safeLoad('Domiki/GetPurchaseAvaialableDomiks', domikTypeSchema.array(), setPurchaseDomikTypes),
             safeLoad('Domiki/GetWeather', weatherStateSchema, setWeather),
@@ -209,6 +216,7 @@ export function useGameData(): GameData {
         orders,
         reputation,
         village,
+        villageLevel,
         weather,
         workers,
         purchaseDomikTypes,

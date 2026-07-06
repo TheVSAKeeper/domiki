@@ -11,6 +11,8 @@
         /// </summary>
         public int MaxCount { get; set; }
 
+        public int UnlockLevel { get; set; }
+
         /// <summary>
         /// Максимальный уровень, до которого можно улучший.
         /// </summary>

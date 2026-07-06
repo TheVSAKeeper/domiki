@@ -4,12 +4,14 @@ import {
     neighborReputationSchema,
     orderSchema,
     ResponseType,
+    villageLevelSchema,
     villageSchema,
     weatherStateSchema,
     workerSchema,
     type NeighborReputationDto,
     type OrderDto,
     type VillageDto,
+    type VillageLevelDto,
     type WeatherStateDto,
     type WorkerDto,
 } from '../types/api';
@@ -103,6 +105,9 @@ export const getVillage = (signal?: AbortSignal): Promise<VillageDto> =>
 
 export const setVillage = (name: string, crestIcon: number, crestColor: number, signal?: AbortSignal): Promise<void> =>
     request('POST', 'Domiki/SetVillage', null, signal, { name, crestIcon, crestColor });
+
+export const getVillageLevel = (signal?: AbortSignal): Promise<VillageLevelDto> =>
+    apiGet('Domiki/GetVillageLevel', villageLevelSchema, signal);
 
 export const getWorkers = (signal?: AbortSignal): Promise<WorkerDto[]> =>
     apiGet('Domiki/GetWorkers', workerSchema.array(), signal);
