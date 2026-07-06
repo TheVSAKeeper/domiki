@@ -35,6 +35,17 @@ namespace Domiki.Web.Business.Core
             "Ульяна",
             "Фёдор",
             "Ярина",
+            "Агата",
+            "Бажен",
+            "Велена",
+            "Гордей",
+            "Демьян",
+            "Есения",
+            "Захар",
+            "Лукерья",
+            "Марта",
+            "Назар",
+            "Прасковья",
         };
 
         private readonly Data.ApplicationDbContext _context;
@@ -66,15 +77,26 @@ namespace Domiki.Web.Business.Core
         {
             var capacity = GetCapacity(playerId);
             var currentWorkers = _context.Workers.Where(x => x.PlayerId == playerId).OrderBy(x => x.Id).ToArray();
+            var usedNames = new HashSet<string>();
+            for (var i = 0; i < currentWorkers.Length; i++)
+            {
+                if (!usedNames.Add(currentWorkers[i].Name))
+                {
+                    currentWorkers[i].Name = GetWorkerName(usedNames, i);
+                    usedNames.Add(currentWorkers[i].Name);
+                }
+            }
+
             var traits = _resourceManager.GetTraits();
             while (currentWorkers.Length < capacity)
             {
                 var worker = new Data.Worker
                 {
                     PlayerId = playerId,
-                    Name = WorkerNames[Random.Shared.Next(WorkerNames.Length)],
+                    Name = GetWorkerName(usedNames, currentWorkers.Length),
                     TraitId = traits[Random.Shared.Next(traits.Length)].Id,
                 };
+                usedNames.Add(worker.Name);
                 _context.Workers.Add(worker);
                 currentWorkers = currentWorkers.Append(worker).ToArray();
             }
@@ -101,6 +123,25 @@ namespace Domiki.Web.Business.Core
             }
 
             return capacity;
+        }
+
+        private string GetWorkerName(HashSet<string> usedNames, int ordinal)
+        {
+            foreach (var name in WorkerNames)
+            {
+                if (!usedNames.Contains(name))
+                {
+                    return name;
+                }
+            }
+
+            var suffix = ordinal + 1;
+            while (usedNames.Contains($"Трудяга {suffix}"))
+            {
+                suffix++;
+            }
+
+            return $"Трудяга {suffix}";
         }
 
         private void ReconcileManufactures(int playerId, Data.Worker[] currentWorkers, DateTime now)

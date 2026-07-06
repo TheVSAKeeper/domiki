@@ -325,6 +325,7 @@ namespace Domiki.Web.Business.Core
             duration = (int)Math.Ceiling(duration * (100 - avgSpeedup) / 100);
             var avgSkill = selectedWorkers.Average(x => WorkerSkillCalculator.GetBonusPercent(skillByWorkerId.GetValueOrDefault(x.Id)));
             duration = (int)Math.Ceiling(duration * (100 - avgSkill) / 100);
+            duration = Math.Max(duration, (int)Math.Ceiling(receipt.DurationSeconds * 0.6));
 
             var outputPercent = _weatherManager.GetOutputPercent(date, domikType.Id);
 

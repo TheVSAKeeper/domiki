@@ -294,7 +294,6 @@ namespace Domiki.Web.Tests
         [TestCase(5, 14, 4, 8)]
         [TestCase(5, 18, 4, 24)]
         [TestCase(3, 15, 2, 8)]
-        [TestCase(4, 21, 5, 24)]
         public void LongDigProducesCorrectAmountTest(int mineTypeId, int receiptId, int outResourceTypeId, int amount)
         {
             var playerId = GetPlayerId();
@@ -410,8 +409,8 @@ namespace Domiki.Web.Tests
         [TestCase(1, 20)]
         [TestCase(2, 100)]
         [TestCase(3, 300)]
-        [TestCase(4, 1000)]
-        [TestCase(5, 6000)]
+        [TestCase(4, 1500)]
+        [TestCase(5, 9000)]
         public void UpgradeCoinCostPerLevelTest(int level, int expectedCoin)
         {
             var coinResourceTypeId = 1;

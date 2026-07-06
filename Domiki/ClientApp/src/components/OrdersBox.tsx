@@ -12,6 +12,10 @@ interface OrdersBoxProps {
     onComplete: (orderId: number) => void;
 }
 
+const reputationMilestones = [10, 25, 50];
+
+const nextReputationMilestone = (points: number) => reputationMilestones.find(value => value > points);
+
 export const OrdersBox = ({ orders, reputation, resourceTypes, resources, now, onComplete }: OrdersBoxProps) => {
     const rewardResources = (order: OrderDto): ResourceDto[] => [
         { typeId: 1, value: order.rewardCoins },
@@ -24,7 +28,10 @@ export const OrdersBox = ({ orders, reputation, resourceTypes, resources, now, o
                 <h3 className="panel-title">Заказы</h3>
                 <div className="reputation-list">
                     {reputation.map(item => (
-                        <span key={item.neighborId} className="reputation-chip">{item.neighborName}: {item.points}</span>
+                        <span key={item.neighborId} className="reputation-chip">
+                            {item.neighborName}: {item.points}
+                            {nextReputationMilestone(item.points) ? <> / {nextReputationMilestone(item.points)} ???</> : null}
+                        </span>
                     ))}
                 </div>
             </div>
