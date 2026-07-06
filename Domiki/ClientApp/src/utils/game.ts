@@ -1,4 +1,4 @@
-import type { DomikDto, DomikTypeDto, ManufactureDto, PlodderCount, ReceiptDto, ReceiptView, ResourceDto, SelectedDomikView, UpgradeView } from '../types/api';
+import type { DomikDto, DomikTypeDto, ManufactureDto, PlodderCount, ReceiptDto, ReceiptView, ResourceDto, SelectedDomikView, UpgradeView, WorkerDto } from '../types/api';
 import { formatDuration, remainingSeconds } from './time';
 
 const plodderTypeId = 1;
@@ -115,6 +115,15 @@ export function computeReceiptView(
     const hasPlodders = freePlodders >= receipt.plodderCount;
 
     return { receipt, inputs, durationSeconds, hasResources, hasPlodders, canRun: hasResources && hasPlodders };
+}
+
+export function isWorkerFree(worker: WorkerDto, now: number): boolean {
+    return worker.manufactureId == null && (worker.restUntil == null || remainingSeconds(worker.restUntil, now) <= 0);
+}
+
+export function workerFitness(worker: WorkerDto, domikTypeId: number): number {
+    const skillBonus = worker.skills.find(x => x.domikTypeId === domikTypeId)?.bonusPercent ?? 0;
+    return -worker.traitDurationPercent + skillBonus;
 }
 
 export function manufactureProgressPercent(manufacture: ManufactureDto, receipt: ReceiptDto, now: number): number {

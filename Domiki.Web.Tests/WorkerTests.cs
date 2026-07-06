@@ -284,6 +284,160 @@ namespace Domiki.Web.Tests
             Assert.That(worker.RestUntil, Is.Null);
         }
 
+        [Test]
+        public void AutoSelectsWorkerWithBestFitnessOverFirstByIdTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+
+            var workers = GetWorkers(playerId);
+            var weakWorker = workers[0];
+            var strongWorker = workers[1];
+            SetWorkerTrait(weakWorker.Id, 1);
+            SetWorkerTrait(strongWorker.Id, 3);
+
+            StartManufacture(playerId, 3, 1, false);
+
+            var busyWorker = GetWorkers(playerId).Single(x => x.ManufactureId != null);
+            Assert.That(busyWorker.Id, Is.EqualTo(strongWorker.Id));
+        }
+
+        [Test]
+        public void ManualSelectionAssignsExplicitWorkerTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+
+            var workers = GetWorkers(playerId);
+            var weakWorker = workers[0];
+            var strongWorker = workers[1];
+            SetWorkerTrait(weakWorker.Id, 1);
+            SetWorkerTrait(strongWorker.Id, 3);
+
+            StartManufacture(playerId, 3, 1, false, new[] { weakWorker.Id });
+
+            var busyWorker = GetWorkers(playerId).Single(x => x.ManufactureId != null);
+            Assert.That(busyWorker.Id, Is.EqualTo(weakWorker.Id));
+        }
+
+        [Test]
+        public void EmptyManualSelectionFallsBackToAutoTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+
+            StartManufacture(playerId, 2, 1, false, Array.Empty<int>());
+
+            var busyWorker = GetWorkers(playerId).Single();
+            Assert.That(busyWorker.ManufactureId, Is.Not.Null);
+        }
+
+        [Test]
+        public void ManualSelectionWithWrongCountThrowsTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+
+            var workerIds = GetWorkers(playerId).Select(x => x.Id).ToArray();
+
+            var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 3, 1, false, workerIds));
+            Assert.That(ex.Message, Is.EqualTo("Неверное число трудяг"));
+        }
+
+        [Test]
+        public void ManualSelectionWithDuplicateWorkerThrowsTest()
+        {
+            var playerId = GetPlayerId();
+            for (var i = 0; i < 5; i++)
+            {
+                BuyDomik(playerId, 2);
+            }
+            BuyDomik(playerId, 5);
+            UpgradeDomik(playerId, 6);
+
+            var workerId = GetWorkers(playerId).First().Id;
+            var workerIds = Enumerable.Repeat(workerId, 5).ToArray();
+
+            var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 6, 2, false, workerIds));
+            Assert.That(ex.Message, Is.EqualTo("Дублирующиеся трудяги"));
+        }
+
+        [Test]
+        public void ManualSelectionForGroupRecipeReservesExactWorkersTest()
+        {
+            var playerId = GetPlayerId();
+            for (var i = 0; i < 5; i++)
+            {
+                BuyDomik(playerId, 2);
+            }
+            UpgradeDomik(playerId, 1);
+            BuyDomik(playerId, 5);
+            UpgradeDomik(playerId, 6);
+
+            var workers = GetWorkers(playerId);
+            var chosen = workers.Take(5).Select(x => x.Id).ToArray();
+            var excludedWorkerId = workers[5].Id;
+
+            StartManufacture(playerId, 6, 2, false, chosen);
+
+            var updatedWorkers = GetWorkers(playerId);
+            Assert.That(updatedWorkers.Where(x => chosen.Contains(x.Id)).All(x => x.ManufactureId != null), Is.True);
+            Assert.That(updatedWorkers.Single(x => x.Id == excludedWorkerId).ManufactureId, Is.Null);
+        }
+
+        [Test]
+        public void ManualSelectionWithForeignWorkerThrowsTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+
+            var otherPlayerId = GetPlayerId();
+            BuyDomik(otherPlayerId, 2);
+            var foreignWorkerId = GetWorkers(otherPlayerId).Single().Id;
+
+            var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 2, 1, false, new[] { foreignWorkerId }));
+            Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
+        }
+
+        [Test]
+        public void ManualSelectionWithBusyWorkerThrowsTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+            BuyDomik(playerId, 5);
+
+            var busyWorkerId = GetWorkers(playerId)[0].Id;
+            StartManufacture(playerId, 3, 1, false, new[] { busyWorkerId });
+
+            var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 4, 1, false, new[] { busyWorkerId }));
+            Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
+        }
+
+        [Test]
+        public void ManualSelectionWithRestingWorkerThrowsTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+
+            var restingWorkerId = GetWorkers(playerId)[0].Id;
+            SetWorkerRest(restingWorkerId, DateTimeHelper.GetNowDate().AddHours(1));
+
+            var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 3, 1, false, new[] { restingWorkerId }));
+            Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
+        }
+
         private int GetPlayerId()
         {
             using (var uow = GetUow())
@@ -337,12 +491,12 @@ namespace Domiki.Web.Tests
             }
         }
 
-        private void StartManufacture(int playerId, int domikId, int receiptId, bool calculatorJustFinishMode)
+        private void StartManufacture(int playerId, int domikId, int receiptId, bool calculatorJustFinishMode, int[]? workerIds = null)
         {
             using (var uow = GetUow())
             {
                 var domikManager = GetDomikManager(uow, calculatorJustFinishMode);
-                domikManager.StartManufacture(playerId, domikId, receiptId);
+                domikManager.StartManufacture(playerId, domikId, receiptId, workerIds: workerIds);
                 uow.Commit();
             }
         }

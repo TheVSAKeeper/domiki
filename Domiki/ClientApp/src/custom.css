@@ -761,6 +761,43 @@ code {
         background: var(--coin);
     }
 
+.receipt-mode {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.receipt-mode-count {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pine);
+}
+
+.worker-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.worker-chip-pick {
+    grid-template-columns: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font: inherit;
+    cursor: pointer;
+}
+
+    .worker-chip-pick .worker-effect {
+        color: var(--pine);
+    }
+
+.worker-chip-selected {
+    background: var(--coin);
+    border-color: var(--ink);
+}
+
 .manufacture-box {
     padding: 10px;
     margin-top: 10px;

@@ -245,7 +245,7 @@ namespace Domiki.Web.Business.Core
             return true;
         }
 
-        public void StartManufacture(int playerId, int domikId, int receiptId, bool useOptional = false)
+        public void StartManufacture(int playerId, int domikId, int receiptId, bool useOptional = false, int[] workerIds = null)
         {
             var date = DateTimeHelper.GetNowDate();
 
@@ -274,6 +274,13 @@ namespace Domiki.Web.Business.Core
             {
                 throw new BusinessException("Недостаточно трудяг");
             }
+
+            var freeIds = freeWorkers.Select(x => x.Id).ToArray();
+            var skillByWorkerId = _context.WorkerSkills
+                .Where(x => x.DomikTypeId == domikType.Id && freeIds.Contains(x.WorkerId))
+                .ToDictionary(x => x.WorkerId, x => x.Uses);
+            var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
+
             if (domikLevel.MaxManufactureCount < currentManufactureCount + 1)
             {
                 throw new BusinessException("Максимальное количество одновременных производств");
@@ -287,14 +294,33 @@ namespace Domiki.Web.Business.Core
                 duration = receipt.DurationSeconds * (100 - receipt.SpeedupPercent) / 100;
             }
 
-            var selectedWorkers = freeWorkers.Take(needPlodderCount).ToArray();
-            var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
+            Data.Worker[] selectedWorkers;
+            if (workerIds == null || workerIds.Length == 0)
+            {
+                selectedWorkers = freeWorkers
+                    .OrderByDescending(w => -traits[w.TraitId].DurationPercent + WorkerSkillCalculator.GetBonusPercent(skillByWorkerId.GetValueOrDefault(w.Id)))
+                    .ThenBy(w => w.Id)
+                    .Take(needPlodderCount)
+                    .ToArray();
+            }
+            else
+            {
+                if (workerIds.Length != needPlodderCount)
+                {
+                    throw new BusinessException("Неверное число трудяг");
+                }
+                if (workerIds.Distinct().Count() != workerIds.Length)
+                {
+                    throw new BusinessException("Дублирующиеся трудяги");
+                }
+
+                var freeById = freeWorkers.ToDictionary(x => x.Id);
+                selectedWorkers = workerIds.Select(id =>
+                    freeById.TryGetValue(id, out var w) ? w : throw new BusinessException("Трудяга недоступен")).ToArray();
+            }
+
             var avgSpeedup = selectedWorkers.Average(x => -traits[x.TraitId].DurationPercent);
             duration = (int)Math.Ceiling(duration * (100 - avgSpeedup) / 100);
-            var selectedWorkerIds = selectedWorkers.Select(x => x.Id).ToArray();
-            var skillByWorkerId = _context.WorkerSkills
-                .Where(x => x.DomikTypeId == domikType.Id && selectedWorkerIds.Contains(x.WorkerId))
-                .ToDictionary(x => x.WorkerId, x => x.Uses);
             var avgSkill = selectedWorkers.Average(x => WorkerSkillCalculator.GetBonusPercent(skillByWorkerId.GetValueOrDefault(x.Id)));
             duration = (int)Math.Ceiling(duration * (100 - avgSkill) / 100);
 

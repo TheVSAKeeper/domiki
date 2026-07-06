@@ -10,7 +10,7 @@ import SaveIcon from 'pixelarticons/svg/save.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
-import { canAffordUpgrade, computeReceiptView, computeSelectedDomikView } from '../utils/game';
+import { canAffordUpgrade, computeReceiptView, computeSelectedDomikView, isWorkerFree, workerFitness } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ManufactureBox } from './ManufactureBox';
 import { ResourcesBox } from './ResourcesBox';
@@ -28,6 +28,8 @@ export const DomikiPage = () => {
     const [selectedDomikId, setSelectedDomikId] = useState<number | null>(null);
     const [expandedReceiptId, setExpandedReceiptId] = useState<number | null>(null);
     const [optionalReceiptIds, setOptionalReceiptIds] = useState<ReadonlySet<number>>(new Set());
+    const [manualReceiptIds, setManualReceiptIds] = useState<ReadonlySet<number>>(new Set());
+    const [selectedWorkerIdsByReceipt, setSelectedWorkerIdsByReceipt] = useState<Record<number, number[]>>({});
     const [identityOpen, setIdentityOpen] = useState(false);
     const [identityDismissed, setIdentityDismissed] = useState(false);
     const [draftVillageName, setDraftVillageName] = useState('');
@@ -47,9 +49,37 @@ export const DomikiPage = () => {
         return next;
     });
 
+    const toggleManual = (receiptId: number) => {
+        setManualReceiptIds(prev => {
+            const next = new Set(prev);
+            if (next.has(receiptId)) {
+                next.delete(receiptId);
+            } else {
+                next.add(receiptId);
+            }
+            return next;
+        });
+        setSelectedWorkerIdsByReceipt(prev => ({ ...prev, [receiptId]: [] }));
+    };
+
+    const toggleSelectedWorker = (receiptId: number, workerId: number, maxCount: number) => {
+        setSelectedWorkerIdsByReceipt(prev => {
+            const current = prev[receiptId] ?? [];
+            if (current.includes(workerId)) {
+                return { ...prev, [receiptId]: current.filter(id => id !== workerId) };
+            }
+
+            if (current.length >= maxCount) {
+                return prev;
+            }
+
+            return { ...prev, [receiptId]: [...current, workerId] };
+        });
+    };
+
     const plodder = useMemo(() => ({
         max: workers.length,
-        free: workers.filter(worker => worker.manufactureId == null && (worker.restUntil == null || remainingSeconds(worker.restUntil, now) <= 0)).length,
+        free: workers.filter(worker => isWorkerFree(worker, now)).length,
     }), [workers, now]);
     const selected = useMemo(
         () => computeSelectedDomikView(selectedDomikId, domiks, domikTypes, receipts, resources, now),
@@ -99,8 +129,10 @@ export const DomikiPage = () => {
         await reload();
     });
 
-    const startManufacture = (domikId: number, receiptId: number, useOptional: boolean) => runAction(async () => {
-        await apiPost(`Domiki/StartManufacture/${domikId}/${receiptId}?useOptional=${String(useOptional)}`);
+    const startManufacture = (domikId: number, receiptId: number, useOptional: boolean, workerIds?: number[]) => runAction(async () => {
+        const workerIdsQuery = (workerIds ?? []).map(id => `&workerIds=${id}`).join('');
+        await apiPost(`Domiki/StartManufacture/${domikId}/${receiptId}?useOptional=${String(useOptional)}${workerIdsQuery}`);
+        setSelectedWorkerIdsByReceipt(prev => ({ ...prev, [receiptId]: [] }));
         await reload();
     });
 
@@ -316,6 +348,17 @@ export const DomikiPage = () => {
                                             const useOptional = optionalReceiptIds.has(receipt.id);
                                             const view = computeReceiptView(receipt, resources, plodder.free, hasOptional && useOptional);
                                             const expanded = expandedReceiptId === receipt.id;
+                                            const isManual = manualReceiptIds.has(receipt.id);
+                                            const selectedWorkerIds = selectedWorkerIdsByReceipt[receipt.id] ?? [];
+                                            const freeWorkersForType = workers
+                                                .filter(worker => isWorkerFree(worker, now))
+                                                .map(worker => ({ worker, fitness: workerFitness(worker, selected.domikType.id) }))
+                                                .sort((a, b) => b.fitness - a.fitness);
+                                            const freeIdsForType = new Set(freeWorkersForType.map(({ worker }) => worker.id));
+                                            const validSelectedIds = selectedWorkerIds.filter(id => freeIdsForType.has(id));
+                                            const canRun = isManual
+                                                ? view.hasResources && validSelectedIds.length === receipt.plodderCount
+                                                : view.canRun;
                                             return (
                                                 <div key={receipt.id}
                                                     className={'receipt-row' + (expanded ? ' receipt-open' : '') + (view.canRun ? '' : ' receipt-blocked')}>
@@ -359,16 +402,48 @@ export const DomikiPage = () => {
                                                                     с инструментом (−{receipt.speedupPercent}%)
                                                                 </label>
                                                             }
+                                                            <div className="receipt-mode">
+                                                                <label className="receipt-optional">
+                                                                    <input type="checkbox" checked={isManual}
+                                                                        onChange={() => toggleManual(receipt.id)} />
+                                                                    Выбрать трудяг вручную
+                                                                </label>
+                                                                {isManual &&
+                                                                    <span className="receipt-mode-count">
+                                                                        выбрано {validSelectedIds.length} / {receipt.plodderCount}
+                                                                    </span>
+                                                                }
+                                                            </div>
+                                                            {isManual &&
+                                                                <div className="worker-picker">
+                                                                    {freeWorkersForType.length === 0 &&
+                                                                        <span className="hint">Нет свободных трудяг</span>
+                                                                    }
+                                                                    {freeWorkersForType.map(({ worker, fitness }) => {
+                                                                        const isSelected = selectedWorkerIds.includes(worker.id);
+                                                                        return (
+                                                                            <button key={worker.id} type="button"
+                                                                                className={'worker-chip worker-chip-pick' + (isSelected ? ' worker-chip-selected' : '')}
+                                                                                onClick={() => toggleSelectedWorker(receipt.id, worker.id, receipt.plodderCount)}>
+                                                                                <span className="worker-name">{worker.name}</span>
+                                                                                <span className="worker-effect">{fitness >= 0 ? '+' : ''}{fitness} %</span>
+                                                                            </button>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            }
                                                             <button className="btn-game"
-                                                                disabled={!view.canRun}
-                                                                onClick={() => startManufacture(selected.domik.id, receipt.id, hasOptional && useOptional)}>
+                                                                disabled={!canRun}
+                                                                onClick={() => startManufacture(selected.domik.id, receipt.id, hasOptional && useOptional, isManual ? validSelectedIds : undefined)}>
                                                                 <PlayIcon className="btn-ico" aria-hidden="true" />
                                                                 Запустить
                                                             </button>
-                                                            {!view.canRun &&
+                                                            {!canRun &&
                                                                 <p className="note-warn">
                                                                     <img src="/images/upgrade_no_resources.png" alt="" />
-                                                                    {!view.hasPlodders ? 'Нет свободных трудяг' : 'Не хватает ресурсов'}
+                                                                    {isManual
+                                                                        ? !view.hasResources ? 'Не хватает ресурсов' : `Выберите ровно ${receipt.plodderCount} трудяг`
+                                                                        : !view.hasPlodders ? 'Нет свободных трудяг' : 'Не хватает ресурсов'}
                                                                 </p>
                                                             }
                                                         </div>

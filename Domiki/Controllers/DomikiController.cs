@@ -128,10 +128,10 @@ namespace Domiki.Controllers
 
         [HttpPost]
         [Route("/Domiki/StartManufacture/{domikId}/{receiptId}")]
-        public Response StartManufacture(int domikId, int receiptId, [FromQuery] bool useOptional = false)
+        public Response StartManufacture(int domikId, int receiptId, [FromQuery] bool useOptional = false, [FromQuery] int[] workerIds = null)
         {
             int playerId = GetPlayerId();
-            _domikManager.StartManufacture(playerId, domikId, receiptId, useOptional);
+            _domikManager.StartManufacture(playerId, domikId, receiptId, useOptional, workerIds);
             return new Response { Type = ResponseType.Success };
         }
 
