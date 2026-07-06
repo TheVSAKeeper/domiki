@@ -45,9 +45,15 @@ namespace Domiki.Web.Business.Core
 
         public IEnumerable<Worker> GetWorkers(int playerId)
         {
-            _playerResourceManager.LockDbPlayerRow(playerId);
-            EnsureWorkers(playerId);
-            _context.SaveChanges();
+            var capacity = GetCapacity(playerId);
+            var currentCount = _context.Workers.Count(x => x.PlayerId == playerId);
+            if (currentCount < capacity)
+            {
+                _playerResourceManager.LockDbPlayerRow(playerId);
+                EnsureWorkers(playerId);
+                _context.SaveChanges();
+            }
+
             return MapWorkers(playerId);
         }
 

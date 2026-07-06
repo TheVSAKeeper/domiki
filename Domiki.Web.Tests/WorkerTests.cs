@@ -98,6 +98,29 @@ namespace Domiki.Web.Tests
             Assert.That(workers.Count(x => x.ManufactureId == null), Is.EqualTo(0));
         }
 
+        [Test]
+        public void ConcurrentGetWorkersDoesNotThrowTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            Assert.That(GetWorkers(playerId).Length, Is.EqualTo(1));
+
+            var errorCount = 0;
+            Parallel.ForEach(Enumerable.Range(0, 16), _ =>
+            {
+                try
+                {
+                    Assert.That(GetWorkers(playerId).Length, Is.EqualTo(1));
+                }
+                catch (Exception)
+                {
+                    Interlocked.Increment(ref errorCount);
+                }
+            });
+
+            Assert.That(errorCount, Is.EqualTo(0));
+        }
+
         private int GetPlayerId()
         {
             using (var uow = GetUow())
