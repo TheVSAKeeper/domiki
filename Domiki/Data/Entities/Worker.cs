@@ -25,5 +25,7 @@ namespace Domiki.Web.Data
         public Trait Trait { get; set; }
 
         public Manufacture Manufacture { get; set; }
+
+        public ICollection<WorkerSkill> Skills { get; set; }
     }
 }

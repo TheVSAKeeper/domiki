@@ -121,6 +121,89 @@ namespace Domiki.Web.Tests
             Assert.That(errorCount, Is.EqualTo(0));
         }
 
+        [Test]
+        public void FinishManufactureIncrementsWorkerSkillUsesTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+
+            StartManufacture(playerId, 2, 1, false);
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+            FinishManufacture(playerId, manufacture.Id, manufacture.FinishDate.AddSeconds(1));
+
+            var skill = GetWorkers(playerId).Single().Skills.Single();
+            Assert.That(skill.DomikTypeId, Is.EqualTo(5));
+            Assert.That(skill.Uses, Is.EqualTo(1));
+            Assert.That(skill.BonusPercent, Is.EqualTo(WorkerSkillCalculator.GetBonusPercent(1)));
+        }
+
+        [Test]
+        public void WorkerSkillShortensManufactureDurationTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+            var worker = GetWorkers(playerId).Single();
+            SetWorkerTrait(worker.Id, 1);
+            SetWorkerSkill(worker.Id, 5, 10);
+
+            var start = DateTimeHelper.GetNowDate();
+            StartManufacture(playerId, 2, 14, false);
+
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+            Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(26208).Within(2));
+        }
+
+        [Test]
+        public void WorkerSkillBonusHasCapTest()
+        {
+            Assert.That(WorkerSkillCalculator.GetBonusPercent(10000), Is.EqualTo(15));
+        }
+
+        [Test]
+        public void WorkerSkillBonusHasDiminishingReturnsTest()
+        {
+            var earlyGain = WorkerSkillCalculator.GetBonusPercent(2) - WorkerSkillCalculator.GetBonusPercent(1);
+            var lateGain = WorkerSkillCalculator.GetBonusPercent(41) - WorkerSkillCalculator.GetBonusPercent(40);
+
+            Assert.That(earlyGain, Is.GreaterThan(lateGain));
+        }
+
+        [Test]
+        public void WorkerSkillForOtherDomikTypeDoesNotShortenManufactureDurationTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 6);
+            var worker = GetWorkers(playerId).Single();
+            SetWorkerTrait(worker.Id, 1);
+            SetWorkerSkill(worker.Id, 5, 10);
+
+            var start = DateTimeHelper.GetNowDate();
+            StartManufacture(playerId, 2, 16, false);
+
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+            Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(28800).Within(2));
+        }
+
+        [Test]
+        public void WorkerTraitAndSkillStackMultiplicativelyTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+            var worker = GetWorkers(playerId).Single();
+            SetWorkerTrait(worker.Id, 3);
+            SetWorkerSkill(worker.Id, 5, 10);
+
+            var start = DateTimeHelper.GetNowDate();
+            StartManufacture(playerId, 2, 14, false);
+
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+            Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(20967).Within(2));
+        }
+
         private int GetPlayerId()
         {
             using (var uow = GetUow())
@@ -207,6 +290,29 @@ namespace Domiki.Web.Tests
             {
                 var worker = uow.Context.Workers.Single(x => x.Id == workerId);
                 worker.TraitId = traitId;
+                uow.Commit();
+            }
+        }
+
+        private void SetWorkerSkill(int workerId, int domikTypeId, int uses)
+        {
+            using (var uow = GetUow())
+            {
+                var skill = uow.Context.WorkerSkills.SingleOrDefault(x => x.WorkerId == workerId && x.DomikTypeId == domikTypeId);
+                if (skill == null)
+                {
+                    uow.Context.WorkerSkills.Add(new Domiki.Web.Data.WorkerSkill
+                    {
+                        WorkerId = workerId,
+                        DomikTypeId = domikTypeId,
+                        Uses = uses,
+                    });
+                }
+                else
+                {
+                    skill.Uses = uses;
+                }
+
                 uow.Commit();
             }
         }

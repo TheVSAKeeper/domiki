@@ -121,12 +121,24 @@ namespace Domiki.Web.Business.Core
         private IEnumerable<Worker> MapWorkers(int playerId)
         {
             var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
-            return _context.Workers.Where(x => x.PlayerId == playerId).OrderBy(x => x.Id).ToArray().Select(x => new Worker
+            var workers = _context.Workers.Where(x => x.PlayerId == playerId).OrderBy(x => x.Id).ToArray();
+            var workerIds = workers.Select(x => x.Id).ToArray();
+            var skills = _context.WorkerSkills.Where(x => workerIds.Contains(x.WorkerId)).ToArray()
+                .GroupBy(x => x.WorkerId)
+                .ToDictionary(x => x.Key, x => x.OrderBy(y => y.DomikTypeId).Select(y => new WorkerSkill
+                {
+                    DomikTypeId = y.DomikTypeId,
+                    Uses = y.Uses,
+                    BonusPercent = WorkerSkillCalculator.GetBonusPercent(y.Uses),
+                }).ToArray());
+
+            return workers.Select(x => new Worker
             {
                 Id = x.Id,
                 Name = x.Name,
                 Trait = traits[x.TraitId],
                 ManufactureId = x.ManufactureId,
+                Skills = skills.GetValueOrDefault(x.Id, Array.Empty<WorkerSkill>()),
             }).ToArray();
         }
     }

@@ -105,6 +105,13 @@ export const villageSchema = z.object({
 });
 export type VillageDto = z.infer<typeof villageSchema>;
 
+export const workerSkillSchema = z.object({
+    domikTypeId: z.number(),
+    uses: z.number(),
+    bonusPercent: z.number(),
+});
+export type WorkerSkillDto = z.infer<typeof workerSkillSchema>;
+
 export const workerSchema = z.object({
     id: z.number(),
     name: z.string(),
@@ -112,6 +119,7 @@ export const workerSchema = z.object({
     traitName: z.string(),
     traitDurationPercent: z.number(),
     manufactureId: z.number().nullable(),
+    skills: z.array(workerSkillSchema),
 });
 export type WorkerDto = z.infer<typeof workerSchema>;
 

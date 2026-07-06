@@ -263,7 +263,8 @@ namespace Domiki.Web.Business.Core
             {
                 throw new BusinessException("Домик ещё строится");
             }
-            var domikLevel = domikTypes.First(x => x.Id == dbDomik.TypeId).Levels.First(x => x.Value == dbDomik.Level);
+            var domikType = domikTypes.First(x => x.Id == dbDomik.TypeId);
+            var domikLevel = domikType.Levels.First(x => x.Value == dbDomik.Level);
             var levelReceipt = domikLevel.Receipts.First(x => x.Id == receiptId);
             var receipt = _resourceManager.GetReceipts().First(x => x.Id == levelReceipt.Id);
             var needPlodderCount = receipt.PlodderCount;
@@ -288,6 +289,12 @@ namespace Domiki.Web.Business.Core
             var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
             var avgSpeedup = selectedWorkers.Average(x => -traits[x.TraitId].DurationPercent);
             duration = (int)Math.Ceiling(duration * (100 - avgSpeedup) / 100);
+            var selectedWorkerIds = selectedWorkers.Select(x => x.Id).ToArray();
+            var skillByWorkerId = _context.WorkerSkills
+                .Where(x => x.DomikTypeId == domikType.Id && selectedWorkerIds.Contains(x.WorkerId))
+                .ToDictionary(x => x.WorkerId, x => x.Uses);
+            var avgSkill = selectedWorkers.Average(x => WorkerSkillCalculator.GetBonusPercent(skillByWorkerId.GetValueOrDefault(x.Id)));
+            duration = (int)Math.Ceiling(duration * (100 - avgSkill) / 100);
 
             _playerResourceManager.WriteOffResources(playerId, writeOffResources);
 
@@ -330,14 +337,33 @@ namespace Domiki.Web.Business.Core
                 {
                     _playerResourceManager.GrantResource(calcInfo.PlayerId, resource.Type.Id, resource.Value);
                 }
+                var dbDomik = _context.Domiks.Single(x => x.PlayerId == calcInfo.PlayerId && x.Id == dbManufacture.DomikId);
                 foreach (var worker in _context.Workers.Where(x => x.ManufactureId == dbManufacture.Id).ToArray())
                 {
+                    IncrementWorkerSkill(worker.Id, dbDomik.TypeId);
                     worker.ManufactureId = null;
                 }
                 _context.Manufactures.Remove(dbManufacture);
                 return true;
             }
             return false;
+        }
+
+        private void IncrementWorkerSkill(int workerId, int domikTypeId)
+        {
+            var skill = _context.WorkerSkills.SingleOrDefault(x => x.WorkerId == workerId && x.DomikTypeId == domikTypeId);
+            if (skill == null)
+            {
+                _context.WorkerSkills.Add(new Data.WorkerSkill
+                {
+                    WorkerId = workerId,
+                    DomikTypeId = domikTypeId,
+                    Uses = 1,
+                });
+                return;
+            }
+
+            skill.Uses++;
         }
 
         private string NormalizeVillageName(string name)

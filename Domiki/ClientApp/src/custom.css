@@ -1211,6 +1211,23 @@ progress {
     color: var(--roof);
 }
 
+.worker-skills {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.worker-skill {
+    padding: 2px 5px;
+    background: #e3f0d1;
+    border: 1px solid var(--pine);
+    clip-path: var(--cut);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--pine);
+}
+
 @media (max-width: 575px) {
     .worker-chip {
         grid-template-columns: 1fr;

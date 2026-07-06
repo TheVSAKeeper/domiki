@@ -14,6 +14,12 @@ namespace Domiki.Web.Models
                 TraitName = worker.Trait.Name,
                 TraitDurationPercent = worker.Trait.DurationPercent,
                 ManufactureId = worker.ManufactureId,
+                Skills = worker.Skills.Select(x => new WorkerSkillDto
+                {
+                    DomikTypeId = x.DomikTypeId,
+                    Uses = x.Uses,
+                    BonusPercent = x.BonusPercent,
+                }).ToArray(),
             };
         }
     }

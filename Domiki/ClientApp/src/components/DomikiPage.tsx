@@ -199,7 +199,7 @@ export const DomikiPage = () => {
             }
             <OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes}
                 resources={resources} now={now} onComplete={completeOrder} />
-            <WorkersBox workers={workers} />
+            <WorkersBox workers={workers} domikTypes={domikTypes} />
             <div className="village-header">
                 <div className="village-identity">
                     <span className="crest-badge" style={{ backgroundColor: villageColor }}>{villageIcon}</span>

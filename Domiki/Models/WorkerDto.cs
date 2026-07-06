@@ -8,5 +8,6 @@
         public string TraitName { get; set; }
         public int TraitDurationPercent { get; set; }
         public int? ManufactureId { get; set; }
+        public WorkerSkillDto[] Skills { get; set; }
     }
 }

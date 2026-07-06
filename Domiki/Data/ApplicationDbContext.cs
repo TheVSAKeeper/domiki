@@ -24,6 +24,7 @@ namespace Domiki.Web.Data
         public DbSet<ModificatorType> ModificatorTypes { get; set; }
         public DbSet<Trait> Traits { get; set; }
         public DbSet<Worker> Workers { get; set; }
+        public DbSet<WorkerSkill> WorkerSkills { get; set; }
 
         public DbSet<Receipt> Receipts { get; set; }
         public DbSet<ReceiptResource> ReceiptResources { get; set; }
@@ -84,6 +85,18 @@ namespace Domiki.Web.Data
                 .HasOne(s => s.Manufacture)
                 .WithMany()
                 .HasForeignKey(e => e.ManufactureId);
+
+            modelBuilder.Entity<WorkerSkill>()
+                .HasKey(p => new
+                {
+                    p.WorkerId,
+                    p.DomikTypeId,
+                });
+
+            modelBuilder.Entity<WorkerSkill>()
+                .HasOne(s => s.Worker)
+                .WithMany(x => x.Skills)
+                .HasForeignKey(e => e.WorkerId);
 
             modelBuilder.Entity<Resource>()
                 .Navigation(e => e.Player)
