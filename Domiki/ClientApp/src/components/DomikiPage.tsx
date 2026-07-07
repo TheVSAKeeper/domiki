@@ -25,6 +25,7 @@ import { OrdersBox } from './OrdersBox';
 import { WorkersBox } from './WorkersBox';
 import { BlueprintsBox } from './BlueprintsBox';
 import { ExpeditionsBox } from './ExpeditionsBox';
+import { DecorBox } from './DecorBox';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 
 const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
@@ -35,7 +36,7 @@ const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, hurryDomik, startExpedition } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, hurryDomik, startExpedition, buyDecor } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -172,6 +173,8 @@ export const DomikiPage = () => {
     const hurryDomikAction = (domikId: number) => runAction(() => hurryDomik(domikId));
 
     const startExpeditionAction = (expeditionTypeId: number) => runAction(() => startExpedition(expeditionTypeId));
+
+    const buyDecorAction = (decorTypeId: number) => runAction(() => buyDecor(decorTypeId));
 
     const saveIdentity = () => runAction(async () => {
         await setVillage(draftVillageName, draftCrestIcon, draftCrestColor);
@@ -314,6 +317,7 @@ export const DomikiPage = () => {
                 resources={resources} now={now} onComplete={completeOrder} />
             <BlueprintsBox blueprints={blueprints} />
             <ExpeditionsBox expeditions={expeditions} resourceTypes={resourceTypes} resources={resources} workers={workers} now={now} onStart={startExpeditionAction} />
+            <DecorBox decor={decor} resourceTypes={resourceTypes} resources={resources} onBuy={buyDecorAction} />
             <WorkersBox workers={workers} domikTypes={domikTypes} now={now} />
             <div className="village-header">
                 <div className="village-identity">

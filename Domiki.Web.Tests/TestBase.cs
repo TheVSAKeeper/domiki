@@ -83,6 +83,13 @@ namespace Domiki.Web.Tests
             return new ExpeditionManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager);
         }
 
+        public DecorManager GetDecorManager(UnitOfWork uow)
+        {
+            var resourceManager = new ResourceManager(uow.Context);
+            var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
+            return new DecorManager(uow, uow.Context, resourceManager, playerResourceManager);
+        }
+
         public WeatherManager GetWeatherManager(UnitOfWork uow, bool calculatorJustFinishMode = true)
         {
             var resourceManager = new ResourceManager(uow.Context);

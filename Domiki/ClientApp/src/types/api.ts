@@ -221,6 +221,28 @@ export const expeditionStateSchema = z.object({
 });
 export type ExpeditionStateDto = z.infer<typeof expeditionStateSchema>;
 
+export const decorTypeSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    logicName: z.string(),
+    comfortPoints: z.number(),
+    cost: z.array(resourceSchema),
+});
+export type DecorTypeDto = z.infer<typeof decorTypeSchema>;
+
+export const playerDecorSchema = z.object({
+    decorTypeId: z.number(),
+    count: z.number(),
+});
+export type PlayerDecorDto = z.infer<typeof playerDecorSchema>;
+
+export const decorStateSchema = z.object({
+    types: z.array(decorTypeSchema),
+    owned: z.array(playerDecorSchema),
+    comfort: z.number(),
+});
+export type DecorStateDto = z.infer<typeof decorStateSchema>;
+
 export const gameStateSchema = z.object({
     domikTypes: domikTypeSchema.array(),
     resourceTypes: resourceTypeSchema.array(),
@@ -236,6 +258,7 @@ export const gameStateSchema = z.object({
     purchaseAvailableDomiks: domikTypeSchema.array(),
     weather: weatherStateSchema,
     expeditions: expeditionStateSchema,
+    decor: decorStateSchema,
 });
 export type GameStateDto = z.infer<typeof gameStateSchema>;
 

@@ -17,6 +17,7 @@ namespace Domiki.Web.Business.Core
         private static WeatherType[] _weatherTypes;
         private static Blueprint[] _blueprints;
         private static ExpeditionType[] _expeditionTypes;
+        private static DecorType[] _decorTypes;
 
         public ResourceManager(Data.ApplicationDbContext context)
         {
@@ -194,6 +195,35 @@ namespace Domiki.Web.Business.Core
             }
 
             return _expeditionTypes;
+        }
+
+        public DecorType[] GetDecorTypes()
+        {
+            if (_decorTypes == null)
+            {
+                var costs = _context.DecorCosts.ToArray();
+                _decorTypes = _context.DecorTypes.Select(x => new DecorType
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    LogicName = x.LogicName,
+                    ComfortPoints = x.ComfortPoints,
+                }).ToArray();
+
+                foreach (var decorType in _decorTypes)
+                {
+                    decorType.Cost = costs
+                        .Where(x => x.DecorTypeId == decorType.Id)
+                        .Select(x => new Resource
+                        {
+                            Type = new ResourceType { Id = x.ResourceTypeId },
+                            Value = x.Value,
+                        })
+                        .ToArray();
+                }
+            }
+
+            return _decorTypes;
         }
 
         public DomikType[] GetDomikTypes()

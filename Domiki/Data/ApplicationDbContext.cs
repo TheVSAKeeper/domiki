@@ -45,6 +45,10 @@ namespace Domiki.Web.Data
         public DbSet<ExpeditionLoot> ExpeditionLoot { get; set; }
         public DbSet<Expedition> Expeditions { get; set; }
 
+        public DbSet<DecorType> DecorTypes { get; set; }
+        public DbSet<DecorCost> DecorCosts { get; set; }
+        public DbSet<PlayerDecor> PlayerDecors { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -316,6 +320,40 @@ namespace Domiki.Web.Data
                 .HasOne(s => s.ExpeditionType)
                 .WithMany()
                 .HasForeignKey(e => e.ExpeditionTypeId);
+
+            modelBuilder.Entity<DecorCost>()
+                .HasKey(p => new
+                {
+                    p.DecorTypeId,
+                    p.ResourceTypeId,
+                });
+
+            modelBuilder.Entity<DecorCost>()
+                .HasOne(s => s.DecorType)
+                .WithMany()
+                .HasForeignKey(e => e.DecorTypeId);
+
+            modelBuilder.Entity<DecorCost>()
+                .HasOne(s => s.ResourceType)
+                .WithMany()
+                .HasForeignKey(e => e.ResourceTypeId);
+
+            modelBuilder.Entity<PlayerDecor>()
+                .HasKey(p => new
+                {
+                    p.PlayerId,
+                    p.DecorTypeId,
+                });
+
+            modelBuilder.Entity<PlayerDecor>()
+                .HasOne(s => s.Player)
+                .WithMany()
+                .HasForeignKey(e => e.PlayerId);
+
+            modelBuilder.Entity<PlayerDecor>()
+                .HasOne(s => s.DecorType)
+                .WithMany()
+                .HasForeignKey(e => e.DecorTypeId);
         }
     }
 }

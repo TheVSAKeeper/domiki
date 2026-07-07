@@ -118,6 +118,49 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("Blueprints");
                 });
 
+            modelBuilder.Entity("Domiki.Web.Data.DecorCost", b =>
+                {
+                    b.Property<int>("DecorTypeId")
+                        .HasColumnType("integer")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("ResourceTypeId")
+                        .HasColumnType("integer")
+                        .HasColumnOrder(2);
+
+                    b.Property<int>("Value")
+                        .HasColumnType("integer");
+
+                    b.HasKey("DecorTypeId", "ResourceTypeId");
+
+                    b.HasIndex("ResourceTypeId");
+
+                    b.ToTable("DecorCosts");
+                });
+
+            modelBuilder.Entity("Domiki.Web.Data.DecorType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ComfortPoints")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("LogicName")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DecorTypes");
+                });
+
             modelBuilder.Entity("Domiki.Web.Data.Domik", b =>
                 {
                     b.Property<int>("PlayerId")
@@ -168,6 +211,25 @@ namespace Domiki.Web.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DomikTypes");
+                });
+
+            modelBuilder.Entity("Domiki.Web.Data.DecorCost", b =>
+                {
+                    b.HasOne("Domiki.Web.Data.DecorType", "DecorType")
+                        .WithMany()
+                        .HasForeignKey("DecorTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domiki.Web.Data.ResourceType", "ResourceType")
+                        .WithMany()
+                        .HasForeignKey("ResourceTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DecorType");
+
+                    b.Navigation("ResourceType");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.DomikTypeLevel", b =>
@@ -610,6 +672,26 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("PlayerBlueprints");
                 });
 
+            modelBuilder.Entity("Domiki.Web.Data.PlayerDecor", b =>
+                {
+                    b.Property<int>("PlayerId")
+                        .HasColumnType("integer")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("DecorTypeId")
+                        .HasColumnType("integer")
+                        .HasColumnOrder(2);
+
+                    b.Property<int>("Count")
+                        .HasColumnType("integer");
+
+                    b.HasKey("PlayerId", "DecorTypeId");
+
+                    b.HasIndex("DecorTypeId");
+
+                    b.ToTable("PlayerDecors");
+                });
+
             modelBuilder.Entity("Domiki.Web.Data.Receipt", b =>
                 {
                     b.Property<int>("Id")
@@ -636,6 +718,25 @@ namespace Domiki.Web.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Receipts");
+                });
+
+            modelBuilder.Entity("Domiki.Web.Data.PlayerDecor", b =>
+                {
+                    b.HasOne("Domiki.Web.Data.DecorType", "DecorType")
+                        .WithMany()
+                        .HasForeignKey("DecorTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domiki.Web.Data.Player", "Player")
+                        .WithMany()
+                        .HasForeignKey("PlayerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DecorType");
+
+                    b.Navigation("Player");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.ReceiptResource", b =>

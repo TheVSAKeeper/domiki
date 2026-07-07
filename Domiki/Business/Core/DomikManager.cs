@@ -12,6 +12,7 @@ namespace Domiki.Web.Business.Core
         private const int CrestColorCount = 8;
         private const int FatigueThresholdSeconds = 8 * 3600;
         private const int RestSeconds = 2 * 3600;
+        private const int RestComfortMaxPercent = 50;
         private const int InstaFinishSecondsPerGold = 3600;
         private const int InstaFinishMaxGold = 6;
         private const int GoldResourceTypeId = 5;
@@ -440,6 +441,10 @@ namespace Domiki.Web.Business.Core
                     _playerResourceManager.GrantResource(calcInfo.PlayerId, resource.Type.Id, granted);
                 }
                 var dbDomik = _context.Domiks.Single(x => x.PlayerId == calcInfo.PlayerId && x.Id == dbManufacture.DomikId);
+                var comfort = DecorCalculator.GetComfort(
+                    _context.PlayerDecors.Where(x => x.PlayerId == dbManufacture.DomikPlayerId).Select(x => new PlayerDecor { DecorTypeId = x.DecorTypeId, Count = x.Count }).ToArray(),
+                    _resourceManager.GetDecorTypes());
+                var restSeconds = RestSeconds * (100 - Math.Min(RestComfortMaxPercent, comfort)) / 100;
                 var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
                 foreach (var worker in _context.Workers.Where(x => x.ManufactureId == dbManufacture.Id).ToArray())
                 {
@@ -449,7 +454,7 @@ namespace Domiki.Web.Business.Core
                         worker.WorkedSeconds += recept.DurationSeconds;
                         if (worker.WorkedSeconds >= FatigueThresholdSeconds)
                         {
-                            worker.RestUntil = date.AddSeconds(RestSeconds);
+                            worker.RestUntil = date.AddSeconds(restSeconds);
                             worker.WorkedSeconds = 0;
                         }
                     }

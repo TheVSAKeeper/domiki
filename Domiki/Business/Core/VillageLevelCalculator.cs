@@ -7,7 +7,7 @@ namespace Domiki.Web.Business.Core
         public const int BuildingWeight = 1;
         public const int ResidentWeight = 2;
         public const int ReputationWeight = 5;
-        public const int ComfortWeight = 0;
+        public const int ComfortWeight = 1;
         public const int ReputationPointsPerMilestone = 10;
         public const int SmartAutoUnlockLevel = 8;
 
@@ -30,7 +30,9 @@ namespace Domiki.Web.Business.Core
                 .Where(x => x.PlayerId == playerId)
                 .ToArray()
                 .Sum(x => x.Points / ReputationPointsPerMilestone);
-            var comfort = 0;
+            var comfort = DecorCalculator.GetComfort(
+                _context.PlayerDecors.Where(x => x.PlayerId == playerId).Select(x => new PlayerDecor { DecorTypeId = x.DecorTypeId, Count = x.Count }).ToArray(),
+                _resourceManager.GetDecorTypes());
             var level = buildings * BuildingWeight
                 + residents * ResidentWeight
                 + reputation * ReputationWeight

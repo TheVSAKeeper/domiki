@@ -1,11 +1,13 @@
 import { z } from 'zod';
 import { authService } from './auth';
 import {
+    decorStateSchema,
     expeditionStateSchema,
     gameStateSchema,
     ResponseType,
     responseEnvelopeSchema,
     villageSchema,
+    type DecorStateDto,
     type ExpeditionStateDto,
     type GameStateDto,
     type VillageDto,
@@ -104,3 +106,9 @@ export const getExpeditions = (signal?: AbortSignal): Promise<ExpeditionStateDto
 
 export const startExpedition = (expeditionTypeId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/StartExpedition/${expeditionTypeId}`, signal);
+
+export const getDecor = (signal?: AbortSignal): Promise<DecorStateDto> =>
+    apiGet('Domiki/GetDecor', decorStateSchema, signal);
+
+export const buyDecor = (decorTypeId: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/BuyDecor/${decorTypeId}`, signal);

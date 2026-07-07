@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { apiGet, ApiError, getGameState, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, setVillage as setVillageApi, startExpedition as startExpeditionApi } from '../services/api';
+import { apiGet, ApiError, buyDecor as buyDecorApi, getDecor, getGameState, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, setVillage as setVillageApi, startExpedition as startExpeditionApi } from '../services/api';
 import { useToast } from '../services/toast';
 import {
     domikTypeSchema,
+    resourceSchema,
+    villageLevelSchema,
     type BlueprintDto,
+    type DecorStateDto,
     type DomikDto,
     type DomikTypeDto,
     type ExpeditionStateDto,
@@ -32,6 +35,7 @@ export interface GameData {
     villageLevel: VillageLevelDto | null;
     weather: WeatherStateDto | null;
     expeditions: ExpeditionStateDto | null;
+    decor: DecorStateDto | null;
     workers: WorkerDto[];
     purchaseDomikTypes: DomikTypeDto[] | null;
     now: number;
@@ -41,6 +45,7 @@ export interface GameData {
     hurryManufacture: (manufactureId: number) => Promise<void>;
     hurryDomik: (domikId: number) => Promise<void>;
     startExpedition: (expeditionTypeId: number) => Promise<void>;
+    buyDecor: (decorTypeId: number) => Promise<void>;
 }
 
 export function useGameData(): GameData {
@@ -58,6 +63,7 @@ export function useGameData(): GameData {
     const [villageLevel, setVillageLevel] = useState<VillageLevelDto | null>(null);
     const [weather, setWeather] = useState<WeatherStateDto | null>(null);
     const [expeditions, setExpeditions] = useState<ExpeditionStateDto | null>(null);
+    const [decor, setDecor] = useState<DecorStateDto | null>(null);
     const [workers, setWorkers] = useState<WorkerDto[]>([]);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [now, setNow] = useState(() => Date.now());
@@ -102,6 +108,7 @@ export function useGameData(): GameData {
         setWorkers(state.workers);
         setWeather(state.weather);
         setExpeditions(state.expeditions);
+        setDecor(state.decor);
     }, []);
 
     const refreshPurchaseTypes = useCallback(async () => {
@@ -127,6 +134,18 @@ export function useGameData(): GameData {
         await startExpeditionApi(expeditionTypeId);
         await reload();
     }, [reload]);
+
+    const buyDecor = useCallback(async (decorTypeId: number) => {
+        await buyDecorApi(decorTypeId);
+        const [nextDecor, nextResources, nextVillageLevel] = await Promise.all([
+            getDecor(),
+            apiGet('Domiki/GetResources', resourceSchema.array()),
+            apiGet('Domiki/GetVillageLevel', villageLevelSchema),
+        ]);
+        setDecor(nextDecor);
+        setResources(nextResources);
+        setVillageLevel(nextVillageLevel);
+    }, []);
 
     useEffect(() => {
         const id = setInterval(() => setNow(Date.now()), 1000);
@@ -154,6 +173,7 @@ export function useGameData(): GameData {
                 setPurchaseDomikTypes(state.purchaseAvailableDomiks);
                 setWeather(state.weather);
                 setExpeditions(state.expeditions);
+                setDecor(state.decor);
             } catch (err) {
                 if (err instanceof DOMException && err.name === 'AbortError') {
                     return;
@@ -230,6 +250,7 @@ export function useGameData(): GameData {
         villageLevel,
         weather,
         expeditions,
+        decor,
         workers,
         purchaseDomikTypes,
         now,
@@ -239,5 +260,6 @@ export function useGameData(): GameData {
         hurryManufacture,
         hurryDomik,
         startExpedition,
+        buyDecor,
     };
 }
