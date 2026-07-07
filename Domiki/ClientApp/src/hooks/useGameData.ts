@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { z } from 'zod';
-import { apiGet, ApiError, getOrders, getReputation, getVillage, getVillageLevel, getWeather, getWorkers, setVillage as setVillageApi } from '../services/api';
+import { apiGet, ApiError, getOrders, getReputation, getVillage, getVillageLevel, getWeather, getWorkers, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, setVillage as setVillageApi } from '../services/api';
 import { useToast } from '../services/toast';
 import {
     domikSchema,
@@ -45,6 +45,8 @@ export interface GameData {
     reload: () => Promise<void>;
     refreshPurchaseTypes: () => Promise<void>;
     setVillage: (name: string, crestIcon: number, crestColor: number) => Promise<void>;
+    hurryManufacture: (manufactureId: number) => Promise<void>;
+    hurryDomik: (domikId: number) => Promise<void>;
 }
 
 export function useGameData(): GameData {
@@ -116,6 +118,16 @@ export function useGameData(): GameData {
         await setVillageApi(name, crestIcon, crestColor);
         setVillageState(await getVillage());
     }, []);
+
+    const hurryManufacture = useCallback(async (manufactureId: number) => {
+        await hurryManufactureApi(manufactureId);
+        await reload();
+    }, [reload]);
+
+    const hurryDomik = useCallback(async (domikId: number) => {
+        await hurryDomikApi(domikId);
+        await reload();
+    }, [reload]);
 
     useEffect(() => {
         const id = setInterval(() => setNow(Date.now()), 1000);
@@ -224,5 +236,7 @@ export function useGameData(): GameData {
         reload,
         refreshPurchaseTypes,
         setVillage,
+        hurryManufacture,
+        hurryDomik,
     };
 }

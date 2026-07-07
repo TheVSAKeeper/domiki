@@ -12,6 +12,9 @@ namespace Domiki.Web.Business.Core
         private const int CrestColorCount = 8;
         private const int FatigueThresholdSeconds = 8 * 3600;
         private const int RestSeconds = 2 * 3600;
+        private const int InstaFinishSecondsPerGold = 3600;
+        private const int InstaFinishMaxGold = 6;
+        private const int GoldResourceTypeId = 5;
 
         private static readonly Regex SpaceRegex = new Regex(" +", RegexOptions.Compiled);
         private static readonly string[] VillageNameForbiddenWords =
@@ -254,6 +257,43 @@ namespace Domiki.Web.Business.Core
             return true;
         }
 
+        public void HurryDomik(int playerId, int domikId)
+        {
+            var date = DateTimeHelper.GetNowDate();
+            _playerResourceManager.LockDbPlayerRow(playerId);
+
+            var dbDomik = _context.Domiks.SingleOrDefault(x => x.Id == domikId && x.PlayerId == playerId);
+            if (dbDomik == null)
+            {
+                throw new BusinessException("Домик не найден");
+            }
+
+            if (dbDomik.UpgradeSeconds == null || dbDomik.UpgradeCalculateDate == null)
+            {
+                throw new BusinessException("Домик не улучшается");
+            }
+
+            var finishDate = dbDomik.UpgradeCalculateDate.Value.AddSeconds((int)dbDomik.UpgradeSeconds);
+            var cost = GetInstaFinishCost(finishDate, date);
+            if (cost <= 0)
+            {
+                return;
+            }
+
+            WriteOffGold(playerId, cost);
+            dbDomik.UpgradeCalculateDate = date.AddSeconds(-(double)dbDomik.UpgradeSeconds);
+
+            FinishDomik(date, new CalculateInfo
+            {
+                PlayerId = playerId,
+                ObjectId = domikId,
+                Type = CalculateTypes.Domiks,
+                Date = date,
+            });
+
+            _uow.AfterEventAction = () => _calculator.Remove(playerId, domikId, CalculateTypes.Domiks);
+        }
+
         public void StartManufacture(int playerId, int domikId, int receiptId, bool useOptional = false, int[] workerIds = null)
         {
             var date = DateTimeHelper.GetNowDate();
@@ -412,6 +452,37 @@ namespace Domiki.Web.Business.Core
             return false;
         }
 
+        public void HurryManufacture(int playerId, int manufactureId)
+        {
+            var date = DateTimeHelper.GetNowDate();
+            _playerResourceManager.LockDbPlayerRow(playerId);
+
+            var dbManufacture = _context.Manufactures.SingleOrDefault(x => x.Id == manufactureId && x.DomikPlayerId == playerId);
+            if (dbManufacture == null)
+            {
+                throw new BusinessException("Производство не найдено");
+            }
+
+            var cost = GetInstaFinishCost(dbManufacture.FinishDate, date);
+            if (cost <= 0)
+            {
+                return;
+            }
+
+            WriteOffGold(playerId, cost);
+            dbManufacture.FinishDate = date;
+
+            FinishManufacture(date, new CalculateInfo
+            {
+                PlayerId = playerId,
+                ObjectId = manufactureId,
+                Type = CalculateTypes.Manufacture,
+                Date = date,
+            });
+
+            _uow.AfterEventAction = () => _calculator.Remove(playerId, manufactureId, CalculateTypes.Manufacture);
+        }
+
         private void IncrementWorkerSkill(int workerId, int domikTypeId)
         {
             var skill = _context.WorkerSkills.SingleOrDefault(x => x.WorkerId == workerId && x.DomikTypeId == domikTypeId);
@@ -427,6 +498,36 @@ namespace Domiki.Web.Business.Core
             }
 
             skill.Uses++;
+        }
+
+        private int GetInstaFinishCost(DateTime finishDate, DateTime date)
+        {
+            var remaining = (finishDate - date).TotalSeconds;
+            if (remaining <= 0)
+            {
+                return 0;
+            }
+
+            var cost = (int)Math.Ceiling(remaining / InstaFinishSecondsPerGold);
+            if (cost > InstaFinishMaxGold)
+            {
+                throw new BusinessException("До конца ещё далеко");
+            }
+
+            return cost;
+        }
+
+        private void WriteOffGold(int playerId, int cost)
+        {
+            var goldType = _resourceManager.GetResourceTypes().First(x => x.Id == GoldResourceTypeId);
+            _playerResourceManager.WriteOffResources(playerId, new[]
+            {
+                new Resource
+                {
+                    Type = goldType,
+                    Value = cost,
+                },
+            });
         }
 
         private string NormalizeVillageName(string name)

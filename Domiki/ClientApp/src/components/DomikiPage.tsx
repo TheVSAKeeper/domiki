@@ -11,10 +11,11 @@ import SaveIcon from 'pixelarticons/svg/save.svg?react';
 import CloudSunIcon from 'pixelarticons/svg/cloud-sun.svg?react';
 import CloudIcon from 'pixelarticons/svg/cloud.svg?react';
 import FireIcon from 'pixelarticons/svg/fire.svg?react';
+import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
-import { canAffordUpgrade, computeReceiptView, computeSelectedDomikView, isWorkerFree, workerFitness } from '../utils/game';
+import { GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, workerFitness } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ManufactureBox } from './ManufactureBox';
 import { ResourcesBox } from './ResourcesBox';
@@ -31,7 +32,7 @@ const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, village, villageLevel, weather, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, village, villageLevel, weather, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, hurryDomik } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -103,6 +104,7 @@ export const DomikiPage = () => {
         ? null
         : currentWeather?.effects.find(effect => effect.domikTypeId === selected.domikType.id) ?? null;
     const CurrentWeatherIcon = currentWeather == null ? null : WEATHER_ICONS[currentWeather.logicName] ?? CloudSunIcon;
+    const goldValue = resources.find(x => x.typeId === GOLD_RESOURCE_TYPE_ID)?.value ?? 0;
 
     const currentCrestIcon = village?.crestIcon ?? 0;
     const currentCrestColor = village?.crestColor ?? 0;
@@ -158,6 +160,10 @@ export const DomikiPage = () => {
         await completeOrderApi(orderId);
         await reload();
     });
+
+    const hurryManufactureAction = (manufactureId: number) => runAction(() => hurryManufacture(manufactureId));
+
+    const hurryDomikAction = (domikId: number) => runAction(() => hurryDomik(domikId));
 
     const saveIdentity = () => runAction(async () => {
         await setVillage(draftVillageName, draftCrestIcon, draftCrestColor);
@@ -408,8 +414,26 @@ export const DomikiPage = () => {
                             }
                             {selected.domik.finishDate != null &&
                                 <div className="panel-block">
-                                    <span className="panel-label">Строится</span>
-                                    <span className="timer">{selected.remainingText}</span>
+                                    {(() => {
+                                        const hurryCost = instaFinishCost(selected.domik.finishDate, now);
+                                        const tooFar = !canInstaFinish(selected.domik.finishDate, now);
+                                        const notEnoughGold = goldValue < hurryCost;
+                                        const hurryTitle = tooFar ? 'До конца слишком далеко' : notEnoughGold ? 'Не хватает золота' : undefined;
+
+                                        return (
+                                            <>
+                                                <span className="panel-label">Строится</span>
+                                                <span className="timer">{selected.remainingText}</span>
+                                                <button type="button" className="btn-game"
+                                                    disabled={tooFar || notEnoughGold}
+                                                    title={hurryTitle}
+                                                    onClick={() => hurryDomikAction(selected.domik.id)}>
+                                                    <ZapIcon className="btn-ico" aria-hidden="true" />
+                                                    Поторопить ({Math.max(1, hurryCost)} золота)
+                                                </button>
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             }
                             {selected.receipts.length > 0 &&
@@ -543,7 +567,8 @@ export const DomikiPage = () => {
 
                                         return (
                                             <ManufactureBox key={manufacture.id} manufacture={manufacture} receipt={receipt}
-                                                now={now} remainingText={formatDuration(remainingSeconds(manufacture.finishDate, now))} />
+                                                now={now} remainingText={formatDuration(remainingSeconds(manufacture.finishDate, now))}
+                                                goldValue={goldValue} onHurry={hurryManufactureAction} />
                                         );
                                     })}
                                 </div>

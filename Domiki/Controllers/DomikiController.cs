@@ -85,6 +85,15 @@ namespace Domiki.Controllers
             return new Response { Type = ResponseType.Success };
         }
 
+        [HttpPost]
+        [Route("/Domiki/HurryDomik/{id}")]
+        public Response HurryDomik(int id)
+        {
+            int playerId = GetPlayerId();
+            _domikManager.HurryDomik(playerId, id);
+            return new Response { Type = ResponseType.Success };
+        }
+
         [HttpGet]
         [Route("/Domiki/GetPurchaseAvaialableDomiks")]
         public Response<DomikTypeDto[]> GetPurchaseAvaialableDomiks()
@@ -137,6 +146,15 @@ namespace Domiki.Controllers
         {
             int playerId = GetPlayerId();
             _domikManager.StartManufacture(playerId, domikId, receiptId, useOptional, workerIds);
+            return new Response { Type = ResponseType.Success };
+        }
+
+        [HttpPost]
+        [Route("/Domiki/HurryManufacture/{manufactureId}")]
+        public Response HurryManufacture(int manufactureId)
+        {
+            int playerId = GetPlayerId();
+            _domikManager.HurryManufacture(playerId, manufactureId);
             return new Response { Type = ResponseType.Success };
         }
 

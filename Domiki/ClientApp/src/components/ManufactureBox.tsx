@@ -1,15 +1,22 @@
+import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 import type { ManufactureDto, ReceiptDto } from '../types/api';
-import { manufactureProgressPercent } from '../utils/game';
+import { canInstaFinish, instaFinishCost, manufactureProgressPercent } from '../utils/game';
 
 interface ManufactureBoxProps {
     manufacture: ManufactureDto;
     receipt: ReceiptDto;
     now: number;
     remainingText: string;
+    goldValue: number;
+    onHurry: (manufactureId: number) => void;
 }
 
-export const ManufactureBox = ({ manufacture, receipt, now, remainingText }: ManufactureBoxProps) => {
+export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldValue, onHurry }: ManufactureBoxProps) => {
     const percent = manufactureProgressPercent(manufacture, receipt, now);
+    const hurryCost = instaFinishCost(manufacture.finishDate, now);
+    const tooFar = !canInstaFinish(manufacture.finishDate, now);
+    const notEnoughGold = goldValue < hurryCost;
+    const hurryTitle = tooFar ? 'До конца слишком далеко' : notEnoughGold ? 'Не хватает золота' : undefined;
 
     return (
         <div className="manufacture-box">
@@ -21,6 +28,13 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText }: Man
                     <span className="resource-value">{manufacture.plodderCount}</span>
                 </span>
             </div>
+            <button type="button" className="btn-game"
+                disabled={tooFar || notEnoughGold}
+                title={hurryTitle}
+                onClick={() => onHurry(manufacture.id)}>
+                <ZapIcon className="btn-ico" aria-hidden="true" />
+                Поторопить ({Math.max(1, hurryCost)} золота)
+            </button>
         </div>
     );
 };

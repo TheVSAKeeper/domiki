@@ -55,7 +55,7 @@ namespace Domiki.Web.Business
             _datas.RemoveAt(index);
             if (index == 0)
             {
-                _minDate = _datas[0].Date;
+                _minDate = _datas.Count > 0 ? (DateTime?)_datas[0].Date : null;
             }
         }
 

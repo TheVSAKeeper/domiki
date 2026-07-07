@@ -4,6 +4,7 @@ import {
     neighborReputationSchema,
     orderSchema,
     ResponseType,
+    responseEnvelopeSchema,
     villageLevelSchema,
     villageSchema,
     weatherStateSchema,
@@ -22,11 +23,6 @@ export class ApiError extends Error {
         this.name = 'ApiError';
     }
 }
-
-const envelopeSchema = z.object({
-    type: z.number(),
-    content: z.unknown().optional(),
-});
 
 const errorMessageType: number = ResponseType.ErrorMessage;
 
@@ -62,7 +58,7 @@ async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType
         throw new ApiError('Некорректный ответ сервера.');
     }
 
-    const envelope = envelopeSchema.safeParse(json);
+    const envelope = responseEnvelopeSchema.safeParse(json);
     if (!envelope.success) {
         throw new ApiError('Некорректный ответ сервера.');
     }
@@ -99,6 +95,12 @@ export const getReputation = (signal?: AbortSignal): Promise<NeighborReputationD
 
 export const completeOrder = (orderId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/CompleteOrder/${orderId}`, signal);
+
+export const hurryManufacture = (manufactureId: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/HurryManufacture/${manufactureId}`, signal);
+
+export const hurryDomik = (domikId: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/HurryDomik/${domikId}`, signal);
 
 export const getVillage = (signal?: AbortSignal): Promise<VillageDto> =>
     apiGet('Domiki/GetVillage', villageSchema, signal);

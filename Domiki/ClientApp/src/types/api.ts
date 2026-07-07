@@ -5,6 +5,12 @@ export enum ResponseType {
     ErrorMessage = 2,
 }
 
+export const responseEnvelopeSchema = z.object({
+    type: z.number(),
+    content: z.unknown().optional(),
+});
+export type ResponseEnvelope = z.infer<typeof responseEnvelopeSchema>;
+
 export const resourceSchema = z.object({
     typeId: z.number(),
     value: z.number(),

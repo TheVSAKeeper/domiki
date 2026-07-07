@@ -1,6 +1,10 @@
 import type { DomikDto, DomikTypeDto, ManufactureDto, PlodderCount, ReceiptDto, ReceiptView, ResourceDto, SelectedDomikView, UpgradeView, WorkerDto } from '../types/api';
 import { formatDuration, remainingSeconds } from './time';
 
+export const INSTA_FINISH_SECONDS_PER_GOLD = 3600;
+export const INSTA_FINISH_MAX_GOLD = 6;
+export const GOLD_RESOURCE_TYPE_ID = 5;
+
 const plodderTypeId = 1;
 
 export function hasResourcesFor(cost: ResourceDto[], owned: ResourceDto[]): boolean {
@@ -131,4 +135,13 @@ export function manufactureProgressPercent(manufacture: ManufactureDto, receipt:
     const current = remainingSeconds(manufacture.finishDate, now);
     const percent = 100 - Math.floor((current * 100) / total);
     return Math.min(100, Math.max(0, percent));
+}
+
+export function instaFinishCost(finishDate: string, now: number): number {
+    return Math.ceil(remainingSeconds(finishDate, now) / INSTA_FINISH_SECONDS_PER_GOLD);
+}
+
+export function canInstaFinish(finishDate: string, now: number): boolean {
+    const remaining = remainingSeconds(finishDate, now);
+    return remaining > 0 && remaining <= INSTA_FINISH_SECONDS_PER_GOLD * INSTA_FINISH_MAX_GOLD;
 }
