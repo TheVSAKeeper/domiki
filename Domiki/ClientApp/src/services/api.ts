@@ -1,22 +1,12 @@
 import { z } from 'zod';
 import { authService } from './auth';
 import {
-    blueprintSchema,
-    neighborReputationSchema,
-    orderSchema,
+    gameStateSchema,
     ResponseType,
     responseEnvelopeSchema,
-    villageLevelSchema,
     villageSchema,
-    weatherStateSchema,
-    workerSchema,
-    type BlueprintDto,
-    type NeighborReputationDto,
-    type OrderDto,
+    type GameStateDto,
     type VillageDto,
-    type VillageLevelDto,
-    type WeatherStateDto,
-    type WorkerDto,
 } from '../types/api';
 
 export class ApiError extends Error {
@@ -85,18 +75,12 @@ async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType
 export const apiGet = <T>(url: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> =>
     request<T>('GET', url, schema, signal);
 
+export const getGameState = (signal?: AbortSignal): Promise<GameStateDto> =>
+    apiGet('Domiki/GetGameState', gameStateSchema, signal);
+
 export async function apiPost(url: string, signal?: AbortSignal): Promise<void> {
     await request('POST', url, null, signal);
 }
-
-export const getOrders = (signal?: AbortSignal): Promise<OrderDto[]> =>
-    apiGet('Domiki/GetOrders', orderSchema.array(), signal);
-
-export const getReputation = (signal?: AbortSignal): Promise<NeighborReputationDto[]> =>
-    apiGet('Domiki/GetReputation', neighborReputationSchema.array(), signal);
-
-export const getBlueprints = (signal?: AbortSignal): Promise<BlueprintDto[]> =>
-    apiGet('Domiki/GetBlueprints', blueprintSchema.array(), signal);
 
 export const completeOrder = (orderId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/CompleteOrder/${orderId}`, signal);
@@ -112,12 +96,3 @@ export const getVillage = (signal?: AbortSignal): Promise<VillageDto> =>
 
 export const setVillage = (name: string, crestIcon: number, crestColor: number, signal?: AbortSignal): Promise<void> =>
     request('POST', 'Domiki/SetVillage', null, signal, { name, crestIcon, crestColor });
-
-export const getVillageLevel = (signal?: AbortSignal): Promise<VillageLevelDto> =>
-    apiGet('Domiki/GetVillageLevel', villageLevelSchema, signal);
-
-export const getWorkers = (signal?: AbortSignal): Promise<WorkerDto[]> =>
-    apiGet('Domiki/GetWorkers', workerSchema.array(), signal);
-
-export const getWeather = (signal?: AbortSignal): Promise<WeatherStateDto> =>
-    apiGet('Domiki/GetWeather', weatherStateSchema, signal);

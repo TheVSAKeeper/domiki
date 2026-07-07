@@ -34,6 +34,32 @@ namespace Domiki.Controllers
         }
 
         [HttpGet]
+        [Route("/Domiki/GetGameState")]
+        public Response<GameStateDto> GetGameState()
+        {
+            int playerId = GetPlayerId();
+            var blueprints = _resourceManager.GetBlueprints();
+
+            var content = new GameStateDto
+            {
+                DomikTypes = _resourceManager.GetDomikTypes().Select(x => x.ToDto(blueprintId: blueprints.FirstOrDefault(b => b.DomikTypeId == x.Id)?.Id)).ToArray(),
+                ResourceTypes = _resourceManager.GetResourceTypes().Select(x => x.ToDto()).ToArray(),
+                Receipts = _resourceManager.GetReceipts().Select(x => x.ToDto()).ToArray(),
+                Domiks = _domikManager.GetDomiks(playerId).Select(x => x.ToDto()).ToArray(),
+                Resources = _domikManager.GetResources(playerId).Select(x => x.ToDto()).ToArray(),
+                Orders = _orderManager.GetOrders(playerId).Select(x => x.ToDto()).ToArray(),
+                Reputation = _orderManager.GetReputation(playerId).Select(x => x.ToDto()).ToArray(),
+                Blueprints = _blueprintManager.GetBlueprints(playerId).Select(x => x.ToDto()).ToArray(),
+                Village = _domikManager.GetVillage(playerId).ToDto(),
+                VillageLevel = _villageLevelCalculator.GetLevel(playerId).ToDto(),
+                Workers = _workerManager.GetWorkers(playerId).Select(x => x.ToDto()).ToArray(),
+                PurchaseAvailableDomiks = _domikManager.GetPurchaseAvailableDomiks(playerId).Select(x => x.Type.ToDto(x.AvailableCount, blueprints.FirstOrDefault(b => b.DomikTypeId == x.Type.Id)?.Id)).ToArray(),
+                Weather = _weatherManager.GetWeather(DateTimeHelper.GetNowDate()).ToDto(),
+            };
+            return new Response<GameStateDto>(content);
+        }
+
+        [HttpGet]
         [Route("/Domiki/GetDomikTypes")] // todo разобраться с роут префиксом
         public Response<DomikTypeDto[]> GetDomikTypes()
         {

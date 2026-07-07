@@ -1,20 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { z } from 'zod';
-import { apiGet, ApiError, getBlueprints, getOrders, getReputation, getVillage, getVillageLevel, getWeather, getWorkers, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, setVillage as setVillageApi } from '../services/api';
+import { apiGet, ApiError, getGameState, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, setVillage as setVillageApi } from '../services/api';
 import { useToast } from '../services/toast';
 import {
-    blueprintSchema,
-    domikSchema,
     domikTypeSchema,
-    neighborReputationSchema,
-    orderSchema,
-    receiptSchema,
-    resourceSchema,
-    resourceTypeSchema,
-    villageLevelSchema,
-    villageSchema,
-    weatherStateSchema,
-    workerSchema,
     type BlueprintDto,
     type DomikDto,
     type DomikTypeDto,
@@ -94,26 +82,16 @@ export function useGameData(): GameData {
     }, [weather]);
 
     const reload = useCallback(async () => {
-        const [domiksData, resourcesData, ordersData, reputationData, blueprintsData, villageData, villageLevelData, workersData, weatherData] = await Promise.all([
-            apiGet('Domiki/GetDomiks', domikSchema.array()),
-            apiGet('Domiki/GetResources', resourceSchema.array()),
-            getOrders(),
-            getReputation(),
-            getBlueprints(),
-            getVillage(),
-            getVillageLevel(),
-            getWorkers(),
-            getWeather(),
-        ]);
-        setDomiks(domiksData);
-        setResources(resourcesData);
-        setOrders(ordersData);
-        setReputation(reputationData);
-        setBlueprints(blueprintsData);
-        setVillageState(villageData);
-        setVillageLevel(villageLevelData);
-        setWorkers(workersData);
-        setWeather(weatherData);
+        const state = await getGameState();
+        setDomiks(state.domiks);
+        setResources(state.resources);
+        setOrders(state.orders);
+        setReputation(state.reputation);
+        setBlueprints(state.blueprints);
+        setVillageState(state.village);
+        setVillageLevel(state.villageLevel);
+        setWorkers(state.workers);
+        setWeather(state.weather);
     }, []);
 
     const refreshPurchaseTypes = useCallback(async () => {
@@ -144,35 +122,31 @@ export function useGameData(): GameData {
         const controller = new AbortController();
         const { signal } = controller;
 
-        const safeLoad = async <T,>(url: string, schema: z.ZodType<T>, setter: (data: T) => void) => {
+        void (async () => {
             try {
-                setter(await apiGet(url, schema, signal));
+                const state = await getGameState(signal);
+                setDomikTypes(state.domikTypes);
+                setResourceTypes(state.resourceTypes);
+                setReceipts(state.receipts);
+                setDomiks(state.domiks);
+                setResources(state.resources);
+                setOrders(state.orders);
+                setReputation(state.reputation);
+                setBlueprints(state.blueprints);
+                setVillageState(state.village);
+                setVillageLevel(state.villageLevel);
+                setWorkers(state.workers);
+                setPurchaseDomikTypes(state.purchaseAvailableDomiks);
+                setWeather(state.weather);
             } catch (err) {
                 if (err instanceof DOMException && err.name === 'AbortError') {
                     return;
                 }
                 if (err instanceof ApiError) {
                     toast.error(err.message);
-                    return;
                 }
             }
-        };
-
-        void Promise.all([
-            safeLoad('Domiki/GetDomikTypes', domikTypeSchema.array(), setDomikTypes),
-            safeLoad('Domiki/GetResourceTypes', resourceTypeSchema.array(), setResourceTypes),
-            safeLoad('Domiki/GetReceipts', receiptSchema.array(), setReceipts),
-            safeLoad('Domiki/GetDomiks', domikSchema.array(), setDomiks),
-            safeLoad('Domiki/GetResources', resourceSchema.array(), setResources),
-            safeLoad('Domiki/GetOrders', orderSchema.array(), setOrders),
-            safeLoad('Domiki/GetReputation', neighborReputationSchema.array(), setReputation),
-            safeLoad('Domiki/GetBlueprints', blueprintSchema.array(), setBlueprints),
-            safeLoad('Domiki/GetVillage', villageSchema, setVillageState),
-            safeLoad('Domiki/GetVillageLevel', villageLevelSchema, setVillageLevel),
-            safeLoad('Domiki/GetWorkers', workerSchema.array(), setWorkers),
-            safeLoad('Domiki/GetPurchaseAvaialableDomiks', domikTypeSchema.array(), setPurchaseDomikTypes),
-            safeLoad('Domiki/GetWeather', weatherStateSchema, setWeather),
-        ]);
+        })();
 
         return () => controller.abort();
     }, [toast]);

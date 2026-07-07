@@ -14,8 +14,21 @@ namespace Domiki.Web
         // IMessageWriter is injected into InvokeAsync
         public async Task InvokeAsync(HttpContext httpContext, UnitOfWork uow)
         {
-            await _next(httpContext);
-            uow.Commit();
+            var originalBody = httpContext.Response.Body;
+            using var buffer = new MemoryStream();
+            httpContext.Response.Body = buffer;
+            try
+            {
+                await _next(httpContext);
+                uow.Commit();
+            }
+            finally
+            {
+                httpContext.Response.Body = originalBody;
+            }
+
+            buffer.Position = 0;
+            await buffer.CopyToAsync(originalBody);
         }
     }
 }

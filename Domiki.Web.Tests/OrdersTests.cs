@@ -112,6 +112,20 @@ namespace Domiki.Web.Tests
             Assert.That(reputation.Points, Is.EqualTo(7));
         }
 
+        [Test]
+        public void ConcurrentGetOrdersSerializesWithoutConcurrencyExceptionTest()
+        {
+            for (var i = 1; i <= 30; i++)
+            {
+                var playerId = GetPlayerId();
+                var numbers = Enumerable.Range(0, 8).ToList();
+
+                Assert.DoesNotThrow(() => Parallel.ForEach(numbers, _ => GetOrders(playerId)), "iteration " + i);
+
+                Assert.That(GetOrders(playerId).Length, Is.EqualTo(3), "iteration " + i);
+            }
+        }
+
         private int GetPlayerId()
         {
             using (var uow = GetUow())

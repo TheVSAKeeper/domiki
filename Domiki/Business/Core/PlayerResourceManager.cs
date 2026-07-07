@@ -1,4 +1,5 @@
 ﻿using Domiki.Web.Business.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Business.Core
 {
@@ -15,7 +16,7 @@ namespace Domiki.Web.Business.Core
 
         public void LockDbPlayerRow(int playerId)
         {
-            _context.Players.First(x => x.Id == playerId).Version = Guid.NewGuid();
+            _context.Database.ExecuteSqlRaw("SELECT 1 FROM \"Players\" WHERE \"Id\" = {0} FOR UPDATE", playerId);
         }
 
         public void WriteOffResources(int playerId, Resource[] resources)

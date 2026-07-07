@@ -183,6 +183,23 @@ export const weatherStateSchema = z.object({
 });
 export type WeatherStateDto = z.infer<typeof weatherStateSchema>;
 
+export const gameStateSchema = z.object({
+    domikTypes: domikTypeSchema.array(),
+    resourceTypes: resourceTypeSchema.array(),
+    receipts: receiptSchema.array(),
+    domiks: domikSchema.array(),
+    resources: resourceSchema.array(),
+    orders: orderSchema.array(),
+    reputation: neighborReputationSchema.array(),
+    blueprints: blueprintSchema.array(),
+    village: villageSchema,
+    villageLevel: villageLevelSchema,
+    workers: workerSchema.array(),
+    purchaseAvailableDomiks: domikTypeSchema.array(),
+    weather: weatherStateSchema,
+});
+export type GameStateDto = z.infer<typeof gameStateSchema>;
+
 export interface PlodderCount {
     max: number;
     free: number;
