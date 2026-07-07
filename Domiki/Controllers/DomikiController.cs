@@ -19,8 +19,9 @@ namespace Domiki.Controllers
         private readonly WorkerManager _workerManager;
         private readonly WeatherManager _weatherManager;
         private readonly VillageLevelCalculator _villageLevelCalculator;
+        private readonly BlueprintManager _blueprintManager;
 
-        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator)
+        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager)
         {
             _logger = logger;
             _domikManager = domikManager;
@@ -29,13 +30,15 @@ namespace Domiki.Controllers
             _workerManager = workerManager;
             _weatherManager = weatherManager;
             _villageLevelCalculator = villageLevelCalculator;
+            _blueprintManager = blueprintManager;
         }
 
         [HttpGet]
         [Route("/Domiki/GetDomikTypes")] // todo разобраться с роут префиксом
         public Response<DomikTypeDto[]> GetDomikTypes()
         {
-            var content = _resourceManager.GetDomikTypes().Select(x => x.ToDto()).ToArray();
+            var blueprints = _resourceManager.GetBlueprints();
+            var content = _resourceManager.GetDomikTypes().Select(x => x.ToDto(blueprintId: blueprints.FirstOrDefault(b => b.DomikTypeId == x.Id)?.Id)).ToArray();
             return new Response<DomikTypeDto[]>(content);
         }
 
@@ -99,7 +102,8 @@ namespace Domiki.Controllers
         public Response<DomikTypeDto[]> GetPurchaseAvaialableDomiks()
         {
             int playerId = GetPlayerId();
-            var content = _domikManager.GetPurchaseAvailableDomiks(playerId).Select(x => x.Type.ToDto(x.AvailableCount)).ToArray();
+            var blueprints = _resourceManager.GetBlueprints();
+            var content = _domikManager.GetPurchaseAvailableDomiks(playerId).Select(x => x.Type.ToDto(x.AvailableCount, blueprints.FirstOrDefault(b => b.DomikTypeId == x.Type.Id)?.Id)).ToArray();
             return new Response<DomikTypeDto[]>(content);
         }
 
@@ -183,6 +187,16 @@ namespace Domiki.Controllers
             int playerId = GetPlayerId();
             _orderManager.CompleteOrder(playerId, orderId);
             return new Response { Type = ResponseType.Success };
+        }
+
+        [HttpGet]
+        [Route("/Domiki/GetBlueprints")]
+        public Response<BlueprintDto[]> GetBlueprints()
+        {
+            int playerId = GetPlayerId();
+
+            var content = _blueprintManager.GetBlueprints(playerId).Select(x => x.ToDto()).ToArray();
+            return new Response<BlueprintDto[]>(content);
         }
 
         [HttpGet]

@@ -100,7 +100,7 @@ namespace Domiki.Web.Business.Core
             _playerResourceManager.WriteOffResources(playerId, resources);
             _playerResourceManager.GrantResource(playerId, CoinResourceTypeId, dbOrder.RewardCoins);
             _playerResourceManager.GrantResource(playerId, GoldResourceTypeId, dbOrder.RewardGold);
-            GrantReputation(playerId, dbOrder.NeighborId, dbOrder.RewardReputation);
+            _playerResourceManager.GrantReputation(playerId, dbOrder.NeighborId, dbOrder.RewardReputation);
 
             _context.Orders.Remove(dbOrder);
             _context.SaveChanges();
@@ -202,18 +202,6 @@ namespace Domiki.Web.Business.Core
                         Value = r.Value,
                     }).ToArray(),
                 }).ToArray();
-        }
-
-        private void GrantReputation(int playerId, int neighborId, int points)
-        {
-            var reputation = _context.NeighborReputations.FirstOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId);
-            if (reputation == null)
-            {
-                reputation = new Data.NeighborReputation { PlayerId = playerId, NeighborId = neighborId };
-                _context.NeighborReputations.Add(reputation);
-            }
-
-            reputation.Points += points;
         }
 
         private int GetMarketValue(int resourceTypeId)

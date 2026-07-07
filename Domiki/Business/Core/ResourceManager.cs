@@ -15,6 +15,7 @@ namespace Domiki.Web.Business.Core
         private static Neighbor[] _neighbors;
         private static Trait[] _traits;
         private static WeatherType[] _weatherTypes;
+        private static Blueprint[] _blueprints;
 
         public ResourceManager(Data.ApplicationDbContext context)
         {
@@ -114,6 +115,24 @@ namespace Domiki.Web.Business.Core
             }
 
             return _neighbors;
+        }
+
+        public Blueprint[] GetBlueprints()
+        {
+            if (_blueprints == null)
+            {
+                _blueprints = _context.Blueprints.Select(x => new Blueprint
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    LogicName = x.LogicName,
+                    DomikTypeId = x.DomikTypeId,
+                    NeighborId = x.NeighborId,
+                    ReputationThreshold = x.ReputationThreshold,
+                }).ToArray();
+            }
+
+            return _blueprints;
         }
 
         public WeatherType[] GetWeatherTypes()

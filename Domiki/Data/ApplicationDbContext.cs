@@ -18,6 +18,8 @@ namespace Domiki.Web.Data
         public DbSet<OrderResource> OrderResources { get; set; }
         public DbSet<Neighbor> Neighbors { get; set; }
         public DbSet<NeighborReputation> NeighborReputations { get; set; }
+        public DbSet<Blueprint> Blueprints { get; set; }
+        public DbSet<PlayerBlueprint> PlayerBlueprints { get; set; }
         public DbSet<Player> Players { get; set; }
         public DbSet<Resource> Resources { get; set; }
         public DbSet<ResourceType> ResourceTypes { get; set; }
@@ -153,6 +155,33 @@ namespace Domiki.Web.Data
                 .HasOne(s => s.Neighbor)
                 .WithMany()
                 .HasForeignKey(e => e.NeighborId);
+
+            modelBuilder.Entity<Blueprint>()
+                .HasOne(s => s.DomikType)
+                .WithMany()
+                .HasForeignKey(e => e.DomikTypeId);
+
+            modelBuilder.Entity<Blueprint>()
+                .HasOne(s => s.Neighbor)
+                .WithMany()
+                .HasForeignKey(e => e.NeighborId);
+
+            modelBuilder.Entity<PlayerBlueprint>()
+                .HasKey(p => new
+                {
+                    p.PlayerId,
+                    p.BlueprintId,
+                });
+
+            modelBuilder.Entity<PlayerBlueprint>()
+                .HasOne(s => s.Player)
+                .WithMany()
+                .HasForeignKey(e => e.PlayerId);
+
+            modelBuilder.Entity<PlayerBlueprint>()
+                .HasOne(s => s.Blueprint)
+                .WithMany()
+                .HasForeignKey(e => e.BlueprintId);
 
             modelBuilder.Entity<Neighbor>().HasData(
                 new Neighbor { Id = 1, Name = "Заречье", LogicName = "zarechye", PrimaryResourceTypeId = 6, UnlockLevel = 8 },

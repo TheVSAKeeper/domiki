@@ -44,8 +44,9 @@ namespace Domiki.Web.Business.Core
         private WorkerManager _workerManager;
         private WeatherManager _weatherManager;
         private VillageLevelCalculator _villageLevelCalculator;
+        private BlueprintManager _blueprintManager;
 
-        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator)
+        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager)
         {
             _context = context;
             _calculator = calculator;
@@ -55,6 +56,7 @@ namespace Domiki.Web.Business.Core
             _workerManager = workerManager;
             _weatherManager = weatherManager;
             _villageLevelCalculator = villageLevelCalculator;
+            _blueprintManager = blueprintManager;
         }
 
         public int GetPlayerId(string aspNetUserId)
@@ -160,6 +162,14 @@ namespace Domiki.Web.Business.Core
                 if (!_villageLevelCalculator.CanBuyDomik(playerId, domikType))
                 {
                     throw new BusinessException($"Откроется при обжитости {domikType.UnlockLevel}");
+                }
+
+                _blueprintManager.EnsureBlueprints(playerId);
+                var blueprint = _resourceManager.GetBlueprints().FirstOrDefault(x => x.DomikTypeId == typeId);
+                if (blueprint != null && !_blueprintManager.IsOwned(playerId, blueprint.Id))
+                {
+                    var neighbor = _resourceManager.GetNeighbors().First(x => x.Id == blueprint.NeighborId);
+                    throw new BusinessException($"Нужен чертёж (репутация {neighbor.Name} {blueprint.ReputationThreshold})");
                 }
 
                 var domikLevel = domikType.Levels.First(x => x.Value == 1);

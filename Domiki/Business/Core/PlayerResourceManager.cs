@@ -37,6 +37,18 @@ namespace Domiki.Web.Business.Core
             }
         }
 
+        public void GrantReputation(int playerId, int neighborId, int points)
+        {
+            var reputation = _context.NeighborReputations.FirstOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId);
+            if (reputation == null)
+            {
+                reputation = new Data.NeighborReputation { PlayerId = playerId, NeighborId = neighborId };
+                _context.NeighborReputations.Add(reputation);
+            }
+
+            reputation.Points += points;
+        }
+
         public void GrantResource(int playerId, int typeId, int value)
         {
             if (value == 0)

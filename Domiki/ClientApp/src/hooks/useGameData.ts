@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { z } from 'zod';
-import { apiGet, ApiError, getOrders, getReputation, getVillage, getVillageLevel, getWeather, getWorkers, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, setVillage as setVillageApi } from '../services/api';
+import { apiGet, ApiError, getBlueprints, getOrders, getReputation, getVillage, getVillageLevel, getWeather, getWorkers, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, setVillage as setVillageApi } from '../services/api';
 import { useToast } from '../services/toast';
 import {
+    blueprintSchema,
     domikSchema,
     domikTypeSchema,
     neighborReputationSchema,
@@ -14,6 +15,7 @@ import {
     villageSchema,
     weatherStateSchema,
     workerSchema,
+    type BlueprintDto,
     type DomikDto,
     type DomikTypeDto,
     type NeighborReputationDto,
@@ -36,6 +38,7 @@ export interface GameData {
     resources: ResourceDto[];
     orders: OrderDto[];
     reputation: NeighborReputationDto[];
+    blueprints: BlueprintDto[];
     village: VillageDto | null;
     villageLevel: VillageLevelDto | null;
     weather: WeatherStateDto | null;
@@ -59,6 +62,7 @@ export function useGameData(): GameData {
     const [resources, setResources] = useState<ResourceDto[]>([]);
     const [orders, setOrders] = useState<OrderDto[]>([]);
     const [reputation, setReputation] = useState<NeighborReputationDto[]>([]);
+    const [blueprints, setBlueprints] = useState<BlueprintDto[]>([]);
     const [village, setVillageState] = useState<VillageDto | null>(null);
     const [villageLevel, setVillageLevel] = useState<VillageLevelDto | null>(null);
     const [weather, setWeather] = useState<WeatherStateDto | null>(null);
@@ -90,11 +94,12 @@ export function useGameData(): GameData {
     }, [weather]);
 
     const reload = useCallback(async () => {
-        const [domiksData, resourcesData, ordersData, reputationData, villageData, villageLevelData, workersData, weatherData] = await Promise.all([
+        const [domiksData, resourcesData, ordersData, reputationData, blueprintsData, villageData, villageLevelData, workersData, weatherData] = await Promise.all([
             apiGet('Domiki/GetDomiks', domikSchema.array()),
             apiGet('Domiki/GetResources', resourceSchema.array()),
             getOrders(),
             getReputation(),
+            getBlueprints(),
             getVillage(),
             getVillageLevel(),
             getWorkers(),
@@ -104,6 +109,7 @@ export function useGameData(): GameData {
         setResources(resourcesData);
         setOrders(ordersData);
         setReputation(reputationData);
+        setBlueprints(blueprintsData);
         setVillageState(villageData);
         setVillageLevel(villageLevelData);
         setWorkers(workersData);
@@ -160,6 +166,7 @@ export function useGameData(): GameData {
             safeLoad('Domiki/GetResources', resourceSchema.array(), setResources),
             safeLoad('Domiki/GetOrders', orderSchema.array(), setOrders),
             safeLoad('Domiki/GetReputation', neighborReputationSchema.array(), setReputation),
+            safeLoad('Domiki/GetBlueprints', blueprintSchema.array(), setBlueprints),
             safeLoad('Domiki/GetVillage', villageSchema, setVillageState),
             safeLoad('Domiki/GetVillageLevel', villageLevelSchema, setVillageLevel),
             safeLoad('Domiki/GetWorkers', workerSchema.array(), setWorkers),
@@ -227,6 +234,7 @@ export function useGameData(): GameData {
         resources,
         orders,
         reputation,
+        blueprints,
         village,
         villageLevel,
         weather,

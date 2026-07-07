@@ -56,6 +56,7 @@ export const domikTypeSchema = z.object({
     availableCount: z.number(),
     maxLevel: z.number(),
     unlockLevel: z.number(),
+    blueprintId: z.number().nullable(),
     levels: z.array(upgradeLevelSchema),
 });
 export type DomikTypeDto = z.infer<typeof domikTypeSchema>;
@@ -104,6 +105,18 @@ export const neighborReputationSchema = z.object({
     points: z.number(),
 });
 export type NeighborReputationDto = z.infer<typeof neighborReputationSchema>;
+
+export const blueprintSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    domikTypeId: z.number(),
+    neighborId: z.number(),
+    neighborName: z.string(),
+    reputationThreshold: z.number(),
+    currentReputation: z.number(),
+    owned: z.boolean(),
+});
+export type BlueprintDto = z.infer<typeof blueprintSchema>;
 
 export const villageSchema = z.object({
     villageName: z.string().nullable(),

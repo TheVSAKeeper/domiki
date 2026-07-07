@@ -32,7 +32,8 @@ namespace Domiki.Web.Tests
             var workerManager = new WorkerManager(uow.Context, resourceManager, playerResourceManager);
             var weatherManager = GetWeatherManager(uow, calculatorJustFinishMode);
             var villageLevelCalculator = new VillageLevelCalculator(uow.Context, resourceManager, workerManager);
-            var domikManager = new DomikManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager, weatherManager, villageLevelCalculator);
+            var blueprintManager = new BlueprintManager(uow.Context, resourceManager, playerResourceManager);
+            var domikManager = new DomikManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager, weatherManager, villageLevelCalculator, blueprintManager);
             return domikManager;
         }
 
@@ -65,6 +66,13 @@ namespace Domiki.Web.Tests
         {
             var manager = new ResourceManager(uow.Context);
             return manager;
+        }
+
+        public BlueprintManager GetBlueprintManager(UnitOfWork uow)
+        {
+            var resourceManager = new ResourceManager(uow.Context);
+            var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
+            return new BlueprintManager(uow.Context, resourceManager, playerResourceManager);
         }
 
         public WeatherManager GetWeatherManager(UnitOfWork uow, bool calculatorJustFinishMode = true)

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { authService } from './auth';
 import {
+    blueprintSchema,
     neighborReputationSchema,
     orderSchema,
     ResponseType,
@@ -9,6 +10,7 @@ import {
     villageSchema,
     weatherStateSchema,
     workerSchema,
+    type BlueprintDto,
     type NeighborReputationDto,
     type OrderDto,
     type VillageDto,
@@ -92,6 +94,9 @@ export const getOrders = (signal?: AbortSignal): Promise<OrderDto[]> =>
 
 export const getReputation = (signal?: AbortSignal): Promise<NeighborReputationDto[]> =>
     apiGet('Domiki/GetReputation', neighborReputationSchema.array(), signal);
+
+export const getBlueprints = (signal?: AbortSignal): Promise<BlueprintDto[]> =>
+    apiGet('Domiki/GetBlueprints', blueprintSchema.array(), signal);
 
 export const completeOrder = (orderId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/CompleteOrder/${orderId}`, signal);

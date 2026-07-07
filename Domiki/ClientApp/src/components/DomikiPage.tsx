@@ -12,6 +12,7 @@ import CloudSunIcon from 'pixelarticons/svg/cloud-sun.svg?react';
 import CloudIcon from 'pixelarticons/svg/cloud.svg?react';
 import FireIcon from 'pixelarticons/svg/fire.svg?react';
 import ZapIcon from 'pixelarticons/svg/zap.svg?react';
+import LockIcon from 'pixelarticons/svg/lock.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
@@ -22,6 +23,7 @@ import { ResourcesBox } from './ResourcesBox';
 import { UpgradeBox } from './UpgradeBox';
 import { OrdersBox } from './OrdersBox';
 import { WorkersBox } from './WorkersBox';
+import { BlueprintsBox } from './BlueprintsBox';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 
 const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
@@ -32,7 +34,7 @@ const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, village, villageLevel, weather, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, hurryDomik } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, hurryDomik } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -159,6 +161,9 @@ export const DomikiPage = () => {
     const completeOrder = (orderId: number) => runAction(async () => {
         await completeOrderApi(orderId);
         await reload();
+        if (shopVisible) {
+            await refreshPurchaseTypes();
+        }
     });
 
     const hurryManufactureAction = (manufactureId: number) => runAction(() => hurryManufacture(manufactureId));
@@ -304,6 +309,7 @@ export const DomikiPage = () => {
             }
             <OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes}
                 resources={resources} now={now} onComplete={completeOrder} />
+            <BlueprintsBox blueprints={blueprints} />
             <WorkersBox workers={workers} domikTypes={domikTypes} now={now} />
             <div className="village-header">
                 <div className="village-identity">
@@ -332,8 +338,15 @@ export const DomikiPage = () => {
                             {purchaseDomikTypes.map(purchaseDomikType => {
                                 const image = '/images/domikTypes/' + purchaseDomikType.logicName + '.png';
                                 const firstLevel = purchaseDomikType.levels[0];
-                                const isLocked = villageLevel != null && purchaseDomikType.unlockLevel > villageLevel.level;
-                                const lockTitle = `Откроется при обжитости ${purchaseDomikType.unlockLevel}`;
+                                const levelLocked = villageLevel != null && purchaseDomikType.unlockLevel > villageLevel.level;
+                                const blueprint = purchaseDomikType.blueprintId == null ? null : blueprints.find(x => x.id === purchaseDomikType.blueprintId) ?? null;
+                                const blueprintLocked = blueprint != null && !blueprint.owned;
+                                const isLocked = levelLocked || blueprintLocked;
+                                const lockTitle = levelLocked
+                                    ? `Откроется при обжитости ${purchaseDomikType.unlockLevel}`
+                                    : blueprintLocked
+                                        ? `Нужен чертёж (репутация ${blueprint.neighborName} ${blueprint.reputationThreshold})`
+                                        : undefined;
                                 return (
                                     <div key={purchaseDomikType.id} className={'plot plot-shop' + (isLocked ? ' plot-locked' : '')} title={isLocked ? lockTitle : undefined}>
                                         <img className="plot-sprite" src={image} alt={purchaseDomikType.name} />
@@ -342,8 +355,8 @@ export const DomikiPage = () => {
                                             {isLocked ? lockTitle : `Доступно: ${purchaseDomikType.availableCount}/${purchaseDomikType.maxCount}`}
                                         </span>
                                         <ResourcesBox resources={firstLevel?.resources ?? []} resourceTypes={resourceTypes} />
-                                        <button className="btn-game" disabled={isLocked} title={isLocked ? lockTitle : undefined} onClick={() => buy(purchaseDomikType.id)}>
-                                            <BuildingIcon className="btn-ico" aria-hidden="true" />
+                                        <button className="btn-game" disabled={isLocked} title={lockTitle} onClick={() => buy(purchaseDomikType.id)}>
+                                            {blueprintLocked ? <LockIcon className="btn-ico" aria-hidden="true" /> : <BuildingIcon className="btn-ico" aria-hidden="true" />}
                                             Купить
                                         </button>
                                     </div>
