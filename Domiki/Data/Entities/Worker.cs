@@ -20,6 +20,8 @@ namespace Domiki.Web.Data
 
         public int? ManufactureId { get; set; }
 
+        public int? ExpeditionId { get; set; }
+
         public int WorkedSeconds { get; set; }
 
         public DateTime? RestUntil { get; set; }
@@ -28,6 +30,8 @@ namespace Domiki.Web.Data
         public Trait Trait { get; set; }
 
         public Manufacture Manufacture { get; set; }
+
+        public Expedition Expedition { get; set; }
 
         public ICollection<WorkerSkill> Skills { get; set; }
     }

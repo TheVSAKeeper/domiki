@@ -156,6 +156,7 @@ export const workerSchema = z.object({
     traitDurationPercent: z.number(),
     noFatigue: z.boolean(),
     manufactureId: z.number().nullable(),
+    expeditionId: z.number().nullable(),
     restUntil: z.string().nullable(),
     skills: z.array(workerSkillSchema),
 });
@@ -183,6 +184,43 @@ export const weatherStateSchema = z.object({
 });
 export type WeatherStateDto = z.infer<typeof weatherStateSchema>;
 
+export const expeditionLootSchema = z.object({
+    resourceTypeId: z.number(),
+    minValue: z.number(),
+    maxValue: z.number(),
+    isRare: z.boolean(),
+});
+export type ExpeditionLootDto = z.infer<typeof expeditionLootSchema>;
+
+export const expeditionTypeSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    logicName: z.string(),
+    durationSeconds: z.number(),
+    workerCount: z.number(),
+    goldCost: z.number(),
+    rollCount: z.number(),
+    loot: z.array(expeditionLootSchema),
+});
+export type ExpeditionTypeDto = z.infer<typeof expeditionTypeSchema>;
+
+export const expeditionSchema = z.object({
+    id: z.number(),
+    expeditionTypeId: z.number(),
+    expeditionName: z.string(),
+    startDate: z.string(),
+    finishDate: z.string(),
+});
+export type ExpeditionDto = z.infer<typeof expeditionSchema>;
+
+export const expeditionStateSchema = z.object({
+    active: z.array(expeditionSchema),
+    types: z.array(expeditionTypeSchema),
+    expeditionsSincePity: z.number(),
+    pityThreshold: z.number(),
+});
+export type ExpeditionStateDto = z.infer<typeof expeditionStateSchema>;
+
 export const gameStateSchema = z.object({
     domikTypes: domikTypeSchema.array(),
     resourceTypes: resourceTypeSchema.array(),
@@ -197,6 +235,7 @@ export const gameStateSchema = z.object({
     workers: workerSchema.array(),
     purchaseAvailableDomiks: domikTypeSchema.array(),
     weather: weatherStateSchema,
+    expeditions: expeditionStateSchema,
 });
 export type GameStateDto = z.infer<typeof gameStateSchema>;
 

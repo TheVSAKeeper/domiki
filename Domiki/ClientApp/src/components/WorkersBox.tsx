@@ -20,14 +20,16 @@ export const WorkersBox = ({ workers, domikTypes, now }: WorkersBoxProps) => {
                         ? ''
                         : ` ${worker.traitDurationPercent} %`;
                     const restingSeconds = worker.restUntil == null ? 0 : remainingSeconds(worker.restUntil, now);
-                    const isResting = worker.manufactureId == null && worker.restUntil != null && restingSeconds > 0;
-                    const state = worker.manufactureId != null
-                        ? 'работает'
-                        : isResting
-                            ? `отдыхает до ${new Date(worker.restUntil as string).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${formatDuration(restingSeconds)})`
-                            : 'свободен';
+                    const isResting = worker.manufactureId == null && worker.expeditionId == null && worker.restUntil != null && restingSeconds > 0;
+                    const state = worker.expeditionId != null
+                        ? 'в экспедиции'
+                        : worker.manufactureId != null
+                            ? 'работает'
+                            : isResting
+                                ? `отдыхает до ${new Date(worker.restUntil as string).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${formatDuration(restingSeconds)})`
+                                : 'свободен';
                     const className = 'worker-chip'
-                        + (worker.manufactureId == null ? '' : ' worker-busy')
+                        + (worker.manufactureId == null && worker.expeditionId == null ? '' : ' worker-busy')
                         + (isResting ? ' worker-resting' : '');
                     const visibleSkills = worker.skills.filter(skill => skill.bonusPercent > 0);
                     return (

@@ -40,7 +40,8 @@ namespace Domiki.Web.Business.Core
 
         public void GrantReputation(int playerId, int neighborId, int points)
         {
-            var reputation = _context.NeighborReputations.FirstOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId);
+            var reputation = _context.NeighborReputations.Local.FirstOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId)
+                ?? _context.NeighborReputations.FirstOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId);
             if (reputation == null)
             {
                 reputation = new Data.NeighborReputation { PlayerId = playerId, NeighborId = neighborId };
@@ -57,7 +58,8 @@ namespace Domiki.Web.Business.Core
                 return;
             }
 
-            var dbResource = _context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
+            var dbResource = _context.Resources.Local.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId)
+                ?? _context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
             if (dbResource == null)
             {
                 dbResource = new Data.Resource { PlayerId = playerId, TypeId = typeId };

@@ -16,6 +16,7 @@ namespace Domiki.Web.Business.Core
         private static Trait[] _traits;
         private static WeatherType[] _weatherTypes;
         private static Blueprint[] _blueprints;
+        private static ExpeditionType[] _expeditionTypes;
 
         public ResourceManager(Data.ApplicationDbContext context)
         {
@@ -158,6 +159,41 @@ namespace Domiki.Web.Business.Core
             }
 
             return _weatherTypes;
+        }
+
+        public ExpeditionType[] GetExpeditionTypes()
+        {
+            if (_expeditionTypes == null)
+            {
+                var loot = _context.ExpeditionLoot.ToArray();
+                _expeditionTypes = _context.ExpeditionTypes.Select(x => new ExpeditionType
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    LogicName = x.LogicName,
+                    DurationSeconds = x.DurationSeconds,
+                    WorkerCount = x.WorkerCount,
+                    GoldCost = x.GoldCost,
+                    RollCount = x.RollCount,
+                }).ToArray();
+
+                foreach (var expeditionType in _expeditionTypes)
+                {
+                    expeditionType.Loot = loot
+                        .Where(x => x.ExpeditionTypeId == expeditionType.Id)
+                        .Select(x => new ExpeditionLoot
+                        {
+                            ResourceTypeId = x.ResourceTypeId,
+                            MinValue = x.MinValue,
+                            MaxValue = x.MaxValue,
+                            Weight = x.Weight,
+                            IsRare = x.IsRare,
+                        })
+                        .ToArray();
+                }
+            }
+
+            return _expeditionTypes;
         }
 
         public DomikType[] GetDomikTypes()

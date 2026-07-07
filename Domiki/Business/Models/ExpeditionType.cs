@@ -1,0 +1,23 @@
+﻿namespace Domiki.Web.Business.Models
+{
+    public class ExpeditionType
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string LogicName { get; set; }
+        public int DurationSeconds { get; set; }
+        public int WorkerCount { get; set; }
+        public int GoldCost { get; set; }
+        public int RollCount { get; set; }
+        public ExpeditionLoot[] Loot { get; set; }
+    }
+
+    public class ExpeditionLoot
+    {
+        public int ResourceTypeId { get; set; }
+        public int MinValue { get; set; }
+        public int MaxValue { get; set; }
+        public int Weight { get; set; }
+        public bool IsRare { get; set; }
+    }
+}

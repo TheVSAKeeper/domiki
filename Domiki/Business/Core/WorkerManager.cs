@@ -9,7 +9,7 @@ namespace Domiki.Web.Business.Core
 
         public static bool IsFree(Data.Worker worker, DateTime now)
         {
-            return worker.ManufactureId == null && (worker.RestUntil == null || worker.RestUntil <= now);
+            return worker.ManufactureId == null && worker.ExpeditionId == null && (worker.RestUntil == null || worker.RestUntil <= now);
         }
 
         private static readonly string[] WorkerNames =
@@ -184,6 +184,7 @@ namespace Domiki.Web.Business.Core
                 Name = x.Name,
                 Trait = traits[x.TraitId],
                 ManufactureId = x.ManufactureId,
+                ExpeditionId = x.ExpeditionId,
                 WorkedSeconds = x.WorkedSeconds,
                 RestUntil = x.RestUntil,
                 Skills = skills.GetValueOrDefault(x.Id, Array.Empty<WorkerSkill>()),

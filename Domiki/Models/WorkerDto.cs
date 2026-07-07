@@ -9,6 +9,7 @@
         public int TraitDurationPercent { get; set; }
         public bool NoFatigue { get; set; }
         public int? ManufactureId { get; set; }
+        public int? ExpeditionId { get; set; }
         public DateTime? RestUntil { get; set; }
         public WorkerSkillDto[] Skills { get; set; }
     }

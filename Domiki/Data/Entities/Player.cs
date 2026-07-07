@@ -21,6 +21,8 @@ namespace Domiki.Web.Data
 
         public int CrestColor { get; set; }
 
+        public int ExpeditionsSincePity { get; set; }
+
         [MaxLength(450)]
         [Required(AllowEmptyStrings = false)]
         public string AspNetUserId { get; set; }

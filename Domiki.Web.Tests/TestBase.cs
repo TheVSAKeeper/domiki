@@ -75,6 +75,14 @@ namespace Domiki.Web.Tests
             return new BlueprintManager(uow.Context, resourceManager, playerResourceManager);
         }
 
+        public ExpeditionManager GetExpeditionManager(UnitOfWork uow, bool calculatorJustFinishMode = true)
+        {
+            var resourceManager = new ResourceManager(uow.Context);
+            var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
+            var workerManager = new WorkerManager(uow.Context, resourceManager, playerResourceManager);
+            return new ExpeditionManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager);
+        }
+
         public WeatherManager GetWeatherManager(UnitOfWork uow, bool calculatorJustFinishMode = true)
         {
             var resourceManager = new ResourceManager(uow.Context);
@@ -83,7 +91,7 @@ namespace Domiki.Web.Tests
 
         private ICalculator GetCalculator(bool justFinishMode = true)
         {
-            return new TestCalculator(() => GetUow(), (UnitOfWork uow) => { return new CalculatorTick(GetDomikManager(uow), GetOrderManager(uow), GetWeatherManager(uow)); }, justFinishMode);
+            return new TestCalculator(() => GetUow(), (UnitOfWork uow) => { return new CalculatorTick(GetDomikManager(uow), GetOrderManager(uow), GetWeatherManager(uow), GetExpeditionManager(uow)); }, justFinishMode);
         }
 
         public static IConfiguration InitConfiguration()

@@ -1,10 +1,12 @@
 import { z } from 'zod';
 import { authService } from './auth';
 import {
+    expeditionStateSchema,
     gameStateSchema,
     ResponseType,
     responseEnvelopeSchema,
     villageSchema,
+    type ExpeditionStateDto,
     type GameStateDto,
     type VillageDto,
 } from '../types/api';
@@ -96,3 +98,9 @@ export const getVillage = (signal?: AbortSignal): Promise<VillageDto> =>
 
 export const setVillage = (name: string, crestIcon: number, crestColor: number, signal?: AbortSignal): Promise<void> =>
     request('POST', 'Domiki/SetVillage', null, signal, { name, crestIcon, crestColor });
+
+export const getExpeditions = (signal?: AbortSignal): Promise<ExpeditionStateDto> =>
+    apiGet('Domiki/GetExpeditions', expeditionStateSchema, signal);
+
+export const startExpedition = (expeditionTypeId: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/StartExpedition/${expeditionTypeId}`, signal);

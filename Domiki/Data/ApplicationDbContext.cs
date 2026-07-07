@@ -41,6 +41,10 @@ namespace Domiki.Web.Data
         public DbSet<WeatherTypeEffect> WeatherTypeEffects { get; set; }
         public DbSet<WeatherPeriod> WeatherPeriods { get; set; }
 
+        public DbSet<ExpeditionType> ExpeditionTypes { get; set; }
+        public DbSet<ExpeditionLoot> ExpeditionLoot { get; set; }
+        public DbSet<Expedition> Expeditions { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -92,6 +96,11 @@ namespace Domiki.Web.Data
                 .HasOne(s => s.Manufacture)
                 .WithMany()
                 .HasForeignKey(e => e.ManufactureId);
+
+            modelBuilder.Entity<Worker>()
+                .HasOne(s => s.Expedition)
+                .WithMany()
+                .HasForeignKey(e => e.ExpeditionId);
 
             modelBuilder.Entity<WorkerSkill>()
                 .HasKey(p => new
@@ -285,6 +294,28 @@ namespace Domiki.Web.Data
                 .HasOne(s => s.WeatherType)
                 .WithMany()
                 .HasForeignKey(e => e.WeatherTypeId);
+
+            modelBuilder.Entity<ExpeditionLoot>()
+                .HasKey(p => new
+                {
+                    p.ExpeditionTypeId,
+                    p.ResourceTypeId,
+                });
+
+            modelBuilder.Entity<ExpeditionLoot>()
+                .HasOne(s => s.ExpeditionType)
+                .WithMany()
+                .HasForeignKey(e => e.ExpeditionTypeId);
+
+            modelBuilder.Entity<Expedition>()
+                .HasOne(s => s.Player)
+                .WithMany()
+                .HasForeignKey(e => e.PlayerId);
+
+            modelBuilder.Entity<Expedition>()
+                .HasOne(s => s.ExpeditionType)
+                .WithMany()
+                .HasForeignKey(e => e.ExpeditionTypeId);
         }
     }
 }

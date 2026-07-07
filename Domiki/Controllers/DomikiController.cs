@@ -20,8 +20,9 @@ namespace Domiki.Controllers
         private readonly WeatherManager _weatherManager;
         private readonly VillageLevelCalculator _villageLevelCalculator;
         private readonly BlueprintManager _blueprintManager;
+        private readonly ExpeditionManager _expeditionManager;
 
-        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager)
+        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager)
         {
             _logger = logger;
             _domikManager = domikManager;
@@ -31,6 +32,7 @@ namespace Domiki.Controllers
             _weatherManager = weatherManager;
             _villageLevelCalculator = villageLevelCalculator;
             _blueprintManager = blueprintManager;
+            _expeditionManager = expeditionManager;
         }
 
         [HttpGet]
@@ -55,6 +57,7 @@ namespace Domiki.Controllers
                 Workers = _workerManager.GetWorkers(playerId).Select(x => x.ToDto()).ToArray(),
                 PurchaseAvailableDomiks = _domikManager.GetPurchaseAvailableDomiks(playerId).Select(x => x.Type.ToDto(x.AvailableCount, blueprints.FirstOrDefault(b => b.DomikTypeId == x.Type.Id)?.Id)).ToArray(),
                 Weather = _weatherManager.GetWeather(DateTimeHelper.GetNowDate()).ToDto(),
+                Expeditions = _expeditionManager.GetExpeditions(playerId).ToDto(),
             };
             return new Response<GameStateDto>(content);
         }
@@ -251,6 +254,25 @@ namespace Domiki.Controllers
         {
             var content = _weatherManager.GetWeather(DateTimeHelper.GetNowDate()).ToDto();
             return new Response<WeatherStateDto>(content);
+        }
+
+        [HttpGet]
+        [Route("/Domiki/GetExpeditions")]
+        public Response<ExpeditionStateDto> GetExpeditions()
+        {
+            int playerId = GetPlayerId();
+
+            var content = _expeditionManager.GetExpeditions(playerId).ToDto();
+            return new Response<ExpeditionStateDto>(content);
+        }
+
+        [HttpPost]
+        [Route("/Domiki/StartExpedition/{expeditionTypeId}")]
+        public Response StartExpedition(int expeditionTypeId)
+        {
+            int playerId = GetPlayerId();
+            _expeditionManager.StartExpedition(playerId, expeditionTypeId);
+            return new Response { Type = ResponseType.Success };
         }
 
         private int GetPlayerId()

@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { apiGet, ApiError, getGameState, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, setVillage as setVillageApi } from '../services/api';
+import { apiGet, ApiError, getGameState, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, setVillage as setVillageApi, startExpedition as startExpeditionApi } from '../services/api';
 import { useToast } from '../services/toast';
 import {
     domikTypeSchema,
     type BlueprintDto,
     type DomikDto,
     type DomikTypeDto,
+    type ExpeditionStateDto,
     type NeighborReputationDto,
     type OrderDto,
     type ReceiptDto,
@@ -30,6 +31,7 @@ export interface GameData {
     village: VillageDto | null;
     villageLevel: VillageLevelDto | null;
     weather: WeatherStateDto | null;
+    expeditions: ExpeditionStateDto | null;
     workers: WorkerDto[];
     purchaseDomikTypes: DomikTypeDto[] | null;
     now: number;
@@ -38,6 +40,7 @@ export interface GameData {
     setVillage: (name: string, crestIcon: number, crestColor: number) => Promise<void>;
     hurryManufacture: (manufactureId: number) => Promise<void>;
     hurryDomik: (domikId: number) => Promise<void>;
+    startExpedition: (expeditionTypeId: number) => Promise<void>;
 }
 
 export function useGameData(): GameData {
@@ -54,6 +57,7 @@ export function useGameData(): GameData {
     const [village, setVillageState] = useState<VillageDto | null>(null);
     const [villageLevel, setVillageLevel] = useState<VillageLevelDto | null>(null);
     const [weather, setWeather] = useState<WeatherStateDto | null>(null);
+    const [expeditions, setExpeditions] = useState<ExpeditionStateDto | null>(null);
     const [workers, setWorkers] = useState<WorkerDto[]>([]);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [now, setNow] = useState(() => Date.now());
@@ -63,6 +67,7 @@ export function useGameData(): GameData {
     const ordersRef = useRef(orders);
     const workersRef = useRef(workers);
     const weatherRef = useRef(weather);
+    const expeditionsRef = useRef(expeditions);
     const reloadedRestDeadlinesRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
@@ -81,6 +86,10 @@ export function useGameData(): GameData {
         weatherRef.current = weather;
     }, [weather]);
 
+    useEffect(() => {
+        expeditionsRef.current = expeditions;
+    }, [expeditions]);
+
     const reload = useCallback(async () => {
         const state = await getGameState();
         setDomiks(state.domiks);
@@ -92,6 +101,7 @@ export function useGameData(): GameData {
         setVillageLevel(state.villageLevel);
         setWorkers(state.workers);
         setWeather(state.weather);
+        setExpeditions(state.expeditions);
     }, []);
 
     const refreshPurchaseTypes = useCallback(async () => {
@@ -110,6 +120,11 @@ export function useGameData(): GameData {
 
     const hurryDomik = useCallback(async (domikId: number) => {
         await hurryDomikApi(domikId);
+        await reload();
+    }, [reload]);
+
+    const startExpedition = useCallback(async (expeditionTypeId: number) => {
+        await startExpeditionApi(expeditionTypeId);
         await reload();
     }, [reload]);
 
@@ -138,6 +153,7 @@ export function useGameData(): GameData {
                 setWorkers(state.workers);
                 setPurchaseDomikTypes(state.purchaseAvailableDomiks);
                 setWeather(state.weather);
+                setExpeditions(state.expeditions);
             } catch (err) {
                 if (err instanceof DOMException && err.name === 'AbortError') {
                     return;
@@ -163,6 +179,7 @@ export function useGameData(): GameData {
             return domik.manufactures?.some(manufacture => remainingSeconds(manufacture.finishDate, now) <= 0) ?? false;
         }) || ordersRef.current.some(order => remainingSeconds(order.expireDate, now) <= 0)
             || (weatherRef.current?.current != null && remainingSeconds(weatherRef.current.current.endDate, now) <= 0)
+            || (expeditionsRef.current?.active.some(expedition => remainingSeconds(expedition.finishDate, now) <= 0) ?? false)
             || workersRef.current.some(worker => {
                 if (worker.restUntil == null) {
                     return false;
@@ -212,6 +229,7 @@ export function useGameData(): GameData {
         village,
         villageLevel,
         weather,
+        expeditions,
         workers,
         purchaseDomikTypes,
         now,
@@ -220,5 +238,6 @@ export function useGameData(): GameData {
         setVillage,
         hurryManufacture,
         hurryDomik,
+        startExpedition,
     };
 }

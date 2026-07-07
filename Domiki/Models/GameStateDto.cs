@@ -15,5 +15,6 @@
         public WorkerDto[] Workers { get; set; }
         public DomikTypeDto[] PurchaseAvailableDomiks { get; set; }
         public WeatherStateDto Weather { get; set; }
+        public ExpeditionStateDto Expeditions { get; set; }
     }
 }

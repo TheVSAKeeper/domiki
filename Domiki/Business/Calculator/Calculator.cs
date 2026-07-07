@@ -181,6 +181,18 @@ namespace Domiki.Web.Business
                     });
                 }
 
+                var dbExpeditions = uow.Context.Expeditions.ToList();
+                foreach (var dbExpedition in dbExpeditions)
+                {
+                    dates.Add(new CalculateInfo
+                    {
+                        PlayerId = dbExpedition.PlayerId,
+                        ObjectId = dbExpedition.Id,
+                        Date = dbExpedition.FinishDate,
+                        Type = CalculateTypes.Expedition,
+                    });
+                }
+
                 var now = DateTimeHelper.GetNowDate();
                 var weatherManager = scope.ServiceProvider.GetRequiredService<WeatherManager>();
                 weatherManager.EnsureWeatherSchedule(now);

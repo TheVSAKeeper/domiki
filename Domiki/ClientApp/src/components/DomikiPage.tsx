@@ -24,6 +24,7 @@ import { UpgradeBox } from './UpgradeBox';
 import { OrdersBox } from './OrdersBox';
 import { WorkersBox } from './WorkersBox';
 import { BlueprintsBox } from './BlueprintsBox';
+import { ExpeditionsBox } from './ExpeditionsBox';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 
 const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
@@ -34,7 +35,7 @@ const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, hurryDomik } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, hurryDomik, startExpedition } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -169,6 +170,8 @@ export const DomikiPage = () => {
     const hurryManufactureAction = (manufactureId: number) => runAction(() => hurryManufacture(manufactureId));
 
     const hurryDomikAction = (domikId: number) => runAction(() => hurryDomik(domikId));
+
+    const startExpeditionAction = (expeditionTypeId: number) => runAction(() => startExpedition(expeditionTypeId));
 
     const saveIdentity = () => runAction(async () => {
         await setVillage(draftVillageName, draftCrestIcon, draftCrestColor);
@@ -310,6 +313,7 @@ export const DomikiPage = () => {
             <OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes}
                 resources={resources} now={now} onComplete={completeOrder} />
             <BlueprintsBox blueprints={blueprints} />
+            <ExpeditionsBox expeditions={expeditions} resourceTypes={resourceTypes} resources={resources} workers={workers} now={now} onStart={startExpeditionAction} />
             <WorkersBox workers={workers} domikTypes={domikTypes} now={now} />
             <div className="village-header">
                 <div className="village-identity">

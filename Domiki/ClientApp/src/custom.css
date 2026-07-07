@@ -1448,3 +1448,130 @@ progress {
         width: 100%;
     }
 }
+
+.expeditions-panel {
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.expeditions-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.expeditions-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.expedition-title-ico,
+.pity-ico {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.expeditions-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.expedition-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    padding: 12px;
+    background: rgba(255, 255, 255, .24);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.expedition-topline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.expedition-card-ico {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.expedition-name {
+    overflow: hidden;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.expedition-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.expedition-loot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.expedition-loot-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 6px;
+    background: var(--plank-dark);
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.expedition-loot-chip img {
+    width: 16px;
+    height: 16px;
+}
+
+.expedition-loot-rare {
+    background: #fdf0c4;
+    border-color: #b8860b;
+    color: #7a5c00;
+}
+
+.expedition-card .btn-game {
+    justify-content: center;
+    margin-top: auto;
+}
+
+.expeditions-active {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.expedition-card-active {
+    background: var(--plank-dark);
+}
+
+@media (max-width: 900px) {
+    .expeditions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .expeditions-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
