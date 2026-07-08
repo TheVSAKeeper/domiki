@@ -53,6 +53,7 @@ namespace Domiki.Web.Data
         public DbSet<Toloka> Tolokas { get; set; }
         public DbSet<TolokaContribution> TolokaContributions { get; set; }
         public DbSet<TradeLot> TradeLots { get; set; }
+        public DbSet<SeasonCounter> SeasonCounters { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -391,6 +392,26 @@ namespace Domiki.Web.Data
                 .HasOne(s => s.Seller)
                 .WithMany()
                 .HasForeignKey(e => e.SellerId);
+
+            modelBuilder.Entity<SeasonCounter>()
+                .HasKey(p => new
+                {
+                    p.SeasonId,
+                    p.PlayerId,
+                    p.Metric,
+                });
+
+            modelBuilder.Entity<SeasonCounter>()
+                .HasIndex(p => new
+                {
+                    p.SeasonId,
+                    p.Metric,
+                });
+
+            modelBuilder.Entity<SeasonCounter>()
+                .HasOne(s => s.Player)
+                .WithMany()
+                .HasForeignKey(e => e.PlayerId);
         }
     }
 }

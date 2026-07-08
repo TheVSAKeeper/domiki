@@ -15,6 +15,7 @@ namespace Domiki.Web.Business.Core
         private ResourceManager _resourceManager;
         private PlayerResourceManager _playerResourceManager;
         private VillageLevelCalculator _villageLevelCalculator;
+        private SeasonManager _seasonManager;
 
         private readonly OrderTier[] _tiers =
         {
@@ -29,7 +30,8 @@ namespace Domiki.Web.Business.Core
             ICalculator calculator,
             ResourceManager resourceManager,
             PlayerResourceManager playerResourceManager,
-            VillageLevelCalculator villageLevelCalculator)
+            VillageLevelCalculator villageLevelCalculator,
+            SeasonManager seasonManager)
         {
             _context = context;
             _calculator = calculator;
@@ -37,6 +39,7 @@ namespace Domiki.Web.Business.Core
             _resourceManager = resourceManager;
             _playerResourceManager = playerResourceManager;
             _villageLevelCalculator = villageLevelCalculator;
+            _seasonManager = seasonManager;
         }
 
         public void EnsureOrderBoard(int playerId)
@@ -101,6 +104,7 @@ namespace Domiki.Web.Business.Core
             _playerResourceManager.GrantResource(playerId, CoinResourceTypeId, dbOrder.RewardCoins);
             _playerResourceManager.GrantResource(playerId, GoldResourceTypeId, dbOrder.RewardGold);
             _playerResourceManager.GrantReputation(playerId, dbOrder.NeighborId, dbOrder.RewardReputation);
+            _seasonManager.IncrementCounter(playerId, SeasonMetric.Orders, dbOrder.RewardCoins, DateTimeHelper.GetNowDate());
 
             _context.Orders.Remove(dbOrder);
             _context.SaveChanges();

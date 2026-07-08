@@ -18,30 +18,43 @@ namespace Domiki.Web.Business.Core
         private readonly VillageLevelCalculator _villageLevelCalculator;
         private readonly DomikManager _domikManager;
         private readonly ResourceManager _resourceManager;
+        private readonly SeasonManager _seasonManager;
 
-        public WorldManager(ApplicationDbContext context, VillageLevelCalculator villageLevelCalculator, DomikManager domikManager, ResourceManager resourceManager)
+        public WorldManager(ApplicationDbContext context, VillageLevelCalculator villageLevelCalculator, DomikManager domikManager, ResourceManager resourceManager, SeasonManager seasonManager)
         {
             _context = context;
             _villageLevelCalculator = villageLevelCalculator;
             _domikManager = domikManager;
             _resourceManager = resourceManager;
+            _seasonManager = seasonManager;
         }
 
         public World GetWorld(int currentPlayerId)
         {
+            var season = _seasonManager.GetCurrentSeason(DateTimeHelper.GetNowDate());
+            var counters = _seasonManager.GetCounters(season.Number);
+
             var villages = _context.Players
                 .Where(x => x.VillageName != null)
                 .ToArray()
-                .Select(x => new WorldVillage
+                .Select(x =>
                 {
-                    PlayerId = x.Id,
-                    VillageName = x.VillageName,
-                    CrestIcon = x.CrestIcon,
-                    CrestColor = x.CrestColor,
-                    Level = _villageLevelCalculator.GetLevel(x.Id).Level,
-                    IsNpc = false,
-                    IsMe = x.Id == currentPlayerId,
-                    NpcResourceTypeId = null,
+                    var level = _villageLevelCalculator.GetLevel(x.Id);
+                    return new WorldVillage
+                    {
+                        PlayerId = x.Id,
+                        VillageName = x.VillageName,
+                        CrestIcon = x.CrestIcon,
+                        CrestColor = x.CrestColor,
+                        Level = level.Level,
+                        IsNpc = false,
+                        IsMe = x.Id == currentPlayerId,
+                        NpcResourceTypeId = null,
+                        SeasonOrders = counters.GetValueOrDefault((x.Id, SeasonMetric.Orders)),
+                        SeasonToloka = counters.GetValueOrDefault((x.Id, SeasonMetric.Toloka)),
+                        SeasonExpeditions = counters.GetValueOrDefault((x.Id, SeasonMetric.Expeditions)),
+                        Comfort = level.Comfort,
+                    };
                 })
                 .Concat(GetNpcVillages())
                 .OrderByDescending(x => x.Level)
@@ -49,7 +62,7 @@ namespace Domiki.Web.Business.Core
                 .ThenBy(x => x.VillageName)
                 .ToArray();
 
-            return new World { Villages = villages };
+            return new World { Villages = villages, Season = season };
         }
 
         public VillageVisit VisitVillage(int targetPlayerId)

@@ -13,6 +13,7 @@ namespace Domiki.Web.Business.Core
         private ResourceManager _resourceManager;
         private PlayerResourceManager _playerResourceManager;
         private WorkerManager _workerManager;
+        private SeasonManager _seasonManager;
 
         public ExpeditionManager(
             Data.UnitOfWork uow,
@@ -20,7 +21,8 @@ namespace Domiki.Web.Business.Core
             ICalculator calculator,
             ResourceManager resourceManager,
             PlayerResourceManager playerResourceManager,
-            WorkerManager workerManager)
+            WorkerManager workerManager,
+            SeasonManager seasonManager)
         {
             _uow = uow;
             _context = context;
@@ -28,6 +30,7 @@ namespace Domiki.Web.Business.Core
             _resourceManager = resourceManager;
             _playerResourceManager = playerResourceManager;
             _workerManager = workerManager;
+            _seasonManager = seasonManager;
         }
 
         public ExpeditionState GetExpeditions(int playerId)
@@ -148,6 +151,7 @@ namespace Domiki.Web.Business.Core
             }
 
             dbPlayer.ExpeditionsSincePity = gotRare ? 0 : dbPlayer.ExpeditionsSincePity + 1;
+            _seasonManager.IncrementCounter(calcInfo.PlayerId, SeasonMetric.Expeditions, 1, date);
 
             foreach (var worker in _context.Workers.Where(x => x.ExpeditionId == dbExpedition.Id).ToArray())
             {

@@ -150,11 +150,23 @@ export const worldVillageSchema = z.object({
     isNpc: z.boolean(),
     isMe: z.boolean(),
     npcResourceTypeId: z.number().nullable(),
+    seasonOrders: z.number(),
+    seasonToloka: z.number(),
+    seasonExpeditions: z.number(),
+    comfort: z.number(),
 });
 export type WorldVillageDto = z.infer<typeof worldVillageSchema>;
 
+export const seasonSchema = z.object({
+    number: z.number(),
+    startDate: z.string(),
+    endDate: z.string(),
+});
+export type SeasonDto = z.infer<typeof seasonSchema>;
+
 export const worldSchema = z.object({
     villages: z.array(worldVillageSchema),
+    season: seasonSchema,
 });
 export type WorldDto = z.infer<typeof worldSchema>;
 

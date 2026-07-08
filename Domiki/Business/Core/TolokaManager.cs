@@ -13,13 +13,15 @@ namespace Domiki.Web.Business.Core
         private readonly ResourceManager _resourceManager;
         private readonly PlayerResourceManager _playerResourceManager;
         private readonly VillageLevelCalculator _villageLevelCalculator;
+        private readonly SeasonManager _seasonManager;
 
-        public TolokaManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, VillageLevelCalculator villageLevelCalculator)
+        public TolokaManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, VillageLevelCalculator villageLevelCalculator, SeasonManager seasonManager)
         {
             _context = context;
             _resourceManager = resourceManager;
             _playerResourceManager = playerResourceManager;
             _villageLevelCalculator = villageLevelCalculator;
+            _seasonManager = seasonManager;
         }
 
         public TolokaState GetToloka(DateTime date, int playerId)
@@ -77,6 +79,7 @@ namespace Domiki.Web.Business.Core
 
             contribution.Value += amount;
             dbToloka.Collected += amount;
+            _seasonManager.IncrementCounter(playerId, SeasonMetric.Toloka, amount, date);
 
             if (dbToloka.Collected >= tolokaType.Goal)
             {

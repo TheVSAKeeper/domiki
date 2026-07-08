@@ -3,6 +3,7 @@
     public class World
     {
         public WorldVillage[] Villages { get; set; }
+        public Season Season { get; set; }
     }
 
     public class WorldVillage
@@ -15,6 +16,10 @@
         public bool IsNpc { get; set; }
         public bool IsMe { get; set; }
         public int? NpcResourceTypeId { get; set; }
+        public int SeasonOrders { get; set; }
+        public int SeasonToloka { get; set; }
+        public int SeasonExpeditions { get; set; }
+        public int Comfort { get; set; }
     }
 
     public class VillageVisit

@@ -25,8 +25,9 @@ namespace Domiki.Controllers
         private readonly TolokaManager _tolokaManager;
         private readonly MarketManager _marketManager;
         private readonly WorldManager _worldManager;
+        private readonly SeasonManager _seasonManager;
 
-        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, WorldManager worldManager)
+        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, WorldManager worldManager, SeasonManager seasonManager)
         {
             _logger = logger;
             _domikManager = domikManager;
@@ -41,6 +42,7 @@ namespace Domiki.Controllers
             _tolokaManager = tolokaManager;
             _marketManager = marketManager;
             _worldManager = worldManager;
+            _seasonManager = seasonManager;
         }
 
         [HttpGet]
@@ -126,6 +128,14 @@ namespace Domiki.Controllers
         {
             var content = _worldManager.VisitVillage(playerId).ToDto();
             return new Response<VillageVisitDto>(content);
+        }
+
+        [HttpGet]
+        [Route("/Domiki/GetSeason")]
+        public Response<SeasonDto> GetSeason()
+        {
+            var content = _seasonManager.GetCurrentSeason(DateTimeHelper.GetNowDate()).ToDto();
+            return new Response<SeasonDto>(content);
         }
 
         [HttpPost]

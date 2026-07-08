@@ -9,6 +9,7 @@ namespace Domiki.Web.Models
             return new WorldDto
             {
                 Villages = world.Villages.Select(x => x.ToDto()).ToArray(),
+                Season = world.Season.ToDto(),
             };
         }
 
@@ -24,6 +25,10 @@ namespace Domiki.Web.Models
                 IsNpc = village.IsNpc,
                 IsMe = village.IsMe,
                 NpcResourceTypeId = village.NpcResourceTypeId,
+                SeasonOrders = village.SeasonOrders,
+                SeasonToloka = village.SeasonToloka,
+                SeasonExpeditions = village.SeasonExpeditions,
+                Comfort = village.Comfort,
             };
         }
 

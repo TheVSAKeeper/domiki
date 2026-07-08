@@ -1538,6 +1538,45 @@ progress {
     color: var(--pine-dark);
 }
 
+.world-season {
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pine);
+}
+
+.world-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+}
+
+.world-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+.world-tab-active {
+    color: var(--plank);
+    background: var(--pine);
+}
+
+.world-tab-ico {
+    width: 14px;
+    height: 14px;
+}
+
 .world-layout {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 320px;
@@ -1559,7 +1598,7 @@ progress {
 
 .world-row {
     display: grid;
-    grid-template-columns: 34px 38px minmax(0, 1fr) 56px;
+    grid-template-columns: 34px 38px minmax(0, 1fr) 64px 56px;
     align-items: center;
     gap: 10px;
     width: 100%;
@@ -1572,6 +1611,21 @@ progress {
     border: 3px solid var(--ink);
     clip-path: var(--cut);
     cursor: pointer;
+}
+
+.world-metric {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--pine);
+}
+
+.world-metric-ico {
+    width: 12px;
+    height: 12px;
 }
 
     .world-row:hover,
@@ -1672,7 +1726,7 @@ progress {
     }
 
     .world-row {
-        grid-template-columns: 28px 38px minmax(0, 1fr) 44px;
+        grid-template-columns: 28px 38px minmax(0, 1fr) 52px 44px;
         gap: 8px;
     }
 }

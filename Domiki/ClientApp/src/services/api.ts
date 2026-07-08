@@ -8,6 +8,7 @@ import {
     gameStateSchema,
     ResponseType,
     responseEnvelopeSchema,
+    seasonSchema,
     villageSchema,
     worldSchema,
     villageVisitSchema,
@@ -16,6 +17,7 @@ import {
     type GameStateDto,
     type TolokaStateDto,
     type MarketStateDto,
+    type SeasonDto,
     type VillageDto,
     type VillageVisitDto,
     type WorldDto,
@@ -114,6 +116,9 @@ export const getWorld = (signal?: AbortSignal): Promise<WorldDto> =>
 
 export const visitVillage = (playerId: number, signal?: AbortSignal): Promise<VillageVisitDto> =>
     apiGet(`Domiki/VisitVillage/${playerId}`, villageVisitSchema, signal);
+
+export const getSeason = (signal?: AbortSignal): Promise<SeasonDto> =>
+    apiGet('Domiki/GetSeason', seasonSchema, signal);
 
 export const getExpeditions = (signal?: AbortSignal): Promise<ExpeditionStateDto> =>
     apiGet('Domiki/GetExpeditions', expeditionStateSchema, signal);

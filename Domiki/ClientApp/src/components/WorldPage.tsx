@@ -1,10 +1,28 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ArrowLeftIcon from 'pixelarticons/svg/arrow-left.svg?react';
+import HomeIcon from 'pixelarticons/svg/home.svg?react';
+import CoinsIcon from 'pixelarticons/svg/coins.svg?react';
+import UsersIcon from 'pixelarticons/svg/users.svg?react';
+import MapPinIcon from 'pixelarticons/svg/map-pin.svg?react';
+import HeartIcon from 'pixelarticons/svg/heart.svg?react';
 import { ApiError, getWorld, visitVillage } from '../services/api';
 import { useToast } from '../services/toast';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
+import { formatDuration, remainingSeconds } from '../utils/time';
 import type { VillageVisitDto, WorldDto, WorldVillageDto } from '../types/api';
+
+type SortKey = 'level' | 'seasonOrders' | 'seasonToloka' | 'seasonExpeditions' | 'comfort';
+
+const SORT_META: Record<SortKey, { label: string; Icon: typeof HomeIcon }> = {
+    level: { label: 'Обжитость', Icon: HomeIcon },
+    seasonOrders: { label: 'Поставщик', Icon: CoinsIcon },
+    seasonToloka: { label: 'Толока', Icon: UsersIcon },
+    seasonExpeditions: { label: 'Странник', Icon: MapPinIcon },
+    comfort: { label: 'Уют', Icon: HeartIcon },
+};
+
+const SORT_TABS = (Object.keys(SORT_META) as SortKey[]).map(key => ({ key, ...SORT_META[key] }));
 
 const Crest = ({ icon, color }: { icon: number; color: number }) => {
     const Icon = VILLAGE_CREST_ICONS[icon] ?? DEFAULT_VILLAGE_ICON;
@@ -32,9 +50,23 @@ export const WorldPage = () => {
     const [selectedVillage, setSelectedVillage] = useState<WorldVillageDto | null>(null);
     const [visit, setVisit] = useState<VillageVisitDto | null>(null);
     const [visitLoading, setVisitLoading] = useState(false);
+    const [sortKey, setSortKey] = useState<SortKey>('level');
+    const [now, setNow] = useState(() => Date.now());
     const visitControllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => () => { visitControllerRef.current?.abort(); }, []);
+
+    useEffect(() => {
+        const id = setInterval(() => { setNow(Date.now()); }, 1000);
+        return () => clearInterval(id);
+    }, []);
+
+    const sortedVillages = useMemo(() => {
+        if (world == null) {
+            return [];
+        }
+        return [...world.villages].sort((a, b) => b[sortKey] - a[sortKey] || a.villageName.localeCompare(b.villageName, 'ru'));
+    }, [world, sortKey]);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -93,12 +125,16 @@ export const WorldPage = () => {
         return <div className="wiki"><p className="wiki-loading">Загрузка мира…</p></div>;
     }
 
+    const seasonLeft = remainingSeconds(world.season.endDate, now);
+    const activeMetric = SORT_META[sortKey];
+
     return (
         <div className="wiki world-page">
             <section className="wiki-intro pixel-panel world-head">
                 <div>
                     <h1 className="wiki-title">Мир</h1>
                     <div className="world-count">{world.villages.length} деревень</div>
+                    <div className="world-season">Сезон {world.season.number} · до конца {formatDuration(seasonLeft)}</div>
                 </div>
                 <Link className="btn-game" to="/domiki-page">
                     <ArrowLeftIcon className="btn-ico" aria-hidden="true" />
@@ -106,9 +142,23 @@ export const WorldPage = () => {
                 </Link>
             </section>
 
+            <section className="wiki-section world-tabs pixel-panel">
+                {SORT_TABS.map(tab => (
+                    <button
+                        type="button"
+                        key={tab.key}
+                        className={'world-tab' + (tab.key === sortKey ? ' world-tab-active' : '')}
+                        onClick={() => { setSortKey(tab.key); }}
+                    >
+                        <tab.Icon className="world-tab-ico" aria-hidden="true" />
+                        {tab.label}
+                    </button>
+                ))}
+            </section>
+
             <section className="wiki-section world-layout">
                 <div className="world-list pixel-panel">
-                    {world.villages.map((village, index) => (
+                    {sortedVillages.map((village, index) => (
                         <button
                             type="button"
                             key={`${village.playerId ?? 'npc'}-${village.villageName}`}
@@ -122,6 +172,14 @@ export const WorldPage = () => {
                                 {village.villageName}
                                 {village.isMe && <span className="world-tag">моя</span>}
                                 {village.isNpc && <span className="world-tag">NPC</span>}
+                            </span>
+                            <span className="world-metric" title={activeMetric.label}>
+                                {sortKey !== 'level' &&
+                                    <>
+                                        <activeMetric.Icon className="world-metric-ico" aria-hidden="true" />
+                                        {village[sortKey]}
+                                    </>
+                                }
                             </span>
                             <span className="world-level">{village.level}</span>
                         </button>
