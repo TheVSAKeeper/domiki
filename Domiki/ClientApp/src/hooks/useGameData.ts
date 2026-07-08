@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { apiGet, ApiError, buyDecor as buyDecorApi, getDecor, getGameState, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, setVillage as setVillageApi, startExpedition as startExpeditionApi } from '../services/api';
+import { apiGet, ApiError, buyDecor as buyDecorApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, setVillage as setVillageApi, startExpedition as startExpeditionApi } from '../services/api';
 import { useToast } from '../services/toast';
 import {
     domikTypeSchema,
@@ -15,6 +15,7 @@ import {
     type ReceiptDto,
     type ResourceDto,
     type ResourceTypeDto,
+    type TolokaStateDto,
     type VillageDto,
     type VillageLevelDto,
     type WeatherStateDto,
@@ -36,6 +37,7 @@ export interface GameData {
     weather: WeatherStateDto | null;
     expeditions: ExpeditionStateDto | null;
     decor: DecorStateDto | null;
+    toloka: TolokaStateDto | null;
     workers: WorkerDto[];
     purchaseDomikTypes: DomikTypeDto[] | null;
     now: number;
@@ -46,6 +48,7 @@ export interface GameData {
     hurryDomik: (domikId: number) => Promise<void>;
     startExpedition: (expeditionTypeId: number) => Promise<void>;
     buyDecor: (decorTypeId: number) => Promise<void>;
+    contributeToloka: (amount: number) => Promise<void>;
 }
 
 export function useGameData(): GameData {
@@ -64,6 +67,7 @@ export function useGameData(): GameData {
     const [weather, setWeather] = useState<WeatherStateDto | null>(null);
     const [expeditions, setExpeditions] = useState<ExpeditionStateDto | null>(null);
     const [decor, setDecor] = useState<DecorStateDto | null>(null);
+    const [toloka, setToloka] = useState<TolokaStateDto | null>(null);
     const [workers, setWorkers] = useState<WorkerDto[]>([]);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [now, setNow] = useState(() => Date.now());
@@ -74,6 +78,7 @@ export function useGameData(): GameData {
     const workersRef = useRef(workers);
     const weatherRef = useRef(weather);
     const expeditionsRef = useRef(expeditions);
+    const tolokaRef = useRef(toloka);
     const reloadedRestDeadlinesRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
@@ -96,6 +101,10 @@ export function useGameData(): GameData {
         expeditionsRef.current = expeditions;
     }, [expeditions]);
 
+    useEffect(() => {
+        tolokaRef.current = toloka;
+    }, [toloka]);
+
     const reload = useCallback(async () => {
         const state = await getGameState();
         setDomiks(state.domiks);
@@ -109,6 +118,7 @@ export function useGameData(): GameData {
         setWeather(state.weather);
         setExpeditions(state.expeditions);
         setDecor(state.decor);
+        setToloka(state.toloka);
     }, []);
 
     const refreshPurchaseTypes = useCallback(async () => {
@@ -134,6 +144,16 @@ export function useGameData(): GameData {
         await startExpeditionApi(expeditionTypeId);
         await reload();
     }, [reload]);
+
+    const contributeToloka = useCallback(async (amount: number) => {
+        await contributeTolokaApi(amount);
+        const [nextToloka, nextResources] = await Promise.all([
+            getToloka(),
+            apiGet('Domiki/GetResources', resourceSchema.array()),
+        ]);
+        setToloka(nextToloka);
+        setResources(nextResources);
+    }, []);
 
     const buyDecor = useCallback(async (decorTypeId: number) => {
         await buyDecorApi(decorTypeId);
@@ -174,6 +194,7 @@ export function useGameData(): GameData {
                 setWeather(state.weather);
                 setExpeditions(state.expeditions);
                 setDecor(state.decor);
+                setToloka(state.toloka);
             } catch (err) {
                 if (err instanceof DOMException && err.name === 'AbortError') {
                     return;
@@ -185,6 +206,21 @@ export function useGameData(): GameData {
         })();
 
         return () => controller.abort();
+    }, [toast]);
+
+    useEffect(() => {
+        const id = setInterval(() => {
+            void getToloka()
+                .then(setToloka)
+                .catch((err: unknown) => {
+                    if (err instanceof ApiError) {
+                        toast.error(err.message);
+                        return;
+                    }
+                    throw err;
+                });
+        }, 15000);
+        return () => clearInterval(id);
     }, [toast]);
 
     useEffect(() => {
@@ -200,6 +236,7 @@ export function useGameData(): GameData {
         }) || ordersRef.current.some(order => remainingSeconds(order.expireDate, now) <= 0)
             || (weatherRef.current?.current != null && remainingSeconds(weatherRef.current.current.endDate, now) <= 0)
             || (expeditionsRef.current?.active.some(expedition => remainingSeconds(expedition.finishDate, now) <= 0) ?? false)
+            || (tolokaRef.current?.buffUntil != null && remainingSeconds(tolokaRef.current.buffUntil, now) <= 0)
             || workersRef.current.some(worker => {
                 if (worker.restUntil == null) {
                     return false;
@@ -251,6 +288,7 @@ export function useGameData(): GameData {
         weather,
         expeditions,
         decor,
+        toloka,
         workers,
         purchaseDomikTypes,
         now,
@@ -261,5 +299,6 @@ export function useGameData(): GameData {
         hurryDomik,
         startExpedition,
         buyDecor,
+        contributeToloka,
     };
 }

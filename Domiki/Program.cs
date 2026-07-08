@@ -99,6 +99,7 @@ builder.Services.AddScoped<WeatherManager>();
 builder.Services.AddScoped<BlueprintManager>();
 builder.Services.AddScoped<ExpeditionManager>();
 builder.Services.AddScoped<DecorManager>();
+builder.Services.AddScoped<TolokaManager>();
 builder.Services.AddScoped<VillageLevelCalculator>();
 builder.Services.AddSingleton<ICalculator, Calculator>();
 builder.Services.AddScoped<CalculatorTick>();

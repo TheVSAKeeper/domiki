@@ -49,6 +49,10 @@ namespace Domiki.Web.Data
         public DbSet<DecorCost> DecorCosts { get; set; }
         public DbSet<PlayerDecor> PlayerDecors { get; set; }
 
+        public DbSet<TolokaType> TolokaTypes { get; set; }
+        public DbSet<Toloka> Tolokas { get; set; }
+        public DbSet<TolokaContribution> TolokaContributions { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -354,6 +358,33 @@ namespace Domiki.Web.Data
                 .HasOne(s => s.DecorType)
                 .WithMany()
                 .HasForeignKey(e => e.DecorTypeId);
+
+            modelBuilder.Entity<TolokaType>()
+                .HasOne(s => s.ResourceType)
+                .WithMany()
+                .HasForeignKey(e => e.ResourceTypeId);
+
+            modelBuilder.Entity<Toloka>()
+                .HasOne(s => s.TolokaType)
+                .WithMany()
+                .HasForeignKey(e => e.TolokaTypeId);
+
+            modelBuilder.Entity<TolokaContribution>()
+                .HasKey(p => new
+                {
+                    p.TolokaId,
+                    p.PlayerId,
+                });
+
+            modelBuilder.Entity<TolokaContribution>()
+                .HasOne(s => s.Toloka)
+                .WithMany()
+                .HasForeignKey(e => e.TolokaId);
+
+            modelBuilder.Entity<TolokaContribution>()
+                .HasOne(s => s.Player)
+                .WithMany()
+                .HasForeignKey(e => e.PlayerId);
         }
     }
 }

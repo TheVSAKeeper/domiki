@@ -1,0 +1,85 @@
+import { useState } from 'react';
+import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
+import HandIcon from 'pixelarticons/svg/hand.svg?react';
+import LockIcon from 'pixelarticons/svg/lock.svg?react';
+import type { ResourceDto, ResourceTypeDto, TolokaStateDto, VillageLevelDto } from '../types/api';
+import { hasResourcesFor } from '../utils/game';
+import { formatDuration, remainingSeconds } from '../utils/time';
+import { ResourcesBox } from './ResourcesBox';
+
+interface TolokaBoxProps {
+    toloka: TolokaStateDto | null;
+    resourceTypes: ResourceTypeDto[];
+    resources: ResourceDto[];
+    villageLevel: VillageLevelDto | null;
+    now: number;
+    onContribute: (amount: number) => Promise<void>;
+}
+
+export const TolokaBox = ({ toloka, resourceTypes, resources, villageLevel, now, onContribute }: TolokaBoxProps) => {
+    const [amount, setAmount] = useState(10);
+
+    if (toloka == null) {
+        return null;
+    }
+
+    const active = toloka.active;
+    const resourceType = resourceTypes.find(x => x.id === active.resourceTypeId);
+    const cost = [{ typeId: active.resourceTypeId, value: amount }];
+    const progress = Math.min(100, Math.floor(active.collected * 100 / active.goal));
+    const canAfford = amount > 0 && hasResourcesFor(cost, resources);
+    const canContribute = toloka.canContribute && canAfford;
+    const lockText = `Откроется при обжитости ${toloka.unlockLevel}`;
+    const buffLeft = toloka.buffUntil == null ? 0 : remainingSeconds(toloka.buffUntil, now);
+
+    const submit = async () => {
+        await onContribute(amount);
+    };
+
+    return (
+        <section className={'toloka-panel pixel-panel' + (!toloka.canContribute ? ' toloka-locked' : '')}>
+            <div className="toloka-head">
+                <div className="toloka-title-row">
+                    <BuildingCommunityIcon className="toloka-title-ico" aria-hidden="true" />
+                    <h3 className="panel-title">Толока</h3>
+                </div>
+                {toloka.buffActive && toloka.buffUntil != null && buffLeft > 0 &&
+                    <span className="reputation-chip">+{toloka.buffPercent} % выход: {formatDuration(buffLeft)}</span>
+                }
+            </div>
+            <div className="toloka-card">
+                <div className="toloka-topline">
+                    <span className="toloka-name">{active.name}</span>
+                    {resourceType != null &&
+                        <span className="resource-box" title={resourceType.name}>
+                            <img src={'/images/resourceTypes/' + resourceType.logicName + '.png'} alt={resourceType.name} />
+                            <span className="resource-value">{active.collected}/{active.goal}</span>
+                        </span>
+                    }
+                </div>
+                <progress max={100} value={progress} data-label={`${active.collected} / ${active.goal}`}></progress>
+                <div className="toloka-row">
+                    <span className="panel-label">мой вклад: {toloka.myContribution}</span>
+                    {villageLevel != null && !toloka.canContribute &&
+                        <span className="panel-label">обжитость: {villageLevel.level}</span>
+                    }
+                </div>
+                {!toloka.canContribute &&
+                    <p className="note-warn">
+                        <LockIcon className="btn-ico" aria-hidden="true" />
+                        {lockText}
+                    </p>
+                }
+                <div className="toloka-form">
+                    <input type="number" min={1} step={1} value={amount}
+                        onChange={event => setAmount(Math.max(1, Math.floor(Number(event.target.value) || 1)))} />
+                    <ResourcesBox resources={cost} resourceTypes={resourceTypes} have={resources} />
+                    <button className="btn-game" disabled={!canContribute} title={!toloka.canContribute ? lockText : canAfford ? undefined : 'Не хватает ресурсов'} onClick={submit}>
+                        <HandIcon className="btn-ico" aria-hidden="true" />
+                        Вложить
+                    </button>
+                </div>
+            </div>
+        </section>
+    );
+};

@@ -33,7 +33,8 @@ namespace Domiki.Web.Tests
             var weatherManager = GetWeatherManager(uow, calculatorJustFinishMode);
             var villageLevelCalculator = new VillageLevelCalculator(uow.Context, resourceManager, workerManager);
             var blueprintManager = new BlueprintManager(uow.Context, resourceManager, playerResourceManager);
-            var domikManager = new DomikManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager, weatherManager, villageLevelCalculator, blueprintManager);
+            var tolokaManager = new TolokaManager(uow, uow.Context, resourceManager, playerResourceManager, villageLevelCalculator);
+            var domikManager = new DomikManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager, weatherManager, villageLevelCalculator, blueprintManager, tolokaManager);
             return domikManager;
         }
 
@@ -81,6 +82,15 @@ namespace Domiki.Web.Tests
             var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
             var workerManager = new WorkerManager(uow.Context, resourceManager, playerResourceManager);
             return new ExpeditionManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager);
+        }
+
+        public TolokaManager GetTolokaManager(UnitOfWork uow)
+        {
+            var resourceManager = new ResourceManager(uow.Context);
+            var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
+            var workerManager = new WorkerManager(uow.Context, resourceManager, playerResourceManager);
+            var villageLevelCalculator = new VillageLevelCalculator(uow.Context, resourceManager, workerManager);
+            return new TolokaManager(uow, uow.Context, resourceManager, playerResourceManager, villageLevelCalculator);
         }
 
         public DecorManager GetDecorManager(UnitOfWork uow)

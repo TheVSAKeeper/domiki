@@ -243,6 +243,29 @@ export const decorStateSchema = z.object({
 });
 export type DecorStateDto = z.infer<typeof decorStateSchema>;
 
+export const tolokaSchema = z.object({
+    id: z.number(),
+    tolokaTypeId: z.number(),
+    name: z.string(),
+    logicName: z.string(),
+    resourceTypeId: z.number(),
+    goal: z.number(),
+    collected: z.number(),
+    startDate: z.string(),
+});
+export type TolokaDto = z.infer<typeof tolokaSchema>;
+
+export const tolokaStateSchema = z.object({
+    active: tolokaSchema,
+    myContribution: z.number(),
+    canContribute: z.boolean(),
+    unlockLevel: z.number(),
+    buffActive: z.boolean(),
+    buffUntil: z.string().nullable(),
+    buffPercent: z.number(),
+});
+export type TolokaStateDto = z.infer<typeof tolokaStateSchema>;
+
 export const gameStateSchema = z.object({
     domikTypes: domikTypeSchema.array(),
     resourceTypes: resourceTypeSchema.array(),
@@ -259,6 +282,7 @@ export const gameStateSchema = z.object({
     weather: weatherStateSchema,
     expeditions: expeditionStateSchema,
     decor: decorStateSchema,
+    toloka: tolokaStateSchema,
 });
 export type GameStateDto = z.infer<typeof gameStateSchema>;
 

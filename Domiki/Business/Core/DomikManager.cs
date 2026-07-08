@@ -46,8 +46,9 @@ namespace Domiki.Web.Business.Core
         private WeatherManager _weatherManager;
         private VillageLevelCalculator _villageLevelCalculator;
         private BlueprintManager _blueprintManager;
+        private TolokaManager _tolokaManager;
 
-        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager)
+        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, TolokaManager tolokaManager)
         {
             _context = context;
             _calculator = calculator;
@@ -58,6 +59,7 @@ namespace Domiki.Web.Business.Core
             _weatherManager = weatherManager;
             _villageLevelCalculator = villageLevelCalculator;
             _blueprintManager = blueprintManager;
+            _tolokaManager = tolokaManager;
         }
 
         public int GetPlayerId(string aspNetUserId)
@@ -395,7 +397,9 @@ namespace Domiki.Web.Business.Core
             duration = (int)Math.Ceiling(duration * (100 - avgSkill) / 100);
             duration = Math.Max(duration, (int)Math.Ceiling(receipt.DurationSeconds * 0.6));
 
-            var outputPercent = _weatherManager.GetOutputPercent(date, domikType.Id);
+            var weatherPercent = _weatherManager.GetOutputPercent(date, domikType.Id);
+            var tolokaPercent = _tolokaManager.HasActiveBuff(playerId, date) ? 100 + TolokaManager.TolokaBuffPercent : 100;
+            var outputPercent = (int)Math.Round(weatherPercent * tolokaPercent / 100.0);
 
             _playerResourceManager.WriteOffResources(playerId, writeOffResources);
 

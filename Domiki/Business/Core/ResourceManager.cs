@@ -18,6 +18,7 @@ namespace Domiki.Web.Business.Core
         private static Blueprint[] _blueprints;
         private static ExpeditionType[] _expeditionTypes;
         private static DecorType[] _decorTypes;
+        private static TolokaType[] _tolokaTypes;
 
         public ResourceManager(Data.ApplicationDbContext context)
         {
@@ -195,6 +196,24 @@ namespace Domiki.Web.Business.Core
             }
 
             return _expeditionTypes;
+        }
+
+        public TolokaType[] GetTolokaTypes()
+        {
+            if (_tolokaTypes == null)
+            {
+                _tolokaTypes = _context.TolokaTypes.Select(x => new TolokaType
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    LogicName = x.LogicName,
+                    ResourceTypeId = x.ResourceTypeId,
+                    Goal = x.Goal,
+                    RotationWeight = x.RotationWeight,
+                }).ToArray();
+            }
+
+            return _tolokaTypes;
         }
 
         public DecorType[] GetDecorTypes()

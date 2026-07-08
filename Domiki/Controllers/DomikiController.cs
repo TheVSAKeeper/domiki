@@ -22,8 +22,9 @@ namespace Domiki.Controllers
         private readonly BlueprintManager _blueprintManager;
         private readonly ExpeditionManager _expeditionManager;
         private readonly DecorManager _decorManager;
+        private readonly TolokaManager _tolokaManager;
 
-        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager)
+        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager)
         {
             _logger = logger;
             _domikManager = domikManager;
@@ -35,6 +36,7 @@ namespace Domiki.Controllers
             _blueprintManager = blueprintManager;
             _expeditionManager = expeditionManager;
             _decorManager = decorManager;
+            _tolokaManager = tolokaManager;
         }
 
         [HttpGet]
@@ -61,6 +63,7 @@ namespace Domiki.Controllers
                 Weather = _weatherManager.GetWeather(DateTimeHelper.GetNowDate()).ToDto(),
                 Expeditions = _expeditionManager.GetExpeditions(playerId).ToDto(),
                 Decor = _decorManager.GetDecor(playerId).ToDto(),
+                Toloka = _tolokaManager.GetToloka(DateTimeHelper.GetNowDate(), playerId).ToDto(),
             };
             return new Response<GameStateDto>(content);
         }
@@ -275,6 +278,25 @@ namespace Domiki.Controllers
         {
             int playerId = GetPlayerId();
             _decorManager.BuyDecor(playerId, decorTypeId);
+            return new Response { Type = ResponseType.Success };
+        }
+
+        [HttpGet]
+        [Route("/Domiki/GetToloka")]
+        public Response<TolokaStateDto> GetToloka()
+        {
+            int playerId = GetPlayerId();
+
+            var content = _tolokaManager.GetToloka(DateTimeHelper.GetNowDate(), playerId).ToDto();
+            return new Response<TolokaStateDto>(content);
+        }
+
+        [HttpPost]
+        [Route("/Domiki/ContributeToloka/{amount}")]
+        public Response ContributeToloka(int amount)
+        {
+            int playerId = GetPlayerId();
+            _tolokaManager.Contribute(playerId, amount, DateTimeHelper.GetNowDate());
             return new Response { Type = ResponseType.Success };
         }
 

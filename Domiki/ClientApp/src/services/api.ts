@@ -3,6 +3,7 @@ import { authService } from './auth';
 import {
     decorStateSchema,
     expeditionStateSchema,
+    tolokaStateSchema,
     gameStateSchema,
     ResponseType,
     responseEnvelopeSchema,
@@ -10,6 +11,7 @@ import {
     type DecorStateDto,
     type ExpeditionStateDto,
     type GameStateDto,
+    type TolokaStateDto,
     type VillageDto,
 } from '../types/api';
 
@@ -112,3 +114,9 @@ export const getDecor = (signal?: AbortSignal): Promise<DecorStateDto> =>
 
 export const buyDecor = (decorTypeId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/BuyDecor/${decorTypeId}`, signal);
+
+export const getToloka = (signal?: AbortSignal): Promise<TolokaStateDto> =>
+    apiGet('Domiki/GetToloka', tolokaStateSchema, signal);
+
+export const contributeToloka = (amount: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/ContributeToloka/${amount}`, signal);
