@@ -102,6 +102,7 @@ namespace Domiki.Web.Tests
             BuyDomik(playerId, BarracksDomikTypeId);
             BuyDomik(playerId, LumberMillDomikTypeId);
             var worker = GetWorkers(playerId).Single();
+            SetWorkerTrait(worker.Id, 1);
             GrantDecor(playerId, FountainDecorTypeId, 1);
             SetWorkerWorked(worker.Id, FatigueThresholdSeconds - RestSeconds);
 
@@ -121,6 +122,7 @@ namespace Domiki.Web.Tests
             BuyDomik(playerId, BarracksDomikTypeId);
             BuyDomik(playerId, LumberMillDomikTypeId);
             var worker = GetWorkers(playerId).Single();
+            SetWorkerTrait(worker.Id, 1);
             GrantDecor(playerId, FountainDecorTypeId, 10);
             SetWorkerWorked(worker.Id, FatigueThresholdSeconds - RestSeconds);
 

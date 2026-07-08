@@ -27,6 +27,7 @@ import { BlueprintsBox } from './BlueprintsBox';
 import { ExpeditionsBox } from './ExpeditionsBox';
 import { DecorBox } from './DecorBox';
 import { TolokaBox } from './TolokaBox';
+import { MarketBox } from './MarketBox';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 
 const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
@@ -37,7 +38,7 @@ const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, hurryDomik, startExpedition, buyDecor, contributeToloka } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, hurryDomik, startExpedition, buyDecor, contributeToloka, postLot, acceptLot, cancelLot } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -178,6 +179,13 @@ export const DomikiPage = () => {
     const buyDecorAction = (decorTypeId: number) => runAction(() => buyDecor(decorTypeId));
 
     const contributeTolokaAction = (amount: number) => runAction(() => contributeToloka(amount));
+
+    const postLotAction = (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) =>
+        runAction(() => postLot(giveResourceTypeId, giveValue, wantResourceTypeId, wantValue));
+
+    const acceptLotAction = (lotId: number) => runAction(() => acceptLot(lotId));
+
+    const cancelLotAction = (lotId: number) => runAction(() => cancelLot(lotId));
 
     const saveIdentity = () => runAction(async () => {
         await setVillage(draftVillageName, draftCrestIcon, draftCrestColor);
@@ -322,6 +330,8 @@ export const DomikiPage = () => {
             <ExpeditionsBox expeditions={expeditions} resourceTypes={resourceTypes} resources={resources} workers={workers} now={now} onStart={startExpeditionAction} />
             <DecorBox decor={decor} resourceTypes={resourceTypes} resources={resources} onBuy={buyDecorAction} />
             <TolokaBox toloka={toloka} resourceTypes={resourceTypes} resources={resources} villageLevel={villageLevel} now={now} onContribute={contributeTolokaAction} />
+            <MarketBox market={market} resourceTypes={resourceTypes} resources={resources} villageLevel={villageLevel} now={now}
+                onPost={postLotAction} onAccept={acceptLotAction} onCancel={cancelLotAction} />
             <WorkersBox workers={workers} domikTypes={domikTypes} now={now} />
             <div className="village-header">
                 <div className="village-identity">

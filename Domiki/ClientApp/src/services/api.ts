@@ -4,6 +4,7 @@ import {
     decorStateSchema,
     expeditionStateSchema,
     tolokaStateSchema,
+    marketStateSchema,
     gameStateSchema,
     ResponseType,
     responseEnvelopeSchema,
@@ -12,6 +13,7 @@ import {
     type ExpeditionStateDto,
     type GameStateDto,
     type TolokaStateDto,
+    type MarketStateDto,
     type VillageDto,
 } from '../types/api';
 
@@ -120,3 +122,15 @@ export const getToloka = (signal?: AbortSignal): Promise<TolokaStateDto> =>
 
 export const contributeToloka = (amount: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/ContributeToloka/${amount}`, signal);
+
+export const getMarket = (signal?: AbortSignal): Promise<MarketStateDto> =>
+    apiGet('Domiki/GetMarket', marketStateSchema, signal);
+
+export const postLot = (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/PostLot?giveResourceTypeId=${giveResourceTypeId}&giveValue=${giveValue}&wantResourceTypeId=${wantResourceTypeId}&wantValue=${wantValue}`, signal);
+
+export const acceptLot = (lotId: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/AcceptLot/${lotId}`, signal);
+
+export const cancelLot = (lotId: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/CancelLot/${lotId}`, signal);

@@ -193,6 +193,18 @@ namespace Domiki.Web.Business
                     });
                 }
 
+                var dbTradeLots = uow.Context.TradeLots.ToList();
+                foreach (var dbTradeLot in dbTradeLots)
+                {
+                    dates.Add(new CalculateInfo
+                    {
+                        PlayerId = dbTradeLot.SellerId,
+                        ObjectId = dbTradeLot.Id,
+                        Date = dbTradeLot.ExpireDate,
+                        Type = CalculateTypes.TradeLotExpire,
+                    });
+                }
+
                 var now = DateTimeHelper.GetNowDate();
                 var weatherManager = scope.ServiceProvider.GetRequiredService<WeatherManager>();
                 weatherManager.EnsureWeatherSchedule(now);

@@ -23,8 +23,9 @@ namespace Domiki.Controllers
         private readonly ExpeditionManager _expeditionManager;
         private readonly DecorManager _decorManager;
         private readonly TolokaManager _tolokaManager;
+        private readonly MarketManager _marketManager;
 
-        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager)
+        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager)
         {
             _logger = logger;
             _domikManager = domikManager;
@@ -37,6 +38,7 @@ namespace Domiki.Controllers
             _expeditionManager = expeditionManager;
             _decorManager = decorManager;
             _tolokaManager = tolokaManager;
+            _marketManager = marketManager;
         }
 
         [HttpGet]
@@ -64,6 +66,7 @@ namespace Domiki.Controllers
                 Expeditions = _expeditionManager.GetExpeditions(playerId).ToDto(),
                 Decor = _decorManager.GetDecor(playerId).ToDto(),
                 Toloka = _tolokaManager.GetToloka(DateTimeHelper.GetNowDate(), playerId).ToDto(),
+                Market = _marketManager.GetMarket(playerId).ToDto(),
             };
             return new Response<GameStateDto>(content);
         }
@@ -297,6 +300,43 @@ namespace Domiki.Controllers
         {
             int playerId = GetPlayerId();
             _tolokaManager.Contribute(playerId, amount, DateTimeHelper.GetNowDate());
+            return new Response { Type = ResponseType.Success };
+        }
+
+        [HttpGet]
+        [Route("/Domiki/GetMarket")]
+        public Response<MarketStateDto> GetMarket()
+        {
+            int playerId = GetPlayerId();
+
+            var content = _marketManager.GetMarket(playerId).ToDto();
+            return new Response<MarketStateDto>(content);
+        }
+
+        [HttpPost]
+        [Route("/Domiki/PostLot")]
+        public Response PostLot([FromQuery] int giveResourceTypeId, [FromQuery] int giveValue, [FromQuery] int wantResourceTypeId, [FromQuery] int wantValue)
+        {
+            int playerId = GetPlayerId();
+            _marketManager.PostLot(playerId, giveResourceTypeId, giveValue, wantResourceTypeId, wantValue, DateTimeHelper.GetNowDate());
+            return new Response { Type = ResponseType.Success };
+        }
+
+        [HttpPost]
+        [Route("/Domiki/AcceptLot/{lotId}")]
+        public Response AcceptLot(int lotId)
+        {
+            int playerId = GetPlayerId();
+            _marketManager.AcceptLot(playerId, lotId, DateTimeHelper.GetNowDate());
+            return new Response { Type = ResponseType.Success };
+        }
+
+        [HttpPost]
+        [Route("/Domiki/CancelLot/{lotId}")]
+        public Response CancelLot(int lotId)
+        {
+            int playerId = GetPlayerId();
+            _marketManager.CancelLot(playerId, lotId, DateTimeHelper.GetNowDate());
             return new Response { Type = ResponseType.Success };
         }
 

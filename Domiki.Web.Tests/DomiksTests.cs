@@ -6,6 +6,19 @@ namespace Domiki.Web.Tests
 {
     public class DomiksTests : TestBase
     {
+        private const int ClearWeatherTypeId = 1;
+
+        [SetUp]
+        public void SetUp()
+        {
+            SetWeather(ClearWeatherTypeId);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            ClearWeatherSchedule();
+        }
         [Test]
         public void GetPlayerIdTest()
         {
@@ -520,6 +533,33 @@ namespace Domiki.Web.Tests
                 {
                     worker.TraitId = 1;
                 }
+                uow.Context.SaveChanges();
+                uow.Commit();
+            }
+        }
+
+        private void SetWeather(int weatherTypeId)
+        {
+            ClearWeatherSchedule();
+            var now = DateTimeHelper.GetNowDate();
+            using (var uow = GetUow())
+            {
+                uow.Context.WeatherPeriods.Add(new Domiki.Web.Data.WeatherPeriod
+                {
+                    WeatherTypeId = weatherTypeId,
+                    StartDate = now,
+                    EndDate = now.AddSeconds(WeatherManager.WeatherPeriodSeconds),
+                });
+                uow.Context.SaveChanges();
+                uow.Commit();
+            }
+        }
+
+        private void ClearWeatherSchedule()
+        {
+            using (var uow = GetUow())
+            {
+                uow.Context.WeatherPeriods.RemoveRange(uow.Context.WeatherPeriods);
                 uow.Context.SaveChanges();
                 uow.Commit();
             }

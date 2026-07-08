@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { apiGet, ApiError, buyDecor as buyDecorApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, setVillage as setVillageApi, startExpedition as startExpeditionApi } from '../services/api';
+import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, setVillage as setVillageApi, startExpedition as startExpeditionApi } from '../services/api';
 import { useToast } from '../services/toast';
 import {
     domikTypeSchema,
@@ -10,6 +10,7 @@ import {
     type DomikDto,
     type DomikTypeDto,
     type ExpeditionStateDto,
+    type MarketStateDto,
     type NeighborReputationDto,
     type OrderDto,
     type ReceiptDto,
@@ -38,6 +39,7 @@ export interface GameData {
     expeditions: ExpeditionStateDto | null;
     decor: DecorStateDto | null;
     toloka: TolokaStateDto | null;
+    market: MarketStateDto | null;
     workers: WorkerDto[];
     purchaseDomikTypes: DomikTypeDto[] | null;
     now: number;
@@ -49,6 +51,9 @@ export interface GameData {
     startExpedition: (expeditionTypeId: number) => Promise<void>;
     buyDecor: (decorTypeId: number) => Promise<void>;
     contributeToloka: (amount: number) => Promise<void>;
+    postLot: (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => Promise<void>;
+    acceptLot: (lotId: number) => Promise<void>;
+    cancelLot: (lotId: number) => Promise<void>;
 }
 
 export function useGameData(): GameData {
@@ -68,6 +73,7 @@ export function useGameData(): GameData {
     const [expeditions, setExpeditions] = useState<ExpeditionStateDto | null>(null);
     const [decor, setDecor] = useState<DecorStateDto | null>(null);
     const [toloka, setToloka] = useState<TolokaStateDto | null>(null);
+    const [market, setMarket] = useState<MarketStateDto | null>(null);
     const [workers, setWorkers] = useState<WorkerDto[]>([]);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [now, setNow] = useState(() => Date.now());
@@ -79,6 +85,7 @@ export function useGameData(): GameData {
     const weatherRef = useRef(weather);
     const expeditionsRef = useRef(expeditions);
     const tolokaRef = useRef(toloka);
+    const marketRef = useRef(market);
     const reloadedRestDeadlinesRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
@@ -105,6 +112,10 @@ export function useGameData(): GameData {
         tolokaRef.current = toloka;
     }, [toloka]);
 
+    useEffect(() => {
+        marketRef.current = market;
+    }, [market]);
+
     const reload = useCallback(async () => {
         const state = await getGameState();
         setDomiks(state.domiks);
@@ -119,6 +130,7 @@ export function useGameData(): GameData {
         setExpeditions(state.expeditions);
         setDecor(state.decor);
         setToloka(state.toloka);
+        setMarket(state.market);
     }, []);
 
     const refreshPurchaseTypes = useCallback(async () => {
@@ -154,6 +166,30 @@ export function useGameData(): GameData {
         setToloka(nextToloka);
         setResources(nextResources);
     }, []);
+
+    const refreshMarketAndResources = useCallback(async () => {
+        const [nextMarket, nextResources] = await Promise.all([
+            getMarket(),
+            apiGet('Domiki/GetResources', resourceSchema.array()),
+        ]);
+        setMarket(nextMarket);
+        setResources(nextResources);
+    }, []);
+
+    const postLot = useCallback(async (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => {
+        await postLotApi(giveResourceTypeId, giveValue, wantResourceTypeId, wantValue);
+        await refreshMarketAndResources();
+    }, [refreshMarketAndResources]);
+
+    const acceptLot = useCallback(async (lotId: number) => {
+        await acceptLotApi(lotId);
+        await refreshMarketAndResources();
+    }, [refreshMarketAndResources]);
+
+    const cancelLot = useCallback(async (lotId: number) => {
+        await cancelLotApi(lotId);
+        await refreshMarketAndResources();
+    }, [refreshMarketAndResources]);
 
     const buyDecor = useCallback(async (decorTypeId: number) => {
         await buyDecorApi(decorTypeId);
@@ -195,6 +231,7 @@ export function useGameData(): GameData {
                 setExpeditions(state.expeditions);
                 setDecor(state.decor);
                 setToloka(state.toloka);
+                setMarket(state.market);
             } catch (err) {
                 if (err instanceof DOMException && err.name === 'AbortError') {
                     return;
@@ -210,8 +247,11 @@ export function useGameData(): GameData {
 
     useEffect(() => {
         const id = setInterval(() => {
-            void getToloka()
-                .then(setToloka)
+            void Promise.all([getToloka(), getMarket()])
+                .then(([nextToloka, nextMarket]) => {
+                    setToloka(nextToloka);
+                    setMarket(nextMarket);
+                })
                 .catch((err: unknown) => {
                     if (err instanceof ApiError) {
                         toast.error(err.message);
@@ -237,6 +277,8 @@ export function useGameData(): GameData {
             || (weatherRef.current?.current != null && remainingSeconds(weatherRef.current.current.endDate, now) <= 0)
             || (expeditionsRef.current?.active.some(expedition => remainingSeconds(expedition.finishDate, now) <= 0) ?? false)
             || (tolokaRef.current?.buffUntil != null && remainingSeconds(tolokaRef.current.buffUntil, now) <= 0)
+            || (marketRef.current?.lots.some(lot => remainingSeconds(lot.expireDate, now) <= 0) ?? false)
+            || (marketRef.current?.myLots.some(lot => remainingSeconds(lot.expireDate, now) <= 0) ?? false)
             || workersRef.current.some(worker => {
                 if (worker.restUntil == null) {
                     return false;
@@ -289,6 +331,7 @@ export function useGameData(): GameData {
         expeditions,
         decor,
         toloka,
+        market,
         workers,
         purchaseDomikTypes,
         now,
@@ -300,5 +343,8 @@ export function useGameData(): GameData {
         startExpedition,
         buyDecor,
         contributeToloka,
+        postLot,
+        acceptLot,
+        cancelLot,
     };
 }

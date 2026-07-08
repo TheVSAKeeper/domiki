@@ -18,5 +18,6 @@
         public ExpeditionStateDto Expeditions { get; set; }
         public DecorStateDto Decor { get; set; }
         public TolokaStateDto Toloka { get; set; }
+        public MarketStateDto Market { get; set; }
     }
 }

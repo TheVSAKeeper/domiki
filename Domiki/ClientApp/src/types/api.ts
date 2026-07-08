@@ -266,6 +266,30 @@ export const tolokaStateSchema = z.object({
 });
 export type TolokaStateDto = z.infer<typeof tolokaStateSchema>;
 
+export const tradeLotSchema = z.object({
+    id: z.number(),
+    sellerId: z.number(),
+    sellerVillageName: z.string().nullable(),
+    sellerCrestIcon: z.number(),
+    sellerCrestColor: z.number(),
+    giveResourceTypeId: z.number(),
+    giveValue: z.number(),
+    wantResourceTypeId: z.number(),
+    wantValue: z.number(),
+    commissionCoins: z.number(),
+    expireDate: z.string(),
+});
+export type TradeLotDto = z.infer<typeof tradeLotSchema>;
+
+export const marketStateSchema = z.object({
+    lots: z.array(tradeLotSchema),
+    myLots: z.array(tradeLotSchema),
+    canTrade: z.boolean(),
+    unlockLevel: z.number(),
+    commission: z.number(),
+});
+export type MarketStateDto = z.infer<typeof marketStateSchema>;
+
 export const gameStateSchema = z.object({
     domikTypes: domikTypeSchema.array(),
     resourceTypes: resourceTypeSchema.array(),
@@ -283,6 +307,7 @@ export const gameStateSchema = z.object({
     expeditions: expeditionStateSchema,
     decor: decorStateSchema,
     toloka: tolokaStateSchema,
+    market: marketStateSchema,
 });
 export type GameStateDto = z.infer<typeof gameStateSchema>;
 

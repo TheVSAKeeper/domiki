@@ -93,6 +93,15 @@ namespace Domiki.Web.Tests
             return new TolokaManager(uow, uow.Context, resourceManager, playerResourceManager, villageLevelCalculator);
         }
 
+        public MarketManager GetMarketManager(UnitOfWork uow, bool calculatorJustFinishMode = false)
+        {
+            var resourceManager = new ResourceManager(uow.Context);
+            var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
+            var workerManager = new WorkerManager(uow.Context, resourceManager, playerResourceManager);
+            var villageLevelCalculator = new VillageLevelCalculator(uow.Context, resourceManager, workerManager);
+            return new MarketManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, villageLevelCalculator);
+        }
+
         public DecorManager GetDecorManager(UnitOfWork uow)
         {
             var resourceManager = new ResourceManager(uow.Context);
@@ -108,7 +117,7 @@ namespace Domiki.Web.Tests
 
         private ICalculator GetCalculator(bool justFinishMode = true)
         {
-            return new TestCalculator(() => GetUow(), (UnitOfWork uow) => { return new CalculatorTick(GetDomikManager(uow), GetOrderManager(uow), GetWeatherManager(uow), GetExpeditionManager(uow)); }, justFinishMode);
+            return new TestCalculator(() => GetUow(), (UnitOfWork uow) => { return new CalculatorTick(GetDomikManager(uow), GetOrderManager(uow), GetWeatherManager(uow), GetExpeditionManager(uow), GetMarketManager(uow)); }, justFinishMode);
         }
 
         public static IConfiguration InitConfiguration()

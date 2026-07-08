@@ -52,6 +52,7 @@ namespace Domiki.Web.Data
         public DbSet<TolokaType> TolokaTypes { get; set; }
         public DbSet<Toloka> Tolokas { get; set; }
         public DbSet<TolokaContribution> TolokaContributions { get; set; }
+        public DbSet<TradeLot> TradeLots { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -385,6 +386,11 @@ namespace Domiki.Web.Data
                 .HasOne(s => s.Player)
                 .WithMany()
                 .HasForeignKey(e => e.PlayerId);
+
+            modelBuilder.Entity<TradeLot>()
+                .HasOne(s => s.Seller)
+                .WithMany()
+                .HasForeignKey(e => e.SellerId);
         }
     }
 }
