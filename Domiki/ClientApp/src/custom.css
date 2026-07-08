@@ -1108,13 +1108,19 @@ progress {
         border-color: var(--coin);
     }
 
+.scene {
+    margin: 0 -32px;
+    padding-top: 58px;
+    background: linear-gradient(180deg, #cfe6f0 0%, #e8f0e0 100%);
+    overflow: hidden;
+}
+
 .village-strip {
     display: flex;
     align-items: flex-end;
     justify-content: center;
     gap: 3px;
-    margin: 0 -32px;
-    padding: 20px 16px 22px;
+    padding: 0 16px 22px;
     background: var(--grass);
     box-shadow: inset 0 8px 0 var(--grass-dark);
 }
@@ -1122,9 +1128,10 @@ progress {
     .village-strip img {
         width: clamp(40px, 11vw, 84px);
         height: auto;
+        margin-top: -38px;
         image-rendering: pixelated;
-        animation: rise .5s steps(3, end) backwards;
-        animation-delay: calc(var(--i) * .08s);
+        animation: rise .5s steps(3, end) backwards, bump 2.4s steps(2, end) infinite;
+        animation-delay: calc(var(--i) * .08s), calc(var(--i) * .2s);
     }
 
 @keyframes rise {
@@ -1134,11 +1141,151 @@ progress {
     }
 }
 
+.treasury {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    padding: 12px 16px;
+    background: var(--plank-dark);
+    border-top: 3px solid var(--ink);
+}
+
+.treasury-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--pine-dark);
+}
+
+.treasury-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    color: var(--ink);
+}
+
+    .treasury-item img {
+        width: 22px;
+        height: 22px;
+        image-rendering: pixelated;
+    }
+
+.coin-pop {
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    color: var(--pine-dark);
+    pointer-events: none;
+    animation: pop 1.9s ease-out forwards;
+}
+
+@keyframes pop {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 4px);
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+        transform: translate(-50%, -30px);
+    }
+}
+
+.section-head {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    color: var(--pine);
+    text-align: center;
+    margin: 0 0 20px;
+}
+
+.pillars {
+    margin-top: 44px;
+}
+
+.pillar-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+.pillar {
+    padding: 18px;
+    background: var(--plank);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    animation: rise .5s steps(3, end) backwards;
+    animation-delay: calc(var(--i) * .06s);
+}
+
+.pillar-resident {
+    display: inline-block;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px;
+    letter-spacing: 1px;
+    padding: 4px 7px 3px;
+    color: var(--plank);
+    background: var(--pine);
+    margin-bottom: 12px;
+}
+
+.pillar-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.pillar-ico {
+    width: 22px;
+    height: 22px;
+    color: var(--roof);
+}
+
+.pillar-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    color: var(--ink);
+    margin: 0;
+}
+
+.pillar-text {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(51, 41, 26, .8);
+}
+
+.steps-section {
+    margin-top: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .village-strip img,
+    .pillar {
+        animation: none;
+    }
+
+    .coin-pop {
+        display: none;
+    }
+}
+
 .steps {
     display: flex;
     flex-wrap: wrap;
     gap: 16px;
-    margin-top: 28px;
 }
 
 .step {
