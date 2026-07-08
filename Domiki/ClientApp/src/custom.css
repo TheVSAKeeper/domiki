@@ -1320,6 +1320,198 @@ progress {
     color: rgba(51, 41, 26, .8);
 }
 
+.wiki {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 0 56px;
+}
+
+.wiki-loading {
+    text-align: center;
+    padding: 40px 0;
+    color: var(--pine-dark);
+}
+
+.wiki-intro {
+    padding: 24px 28px;
+}
+
+.wiki-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(18px, 5vw, 26px);
+    color: var(--pine);
+    margin: 0 0 14px;
+}
+
+    .wiki-intro p {
+        margin: 0 0 10px;
+        line-height: 1.55;
+    }
+
+        .wiki-intro p:last-child {
+            margin-bottom: 0;
+        }
+
+.wiki-section {
+    margin-top: 40px;
+}
+
+.wiki-res-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+}
+
+.wiki-res-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px 10px 12px;
+    font-weight: 600;
+}
+
+    .wiki-res-cell img {
+        width: 32px;
+        height: 32px;
+        image-rendering: pixelated;
+    }
+
+.wiki-buildings {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.wiki-building {
+    padding: 18px 20px;
+}
+
+.wiki-building-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+}
+
+    .wiki-building-head img {
+        width: 64px;
+        height: 64px;
+        image-rendering: pixelated;
+        flex-shrink: 0;
+    }
+
+.wiki-building-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    color: var(--pine);
+    margin: 0 0 6px;
+}
+
+.wiki-building-meta {
+    margin: 0;
+    font-size: 13px;
+    color: rgba(51, 41, 26, .75);
+}
+
+.wiki-levels {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.wiki-level {
+    padding-top: 12px;
+    border-top: 2px dashed var(--plank-dark);
+}
+
+.wiki-level-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin-bottom: 8px;
+}
+
+.wiki-level-badge {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    padding: 4px 7px 3px;
+    color: var(--plank);
+    background: var(--pine);
+}
+
+.wiki-level-cost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: rgba(51, 41, 26, .8);
+}
+
+.wiki-recipe {
+    padding: 10px 12px;
+    margin-top: 8px;
+    background: var(--plank-dark);
+    clip-path: var(--cut);
+}
+
+.wiki-recipe-name {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.wiki-recipe-flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.wiki-arrow {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    color: var(--roof);
+}
+
+.wiki-recipe-opt {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: 13px;
+    color: rgba(51, 41, 26, .7);
+}
+
+.wiki-recipe-meta {
+    display: flex;
+    gap: 14px;
+    margin-top: 6px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--pine-dark);
+}
+
+.wiki-chips {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.wiki-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+}
+
+    .wiki-chip img {
+        width: 22px;
+        height: 22px;
+        image-rendering: pixelated;
+    }
+
 .toast-container {
     position: fixed;
     right: 16px;

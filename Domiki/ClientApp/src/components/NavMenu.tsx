@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import MenuIcon from 'pixelarticons/svg/menu.svg?react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
+import BookIcon from 'pixelarticons/svg/book-open.svg?react';
 import { LoginMenu } from './api-authorization/LoginMenu';
 
 export const NavMenu = () => {
@@ -27,6 +28,12 @@ export const NavMenu = () => {
                             <Link className="nav-link" to="/domiki-page" onClick={close}>
                                 <BuildingIcon className="nav-ico" aria-hidden="true" />
                                 Домики
+                            </Link>
+                        </li>
+                        <li>
+                            <Link className="nav-link" to="/wiki" onClick={close}>
+                                <BookIcon className="nav-ico" aria-hidden="true" />
+                                Справочник
                             </Link>
                         </li>
                         <LoginMenu />
