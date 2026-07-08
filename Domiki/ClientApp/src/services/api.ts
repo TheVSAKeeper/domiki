@@ -9,12 +9,16 @@ import {
     ResponseType,
     responseEnvelopeSchema,
     villageSchema,
+    worldSchema,
+    villageVisitSchema,
     type DecorStateDto,
     type ExpeditionStateDto,
     type GameStateDto,
     type TolokaStateDto,
     type MarketStateDto,
     type VillageDto,
+    type VillageVisitDto,
+    type WorldDto,
 } from '../types/api';
 
 export class ApiError extends Error {
@@ -104,6 +108,12 @@ export const getVillage = (signal?: AbortSignal): Promise<VillageDto> =>
 
 export const setVillage = (name: string, crestIcon: number, crestColor: number, signal?: AbortSignal): Promise<void> =>
     request('POST', 'Domiki/SetVillage', null, signal, { name, crestIcon, crestColor });
+
+export const getWorld = (signal?: AbortSignal): Promise<WorldDto> =>
+    apiGet('Domiki/GetWorld', worldSchema, signal);
+
+export const visitVillage = (playerId: number, signal?: AbortSignal): Promise<VillageVisitDto> =>
+    apiGet(`Domiki/VisitVillage/${playerId}`, villageVisitSchema, signal);
 
 export const getExpeditions = (signal?: AbortSignal): Promise<ExpeditionStateDto> =>
     apiGet('Domiki/GetExpeditions', expeditionStateSchema, signal);

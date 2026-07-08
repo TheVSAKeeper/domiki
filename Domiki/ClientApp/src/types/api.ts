@@ -141,6 +141,38 @@ export const villageLevelSchema = z.object({
 });
 export type VillageLevelDto = z.infer<typeof villageLevelSchema>;
 
+export const worldVillageSchema = z.object({
+    playerId: z.number().nullable(),
+    villageName: z.string(),
+    crestIcon: z.number(),
+    crestColor: z.number(),
+    level: z.number(),
+    isNpc: z.boolean(),
+    isMe: z.boolean(),
+    npcResourceTypeId: z.number().nullable(),
+});
+export type WorldVillageDto = z.infer<typeof worldVillageSchema>;
+
+export const worldSchema = z.object({
+    villages: z.array(worldVillageSchema),
+});
+export type WorldDto = z.infer<typeof worldSchema>;
+
+export const visitBuildingSchema = z.object({
+    typeName: z.string(),
+    level: z.number(),
+});
+export type VisitBuildingDto = z.infer<typeof visitBuildingSchema>;
+
+export const villageVisitSchema = z.object({
+    villageName: z.string(),
+    crestIcon: z.number(),
+    crestColor: z.number(),
+    level: villageLevelSchema,
+    buildings: z.array(visitBuildingSchema),
+});
+export type VillageVisitDto = z.infer<typeof villageVisitSchema>;
+
 export const workerSkillSchema = z.object({
     domikTypeId: z.number(),
     uses: z.number(),

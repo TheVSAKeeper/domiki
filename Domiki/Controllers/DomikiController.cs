@@ -24,8 +24,9 @@ namespace Domiki.Controllers
         private readonly DecorManager _decorManager;
         private readonly TolokaManager _tolokaManager;
         private readonly MarketManager _marketManager;
+        private readonly WorldManager _worldManager;
 
-        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager)
+        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, WorldManager worldManager)
         {
             _logger = logger;
             _domikManager = domikManager;
@@ -39,6 +40,7 @@ namespace Domiki.Controllers
             _decorManager = decorManager;
             _tolokaManager = tolokaManager;
             _marketManager = marketManager;
+            _worldManager = worldManager;
         }
 
         [HttpGet]
@@ -106,6 +108,24 @@ namespace Domiki.Controllers
 
             var content = _domikManager.GetVillage(playerId).ToDto();
             return new Response<VillageDto>(content);
+        }
+
+        [HttpGet]
+        [Route("/Domiki/GetWorld")]
+        public Response<WorldDto> GetWorld()
+        {
+            int playerId = GetPlayerId();
+
+            var content = _worldManager.GetWorld(playerId).ToDto();
+            return new Response<WorldDto>(content);
+        }
+
+        [HttpGet]
+        [Route("/Domiki/VisitVillage/{playerId}")]
+        public Response<VillageVisitDto> VisitVillage(int playerId)
+        {
+            var content = _worldManager.VisitVillage(playerId).ToDto();
+            return new Response<VillageVisitDto>(content);
         }
 
         [HttpPost]

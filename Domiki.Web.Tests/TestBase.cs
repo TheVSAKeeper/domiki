@@ -109,6 +109,19 @@ namespace Domiki.Web.Tests
             return new DecorManager(uow, uow.Context, resourceManager, playerResourceManager);
         }
 
+        public WorldManager GetWorldManager(UnitOfWork uow)
+        {
+            var resourceManager = new ResourceManager(uow.Context);
+            var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
+            var workerManager = new WorkerManager(uow.Context, resourceManager, playerResourceManager);
+            var villageLevelCalculator = new VillageLevelCalculator(uow.Context, resourceManager, workerManager);
+            var weatherManager = GetWeatherManager(uow);
+            var blueprintManager = new BlueprintManager(uow.Context, resourceManager, playerResourceManager);
+            var tolokaManager = new TolokaManager(uow, uow.Context, resourceManager, playerResourceManager, villageLevelCalculator);
+            var domikManager = new DomikManager(uow, uow.Context, GetCalculator(true), resourceManager, playerResourceManager, workerManager, weatherManager, villageLevelCalculator, blueprintManager, tolokaManager);
+            return new WorldManager(uow.Context, villageLevelCalculator, domikManager, resourceManager);
+        }
+
         public WeatherManager GetWeatherManager(UnitOfWork uow, bool calculatorJustFinishMode = true)
         {
             var resourceManager = new ResourceManager(uow.Context);

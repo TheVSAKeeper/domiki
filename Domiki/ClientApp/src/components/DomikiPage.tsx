@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router-dom';
 import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import ArrowUpIcon from 'pixelarticons/svg/arrow-up.svg?react';
@@ -13,6 +14,7 @@ import CloudIcon from 'pixelarticons/svg/cloud.svg?react';
 import FireIcon from 'pixelarticons/svg/fire.svg?react';
 import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
+import EarthIcon from 'pixelarticons/svg/earth.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
@@ -343,12 +345,18 @@ export const DomikiPage = () => {
                         <SettingsIcon className="btn-ico" aria-hidden="true" />
                     </button>
                 </div>
-                {purchaseDomikTypes != null &&
-                    <button className="btn-game" onClick={() => toggleShop()}>
-                        <StoreIcon className="btn-ico" aria-hidden="true" />
-                        {shopVisible ? 'Закрыть магазин' : 'Магазин'}
-                    </button>
-                }
+                <div className="village-header-actions">
+                    <Link className="btn-game" to="/world">
+                        <EarthIcon className="btn-ico" aria-hidden="true" />
+                        Мир
+                    </Link>
+                    {purchaseDomikTypes != null &&
+                        <button className="btn-game" onClick={() => toggleShop()}>
+                            <StoreIcon className="btn-ico" aria-hidden="true" />
+                            {shopVisible ? 'Закрыть магазин' : 'Магазин'}
+                        </button>
+                    }
+                </div>
             </div>
             <div className="workspace">
                 <section className="village">

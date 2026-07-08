@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { DomikiPage } from './components/DomikiPage';
 import { Home } from './components/Home';
 import { Wiki } from './components/Wiki';
+import { WorldPage } from './components/WorldPage';
 
 export interface AppRouteConfig {
     index?: boolean;
@@ -22,6 +23,10 @@ const AppRoutes: AppRouteConfig[] = [
     {
         path: '/wiki',
         element: <Wiki />,
+    },
+    {
+        path: '/world',
+        element: <WorldPage />,
     },
 ];
 

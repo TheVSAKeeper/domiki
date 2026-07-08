@@ -659,6 +659,13 @@ code {
         image-rendering: pixelated;
     }
 
+.village-header-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
 .btn-game {
     display: inline-flex;
     align-items: center;
@@ -673,6 +680,7 @@ code {
     border: 3px solid var(--ink);
     clip-path: var(--cut);
     cursor: pointer;
+    text-decoration: none;
     transition: transform .15s steps(2, end), background-color .15s;
 }
 
@@ -1511,6 +1519,163 @@ progress {
         height: 22px;
         image-rendering: pixelated;
     }
+
+.world-page {
+    max-width: 980px;
+}
+
+.world-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.world-count,
+.world-visit-level {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    color: var(--pine-dark);
+}
+
+.world-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 18px;
+    align-items: start;
+}
+
+.world-list,
+.world-visit {
+    padding: 14px;
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.world-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.world-row {
+    display: grid;
+    grid-template-columns: 34px 38px minmax(0, 1fr) 56px;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 58px;
+    padding: 8px 10px;
+    font: inherit;
+    color: var(--ink);
+    text-align: left;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+    .world-row:hover,
+    .world-row-selected {
+        background: var(--plank-dark);
+    }
+
+.world-row-me {
+    border-color: var(--coin);
+}
+
+.world-rank,
+.world-level {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    color: var(--pine);
+}
+
+.world-level {
+    justify-self: end;
+}
+
+.world-name {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 0;
+    font-weight: 700;
+}
+
+.world-tag {
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--plank);
+    background: var(--pine);
+    clip-path: var(--cut);
+}
+
+.world-visit {
+    position: sticky;
+    top: 76px;
+}
+
+.world-visit-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.world-visit-head .panel-title {
+    margin: 0 0 6px;
+}
+
+.world-level-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.world-buildings {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.world-building-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 8px 10px;
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    font-weight: 700;
+}
+
+@media (max-width: 820px) {
+    .world-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .world-visit {
+        position: static;
+    }
+}
+
+@media (max-width: 575px) {
+    .world-head {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .world-row {
+        grid-template-columns: 28px 38px minmax(0, 1fr) 44px;
+        gap: 8px;
+    }
+}
 
 .toast-container {
     position: fixed;
