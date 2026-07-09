@@ -302,8 +302,6 @@ export type TolokaDto = z.infer<typeof tolokaSchema>;
 export const tolokaStateSchema = z.object({
     active: tolokaSchema,
     myContribution: z.number(),
-    canContribute: z.boolean(),
-    unlockLevel: z.number(),
     buffActive: z.boolean(),
     buffUntil: z.string().nullable(),
     buffPercent: z.number(),
@@ -328,8 +326,6 @@ export type TradeLotDto = z.infer<typeof tradeLotSchema>;
 export const marketStateSchema = z.object({
     lots: z.array(tradeLotSchema),
     myLots: z.array(tradeLotSchema),
-    canTrade: z.boolean(),
-    unlockLevel: z.number(),
     commission: z.number(),
 });
 export type MarketStateDto = z.infer<typeof marketStateSchema>;
@@ -348,10 +344,10 @@ export const gameStateSchema = z.object({
     workers: workerSchema.array(),
     purchaseAvailableDomiks: domikTypeSchema.array(),
     weather: weatherStateSchema,
-    expeditions: expeditionStateSchema,
+    expeditions: expeditionStateSchema.nullable(),
     decor: decorStateSchema,
-    toloka: tolokaStateSchema,
-    market: marketStateSchema,
+    toloka: tolokaStateSchema.nullable(),
+    market: marketStateSchema.nullable(),
 });
 export type GameStateDto = z.infer<typeof gameStateSchema>;
 

@@ -19,8 +19,6 @@
     {
         public TradeLotDto[] Lots { get; set; }
         public TradeLotDto[] MyLots { get; set; }
-        public bool CanTrade { get; set; }
-        public int UnlockLevel { get; set; }
         public int Commission { get; set; }
     }
 }

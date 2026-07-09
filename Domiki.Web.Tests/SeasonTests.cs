@@ -15,6 +15,8 @@ namespace Domiki.Web.Tests
         private const int PlankResourceTypeId = 7;
         private const int FountainDecorTypeId = 4;
         private const int BarracksTypeId = 2;
+        private const int ScoutHutDomikTypeId = 11;
+        private const int GatheringDomikTypeId = 10;
         private const int ShortScoutId = 1;
 
         [SetUp]
@@ -231,6 +233,7 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             GrantDecor(playerId, FountainDecorTypeId, 3);
+            BuyDomik(playerId, GatheringDomikTypeId);
             return playerId;
         }
 
@@ -282,16 +285,41 @@ namespace Domiki.Web.Tests
         {
             for (var i = 0; i < count; i++)
             {
-                using (var uow = GetUow())
-                {
-                    var domikManager = GetDomikManager(uow);
-                    domikManager.BuyDomik(playerId, BarracksTypeId);
-                    uow.Commit();
-                }
+                BuyDomik(playerId, BarracksTypeId);
             }
         }
 
-        private ExpeditionState GetExpeditions(int playerId)
+        private void BuyDomik(int playerId, int typeId)
+        {
+            using (var uow = GetUow())
+            {
+                var domikManager = GetDomikManager(uow);
+                domikManager.BuyDomik(playerId, typeId);
+                uow.Commit();
+            }
+        }
+
+        private void AddBuiltDomik(int playerId, int typeId)
+        {
+            using (var uow = GetUow())
+            {
+                if (!uow.Context.Domiks.Any(x => x.PlayerId == playerId && x.TypeId == typeId))
+                {
+                    uow.Context.Domiks.Add(new Domiki.Web.Data.Domik
+                    {
+                        PlayerId = playerId,
+                        Id = -typeId,
+                        TypeId = typeId,
+                        Level = 1,
+                    });
+                    uow.Context.SaveChanges();
+                }
+
+                uow.Commit();
+            }
+        }
+
+        private ExpeditionState? GetExpeditions(int playerId)
         {
             using (var uow = GetUow())
             {
@@ -304,6 +332,7 @@ namespace Domiki.Web.Tests
 
         private void StartExpedition(int playerId, int expeditionTypeId)
         {
+            AddBuiltDomik(playerId, ScoutHutDomikTypeId);
             using (var uow = GetUow())
             {
                 var manager = GetExpeditionManager(uow, calculatorJustFinishMode: false);

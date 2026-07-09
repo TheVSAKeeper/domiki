@@ -2,10 +2,9 @@ import { useMemo, useState } from 'react';
 import ArrowsIcon from 'pixelarticons/svg/arrows-horizontal.svg?react';
 import CoinsIcon from 'pixelarticons/svg/coins.svg?react';
 import HandIcon from 'pixelarticons/svg/hand.svg?react';
-import LockIcon from 'pixelarticons/svg/lock.svg?react';
 import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import TrashIcon from 'pixelarticons/svg/trash.svg?react';
-import type { MarketStateDto, ResourceDto, ResourceTypeDto, TradeLotDto, VillageLevelDto } from '../types/api';
+import type { MarketStateDto, ResourceDto, ResourceTypeDto, TradeLotDto } from '../types/api';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
@@ -15,7 +14,6 @@ interface MarketBoxProps {
     market: MarketStateDto | null;
     resourceTypes: ResourceTypeDto[];
     resources: ResourceDto[];
-    villageLevel: VillageLevelDto | null;
     now: number;
     onPost: (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => Promise<void>;
     onAccept: (lotId: number) => Promise<void>;
@@ -70,7 +68,7 @@ const ResourcePicker = ({ resourceTypes, selectedId, onSelect, label }: { resour
     </div>
 );
 
-export const MarketBox = ({ market, resourceTypes, resources, villageLevel, now, onPost, onAccept, onCancel }: MarketBoxProps) => {
+export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAccept, onCancel }: MarketBoxProps) => {
     const firstTypeId = resourceTypes[0]?.id ?? 1;
     const secondTypeId = resourceTypes.find(x => x.id !== firstTypeId)?.id ?? firstTypeId;
     const [giveResourceTypeId, setGiveResourceTypeId] = useState(firstTypeId);
@@ -87,17 +85,16 @@ export const MarketBox = ({ market, resourceTypes, resources, villageLevel, now,
         return null;
     }
 
-    const lockText = `Откроется при обжитости ${market.unlockLevel}`;
     const invalidPair = giveResourceTypeId === wantResourceTypeId;
     const canAffordPost = giveValue > 0 && wantValue > 0 && !invalidPair && hasResourcesFor(postCost, resources);
-    const canPost = market.canTrade && canAffordPost;
+    const canPost = canAffordPost;
 
     const submitPost = async () => {
         await onPost(giveResourceTypeId, giveValue, wantResourceTypeId, wantValue);
     };
 
     return (
-        <section className={'market-panel pixel-panel' + (!market.canTrade ? ' market-locked' : '')}>
+        <section className="market-panel pixel-panel">
             <div className="market-head">
                 <div className="market-title-row">
                     <StoreIcon className="market-title-ico" aria-hidden="true" />
@@ -105,12 +102,6 @@ export const MarketBox = ({ market, resourceTypes, resources, villageLevel, now,
                 </div>
                 <span className="reputation-chip">Комиссия: {market.commission} монет</span>
             </div>
-            {!market.canTrade &&
-                <p className="note-warn market-lock-note">
-                    <LockIcon className="btn-ico" aria-hidden="true" />
-                    {lockText}{villageLevel != null ? `, сейчас ${villageLevel.level}` : ''}
-                </p>
-            }
             <div className="market-layout">
                 <form className="market-card market-form" onSubmit={event => { event.preventDefault(); void submitPost(); }}>
                     <div className="market-card-title">
@@ -135,7 +126,7 @@ export const MarketBox = ({ market, resourceTypes, resources, villageLevel, now,
                     </div>
                     <ResourcesBox resources={postCost} resourceTypes={resourceTypes} have={resources} />
                     {invalidPair && <p className="note-warn">Нужны разные ресурсы</p>}
-                    <button className="btn-game" disabled={!canPost} title={!market.canTrade ? lockText : canAffordPost ? undefined : 'Не хватает ресурсов'}>
+                    <button className="btn-game" disabled={!canPost} title={canAffordPost ? undefined : 'Не хватает ресурсов'}>
                         <StoreIcon className="btn-ico" aria-hidden="true" />
                         Выставить
                     </button>
@@ -147,14 +138,14 @@ export const MarketBox = ({ market, resourceTypes, resources, villageLevel, now,
                         {market.lots.map(lot => {
                             const left = remainingSeconds(lot.expireDate, now);
                             const wantCost = [{ typeId: lot.wantResourceTypeId, value: lot.wantValue }];
-                            const canAccept = market.canTrade && left > 0 && hasResourcesFor(wantCost, resources);
+                            const canAccept = left > 0 && hasResourcesFor(wantCost, resources);
                             return (
                                 <div key={lot.id} className="market-card">
                                     <SellerBadge lot={lot} />
                                     <LotResources lot={lot} resourceTypes={resourceTypes} />
                                     <span className="timer">{formatDuration(left)}</span>
                                     <button className="btn-game" disabled={!canAccept}
-                                        title={!market.canTrade ? lockText : hasResourcesFor(wantCost, resources) ? undefined : 'Не хватает ' + getResourceName(resourceTypes, lot.wantResourceTypeId)}
+                                        title={hasResourcesFor(wantCost, resources) ? undefined : 'Не хватает ' + getResourceName(resourceTypes, lot.wantResourceTypeId)}
                                         onClick={() => { void onAccept(lot.id); }}>
                                         <HandIcon className="btn-ico" aria-hidden="true" />
                                         Принять

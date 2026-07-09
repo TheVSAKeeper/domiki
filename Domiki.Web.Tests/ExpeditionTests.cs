@@ -9,6 +9,7 @@ namespace Domiki.Web.Tests
         private const int ShortScoutId = 1;
         private const int LongJourneyId = 2;
         private const int BarracksTypeId = 2;
+        private const int ScoutHutDomikTypeId = 11;
         private const int ProducerDomikTypeId = 5;
         private const int GoldResourceTypeId = 5;
         private const int PlankResourceTypeId = 7;
@@ -20,9 +21,20 @@ namespace Domiki.Web.Tests
         private const int FurnitureResourceTypeId = 9;
 
         [Test]
-        public void GetExpeditionsNewPlayerListsTypesWithNoActiveTest()
+        public void GetExpeditionsNewPlayerReturnsNullTest()
         {
             var playerId = GetPlayerId();
+
+            var state = GetExpeditions(playerId);
+
+            Assert.That(state, Is.Null);
+        }
+
+        [Test]
+        public void GetExpeditionsWithBuildingListsTypesWithNoActiveTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, ScoutHutDomikTypeId);
 
             var state = GetExpeditions(playerId);
 
@@ -30,6 +42,16 @@ namespace Domiki.Web.Tests
             Assert.That(state.Active, Is.Empty);
             Assert.That(state.ExpeditionsSincePity, Is.EqualTo(0));
             Assert.That(state.PityThreshold, Is.EqualTo(ExpeditionManager.ExpeditionPityThreshold));
+        }
+
+        [Test]
+        public void StartExpeditionWithoutBuildingThrowsTest()
+        {
+            var playerId = GetPlayerId();
+
+            var ex = Assert.Throws<BusinessException>(() => StartExpeditionWithoutBuilding(playerId, ShortScoutId));
+
+            Assert.That(ex.Message, Is.EqualTo("Нужна Сторожка"));
         }
 
         [TestCase(ShortScoutId, 2, 1, 14400)]
@@ -368,6 +390,26 @@ namespace Domiki.Web.Tests
             }
         }
 
+        private void AddBuiltDomik(int playerId, int typeId)
+        {
+            using (var uow = GetUow())
+            {
+                if (!uow.Context.Domiks.Any(x => x.PlayerId == playerId && x.TypeId == typeId))
+                {
+                    uow.Context.Domiks.Add(new Domiki.Web.Data.Domik
+                    {
+                        PlayerId = playerId,
+                        Id = -typeId,
+                        TypeId = typeId,
+                        Level = 1,
+                    });
+                    uow.Context.SaveChanges();
+                }
+
+                uow.Commit();
+            }
+        }
+
         private void StartManufacture(int playerId, int domikId, int receiptId, int[]? workerIds = null)
         {
             using (var uow = GetUow())
@@ -440,7 +482,7 @@ namespace Domiki.Web.Tests
             }
         }
 
-        private ExpeditionState GetExpeditions(int playerId)
+        private ExpeditionState? GetExpeditions(int playerId)
         {
             using (var uow = GetUow())
             {
@@ -453,10 +495,21 @@ namespace Domiki.Web.Tests
 
         private void StartExpedition(int playerId, int expeditionTypeId, int[]? workerIds = null)
         {
+            AddBuiltDomik(playerId, ScoutHutDomikTypeId);
             using (var uow = GetUow())
             {
                 var manager = GetExpeditionManager(uow, calculatorJustFinishMode: false);
                 manager.StartExpedition(playerId, expeditionTypeId, workerIds);
+                uow.Commit();
+            }
+        }
+
+        private void StartExpeditionWithoutBuilding(int playerId, int expeditionTypeId)
+        {
+            using (var uow = GetUow())
+            {
+                var manager = GetExpeditionManager(uow, calculatorJustFinishMode: false);
+                manager.StartExpedition(playerId, expeditionTypeId);
                 uow.Commit();
             }
         }

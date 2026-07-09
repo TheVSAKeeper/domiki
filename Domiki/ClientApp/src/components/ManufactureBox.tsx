@@ -1,6 +1,7 @@
 import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 import type { ManufactureDto, ReceiptDto } from '../types/api';
 import { canInstaFinish, instaFinishCost, manufactureProgressPercent } from '../utils/game';
+import { ProgressBar } from './ProgressBar';
 
 interface ManufactureBoxProps {
     manufacture: ManufactureDto;
@@ -20,7 +21,7 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
 
     return (
         <div className="manufacture-box">
-            <progress max={100} value={percent} data-label={remainingText}></progress>
+            <ProgressBar value={percent} max={100} label={remainingText} />
             <div className="manufacture-info">
                 <span className="manufacture-name">{receipt.name}</span>
                 <span className="resource-box" title="Трудяги">

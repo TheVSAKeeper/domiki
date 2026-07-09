@@ -7,25 +7,27 @@ namespace Domiki.Web.Business.Core
     {
         public const int TolokaBuffPercent = 25;
         public const int TolokaBuffSeconds = 8 * 3600;
-        public const int TolokaUnlockLevel = 20;
 
         private readonly Data.ApplicationDbContext _context;
         private readonly ResourceManager _resourceManager;
         private readonly PlayerResourceManager _playerResourceManager;
-        private readonly VillageLevelCalculator _villageLevelCalculator;
         private readonly SeasonManager _seasonManager;
 
-        public TolokaManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, VillageLevelCalculator villageLevelCalculator, SeasonManager seasonManager)
+        public TolokaManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, SeasonManager seasonManager)
         {
             _context = context;
             _resourceManager = resourceManager;
             _playerResourceManager = playerResourceManager;
-            _villageLevelCalculator = villageLevelCalculator;
             _seasonManager = seasonManager;
         }
 
         public TolokaState GetToloka(DateTime date, int playerId)
         {
+            if (!HasBuilding(playerId, "gathering"))
+            {
+                return null;
+            }
+
             var tolokaTypes = _resourceManager.GetTolokaTypes();
             var dbToloka = _context.Tolokas.Single(x => x.CompletedDate == null);
             var contribution = _context.TolokaContributions
@@ -38,8 +40,6 @@ namespace Domiki.Web.Business.Core
             {
                 Active = ToModel(dbToloka, tolokaTypes),
                 MyContribution = contribution,
-                CanContribute = _villageLevelCalculator.GetLevel(playerId).Level >= TolokaUnlockLevel,
-                UnlockLevel = TolokaUnlockLevel,
                 BuffActive = buffUntil != null,
                 BuffUntil = buffUntil,
                 BuffPercent = TolokaBuffPercent,
@@ -55,9 +55,9 @@ namespace Domiki.Web.Business.Core
 
             _playerResourceManager.LockDbPlayerRow(playerId);
 
-            if (_villageLevelCalculator.GetLevel(playerId).Level < TolokaUnlockLevel)
+            if (!HasBuilding(playerId, "gathering"))
             {
-                throw new BusinessException($"Толока откроется при обжитости {TolokaUnlockLevel}");
+                throw new BusinessException("Нужна Сходня");
             }
 
             var dbToloka = LockActiveToloka();
@@ -127,6 +127,12 @@ namespace Domiki.Web.Business.Core
                 .Select(x => (DateTime?)x.Toloka.CompletedDate.Value.AddSeconds(TolokaBuffSeconds))
                 .OrderByDescending(x => x)
                 .FirstOrDefault();
+        }
+
+        private bool HasBuilding(int playerId, string logicName)
+        {
+            var typeId = _resourceManager.GetDomikTypes().First(x => x.LogicName == logicName).Id;
+            return _context.Domiks.Any(x => x.PlayerId == playerId && x.TypeId == typeId && x.Level >= 1);
         }
 
         private static TolokaType PickTolokaType(TolokaType[] tolokaTypes)

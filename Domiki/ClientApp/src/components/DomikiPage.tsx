@@ -46,6 +46,12 @@ const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
     drought: FireIcon,
 };
 
+const MECHANIC_TAB: Record<string, string> = {
+    market_yard: 'market',
+    gathering: 'toloka',
+    scout_hut: 'expeditions',
+};
+
 interface GameTab {
     key: string;
     label: string;
@@ -226,7 +232,13 @@ export const DomikiPage = () => {
         }
     });
 
-    const selectDomik = (id: number) => setSelectedDomikId(id);
+    const selectDomik = (id: number, logicName: string) => {
+        setSelectedDomikId(id);
+        const mechTab = MECHANIC_TAB[logicName];
+        if (mechTab) {
+            setActiveTab(mechTab);
+        }
+    };
 
     const gameTabs: GameTab[] = [
         {
@@ -247,11 +259,11 @@ export const DomikiPage = () => {
         },
         {
             key: 'toloka', label: 'Толока', Icon: BuildingCommunityIcon, visible: toloka != null,
-            node: <TolokaBox toloka={toloka} resourceTypes={resourceTypes} resources={resources} villageLevel={villageLevel} now={now} onContribute={contributeTolokaAction} />,
+            node: <TolokaBox toloka={toloka} resourceTypes={resourceTypes} resources={resources} now={now} onContribute={contributeTolokaAction} />,
         },
         {
             key: 'market', label: 'Ярмарка', Icon: StoreIcon, visible: market != null,
-            node: <MarketBox market={market} resourceTypes={resourceTypes} resources={resources} villageLevel={villageLevel} now={now}
+            node: <MarketBox market={market} resourceTypes={resourceTypes} resources={resources} now={now}
                 onPost={postLotAction} onAccept={acceptLotAction} onCancel={cancelLotAction} />,
         },
         {
@@ -480,7 +492,7 @@ export const DomikiPage = () => {
                                 return (
                                     <button key={domik.id}
                                         className={'plot' + (selectedDomikId === domik.id ? ' plot-selected' : '')}
-                                        onClick={() => selectDomik(domik.id)}>
+                                        onClick={() => selectDomik(domik.id, domikType.logicName)}>
                                         {cardWeather != null &&
                                             <span className={'plot-weather' + (cardWeather.outputPercent > 100 ? ' plot-weather-buff' : ' plot-weather-nerf')}
                                                 title={`Погода: ${cardWeather.outputPercent > 100 ? "+" : ""}${cardWeather.outputPercent - 100}% выход`}>

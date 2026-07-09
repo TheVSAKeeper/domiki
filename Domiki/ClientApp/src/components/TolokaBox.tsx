@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
 import HandIcon from 'pixelarticons/svg/hand.svg?react';
-import LockIcon from 'pixelarticons/svg/lock.svg?react';
-import type { ResourceDto, ResourceTypeDto, TolokaStateDto, VillageLevelDto } from '../types/api';
+import type { ResourceDto, ResourceTypeDto, TolokaStateDto } from '../types/api';
 import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ResourcesBox } from './ResourcesBox';
@@ -12,12 +11,11 @@ interface TolokaBoxProps {
     toloka: TolokaStateDto | null;
     resourceTypes: ResourceTypeDto[];
     resources: ResourceDto[];
-    villageLevel: VillageLevelDto | null;
     now: number;
     onContribute: (amount: number) => Promise<void>;
 }
 
-export const TolokaBox = ({ toloka, resourceTypes, resources, villageLevel, now, onContribute }: TolokaBoxProps) => {
+export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute }: TolokaBoxProps) => {
     const [amount, setAmount] = useState(10);
 
     if (toloka == null) {
@@ -29,8 +27,6 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, villageLevel, now,
     const cost = [{ typeId: active.resourceTypeId, value: amount }];
     const progress = Math.min(100, Math.floor(active.collected * 100 / active.goal));
     const canAfford = amount > 0 && hasResourcesFor(cost, resources);
-    const canContribute = toloka.canContribute && canAfford;
-    const lockText = `Откроется при обжитости ${toloka.unlockLevel}`;
     const buffLeft = toloka.buffUntil == null ? 0 : remainingSeconds(toloka.buffUntil, now);
     const buildStage = 1 + Math.floor(active.collected * 4 / active.goal);
 
@@ -39,7 +35,7 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, villageLevel, now,
     };
 
     return (
-        <section className={'toloka-panel pixel-panel' + (!toloka.canContribute ? ' toloka-locked' : '')}>
+        <section className="toloka-panel pixel-panel">
             <div className="toloka-head">
                 <div className="toloka-title-row">
                     <BuildingCommunityIcon className="toloka-title-ico" aria-hidden="true" />
@@ -63,21 +59,12 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, villageLevel, now,
                 <progress max={100} value={progress} data-label={`${active.collected} / ${active.goal}`}></progress>
                 <div className="toloka-row">
                     <span className="panel-label">мой вклад: {toloka.myContribution}</span>
-                    {villageLevel != null && !toloka.canContribute &&
-                        <span className="panel-label">обжитость: {villageLevel.level}</span>
-                    }
                 </div>
-                {!toloka.canContribute &&
-                    <p className="note-warn">
-                        <LockIcon className="btn-ico" aria-hidden="true" />
-                        {lockText}
-                    </p>
-                }
                 <div className="toloka-form">
                     <input type="number" min={1} step={1} value={amount}
                         onChange={event => setAmount(Math.max(1, Math.floor(Number(event.target.value) || 1)))} />
                     <ResourcesBox resources={cost} resourceTypes={resourceTypes} have={resources} />
-                    <button className="btn-game" disabled={!canContribute} title={!toloka.canContribute ? lockText : canAfford ? undefined : 'Не хватает ресурсов'} onClick={submit}>
+                    <button className="btn-game" disabled={!canAfford} title={canAfford ? undefined : 'Не хватает ресурсов'} onClick={submit}>
                         <HandIcon className="btn-ico" aria-hidden="true" />
                         Вложить
                     </button>

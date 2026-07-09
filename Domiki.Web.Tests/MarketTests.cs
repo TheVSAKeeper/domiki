@@ -13,6 +13,7 @@ namespace Domiki.Web.Tests
         private const int ClayResourceTypeId = 4;
         private const int GoldResourceTypeId = 5;
         private const int FountainDecorTypeId = 4;
+        private const int MarketYardDomikTypeId = 9;
 
         [SetUp]
         public void SetUp()
@@ -27,21 +28,29 @@ namespace Domiki.Web.Tests
         }
 
         [Test]
-        public void GetMarketForNewPlayerReturnsEmptyAndLockedTest()
+        public void GetMarketForNewPlayerReturnsNullTest()
         {
             var playerId = GetPlayerId();
 
             var market = GetMarket(playerId);
 
+            Assert.That(market, Is.Null);
+        }
+
+        [Test]
+        public void GetMarketWithBuildingReturnsEmptyTest()
+        {
+            var playerId = GetUnlockedPlayerId();
+
+            var market = GetMarket(playerId);
+
             Assert.That(market.Lots, Is.Empty);
             Assert.That(market.MyLots, Is.Empty);
-            Assert.That(market.CanTrade, Is.False);
-            Assert.That(market.UnlockLevel, Is.EqualTo(MarketManager.MarketUnlockLevel));
             Assert.That(market.Commission, Is.EqualTo(MarketManager.MarketCommissionCoins));
         }
 
         [Test]
-        public void PostLotBelowUnlockThrowsAndDoesNotWriteOffTest()
+        public void PostLotWithoutBuildingThrowsAndDoesNotWriteOffTest()
         {
             var playerId = GetPlayerId();
             GrantResource(playerId, ClayResourceTypeId, 100);
@@ -49,8 +58,8 @@ namespace Domiki.Web.Tests
 
             var ex = Assert.Throws<BusinessException>(() => PostLot(playerId, ClayResourceTypeId, 20, GoldResourceTypeId, 3));
 
-            Assert.That(ex.Message, Is.EqualTo($"Ярмарка откроется при обжитости {MarketManager.MarketUnlockLevel}"));
-            Assert.That(GetMarket(playerId).MyLots, Is.Empty);
+            Assert.That(ex.Message, Is.EqualTo("Нужен Торговый двор"));
+            Assert.That(GetMarket(playerId), Is.Null);
             Assert.That(GetResourceValue(playerId, ClayResourceTypeId), Is.EqualTo(before));
         }
 
@@ -226,10 +235,11 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             GrantDecor(playerId, FountainDecorTypeId, 3);
+            BuyDomik(playerId, MarketYardDomikTypeId);
             return playerId;
         }
 
-        private MarketState GetMarket(int playerId)
+        private MarketState? GetMarket(int playerId)
         {
             using (var uow = GetUow())
             {
@@ -351,6 +361,16 @@ namespace Domiki.Web.Tests
 
                 resource.Value = value;
                 uow.Context.SaveChanges();
+                uow.Commit();
+            }
+        }
+
+        private void BuyDomik(int playerId, int typeId)
+        {
+            using (var uow = GetUow())
+            {
+                var domikManager = GetDomikManager(uow);
+                domikManager.BuyDomik(playerId, typeId);
                 uow.Commit();
             }
         }

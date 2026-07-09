@@ -36,6 +36,11 @@ namespace Domiki.Web.Business.Core
 
         public ExpeditionState GetExpeditions(int playerId)
         {
+            if (!HasBuilding(playerId, "scout_hut"))
+            {
+                return null;
+            }
+
             _playerResourceManager.LockDbPlayerRow(playerId);
 
             var types = _resourceManager.GetExpeditionTypes();
@@ -62,6 +67,11 @@ namespace Domiki.Web.Business.Core
         {
             var date = DateTimeHelper.GetNowDate();
             _playerResourceManager.LockDbPlayerRow(playerId);
+
+            if (!HasBuilding(playerId, "scout_hut"))
+            {
+                throw new BusinessException("Нужна Сторожка");
+            }
 
             var type = _resourceManager.GetExpeditionTypes().FirstOrDefault(x => x.Id == expeditionTypeId);
             if (type == null)
@@ -222,6 +232,12 @@ namespace Domiki.Web.Business.Core
         public static int ScaleWeight(bool isRare, int weight, int luckPercent)
         {
             return isRare ? weight * (100 + luckPercent) / 100 : weight;
+        }
+
+        private bool HasBuilding(int playerId, string logicName)
+        {
+            var typeId = _resourceManager.GetDomikTypes().First(x => x.LogicName == logicName).Id;
+            return _context.Domiks.Any(x => x.PlayerId == playerId && x.TypeId == typeId && x.Level >= 1);
         }
     }
 }

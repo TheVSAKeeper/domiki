@@ -35,7 +35,13 @@ namespace Domiki.Web.Tests
 
             foreach (var type in types)
             {
-                var coinCost = type.Levels.Single(x => x.Value == level).Resources.Single(x => x.Type.Id == 1).Value;
+                var typeLevel = type.Levels.SingleOrDefault(x => x.Value == level);
+                if (typeLevel == null)
+                {
+                    continue;
+                }
+
+                var coinCost = typeLevel.Resources.Single(x => x.Type.Id == 1).Value;
                 Assert.That(coinCost, Is.EqualTo(expectedCoins), $"domik type {type.Id}");
             }
         }

@@ -16,8 +16,6 @@
     {
         public TolokaDto Active { get; set; }
         public int MyContribution { get; set; }
-        public bool CanContribute { get; set; }
-        public int UnlockLevel { get; set; }
         public bool BuffActive { get; set; }
         public DateTime? BuffUntil { get; set; }
         public int BuffPercent { get; set; }

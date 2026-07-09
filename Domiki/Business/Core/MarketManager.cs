@@ -7,7 +7,6 @@ namespace Domiki.Web.Business.Core
     {
         public const int MarketCommissionCoins = 10;
         public const int MarketLotDurationSeconds = 24 * 3600;
-        public const int MarketUnlockLevel = 20;
         public const int CoinResourceTypeId = 1;
 
         private readonly Data.UnitOfWork _uow;
@@ -15,32 +14,32 @@ namespace Domiki.Web.Business.Core
         private readonly ICalculator _calculator;
         private readonly ResourceManager _resourceManager;
         private readonly PlayerResourceManager _playerResourceManager;
-        private readonly VillageLevelCalculator _villageLevelCalculator;
 
-        public MarketManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, VillageLevelCalculator villageLevelCalculator)
+        public MarketManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager)
         {
             _uow = uow;
             _context = context;
             _calculator = calculator;
             _resourceManager = resourceManager;
             _playerResourceManager = playerResourceManager;
-            _villageLevelCalculator = villageLevelCalculator;
         }
 
         public MarketState GetMarket(int playerId)
         {
+            if (!HasBuilding(playerId, "market_yard"))
+            {
+                return null;
+            }
+
             var lots = _context.TradeLots.Include(x => x.Seller)
                 .OrderBy(x => x.ExpireDate)
                 .ThenBy(x => x.Id)
                 .ToArray();
-            var canTrade = _villageLevelCalculator.GetLevel(playerId).Level >= MarketUnlockLevel;
 
             return new MarketState
             {
                 Lots = lots.Where(x => x.SellerId != playerId).Select(ToModel).ToArray(),
                 MyLots = lots.Where(x => x.SellerId == playerId).Select(ToModel).ToArray(),
-                CanTrade = canTrade,
-                UnlockLevel = MarketUnlockLevel,
                 Commission = MarketCommissionCoins,
             };
         }
@@ -50,9 +49,9 @@ namespace Domiki.Web.Business.Core
             ValidateLot(giveResourceTypeId, giveValue, wantResourceTypeId, wantValue);
             _playerResourceManager.LockDbPlayerRow(playerId);
 
-            if (_villageLevelCalculator.GetLevel(playerId).Level < MarketUnlockLevel)
+            if (!HasBuilding(playerId, "market_yard"))
             {
-                throw new BusinessException($"Ярмарка откроется при обжитости {MarketUnlockLevel}");
+                throw new BusinessException("Нужен Торговый двор");
             }
 
             _playerResourceManager.WriteOffResources(playerId, new[]
@@ -117,9 +116,9 @@ namespace Domiki.Web.Business.Core
                 throw new BusinessException("Лот уже принят или истёк");
             }
 
-            if (_villageLevelCalculator.GetLevel(buyerId).Level < MarketUnlockLevel)
+            if (!HasBuilding(buyerId, "market_yard"))
             {
-                throw new BusinessException($"Ярмарка откроется при обжитости {MarketUnlockLevel}");
+                throw new BusinessException("Нужен Торговый двор");
             }
 
             if (date >= lot.ExpireDate)
@@ -210,6 +209,12 @@ namespace Domiki.Web.Business.Core
         {
             _context.Database.ExecuteSqlRaw(@"SELECT 1 FROM ""TradeLots"" WHERE ""Id"" = {0} FOR UPDATE", lotId);
             return _context.TradeLots.FirstOrDefault(x => x.Id == lotId);
+        }
+
+        private bool HasBuilding(int playerId, string logicName)
+        {
+            var typeId = _resourceManager.GetDomikTypes().First(x => x.LogicName == logicName).Id;
+            return _context.Domiks.Any(x => x.PlayerId == playerId && x.TypeId == typeId && x.Level >= 1);
         }
 
         private static TradeLot ToModel(Data.TradeLot lot)

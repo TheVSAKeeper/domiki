@@ -3,9 +3,12 @@ import BarracksSprite from '../assets/domikTypes/barracks.svg?react';
 import ClayMineSprite from '../assets/domikTypes/clay_mine.svg?react';
 import FairSprite from '../assets/domikTypes/fair.svg?react';
 import ForgeSprite from '../assets/domikTypes/forge.svg?react';
+import GatheringSprite from '../assets/domikTypes/gathering.svg?react';
 import GoldMineSprite from '../assets/domikTypes/gold_mine.svg?react';
 import LumberMillSprite from '../assets/domikTypes/lumber_mill.svg?react';
 import MarketSprite from '../assets/domikTypes/market.svg?react';
+import MarketYardSprite from '../assets/domikTypes/market_yard.svg?react';
+import ScoutHutSprite from '../assets/domikTypes/scout_hut.svg?react';
 import StoneMineSprite from '../assets/domikTypes/stone_mine.svg?react';
 import WorkshopSprite from '../assets/domikTypes/workshop.svg?react';
 import BridgeSprite from '../assets/tolokaTypes/bridge.svg?react';
@@ -19,9 +22,12 @@ const domikSprites: Record<string, SpriteComponent> = {
     clay_mine: ClayMineSprite,
     fair: FairSprite,
     forge: ForgeSprite,
+    gathering: GatheringSprite,
     gold_mine: GoldMineSprite,
     lumber_mill: LumberMillSprite,
     market: MarketSprite,
+    market_yard: MarketYardSprite,
+    scout_hut: ScoutHutSprite,
     stone_mine: StoneMineSprite,
     workshop: WorkshopSprite,
 };

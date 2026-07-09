@@ -10,8 +10,6 @@ namespace Domiki.Web.Models
             {
                 Active = state.Active.ToDto(),
                 MyContribution = state.MyContribution,
-                CanContribute = state.CanContribute,
-                UnlockLevel = state.UnlockLevel,
                 BuffActive = state.BuffActive,
                 BuffUntil = state.BuffUntil == null ? null : DateTime.SpecifyKind(state.BuffUntil.Value, DateTimeKind.Utc),
                 BuffPercent = state.BuffPercent,

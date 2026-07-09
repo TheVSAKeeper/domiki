@@ -10,8 +10,6 @@ namespace Domiki.Web.Models
             {
                 Lots = state.Lots.Select(x => x.ToDto()).ToArray(),
                 MyLots = state.MyLots.Select(x => x.ToDto()).ToArray(),
-                CanTrade = state.CanTrade,
-                UnlockLevel = state.UnlockLevel,
                 Commission = state.Commission,
             };
         }

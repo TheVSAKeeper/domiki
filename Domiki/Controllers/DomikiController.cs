@@ -67,10 +67,10 @@ namespace Domiki.Controllers
                 Workers = _workerManager.GetWorkers(playerId).Select(x => x.ToDto()).ToArray(),
                 PurchaseAvailableDomiks = _domikManager.GetPurchaseAvailableDomiks(playerId).Select(x => x.Type.ToDto(x.AvailableCount, blueprints.FirstOrDefault(b => b.DomikTypeId == x.Type.Id)?.Id)).ToArray(),
                 Weather = _weatherManager.GetWeather(DateTimeHelper.GetNowDate()).ToDto(),
-                Expeditions = _expeditionManager.GetExpeditions(playerId).ToDto(),
+                Expeditions = _expeditionManager.GetExpeditions(playerId)?.ToDto(),
                 Decor = _decorManager.GetDecor(playerId).ToDto(),
-                Toloka = _tolokaManager.GetToloka(DateTimeHelper.GetNowDate(), playerId).ToDto(),
-                Market = _marketManager.GetMarket(playerId).ToDto(),
+                Toloka = _tolokaManager.GetToloka(DateTimeHelper.GetNowDate(), playerId)?.ToDto(),
+                Market = _marketManager.GetMarket(playerId)?.ToDto(),
             };
             return new Response<GameStateDto>(content);
         }
@@ -320,7 +320,7 @@ namespace Domiki.Controllers
         {
             int playerId = GetPlayerId();
 
-            var content = _tolokaManager.GetToloka(DateTimeHelper.GetNowDate(), playerId).ToDto();
+            var content = _tolokaManager.GetToloka(DateTimeHelper.GetNowDate(), playerId)?.ToDto();
             return new Response<TolokaStateDto>(content);
         }
 
@@ -339,7 +339,7 @@ namespace Domiki.Controllers
         {
             int playerId = GetPlayerId();
 
-            var content = _marketManager.GetMarket(playerId).ToDto();
+            var content = _marketManager.GetMarket(playerId)?.ToDto();
             return new Response<MarketStateDto>(content);
         }
 
@@ -376,7 +376,7 @@ namespace Domiki.Controllers
         {
             int playerId = GetPlayerId();
 
-            var content = _expeditionManager.GetExpeditions(playerId).ToDto();
+            var content = _expeditionManager.GetExpeditions(playerId)?.ToDto();
             return new Response<ExpeditionStateDto>(content);
         }
 

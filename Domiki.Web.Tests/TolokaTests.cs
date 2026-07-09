@@ -15,6 +15,7 @@ namespace Domiki.Web.Tests
         private const int RainWeatherTypeId = 2;
         private const int ClearWeatherTypeId = 1;
         private const int FountainDecorTypeId = 4;
+        private const int GatheringDomikTypeId = 10;
 
         [SetUp]
         public void SetUp()
@@ -31,27 +32,36 @@ namespace Domiki.Web.Tests
         }
 
         [Test]
-        public void GetTolokaForNewPlayerReturnsActiveAndLockedTest()
+        public void GetTolokaForNewPlayerReturnsNullTest()
         {
             var playerId = GetPlayerId();
+
+            var toloka = GetToloka(playerId);
+
+            Assert.That(toloka, Is.Null);
+        }
+
+        [Test]
+        public void GetTolokaWithBuildingReturnsActiveTest()
+        {
+            var playerId = GetUnlockedPlayerId();
 
             var toloka = GetToloka(playerId);
 
             Assert.That(toloka.Active, Is.Not.Null);
             Assert.That(toloka.Active.TolokaType.LogicName, Is.EqualTo("bridge"));
             Assert.That(toloka.MyContribution, Is.EqualTo(0));
-            Assert.That(toloka.CanContribute, Is.False);
         }
 
         [Test]
-        public void ContributeBelowUnlockThrowsAndDoesNotChangeTolokaTest()
+        public void ContributeWithoutBuildingThrowsAndDoesNotChangeTolokaTest()
         {
             var playerId = GetPlayerId();
             GrantResource(playerId, StoneResourceTypeId, 100);
 
             var ex = Assert.Throws<BusinessException>(() => Contribute(playerId, 50));
 
-            Assert.That(ex.Message, Is.EqualTo($"Толока откроется при обжитости {TolokaManager.TolokaUnlockLevel}"));
+            Assert.That(ex.Message, Is.EqualTo("Нужна Сходня"));
             Assert.That(GetActiveToloka().Collected, Is.EqualTo(0));
             Assert.That(GetResources(playerId).Single(x => x.Type.Id == StoneResourceTypeId).Value, Is.EqualTo(100));
         }
@@ -117,7 +127,7 @@ namespace Domiki.Web.Tests
         [Test]
         public void StartManufactureAppliesTolokaBuffInsideWindowTest()
         {
-            var playerId = GetUnlockedPlayerId();
+            var playerId = GetPlayerId();
             CompleteTolokaWithContribution(playerId, DateTimeHelper.GetNowDate());
             BuyDomik(playerId, 2);
             BuyDomik(playerId, ClayMineDomikTypeId);
@@ -132,7 +142,7 @@ namespace Domiki.Web.Tests
         [Test]
         public void StartManufactureDoesNotApplyTolokaBuffOutsideWindowTest()
         {
-            var playerId = GetUnlockedPlayerId();
+            var playerId = GetPlayerId();
             CompleteTolokaWithContribution(playerId, DateTimeHelper.GetNowDate().AddHours(-9));
             BuyDomik(playerId, 2);
             BuyDomik(playerId, ClayMineDomikTypeId);
@@ -147,7 +157,7 @@ namespace Domiki.Web.Tests
         [Test]
         public void StartManufactureStacksTolokaBuffWithWeatherTest()
         {
-            var playerId = GetUnlockedPlayerId();
+            var playerId = GetPlayerId();
             CompleteTolokaWithContribution(playerId, DateTimeHelper.GetNowDate());
             BuyDomik(playerId, 2);
             BuyDomik(playerId, ClayMineDomikTypeId);
@@ -210,10 +220,11 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             GrantDecor(playerId, FountainDecorTypeId, 3);
+            BuyDomik(playerId, GatheringDomikTypeId);
             return playerId;
         }
 
-        private TolokaState GetToloka(int playerId)
+        private TolokaState? GetToloka(int playerId)
         {
             using (var uow = GetUow())
             {

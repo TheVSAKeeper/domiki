@@ -120,8 +120,8 @@ export const visitVillage = (playerId: number, signal?: AbortSignal): Promise<Vi
 export const getSeason = (signal?: AbortSignal): Promise<SeasonDto> =>
     apiGet('Domiki/GetSeason', seasonSchema, signal);
 
-export const getExpeditions = (signal?: AbortSignal): Promise<ExpeditionStateDto> =>
-    apiGet('Domiki/GetExpeditions', expeditionStateSchema, signal);
+export const getExpeditions = (signal?: AbortSignal): Promise<ExpeditionStateDto | null> =>
+    apiGet('Domiki/GetExpeditions', expeditionStateSchema.nullable(), signal);
 
 export const startExpedition = (expeditionTypeId: number, workerIds?: number[], signal?: AbortSignal): Promise<void> => {
     const query = (workerIds ?? []).map(id => `workerIds=${id}`).join('&');
@@ -134,14 +134,14 @@ export const getDecor = (signal?: AbortSignal): Promise<DecorStateDto> =>
 export const buyDecor = (decorTypeId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/BuyDecor/${decorTypeId}`, signal);
 
-export const getToloka = (signal?: AbortSignal): Promise<TolokaStateDto> =>
-    apiGet('Domiki/GetToloka', tolokaStateSchema, signal);
+export const getToloka = (signal?: AbortSignal): Promise<TolokaStateDto | null> =>
+    apiGet('Domiki/GetToloka', tolokaStateSchema.nullable(), signal);
 
 export const contributeToloka = (amount: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/ContributeToloka/${amount}`, signal);
 
-export const getMarket = (signal?: AbortSignal): Promise<MarketStateDto> =>
-    apiGet('Domiki/GetMarket', marketStateSchema, signal);
+export const getMarket = (signal?: AbortSignal): Promise<MarketStateDto | null> =>
+    apiGet('Domiki/GetMarket', marketStateSchema.nullable(), signal);
 
 export const postLot = (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/PostLot?giveResourceTypeId=${giveResourceTypeId}&giveValue=${giveValue}&wantResourceTypeId=${wantResourceTypeId}&wantValue=${wantValue}`, signal);
