@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import StoreIcon from 'pixelarticons/svg/store.svg?react';
@@ -15,6 +16,12 @@ import FireIcon from 'pixelarticons/svg/fire.svg?react';
 import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
 import EarthIcon from 'pixelarticons/svg/earth.svg?react';
+import ClipboardIcon from 'pixelarticons/svg/clipboard.svg?react';
+import NoteIcon from 'pixelarticons/svg/note.svg?react';
+import BackpackIcon from 'pixelarticons/svg/backpack.svg?react';
+import GardenIcon from 'pixelarticons/svg/tree.svg?react';
+import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
+import UsersIcon from 'pixelarticons/svg/users.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
@@ -38,6 +45,14 @@ const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
     drought: FireIcon,
 };
 
+interface GameTab {
+    key: string;
+    label: string;
+    Icon: typeof StoreIcon;
+    visible: boolean;
+    node: ReactNode;
+}
+
 export const DomikiPage = () => {
     const toast = useToast();
     const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, hurryDomik, startExpedition, buyDecor, contributeToloka, postLot, acceptLot, cancelLot } =
@@ -45,6 +60,7 @@ export const DomikiPage = () => {
 
     const [shopVisible, setShopVisible] = useState(false);
     const [selectedDomikId, setSelectedDomikId] = useState<number | null>(null);
+    const [activeTab, setActiveTab] = useState('');
     const [expandedReceiptId, setExpandedReceiptId] = useState<number | null>(null);
     const [optionalReceiptIds, setOptionalReceiptIds] = useState<ReadonlySet<number>>(new Set());
     const [manualReceiptIds, setManualReceiptIds] = useState<ReadonlySet<number>>(new Set());
@@ -211,6 +227,40 @@ export const DomikiPage = () => {
 
     const selectDomik = (id: number) => setSelectedDomikId(id);
 
+    const gameTabs: GameTab[] = [
+        {
+            key: 'orders', label: 'Заказы', Icon: ClipboardIcon, visible: true,
+            node: <OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes} resources={resources} now={now} onComplete={completeOrder} />,
+        },
+        {
+            key: 'blueprints', label: 'Чертежи', Icon: NoteIcon, visible: blueprints.length > 0,
+            node: <BlueprintsBox blueprints={blueprints} />,
+        },
+        {
+            key: 'expeditions', label: 'Экспедиции', Icon: BackpackIcon, visible: expeditions != null,
+            node: <ExpeditionsBox expeditions={expeditions} resourceTypes={resourceTypes} resources={resources} workers={workers} now={now} onStart={startExpeditionAction} />,
+        },
+        {
+            key: 'decor', label: 'Декор', Icon: GardenIcon, visible: decor != null,
+            node: <DecorBox decor={decor} resourceTypes={resourceTypes} resources={resources} onBuy={buyDecorAction} />,
+        },
+        {
+            key: 'toloka', label: 'Толока', Icon: BuildingCommunityIcon, visible: toloka != null,
+            node: <TolokaBox toloka={toloka} resourceTypes={resourceTypes} resources={resources} villageLevel={villageLevel} now={now} onContribute={contributeTolokaAction} />,
+        },
+        {
+            key: 'market', label: 'Ярмарка', Icon: StoreIcon, visible: market != null,
+            node: <MarketBox market={market} resourceTypes={resourceTypes} resources={resources} villageLevel={villageLevel} now={now}
+                onPost={postLotAction} onAccept={acceptLotAction} onCancel={cancelLotAction} />,
+        },
+        {
+            key: 'workers', label: 'Трудяги', Icon: UsersIcon, visible: true,
+            node: <WorkersBox workers={workers} domikTypes={domikTypes} now={now} />,
+        },
+    ];
+    const visibleGameTabs = gameTabs.filter(tab => tab.visible);
+    const activeGameTab = visibleGameTabs.find(tab => tab.key === activeTab) ?? visibleGameTabs[0];
+
     return (
         <div className="game">
             <header className="hud pixel-panel">
@@ -353,15 +403,6 @@ export const DomikiPage = () => {
                     </form>
                 </div>
             }
-            <OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes}
-                resources={resources} now={now} onComplete={completeOrder} />
-            <BlueprintsBox blueprints={blueprints} />
-            <ExpeditionsBox expeditions={expeditions} resourceTypes={resourceTypes} resources={resources} workers={workers} now={now} onStart={startExpeditionAction} />
-            <DecorBox decor={decor} resourceTypes={resourceTypes} resources={resources} onBuy={buyDecorAction} />
-            <TolokaBox toloka={toloka} resourceTypes={resourceTypes} resources={resources} villageLevel={villageLevel} now={now} onContribute={contributeTolokaAction} />
-            <MarketBox market={market} resourceTypes={resourceTypes} resources={resources} villageLevel={villageLevel} now={now}
-                onPost={postLotAction} onAccept={acceptLotAction} onCancel={cancelLotAction} />
-            <WorkersBox workers={workers} domikTypes={domikTypes} now={now} />
             <div className="village-header">
                 <div className="village-identity">
                     <span className="crest-badge" style={{ backgroundColor: villageColor }}>
@@ -467,7 +508,10 @@ export const DomikiPage = () => {
                         }
                     </div>
                 </section>
-                <aside className="actions pixel-panel">
+                <aside className={'actions pixel-panel' + (selected == null ? ' actions--empty' : '')}>
+                    <button type="button" className="actions-close" title="Закрыть" onClick={() => setSelectedDomikId(null)}>
+                        <CloseIcon className="btn-ico" aria-hidden="true" />
+                    </button>
                     {selected == null &&
                         <p className="hint">Выберите домик в деревне – здесь появятся улучшение и производство.</p>
                     }
@@ -655,6 +699,17 @@ export const DomikiPage = () => {
                     }
                 </aside>
             </div>
+            <div className="game-tabs">
+                {visibleGameTabs.map(tab => (
+                    <button type="button" key={tab.key}
+                        className={'game-tab' + (tab.key === activeGameTab?.key ? ' game-tab-active' : '')}
+                        onClick={() => { setActiveTab(tab.key); }}>
+                        <tab.Icon className="game-tab-ico" aria-hidden="true" />
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
+            {activeGameTab?.node}
         </div>
     );
 };

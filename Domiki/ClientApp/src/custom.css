@@ -488,6 +488,42 @@ code {
     padding-bottom: 40px;
 }
 
+.game-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin-top: 20px;
+    padding-bottom: 8px;
+    overflow-x: auto;
+}
+
+.game-tab {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 6px 14px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+.game-tab-active {
+    color: var(--plank);
+    background: var(--pine);
+}
+
+.game-tab-ico {
+    width: 20px;
+    height: 20px;
+}
+
 .village {
     flex: 1 1 auto;
     min-width: 0;
@@ -661,6 +697,27 @@ code {
     padding: 18px;
     box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
+
+.actions-close {
+    display: none;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    color: var(--ink);
+    background: var(--plank-dark);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+    .actions-close:hover {
+        background: var(--coin);
+    }
 
 .panel-title {
     font-family: var(--pixel);
@@ -1050,9 +1107,35 @@ progress {
     }
 
     .actions {
-        position: static;
-        flex-basis: auto;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
         width: 100%;
+        max-height: 65vh;
+        overflow-y: auto;
+        z-index: 900;
+        border-top: 3px solid var(--ink);
+        box-shadow: 0 -6px 0 var(--plank-dark);
+        animation: sheet-up .2s steps(3, end);
+    }
+
+    .actions--empty {
+        display: none;
+    }
+
+    .actions-close {
+        display: inline-flex;
+    }
+}
+
+@keyframes sheet-up {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
     }
 }
 
@@ -1068,7 +1151,8 @@ progress {
         }
 
     .icon-busy,
-    .village-strip img {
+    .village-strip img,
+    .actions {
         animation: none;
     }
 }
