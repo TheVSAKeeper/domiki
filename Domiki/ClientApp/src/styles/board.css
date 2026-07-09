@@ -1,0 +1,345 @@
+.workspace {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    padding-bottom: 40px;
+}
+
+.game-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin-top: 20px;
+    padding-bottom: 8px;
+    overflow-x: auto;
+}
+
+.game-tab {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 6px 14px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+.game-tab-active {
+    color: var(--plank);
+    background: var(--pine);
+}
+
+.game-tab-ico {
+    width: 20px;
+    height: 20px;
+}
+
+.village {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.village-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.section-title {
+    font-family: var(--pixel);
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0;
+    padding: 9px 12px 7px;
+    color: var(--plank);
+    background: var(--pine);
+    clip-path: var(--cut);
+}
+
+.domiks {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
+    gap: 16px;
+}
+
+.purchase-box {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 14px;
+    border: 3px dashed var(--ink);
+    background: rgba(251, 243, 223, .45);
+}
+
+.plot {
+    position: relative;
+    padding: 12px 8px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font: inherit;
+    color: inherit;
+    text-align: center;
+    background: var(--plank);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -8px 0 var(--grass-dark), inset 0 -16px 0 var(--grass);
+    cursor: pointer;
+    transition: transform .15s steps(2, end);
+}
+
+    .plot:hover {
+        transform: translateY(-4px);
+    }
+
+    .plot:focus-visible {
+        outline: none;
+        border-color: var(--coin);
+    }
+
+.plot-selected {
+    border-color: var(--coin);
+    background: #fff7e0;
+}
+
+.plot-weather {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-family: var(--pixel);
+    font-size: 10px;
+    padding: 2px 5px 1px;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    line-height: 1;
+    z-index: 1;
+}
+
+.plot-locked {
+    filter: grayscale(.75);
+    opacity: .72;
+}
+
+.plot-shop {
+    width: 136px;
+}
+
+    .plot-shop,
+    .plot-shop:hover {
+        cursor: default;
+        transform: none;
+    }
+
+.plot-sprite {
+    width: 96px;
+    height: 96px;
+    image-rendering: pixelated;
+}
+
+.plot-name {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.plot-status {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    min-height: 22px;
+    font-size: 12px;
+    line-height: 1.25;
+}
+
+.status-icon {
+    width: 22px;
+    height: 22px;
+    image-rendering: pixelated;
+}
+
+.icon-busy {
+    animation: bump 1s steps(2, end) infinite;
+}
+
+@keyframes bump {
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+.upgrade-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    margin-top: auto;
+}
+
+.plot-shop .btn-game {
+    margin-top: auto;
+}
+
+.domik-level {
+    font-family: var(--pixel);
+    font-size: 11px;
+    padding: 4px 7px 3px;
+    color: var(--plank);
+    background: var(--pine);
+    font-variant-numeric: tabular-nums;
+}
+
+.timer {
+    font-family: var(--pixel);
+    font-size: 11px;
+    color: var(--roof);
+    font-variant-numeric: tabular-nums;
+}
+
+.actions {
+    flex: 0 0 320px;
+    position: sticky;
+    top: 76px;
+    padding: 18px;
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.actions-close {
+    display: none;
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    color: var(--ink);
+    background: var(--plank-dark);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+    .actions-close:hover {
+        background: var(--coin);
+    }
+
+.panel-title {
+    font-family: var(--pixel);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.5;
+    margin: 0 0 10px;
+}
+
+.panel-block {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 3px dotted rgba(51, 41, 26, .3);
+}
+
+    .panel-block .resources {
+        margin-bottom: 10px;
+    }
+
+.panel-label {
+    display: block;
+    font-family: var(--pixel);
+    font-size: 11px;
+    color: var(--ink);
+    margin-bottom: 10px;
+}
+
+.upgrade-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin-bottom: 12px;
+}
+
+    .upgrade-row .panel-label,
+    .upgrade-row .resources {
+        margin-bottom: 0;
+    }
+
+.hint {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgba(51, 41, 26, .75);
+}
+
+.note-warn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--roof);
+}
+
+    .note-warn img {
+        width: 20px;
+        height: 20px;
+        image-rendering: pixelated;
+    }
+
+.village-header-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.btn-game {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    padding: 8px 16px;
+    color: #fff;
+    background: var(--pine);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform .15s steps(2, end), background-color .15s;
+}
+
+    .btn-game:hover:not(:disabled) {
+        background: var(--pine-dark);
+        transform: translateY(-2px);
+    }
+
+    .btn-game:active:not(:disabled) {
+        transform: translateY(1px);
+    }
+
+    .btn-game:focus-visible {
+        outline: none;
+        border-color: var(--coin);
+    }
+
+    .btn-game:disabled {
+        background: #97927e;
+        cursor: not-allowed;
+    }
+

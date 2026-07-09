@@ -1,0 +1,314 @@
+.hud {
+    position: sticky;
+    top: 8px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    padding: 10px 18px;
+    margin-bottom: 24px;
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.hud-plodder {
+    margin-left: auto;
+}
+
+.village-level-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 9px;
+    color: var(--ink);
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+.village-level-label {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.village-level-value {
+    font-family: var(--pixel);
+    font-size: 11px;
+    padding-top: 3px;
+    font-weight: 600;
+    color: var(--pine);
+    font-variant-numeric: tabular-nums;
+}
+
+.village-level-popover {
+    position: fixed;
+    z-index: 120;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    width: max-content;
+    max-width: 240px;
+    padding: 9px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+    background: var(--plank);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.village-level-next {
+    margin-top: 4px;
+    color: var(--pine);
+}
+
+.weather-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.weather-ico {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.weather-name {
+    font-family: var(--pixel);
+    font-size: 11px;
+    padding-top: 3px;
+    font-weight: 600;
+}
+
+.weather-forecast {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.weather-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    opacity: .7;
+}
+
+.weather-chip-ico {
+    width: 16px;
+    height: 16px;
+}
+
+.weather-modifier {
+    margin: 0;
+    font-size: 12px;
+    color: var(--coin);
+}
+
+.weather-effects {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.weather-effect {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--pixel);
+    font-size: 11px;
+    padding: 2px 6px 1px;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    line-height: 1.2;
+}
+
+.weather-effect-ico {
+    width: 16px;
+    height: 16px;
+    image-rendering: pixelated;
+}
+
+.weather-effect-buff,
+.plot-weather-buff {
+    background: #d7e6c4;
+    border-color: var(--pine-dark);
+    color: var(--pine-dark);
+}
+
+.weather-effect-nerf,
+.plot-weather-nerf {
+    background: #f3d3c6;
+    border-color: var(--roof);
+    color: #8f3a1e;
+}
+
+.village-identity {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 220px;
+}
+
+.crest-badge {
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.crest-ico {
+    width: 22px;
+    height: 22px;
+}
+
+.village-name {
+    overflow: hidden;
+    max-width: 260px;
+    font-family: var(--pixel);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+}
+
+.identity-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 auto;
+    padding: 0;
+    color: var(--ink);
+    background: var(--plank-dark);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+    .identity-button:hover {
+        background: var(--coin);
+    }
+
+    .identity-button:focus-visible {
+        outline: none;
+        border-color: var(--pine);
+    }
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(51, 41, 26, .42);
+}
+
+.identity-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: min(460px, 100%);
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    padding: 18px;
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.identity-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.identity-modal-head .panel-title {
+    margin: 0;
+}
+
+.identity-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.identity-field input {
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 10px;
+    font: inherit;
+    color: var(--ink);
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+    .identity-field input:focus-visible {
+        outline: none;
+        border-color: var(--coin);
+    }
+
+.crest-options,
+.color-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.crest-option,
+.color-option {
+    display: inline-grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+.crest-option-selected,
+.color-option-selected {
+    border-color: var(--coin);
+    box-shadow: inset 0 0 0 3px var(--plank);
+}
+
+.resources {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 16px;
+}
+
+.resource-box {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+    .resource-box img {
+        width: 26px;
+        height: 26px;
+        image-rendering: pixelated;
+    }
+
+.resource-value {
+    font-family: var(--pixel);
+    font-size: 11px;
+    padding-top: 3px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
