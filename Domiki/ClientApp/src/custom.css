@@ -10,7 +10,7 @@
     --pine-dark: #345126;
     --coin: #e7a83b;
     --roof: #c25b33;
-    --pixel: 'Pixelify Sans', monospace;
+    --pixel: 'Press Start 2P', monospace;
     --px: 5px;
     --cut: polygon(0 var(--px), var(--px) var(--px), var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px), 100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%, var(--px) 100%, var(--px) calc(100% - var(--px)), 0 calc(100% - var(--px)));
 }
