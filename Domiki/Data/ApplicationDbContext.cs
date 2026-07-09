@@ -55,6 +55,7 @@ namespace Domiki.Web.Data
         public DbSet<TolokaContribution> TolokaContributions { get; set; }
         public DbSet<TradeLot> TradeLots { get; set; }
         public DbSet<SeasonCounter> SeasonCounters { get; set; }
+        public DbSet<PlayerEvent> PlayerEvents { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -86,6 +87,9 @@ namespace Domiki.Web.Data
             modelBuilder.Entity<Player>()
                 .Navigation(e => e.Resources)
                 .UsePropertyAccessMode(PropertyAccessMode.Property);
+
+            modelBuilder.Entity<PlayerEvent>()
+                .HasIndex(p => new { p.PlayerId, p.Date });
 
             modelBuilder.Entity<Trait>().HasData(
                 new Trait { Id = 1, Name = "Обычный", LogicName = "ordinary", DurationPercent = 0, NoFatigue = false, LuckWeightPercent = 0 },

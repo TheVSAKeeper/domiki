@@ -338,6 +338,22 @@ export const marketStateSchema = z.object({
 });
 export type MarketStateDto = z.infer<typeof marketStateSchema>;
 
+export const recapEventSchema = z.object({
+    type: z.string(),
+    date: z.string(),
+    data: z.unknown(),
+});
+export type RecapEventDto = z.infer<typeof recapEventSchema>;
+
+export const recapSchema = z.object({
+    awaySeconds: z.number(),
+    events: z.array(z.unknown()).transform(events => events.flatMap(event => {
+        const parsed = recapEventSchema.safeParse(event);
+        return parsed.success ? [parsed.data] : [];
+    })),
+});
+export type RecapDto = z.infer<typeof recapSchema>;
+
 export const gameStateSchema = z.object({
     domikTypes: domikTypeSchema.array(),
     resourceTypes: resourceTypeSchema.array(),
@@ -356,6 +372,7 @@ export const gameStateSchema = z.object({
     decor: decorStateSchema,
     toloka: tolokaStateSchema.nullable(),
     market: marketStateSchema.nullable(),
+    recap: recapSchema.nullish(),
 });
 export type GameStateDto = z.infer<typeof gameStateSchema>;
 

@@ -104,6 +104,7 @@ builder.Services.AddScoped<MarketManager>();
 builder.Services.AddScoped<WorldManager>();
 builder.Services.AddScoped<SeasonManager>();
 builder.Services.AddScoped<VillageLevelCalculator>();
+builder.Services.AddScoped<PlayerEventManager>();
 builder.Services.AddSingleton<ICalculator, Calculator>();
 builder.Services.AddScoped<CalculatorTick>();
 builder.Services.AddHostedService<CalculatorBackgroundService>();

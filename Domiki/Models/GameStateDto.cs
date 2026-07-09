@@ -19,5 +19,6 @@
         public DecorStateDto Decor { get; set; }
         public TolokaStateDto Toloka { get; set; }
         public MarketStateDto Market { get; set; }
+        public RecapDto Recap { get; set; }
     }
 }

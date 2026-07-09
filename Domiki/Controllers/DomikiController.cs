@@ -26,8 +26,9 @@ namespace Domiki.Controllers
         private readonly MarketManager _marketManager;
         private readonly WorldManager _worldManager;
         private readonly SeasonManager _seasonManager;
+        private readonly PlayerEventManager _playerEventManager;
 
-        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, WorldManager worldManager, SeasonManager seasonManager)
+        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, WorldManager worldManager, SeasonManager seasonManager, PlayerEventManager playerEventManager)
         {
             _logger = logger;
             _domikManager = domikManager;
@@ -43,6 +44,7 @@ namespace Domiki.Controllers
             _marketManager = marketManager;
             _worldManager = worldManager;
             _seasonManager = seasonManager;
+            _playerEventManager = playerEventManager;
         }
 
         [HttpGet]
@@ -71,6 +73,7 @@ namespace Domiki.Controllers
                 Decor = _decorManager.GetDecor(playerId).ToDto(),
                 Toloka = _tolokaManager.GetToloka(DateTimeHelper.GetNowDate(), playerId)?.ToDto(),
                 Market = _marketManager.GetMarket(playerId)?.ToDto(),
+                Recap = _playerEventManager.TakeRecap(playerId, DateTimeHelper.GetNowDate()).ToDto(),
             };
             return new Response<GameStateDto>(content);
         }

@@ -16,6 +16,7 @@ import {
     type ReceiptDto,
     type ResourceDto,
     type ResourceTypeDto,
+    type RecapDto,
     type TolokaStateDto,
     type VillageDto,
     type VillageLevelDto,
@@ -54,6 +55,8 @@ export interface GameData {
     postLot: (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => Promise<void>;
     acceptLot: (lotId: number) => Promise<void>;
     cancelLot: (lotId: number) => Promise<void>;
+    recap: RecapDto | null;
+    clearRecap: () => void;
 }
 
 export function useGameData(): GameData {
@@ -76,6 +79,7 @@ export function useGameData(): GameData {
     const [market, setMarket] = useState<MarketStateDto | null>(null);
     const [workers, setWorkers] = useState<WorkerDto[]>([]);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
+    const [recap, setRecap] = useState<RecapDto | null>(null);
     const [now, setNow] = useState(() => Date.now());
 
     const refetching = useRef(false);
@@ -138,6 +142,9 @@ export function useGameData(): GameData {
         setDecor(state.decor);
         setToloka(state.toloka);
         setMarket(state.market);
+        if (state.recap != null && state.recap.events.length > 0) {
+            setRecap(state.recap);
+        }
     }, [toast]);
 
     const refreshPurchaseTypes = useCallback(async () => {
@@ -198,6 +205,8 @@ export function useGameData(): GameData {
         await refreshMarketAndResources();
     }, [refreshMarketAndResources]);
 
+    const clearRecap = useCallback(() => setRecap(null), []);
+
     const buyDecor = useCallback(async (decorTypeId: number) => {
         await buyDecorApi(decorTypeId);
         const [nextDecor, nextResources, nextVillageLevel] = await Promise.all([
@@ -239,6 +248,9 @@ export function useGameData(): GameData {
                 setDecor(state.decor);
                 setToloka(state.toloka);
                 setMarket(state.market);
+                if (state.recap != null && state.recap.events.length > 0) {
+                    setRecap(state.recap);
+                }
             } catch (err) {
                 if (err instanceof DOMException && err.name === 'AbortError') {
                     return;
@@ -353,5 +365,7 @@ export function useGameData(): GameData {
         postLot,
         acceptLot,
         cancelLot,
+        recap,
+        clearRecap,
     };
 }

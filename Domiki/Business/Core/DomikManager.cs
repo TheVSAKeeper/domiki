@@ -47,8 +47,9 @@ namespace Domiki.Web.Business.Core
         private VillageLevelCalculator _villageLevelCalculator;
         private BlueprintManager _blueprintManager;
         private TolokaManager _tolokaManager;
+        private PlayerEventManager _playerEventManager;
 
-        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, TolokaManager tolokaManager)
+        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, TolokaManager tolokaManager, PlayerEventManager playerEventManager)
         {
             _context = context;
             _calculator = calculator;
@@ -60,6 +61,7 @@ namespace Domiki.Web.Business.Core
             _villageLevelCalculator = villageLevelCalculator;
             _blueprintManager = blueprintManager;
             _tolokaManager = tolokaManager;
+            _playerEventManager = playerEventManager;
         }
 
         public int GetPlayerId(string aspNetUserId)
@@ -262,6 +264,7 @@ namespace Domiki.Web.Business.Core
                     dbDomik.UpgradeCalculateDate = null;
                     dbDomik.UpgradeSeconds = null;
                     dbDomik.Level++;
+                    _playerEventManager.Record(calcInfo.PlayerId, Data.PlayerEventType.DomikUpgraded, new { domikTypeId = dbDomik.TypeId, level = dbDomik.Level });
 
                     return true;
                 }
@@ -439,10 +442,12 @@ namespace Domiki.Web.Business.Core
             if (date >= dbManufacture.FinishDate)
             {
                 var recept = _resourceManager.GetReceipts().First(x => x.Id == dbManufacture.ReceiptId);
+                var produced = new List<object>();
                 foreach (var resource in recept.OutputResources)
                 {
                     var granted = Math.Max(1, (int)Math.Round(resource.Value * dbManufacture.OutputPercent / 100.0));
                     _playerResourceManager.GrantResource(calcInfo.PlayerId, resource.Type.Id, granted);
+                    produced.Add(new { resourceTypeId = resource.Type.Id, value = granted });
                 }
                 var dbDomik = _context.Domiks.Single(x => x.PlayerId == calcInfo.PlayerId && x.Id == dbManufacture.DomikId);
                 var comfort = DecorCalculator.GetComfort(
@@ -466,6 +471,7 @@ namespace Domiki.Web.Business.Core
                     worker.ManufactureId = null;
                 }
                 _context.Manufactures.Remove(dbManufacture);
+                _playerEventManager.Record(calcInfo.PlayerId, Data.PlayerEventType.ManufactureFinished, new { domikTypeId = dbDomik.TypeId, resources = produced });
                 return true;
             }
             return false;

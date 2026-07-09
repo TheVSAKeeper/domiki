@@ -23,6 +23,8 @@ namespace Domiki.Web.Data
 
         public int ExpeditionsSincePity { get; set; }
 
+        public DateTime? LastSeen { get; set; }
+
         [MaxLength(450)]
         [Required(AllowEmptyStrings = false)]
         public string AspNetUserId { get; set; }

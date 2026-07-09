@@ -15,6 +15,7 @@ namespace Domiki.Web.Business.Core
         private PlayerResourceManager _playerResourceManager;
         private WorkerManager _workerManager;
         private SeasonManager _seasonManager;
+        private PlayerEventManager _playerEventManager;
 
         public ExpeditionManager(
             Data.UnitOfWork uow,
@@ -23,7 +24,8 @@ namespace Domiki.Web.Business.Core
             ResourceManager resourceManager,
             PlayerResourceManager playerResourceManager,
             WorkerManager workerManager,
-            SeasonManager seasonManager)
+            SeasonManager seasonManager,
+            PlayerEventManager playerEventManager)
         {
             _uow = uow;
             _context = context;
@@ -32,6 +34,7 @@ namespace Domiki.Web.Business.Core
             _playerResourceManager = playerResourceManager;
             _workerManager = workerManager;
             _seasonManager = seasonManager;
+            _playerEventManager = playerEventManager;
         }
 
         public ExpeditionState GetExpeditions(int playerId)
@@ -179,6 +182,7 @@ namespace Domiki.Web.Business.Core
 
             var forced = dbPlayer.ExpeditionsSincePity >= ExpeditionPityThreshold;
             var gotRare = false;
+            var loot = new List<object>();
             for (var roll = 0; roll < type.RollCount; roll++)
             {
                 var pool = forced && !gotRare ? type.Loot.Where(x => x.IsRare).ToArray() : type.Loot;
@@ -195,9 +199,11 @@ namespace Domiki.Web.Business.Core
 
                 var value = Random.Shared.Next(entry.MinValue, entry.MaxValue + 1);
                 _playerResourceManager.GrantResource(calcInfo.PlayerId, entry.ResourceTypeId, value);
+                loot.Add(new { resourceTypeId = entry.ResourceTypeId, value, isRare = entry.IsRare });
             }
 
             dbPlayer.ExpeditionsSincePity = gotRare ? 0 : dbPlayer.ExpeditionsSincePity + 1;
+            _playerEventManager.Record(calcInfo.PlayerId, Data.PlayerEventType.ExpeditionReturned, new { expeditionTypeId = dbExpedition.ExpeditionTypeId, loot });
             _seasonManager.IncrementCounter(calcInfo.PlayerId, SeasonMetric.Expeditions, 1, date);
 
             foreach (var worker in assignedWorkers)

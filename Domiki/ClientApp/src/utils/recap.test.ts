@@ -1,0 +1,28 @@
+import { describe, expect, it } from 'vitest';
+import type { RecapEventDto } from '../types/api';
+import { buildRecapView } from './recap';
+
+const events: RecapEventDto[] = [
+    { type: 'ManufactureFinished', date: '2026-07-10T00:00:00Z', data: { resources: [{ resourceTypeId: 2, value: 3 }, { resourceTypeId: 3, value: 1 }] } },
+    { type: 'ManufactureFinished', date: '2026-07-10T00:01:00Z', data: { resources: [{ resourceTypeId: 2, value: 7 }] } },
+    { type: 'LotSold', date: '2026-07-10T00:02:00Z', data: { giveResourceTypeId: 4, giveValue: 20, wantResourceTypeId: 5, wantValue: 3 } },
+    { type: 'LotExpired', date: '2026-07-10T00:03:00Z', data: { giveResourceTypeId: 6, giveValue: 8 } },
+    { type: 'ManufactureFinished', date: '2026-07-10T00:04:00Z', data: { resources: [{ resourceTypeId: 'bad', value: 10 }] } },
+];
+
+describe('buildRecapView', () => {
+    it('aggregates only valid manufacture output by resource', () => {
+        const recap = buildRecapView(events);
+
+        expect(recap.produced).toEqual([{ typeId: 2, value: 10 }, { typeId: 3, value: 1 }]);
+    });
+
+    it.each([
+        ['sold', { kind: 'sold', give: { typeId: 4, value: 20 }, want: { typeId: 5, value: 3 } }],
+        ['expired', { kind: 'expired', give: { typeId: 6, value: 8 } }],
+    ] as const)('keeps %s market event distinct', (_kind, expected) => {
+        const recap = buildRecapView(events);
+
+        expect(recap.market).toContainEqual(expected);
+    });
+});

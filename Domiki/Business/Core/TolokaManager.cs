@@ -12,13 +12,15 @@ namespace Domiki.Web.Business.Core
         private readonly ResourceManager _resourceManager;
         private readonly PlayerResourceManager _playerResourceManager;
         private readonly SeasonManager _seasonManager;
+        private readonly PlayerEventManager _playerEventManager;
 
-        public TolokaManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, SeasonManager seasonManager)
+        public TolokaManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, SeasonManager seasonManager, PlayerEventManager playerEventManager)
         {
             _context = context;
             _resourceManager = resourceManager;
             _playerResourceManager = playerResourceManager;
             _seasonManager = seasonManager;
+            _playerEventManager = playerEventManager;
         }
 
         public TolokaState GetToloka(DateTime date, int playerId)
@@ -88,6 +90,10 @@ namespace Domiki.Web.Business.Core
             if (dbToloka.Collected >= tolokaType.Goal)
             {
                 dbToloka.CompletedDate = date;
+                foreach (var contributor in _context.TolokaContributions.Where(x => x.TolokaId == dbToloka.Id).Select(x => x.PlayerId).ToArray())
+                {
+                    _playerEventManager.Record(contributor, Data.PlayerEventType.TolokaCompleted, new { tolokaTypeId = dbToloka.TolokaTypeId });
+                }
                 _context.SaveChanges();
                 _context.Tolokas.Add(new Data.Toloka
                 {

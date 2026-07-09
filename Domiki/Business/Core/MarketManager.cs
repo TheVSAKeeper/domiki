@@ -17,14 +17,16 @@ namespace Domiki.Web.Business.Core
         private readonly ICalculator _calculator;
         private readonly ResourceManager _resourceManager;
         private readonly PlayerResourceManager _playerResourceManager;
+        private readonly PlayerEventManager _playerEventManager;
 
-        public MarketManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager)
+        public MarketManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, PlayerEventManager playerEventManager)
         {
             _uow = uow;
             _context = context;
             _calculator = calculator;
             _resourceManager = resourceManager;
             _playerResourceManager = playerResourceManager;
+            _playerEventManager = playerEventManager;
         }
 
         public MarketState GetMarket(int playerId)
@@ -150,6 +152,7 @@ namespace Domiki.Web.Business.Core
             });
             _playerResourceManager.GrantResource(buyerId, lot.GiveResourceTypeId, lot.GiveValue);
             _playerResourceManager.GrantResource(lot.SellerId, lot.WantResourceTypeId, lot.WantValue);
+            _playerEventManager.Record(lot.SellerId, Data.PlayerEventType.LotSold, new { giveResourceTypeId = lot.GiveResourceTypeId, giveValue = lot.GiveValue, wantResourceTypeId = lot.WantResourceTypeId, wantValue = lot.WantValue });
 
             _context.TradeLots.Remove(lot);
             _context.SaveChanges();
@@ -196,6 +199,7 @@ namespace Domiki.Web.Business.Core
             if (date >= lot.ExpireDate)
             {
                 _playerResourceManager.GrantResource(calcInfo.PlayerId, lot.GiveResourceTypeId, lot.GiveValue);
+                _playerEventManager.Record(calcInfo.PlayerId, Data.PlayerEventType.LotExpired, new { giveResourceTypeId = lot.GiveResourceTypeId, giveValue = lot.GiveValue });
                 _context.TradeLots.Remove(lot);
                 _context.SaveChanges();
                 return true;

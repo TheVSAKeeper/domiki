@@ -41,6 +41,35 @@
     font-variant-numeric: tabular-nums;
 }
 
+.hud-goal {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 220px;
+    min-width: 180px;
+    max-width: 360px;
+}
+
+.hud-goal-ico {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.hud-goal-label {
+    max-width: 150px;
+    overflow: hidden;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.hud-goal .progress-bar {
+    flex: 1 1 90px;
+    width: auto;
+}
+
 .village-level-popover {
     position: fixed;
     z-index: 120;
@@ -62,7 +91,6 @@
 
 .village-level-next {
     margin-top: 4px;
-    color: var(--pine);
 }
 
 .weather-strip {
@@ -237,6 +265,75 @@
     margin: 0;
 }
 
+.recap-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: min(620px, 100%);
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    padding: 18px;
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.recap-modal-head,
+.recap-row,
+.recap-chips {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.recap-modal-head {
+    justify-content: space-between;
+}
+
+.recap-modal-head .panel-title {
+    margin: 0;
+}
+
+.recap-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 2px solid rgba(51, 41, 26, .22);
+}
+
+.recap-row,
+.recap-chips {
+    flex-wrap: wrap;
+}
+
+.recap-line,
+.recap-fallback,
+.recap-arrow {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.recap-row-ico {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+}
+
+.recap-domik-sprite {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+}
+
+@media (max-width: 520px) {
+    .recap-modal {
+        padding: 14px;
+    }
+
+    .recap-modal-head .panel-title {
+        font-size: 17px;
+    }
+}
+
 .identity-field {
     display: flex;
     flex-direction: column;
@@ -311,4 +408,3 @@
     font-weight: 600;
     font-variant-numeric: tabular-nums;
 }
-
