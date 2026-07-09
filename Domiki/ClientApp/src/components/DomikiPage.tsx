@@ -134,9 +134,12 @@ export const DomikiPage = () => {
         setIdentityOpen(false);
     };
 
-    const runAction = async (action: () => Promise<void>) => {
+    const runAction = async (action: () => Promise<void>, successMessage?: string) => {
         try {
             await action();
+            if (successMessage != null) {
+                toast.success(successMessage);
+            }
         } catch (err) {
             if (err instanceof ApiError) {
                 toast.error(err.message);
@@ -146,23 +149,26 @@ export const DomikiPage = () => {
         }
     };
 
-    const buy = (typeId: number) => runAction(async () => {
-        await apiPost(`Domiki/BuyDomik/${typeId}`);
-        await reload();
-        await refreshPurchaseTypes();
-    });
+    const buy = (typeId: number) => {
+        const domikType = domikTypes.find(type => type.id === typeId);
+        return runAction(async () => {
+            await apiPost(`Domiki/BuyDomik/${typeId}`);
+            await reload();
+            await refreshPurchaseTypes();
+        }, domikType == null ? 'Домик построен' : `«${domikType.name}» построен`);
+    };
 
     const upgrade = (id: number) => runAction(async () => {
         await apiPost(`Domiki/UpgradeDomik/${id}`);
         await reload();
-    });
+    }, 'Улучшение запущено');
 
     const startManufacture = (domikId: number, receiptId: number, useOptional: boolean, workerIds?: number[]) => runAction(async () => {
         const workerIdsQuery = (workerIds ?? []).map(id => `&workerIds=${id}`).join('');
         await apiPost(`Domiki/StartManufacture/${domikId}/${receiptId}?useOptional=${String(useOptional)}${workerIdsQuery}`);
         setSelectedWorkerIdsByReceipt(prev => ({ ...prev, [receiptId]: [] }));
         await reload();
-    });
+    }, 'Производство запущено');
 
     const completeOrder = (orderId: number) => runAction(async () => {
         await completeOrderApi(orderId);
@@ -170,24 +176,24 @@ export const DomikiPage = () => {
         if (shopVisible) {
             await refreshPurchaseTypes();
         }
-    });
+    }, 'Заказ выполнен');
 
-    const hurryManufactureAction = (manufactureId: number) => runAction(() => hurryManufacture(manufactureId));
+    const hurryManufactureAction = (manufactureId: number) => runAction(() => hurryManufacture(manufactureId), 'Производство ускорено');
 
-    const hurryDomikAction = (domikId: number) => runAction(() => hurryDomik(domikId));
+    const hurryDomikAction = (domikId: number) => runAction(() => hurryDomik(domikId), 'Улучшение ускорено');
 
-    const startExpeditionAction = (expeditionTypeId: number, workerIds?: number[]) => runAction(() => startExpedition(expeditionTypeId, workerIds));
+    const startExpeditionAction = (expeditionTypeId: number, workerIds?: number[]) => runAction(() => startExpedition(expeditionTypeId, workerIds), 'Экспедиция отправлена');
 
-    const buyDecorAction = (decorTypeId: number) => runAction(() => buyDecor(decorTypeId));
+    const buyDecorAction = (decorTypeId: number) => runAction(() => buyDecor(decorTypeId), 'Декор куплен');
 
-    const contributeTolokaAction = (amount: number) => runAction(() => contributeToloka(amount));
+    const contributeTolokaAction = (amount: number) => runAction(() => contributeToloka(amount), 'Вклад принят');
 
     const postLotAction = (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) =>
-        runAction(() => postLot(giveResourceTypeId, giveValue, wantResourceTypeId, wantValue));
+        runAction(() => postLot(giveResourceTypeId, giveValue, wantResourceTypeId, wantValue), 'Лот выставлен');
 
-    const acceptLotAction = (lotId: number) => runAction(() => acceptLot(lotId));
+    const acceptLotAction = (lotId: number) => runAction(() => acceptLot(lotId), 'Сделка совершена');
 
-    const cancelLotAction = (lotId: number) => runAction(() => cancelLot(lotId));
+    const cancelLotAction = (lotId: number) => runAction(() => cancelLot(lotId), 'Лот снят');
 
     const saveIdentity = () => runAction(async () => {
         await setVillage(draftVillageName, draftCrestIcon, draftCrestColor);
@@ -267,6 +273,27 @@ export const DomikiPage = () => {
                     <div className="weather-strip" title={currentWeather.weatherName}>
                         <CurrentWeatherIcon className="weather-ico" aria-hidden="true" />
                         <span className="weather-name">{currentWeather.weatherName}</span>
+                        {currentWeather.effects.some(effect => effect.outputPercent !== 100) &&
+                            <div className="weather-effects">
+                                {currentWeather.effects.filter(effect => effect.outputPercent !== 100).map(effect => {
+                                    const domikType = domikTypes.find(type => type.id === effect.domikTypeId);
+                                    if (domikType == null) {
+                                        return null;
+                                    }
+
+                                    const delta = effect.outputPercent - 100;
+                                    const buff = delta > 0;
+                                    return (
+                                        <span key={effect.domikTypeId}
+                                            className={'weather-effect' + (buff ? ' weather-effect-buff' : ' weather-effect-nerf')}
+                                            title={`${domikType.name}: ${buff ? "+" : ""}${delta}% выход`}>
+                                            <img className="weather-effect-ico" src={`/images/domikTypes/${domikType.logicName}.png`} alt={domikType.name} />
+                                            {buff ? '+' : ''}{delta}%
+                                        </span>
+                                    );
+                                })}
+                            </div>
+                        }
                         <div className="weather-forecast">
                             {weather.forecast.map(period => {
                                 const ForecastIcon = WEATHER_ICONS[period.logicName] ?? CloudSunIcon;
@@ -408,10 +435,18 @@ export const DomikiPage = () => {
                                 const durationSecondsText = domik.finishDate != null
                                     ? formatDuration(remainingSeconds(domik.finishDate, now))
                                     : null;
+                                const cardWeather = currentWeather?.effects.find(
+                                    effect => effect.domikTypeId === domik.typeId && effect.outputPercent !== 100) ?? null;
                                 return (
                                     <button key={domik.id}
                                         className={'plot' + (selectedDomikId === domik.id ? ' plot-selected' : '')}
                                         onClick={() => selectDomik(domik.id)}>
+                                        {cardWeather != null &&
+                                            <span className={'plot-weather' + (cardWeather.outputPercent > 100 ? ' plot-weather-buff' : ' plot-weather-nerf')}
+                                                title={`Погода: ${cardWeather.outputPercent > 100 ? "+" : ""}${cardWeather.outputPercent - 100}% выход`}>
+                                                {cardWeather.outputPercent > 100 ? '+' : ''}{cardWeather.outputPercent - 100}%
+                                            </span>
+                                        }
                                         <img className="plot-sprite" src={image} alt={domikType.name} />
                                         <span className="plot-name">{domikType.name}</span>
                                         <UpgradeBox durationSeconds={durationSecondsText} level={domik.level} />

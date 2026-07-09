@@ -4,9 +4,11 @@ import type { ReactNode } from 'react';
 interface ToastItem {
     id: number;
     message: string;
+    type: 'success' | 'error';
 }
 
 interface ToastContextValue {
+    success: (message: string) => void;
     error: (message: string) => void;
 }
 
@@ -22,13 +24,17 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
         setToasts(current => current.filter(toast => toast.id !== id));
     }, []);
 
-    const error = useCallback((message: string) => {
+    const push = useCallback((message: string, type: ToastItem['type'], timeout: number) => {
         const id = nextId.current++;
-        setToasts(current => [...current, { id, message }]);
-        setTimeout(() => dismiss(id), 4000);
+        setToasts(current => [...current, { id, message, type }]);
+        setTimeout(() => dismiss(id), timeout);
     }, [dismiss]);
 
-    const value = useMemo(() => ({ error }), [error]);
+    const error = useCallback((message: string) => push(message, 'error', 4000), [push]);
+
+    const success = useCallback((message: string) => push(message, 'success', 2500), [push]);
+
+    const value = useMemo(() => ({ success, error }), [success, error]);
 
     return (
         <ToastContext.Provider value={value}>
@@ -56,7 +62,7 @@ export const Toaster = () => {
     return (
         <div className="toast-container" aria-live="assertive" aria-atomic="false">
             {toasts.map(toast => (
-                <button type="button" key={toast.id} className="toast" onClick={() => dismiss(toast.id)}>
+                <button type="button" key={toast.id} className={`toast toast-${toast.type}`} onClick={() => dismiss(toast.id)}>
                     {toast.message}
                 </button>
             ))}

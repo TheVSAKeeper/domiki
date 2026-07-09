@@ -118,6 +118,13 @@ export function useGameData(): GameData {
 
     const reload = useCallback(async () => {
         const state = await getGameState();
+        const prevActive = expeditionsRef.current?.active ?? [];
+        const nextActive = state.expeditions.active;
+        for (const finished of prevActive) {
+            if (!nextActive.some(active => active.id === finished.id)) {
+                toast.success(`Экспедиция «${finished.expeditionName}» вернулась`);
+            }
+        }
         setDomiks(state.domiks);
         setResources(state.resources);
         setOrders(state.orders);
@@ -131,7 +138,7 @@ export function useGameData(): GameData {
         setDecor(state.decor);
         setToloka(state.toloka);
         setMarket(state.market);
-    }, []);
+    }, [toast]);
 
     const refreshPurchaseTypes = useCallback(async () => {
         setPurchaseDomikTypes(await apiGet('Domiki/GetPurchaseAvaialableDomiks', domikTypeSchema.array()));

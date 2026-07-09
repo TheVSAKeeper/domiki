@@ -236,6 +236,7 @@ code {
 
 .weather-strip {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
 }
@@ -276,6 +277,45 @@ code {
     margin: 0;
     font-size: 12px;
     color: var(--coin);
+}
+
+.weather-effects {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.weather-effect {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--pixel);
+    font-size: 11px;
+    padding: 2px 6px 1px;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    line-height: 1.2;
+}
+
+.weather-effect-ico {
+    width: 16px;
+    height: 16px;
+    image-rendering: pixelated;
+}
+
+.weather-effect-buff,
+.plot-weather-buff {
+    background: #d7e6c4;
+    border-color: var(--pine-dark);
+    color: var(--pine-dark);
+}
+
+.weather-effect-nerf,
+.plot-weather-nerf {
+    background: #f3d3c6;
+    border-color: var(--roof);
+    color: #8f3a1e;
 }
 
 .village-identity {
@@ -490,6 +530,7 @@ code {
 }
 
 .plot {
+    position: relative;
     padding: 12px 8px 24px;
     display: flex;
     flex-direction: column;
@@ -518,6 +559,19 @@ code {
 .plot-selected {
     border-color: var(--coin);
     background: #fff7e0;
+}
+
+.plot-weather {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-family: var(--pixel);
+    font-size: 10px;
+    padding: 2px 5px 1px;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    line-height: 1;
+    z-index: 1;
 }
 
 .plot-locked {
@@ -1796,6 +1850,11 @@ progress {
     appearance: none;
     -webkit-appearance: none;
     box-shadow: 0 4px 0 rgba(51, 41, 26, .3);
+}
+
+.toast-success {
+    background: var(--pine);
+    border-color: var(--pine-dark);
 }
 
 .orders-panel {
