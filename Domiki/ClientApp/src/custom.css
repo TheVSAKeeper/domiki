@@ -860,6 +860,11 @@ code {
         background: var(--plank);
     }
 
+    .receipt-head:focus-visible {
+        outline: 3px solid var(--coin);
+        outline-offset: -3px;
+    }
+
 .receipt-name {
     font-size: 13px;
     font-weight: 700;
@@ -1555,15 +1560,31 @@ progress {
 }
 
 .wiki-building {
-    padding: 18px 20px;
+    padding: 0;
 }
 
 .wiki-building-head {
     display: flex;
     align-items: center;
     gap: 14px;
-    margin-bottom: 14px;
+    width: 100%;
+    padding: 16px 20px;
+    background: none;
+    border: none;
+    font: inherit;
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
 }
+
+    .wiki-building-head:hover {
+        background: var(--plank);
+    }
+
+    .wiki-building-head:focus-visible {
+        outline: 3px solid var(--coin);
+        outline-offset: -3px;
+    }
 
     .wiki-building-head svg {
         width: 64px;
@@ -1571,24 +1592,55 @@ progress {
         flex-shrink: 0;
     }
 
+.wiki-building-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
 .wiki-building-name {
+    display: block;
     font-family: var(--pixel);
     font-size: 14px;
     font-weight: 700;
     color: var(--ink);
-    margin: 0 0 6px;
+    margin: 0;
+    overflow-wrap: anywhere;
 }
 
 .wiki-building-meta {
-    margin: 0;
+    display: block;
     font-size: 13px;
     color: rgba(51, 41, 26, .75);
+    margin: 0;
 }
+
+.wiki-building-aside {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.wiki-building-teaser {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    .wiki-building-teaser img {
+        width: 18px;
+        height: 18px;
+        image-rendering: pixelated;
+    }
 
 .wiki-levels {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    padding: 0 20px 18px;
 }
 
 .wiki-level {
