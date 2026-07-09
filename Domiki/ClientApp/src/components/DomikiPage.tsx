@@ -51,7 +51,7 @@ export const DomikiPage = () => {
     const [selectedWorkerIdsByReceipt, setSelectedWorkerIdsByReceipt] = useState<Record<number, number[]>>({});
     const [identityOpen, setIdentityOpen] = useState(false);
     const [villageLevelOpen, setVillageLevelOpen] = useState(false);
-    const [villageLevelPos, setVillageLevelPos] = useState<{ top: number; right: number } | null>(null);
+    const [villageLevelPos, setVillageLevelPos] = useState<{ top: number; right: number; width: number } | null>(null);
     const villageLevelBtnRef = useRef<HTMLButtonElement>(null);
     const [identityDismissed, setIdentityDismissed] = useState(false);
     const [draftVillageName, setDraftVillageName] = useState('');
@@ -241,7 +241,7 @@ export const DomikiPage = () => {
                             onClick={() => {
                                 const rect = villageLevelBtnRef.current?.getBoundingClientRect();
                                 if (rect != null) {
-                                    setVillageLevelPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right });
+                                    setVillageLevelPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right, width: rect.width });
                                 }
                                 setVillageLevelOpen(prev => !prev);
                             }}>
@@ -249,7 +249,7 @@ export const DomikiPage = () => {
                             <span className="village-level-value">{villageLevel.level}</span>
                         </button>
                         {villageLevelOpen && villageLevelPos != null && createPortal(
-                            <div className="village-level-popover" style={{ top: villageLevelPos.top, right: villageLevelPos.right }}>
+                            <div className="village-level-popover" style={{ top: villageLevelPos.top, right: villageLevelPos.right, minWidth: villageLevelPos.width }}>
                                 <span>Постройки: {villageLevel.buildings}</span>
                                 <span>Жители: {villageLevel.residents}</span>
                                 <span>Репутация: {villageLevel.reputation}</span>

@@ -68,6 +68,18 @@ export const WorldPage = () => {
         return [...world.villages].sort((a, b) => b[sortKey] - a[sortKey] || a.villageName.localeCompare(b.villageName, 'ru'));
     }, [world, sortKey]);
 
+    const groupedBuildings = useMemo(() => {
+        if (visit == null) return [];
+        const m = new Map<string, { typeName: string; level: number; count: number }>();
+        for (const b of visit.buildings) {
+            const key = `${b.typeName}#${b.level}`;
+            const g = m.get(key);
+            if (g) g.count += 1;
+            else m.set(key, { typeName: b.typeName, level: b.level, count: 1 });
+        }
+        return [...m.values()].sort((a, b) => b.level - a.level || a.typeName.localeCompare(b.typeName));
+    }, [visit]);
+
     useEffect(() => {
         const controller = new AbortController();
 
@@ -209,11 +221,12 @@ export const WorldPage = () => {
                             </div>
                             <LevelBreakdown visit={visit} />
                             <div className="world-buildings">
-                                {visit.buildings.length === 0 && <p className="hint">Построек нет</p>}
-                                {visit.buildings.map((building, index) => (
-                                    <div key={`${building.typeName}-${index}`} className="world-building-row">
-                                        <span>{building.typeName}</span>
-                                        <span>ур. {building.level}</span>
+                                {groupedBuildings.length === 0 && <p className="hint">Построек нет</p>}
+                                {groupedBuildings.map(g => (
+                                    <div key={`${g.typeName}#${g.level}`} className="world-building-row">
+                                        <span>{g.typeName}</span>
+                                        <span>ур. {g.level}</span>
+                                        {g.count > 1 && <span className="world-building-count">×{g.count}</span>}
                                     </div>
                                 ))}
                             </div>

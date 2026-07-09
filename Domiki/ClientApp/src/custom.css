@@ -10,6 +10,7 @@
     --pine-dark: #345126;
     --coin: #e7a83b;
     --roof: #c25b33;
+    --pixel: 'Pixelify Sans', monospace;
     --px: 5px;
     --cut: polygon(0 var(--px), var(--px) var(--px), var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px), 100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%, var(--px) 100%, var(--px) calc(100% - var(--px)), 0 calc(100% - var(--px)));
 }
@@ -84,7 +85,7 @@ code {
 
 .brand {
     margin-right: auto;
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 14px;
     color: var(--pine);
     text-decoration: none;
@@ -201,10 +202,12 @@ code {
 }
 
 .village-level-value {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 11px;
     padding-top: 3px;
+    font-weight: 600;
     color: var(--pine);
+    font-variant-numeric: tabular-nums;
 }
 
 .village-level-popover {
@@ -216,7 +219,7 @@ code {
     gap: 4px;
     width: max-content;
     max-width: 240px;
-    padding: 10px;
+    padding: 9px;
     font-size: 12px;
     font-weight: 700;
     text-align: left;
@@ -244,9 +247,10 @@ code {
 }
 
 .weather-name {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 11px;
     padding-top: 3px;
+    font-weight: 600;
 }
 
 .weather-forecast {
@@ -299,8 +303,9 @@ code {
 .village-name {
     overflow: hidden;
     max-width: 260px;
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 11px;
+    font-weight: 600;
     line-height: 1.35;
     text-overflow: ellipsis;
 }
@@ -429,9 +434,11 @@ code {
     }
 
 .resource-value {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 11px;
     padding-top: 3px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
 }
 
 .workspace {
@@ -456,8 +463,9 @@ code {
 }
 
 .section-title {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 13px;
+    font-family: var(--pixel);
+    font-size: 14px;
+    font-weight: 700;
     margin: 0;
     padding: 9px 12px 7px;
     color: var(--plank);
@@ -577,17 +585,19 @@ code {
 }
 
 .domik-level {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
+    font-family: var(--pixel);
+    font-size: 11px;
     padding: 4px 7px 3px;
     color: var(--plank);
     background: var(--pine);
+    font-variant-numeric: tabular-nums;
 }
 
 .timer {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
+    font-family: var(--pixel);
+    font-size: 11px;
     color: var(--roof);
+    font-variant-numeric: tabular-nums;
 }
 
 .actions {
@@ -599,8 +609,9 @@ code {
 }
 
 .panel-title {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 13px;
+    font-family: var(--pixel);
+    font-size: 14px;
+    font-weight: 700;
     line-height: 1.5;
     margin: 0 0 10px;
 }
@@ -617,9 +628,9 @@ code {
 
 .panel-label {
     display: block;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
-    color: var(--pine);
+    font-family: var(--pixel);
+    font-size: 11px;
+    color: var(--ink);
     margin-bottom: 10px;
 }
 
@@ -674,6 +685,7 @@ code {
     font-family: inherit;
     font-size: 14px;
     font-weight: 600;
+    line-height: 1;
     padding: 8px 16px;
     color: #fff;
     background: var(--pine);
@@ -684,12 +696,12 @@ code {
     transition: transform .15s steps(2, end), background-color .15s;
 }
 
-    .btn-game:hover:enabled {
+    .btn-game:hover:not(:disabled) {
         background: var(--pine-dark);
         transform: translateY(-2px);
     }
 
-    .btn-game:active:enabled {
+    .btn-game:active:not(:disabled) {
         transform: translateY(1px);
     }
 
@@ -795,8 +807,8 @@ code {
 
 .receipt-io-label {
     flex: 0 0 44px;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 8px;
+    font-family: var(--pixel);
+    font-size: 11px;
     color: var(--pine);
 }
 
@@ -932,7 +944,7 @@ code {
 progress {
     display: block;
     width: 100%;
-    height: 18px;
+    height: 20px;
     position: relative;
     text-align: center;
     border: none;
@@ -946,9 +958,9 @@ progress {
         position: absolute;
         left: 0;
         right: 0;
-        top: 3px;
-        font-family: 'Press Start 2P', monospace;
-        font-size: 8px;
+        top: 4px;
+        font-family: var(--pixel);
+        font-size: 11px;
         color: #fff;
         text-shadow: 1px 1px 0 var(--ink);
     }
@@ -1003,8 +1015,8 @@ progress {
     align-items: center;
     gap: 6px;
     padding: 7px 11px 5px;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
+    font-family: var(--pixel);
+    font-size: 11px;
     color: var(--plank);
     background: var(--pine);
     clip-path: var(--cut);
@@ -1048,16 +1060,17 @@ progress {
 }
 
 .hero-eyebrow {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
+    font-family: var(--pixel);
+    font-size: 11px;
     letter-spacing: 1px;
-    color: var(--pine);
+    color: var(--ink);
     margin: 0 0 18px;
 }
 
 .hero-title {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: clamp(32px, 9vw, 64px);
+    font-weight: 700;
     line-height: 1;
     color: var(--pine);
     text-shadow: 4px 4px 0 var(--coin);
@@ -1162,8 +1175,8 @@ progress {
 }
 
 .treasury-label {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 8px;
+    font-family: var(--pixel);
+    font-size: 11px;
     letter-spacing: 1px;
     color: var(--pine-dark);
 }
@@ -1172,9 +1185,11 @@ progress {
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 12px;
+    font-weight: 600;
     color: var(--ink);
+    font-variant-numeric: tabular-nums;
 }
 
     .treasury-item img {
@@ -1187,7 +1202,7 @@ progress {
     position: absolute;
     left: 50%;
     bottom: 100%;
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 11px;
     color: var(--pine-dark);
     pointer-events: none;
@@ -1211,9 +1226,10 @@ progress {
 }
 
 .section-head {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 13px;
-    color: var(--pine);
+    font-family: var(--pixel);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
     text-align: center;
     margin: 0 0 20px;
 }
@@ -1239,8 +1255,8 @@ progress {
 
 .pillar-resident {
     display: inline-block;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 8px;
+    font-family: var(--pixel);
+    font-size: 11px;
     letter-spacing: 1px;
     padding: 4px 7px 3px;
     color: var(--plank);
@@ -1262,7 +1278,7 @@ progress {
 }
 
 .pillar-title {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 12px;
     color: var(--ink);
     margin: 0;
@@ -1306,7 +1322,7 @@ progress {
 
 .step-num {
     display: inline-block;
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 11px;
     padding: 6px 8px 4px;
     color: var(--ink);
@@ -1315,8 +1331,9 @@ progress {
 }
 
 .step-title {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 13px;
+    font-family: var(--pixel);
+    font-size: 14px;
+    font-weight: 700;
     color: var(--pine);
     margin: 0 0 10px;
 }
@@ -1345,9 +1362,10 @@ progress {
 }
 
 .wiki-title {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: clamp(18px, 5vw, 26px);
-    color: var(--pine);
+    font-weight: 700;
+    color: var(--ink);
     margin: 0 0 14px;
 }
 
@@ -1409,9 +1427,10 @@ progress {
     }
 
 .wiki-building-name {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 13px;
-    color: var(--pine);
+    font-family: var(--pixel);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
     margin: 0 0 6px;
 }
 
@@ -1441,8 +1460,8 @@ progress {
 }
 
 .wiki-level-badge {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
+    font-family: var(--pixel);
+    font-size: 11px;
     padding: 4px 7px 3px;
     color: var(--plank);
     background: var(--pine);
@@ -1476,7 +1495,7 @@ progress {
 }
 
 .wiki-arrow {
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 12px;
     color: var(--roof);
 }
@@ -1495,8 +1514,8 @@ progress {
     display: flex;
     gap: 14px;
     margin-top: 6px;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
+    font-family: var(--pixel);
+    font-size: 11px;
     color: var(--pine-dark);
 }
 
@@ -1524,6 +1543,10 @@ progress {
     max-width: 980px;
 }
 
+.world-page .wiki-section {
+    margin-top: 16px;
+}
+
 .world-head {
     display: flex;
     align-items: center;
@@ -1533,23 +1556,23 @@ progress {
 
 .world-count,
 .world-visit-level {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
-    color: var(--pine-dark);
+    font-family: var(--pixel);
+    font-size: 11px;
+    color: var(--ink);
 }
 
 .world-season {
     margin-top: 6px;
     font-size: 12px;
     font-weight: 700;
-    color: var(--pine);
+    color: var(--ink);
 }
 
 .world-tabs {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    padding: 10px;
+    padding: 8px;
 }
 
 .world-tab {
@@ -1618,9 +1641,10 @@ progress {
     align-items: center;
     justify-content: flex-end;
     gap: 4px;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 9px;
+    font-family: var(--pixel);
+    font-size: 11px;
     color: var(--pine);
+    font-variant-numeric: tabular-nums;
 }
 
 .world-metric-ico {
@@ -1639,8 +1663,8 @@ progress {
 
 .world-rank,
 .world-level {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 10px;
+    font-family: var(--pixel);
+    font-size: 11px;
     color: var(--pine);
 }
 
@@ -1707,6 +1731,13 @@ progress {
     border: 2px solid var(--ink);
     clip-path: var(--cut);
     font-weight: 700;
+}
+
+.world-building-count {
+    font-family: var(--pixel);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--pine);
 }
 
 @media (max-width: 820px) {
@@ -1822,8 +1853,9 @@ progress {
 
 .order-neighbor {
     overflow: hidden;
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 11px;
+    font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -2065,8 +2097,9 @@ progress {
 
 .expedition-name {
     overflow: hidden;
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 11px;
+    font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -2181,8 +2214,9 @@ progress {
 
 .decor-name {
     overflow: hidden;
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 11px;
+    font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -2256,8 +2290,9 @@ progress {
 
 .toloka-name {
     overflow: hidden;
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 11px;
+    font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
@@ -2348,10 +2383,14 @@ progress {
 .market-column-head,
 .market-village-name {
     overflow: hidden;
-    font-family: 'Press Start 2P', monospace;
+    font-family: var(--pixel);
     font-size: 11px;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.market-card-title {
+    font-weight: 600;
 }
 
 .market-field select,
@@ -2369,6 +2408,20 @@ progress {
 .market-field input:focus-visible {
     outline: none;
     border-color: var(--coin);
+}
+
+.market-field input[type="number"],
+.toloka-form input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.market-field input[type="number"]::-webkit-outer-spin-button,
+.market-field input[type="number"]::-webkit-inner-spin-button,
+.toloka-form input[type="number"]::-webkit-outer-spin-button,
+.toloka-form input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .market-lot-resources {
