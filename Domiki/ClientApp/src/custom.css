@@ -2124,14 +2124,31 @@ progress {
 }
 
 .worker-chip {
-    display: grid;
-    grid-template-columns: auto auto auto;
+    display: flex;
     align-items: center;
-    gap: 6px 8px;
+    gap: 8px;
     padding: 7px 9px;
     background: #fffaec;
     border: 2px solid var(--ink);
     clip-path: var(--cut);
+}
+
+.worker-chip-body {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    align-items: center;
+    gap: 6px 8px;
+}
+
+.worker-avatar {
+    width: 32px;
+    height: 32px;
+    flex: none;
+}
+
+.worker-chip-pick .worker-avatar {
+    width: 24px;
+    height: 24px;
 }
 
 .worker-busy {
@@ -2186,9 +2203,13 @@ progress {
 
 @media (max-width: 575px) {
     .worker-chip {
-        grid-template-columns: 1fr;
         align-items: start;
         width: 100%;
+    }
+
+    .worker-chip-body {
+        grid-template-columns: 1fr;
+        align-items: start;
     }
 }
 

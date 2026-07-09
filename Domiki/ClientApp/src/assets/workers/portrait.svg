@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-skin="1" data-hair="1" data-style="m1" data-beard="0" data-hat="0" data-shirt="4" data-extra="0">
+  <title>Трудяга</title>
+  <style>
+    .p { display: none }
+    svg[data-style="m1"] .st-m1, svg[data-style="m2"] .st-m2, svg[data-style="m3"] .st-m3, svg[data-style="m4"] .st-m4,
+    svg[data-style="f1"] .st-f1, svg[data-style="f2"] .st-f2, svg[data-style="f3"] .st-f3, svg[data-style="f4"] .st-f4,
+    svg[data-beard="1"] .bd-1, svg[data-beard="2"] .bd-2, svg[data-beard="3"] .bd-3,
+    svg[data-hat="1"] .ht-1, svg[data-hat="2"] .ht-2, svg[data-hat="3"] .ht-3, svg[data-hat="4"] .ht-4,
+    svg[data-extra="1"] .ex-1, svg[data-extra="2"] .ex-2, svg[data-extra="3"] .ex-3 { display: inline }
+    svg[data-skin="2"] .skin { fill: #c99e6f }
+    svg[data-hair="2"] .hair { fill: #9a6a38 }
+    svg[data-hair="3"] .hair { fill: #e0a63a }
+    svg[data-hair="4"] .hair { fill: #b5563a }
+    svg[data-hair="5"] .hair { fill: #c9c2b4 }
+    svg[data-shirt="1"] .shirt { fill: #c03434 }
+    svg[data-shirt="2"] .shirt { fill: #4f9a3c }
+    svg[data-shirt="3"] .shirt { fill: #4a7ab5 }
+    svg[data-shirt="5"] .shirt { fill: #d88a1b }
+  </style>
+  <rect x="16" y="38" width="32" height="6" fill="#262626"/>
+  <rect x="12" y="42" width="40" height="20" fill="#262626"/>
+  <rect class="shirt" x="18" y="40" width="28" height="4" fill="#efe6d4"/>
+  <rect class="shirt" x="14" y="44" width="36" height="18" fill="#efe6d4"/>
+  <g class="p st-f4">
+    <rect x="14" y="6" width="36" height="34" fill="#262626"/>
+    <rect class="hair" x="16" y="8" width="32" height="30" fill="#443528"/>
+  </g>
+  <rect class="skin" x="28" y="36" width="8" height="6" fill="#e8c9a2"/>
+  <rect x="20" y="10" width="24" height="26" fill="#262626"/>
+  <rect class="skin" x="22" y="12" width="20" height="22" fill="#e8c9a2"/>
+  <rect x="26" y="22" width="2" height="2" fill="#262626"/>
+  <rect x="36" y="22" width="2" height="2" fill="#262626"/>
+  <rect x="30" y="28" width="4" height="2" fill="#262626"/>
+  <g class="p bd-1">
+    <rect class="hair" x="26" y="26" width="12" height="2" fill="#443528"/>
+  </g>
+  <g class="p bd-2">
+    <rect class="hair" x="26" y="26" width="12" height="2" fill="#443528"/>
+    <rect class="hair" x="24" y="28" width="2" height="6" fill="#443528"/>
+    <rect class="hair" x="38" y="28" width="2" height="6" fill="#443528"/>
+    <rect class="hair" x="26" y="30" width="12" height="4" fill="#443528"/>
+  </g>
+  <g class="p bd-3">
+    <rect x="22" y="30" width="20" height="10" fill="#262626"/>
+    <rect class="hair" x="26" y="26" width="12" height="2" fill="#443528"/>
+    <rect class="hair" x="24" y="26" width="2" height="4" fill="#443528"/>
+    <rect class="hair" x="38" y="26" width="2" height="4" fill="#443528"/>
+    <rect class="hair" x="24" y="30" width="16" height="8" fill="#443528"/>
+  </g>
+  <g class="p st-m1">
+    <rect x="20" y="8" width="24" height="2" fill="#262626"/>
+    <rect class="hair" x="22" y="10" width="20" height="6" fill="#443528"/>
+    <rect class="hair" x="22" y="16" width="2" height="4" fill="#443528"/>
+    <rect class="hair" x="40" y="16" width="2" height="4" fill="#443528"/>
+  </g>
+  <g class="p st-m2">
+    <rect x="18" y="6" width="28" height="2" fill="#262626"/>
+    <rect x="18" y="8" width="2" height="8" fill="#262626"/>
+    <rect x="44" y="8" width="2" height="8" fill="#262626"/>
+    <rect class="hair" x="20" y="8" width="24" height="8" fill="#443528"/>
+  </g>
+  <g class="p st-m3">
+    <rect class="hair" x="22" y="16" width="4" height="4" fill="#443528"/>
+    <rect class="hair" x="38" y="16" width="4" height="4" fill="#443528"/>
+  </g>
+  <g class="p st-m4">
+    <rect x="18" y="4" width="28" height="2" fill="#262626"/>
+    <rect x="18" y="6" width="2" height="12" fill="#262626"/>
+    <rect x="44" y="6" width="2" height="12" fill="#262626"/>
+    <rect class="hair" x="20" y="6" width="24" height="10" fill="#443528"/>
+    <rect x="24" y="8" width="2" height="2" fill="#262626"/>
+    <rect x="32" y="6" width="2" height="2" fill="#262626"/>
+    <rect x="38" y="10" width="2" height="2" fill="#262626"/>
+    <rect x="28" y="12" width="2" height="2" fill="#262626"/>
+  </g>
+  <g class="p st-f1">
+    <rect x="20" y="8" width="24" height="2" fill="#262626"/>
+    <rect class="hair" x="22" y="10" width="20" height="6" fill="#443528"/>
+    <rect x="38" y="32" width="8" height="22" fill="#262626"/>
+    <rect class="hair" x="40" y="34" width="4" height="4" fill="#443528"/>
+    <rect class="hair" x="40" y="40" width="4" height="4" fill="#443528"/>
+    <rect class="hair" x="40" y="46" width="4" height="4" fill="#443528"/>
+  </g>
+  <g class="p st-f2">
+    <rect x="26" y="4" width="12" height="2" fill="#262626"/>
+    <rect x="26" y="6" width="2" height="4" fill="#262626"/>
+    <rect x="36" y="6" width="2" height="4" fill="#262626"/>
+    <rect class="hair" x="28" y="6" width="8" height="4" fill="#443528"/>
+    <rect x="20" y="8" width="24" height="2" fill="#262626"/>
+    <rect class="hair" x="22" y="10" width="20" height="4" fill="#443528"/>
+    <rect class="hair" x="22" y="14" width="4" height="2" fill="#443528"/>
+    <rect class="hair" x="38" y="14" width="4" height="2" fill="#443528"/>
+  </g>
+  <g class="p st-f3">
+    <rect x="20" y="8" width="24" height="2" fill="#262626"/>
+    <rect class="hair" x="22" y="10" width="20" height="6" fill="#443528"/>
+    <rect x="14" y="18" width="8" height="22" fill="#262626"/>
+    <rect class="hair" x="16" y="20" width="4" height="18" fill="#443528"/>
+    <rect x="16" y="26" width="2" height="2" fill="#262626"/>
+    <rect x="18" y="32" width="2" height="2" fill="#262626"/>
+    <rect x="42" y="18" width="8" height="22" fill="#262626"/>
+    <rect class="hair" x="44" y="20" width="4" height="18" fill="#443528"/>
+    <rect x="46" y="26" width="2" height="2" fill="#262626"/>
+    <rect x="44" y="32" width="2" height="2" fill="#262626"/>
+  </g>
+  <g class="p st-f4">
+    <rect class="hair" x="22" y="10" width="20" height="6" fill="#443528"/>
+  </g>
+  <g class="p ht-1">
+    <rect x="18" y="4" width="28" height="8" fill="#262626"/>
+    <rect x="20" y="6" width="24" height="6" fill="#6f4a24"/>
+    <rect x="16" y="12" width="32" height="2" fill="#262626"/>
+  </g>
+  <g class="p ht-2">
+    <rect x="14" y="6" width="36" height="8" fill="#262626"/>
+    <rect x="16" y="8" width="32" height="4" fill="#e0a63a"/>
+    <rect x="22" y="2" width="20" height="8" fill="#262626"/>
+    <rect x="24" y="4" width="16" height="6" fill="#e0a63a"/>
+    <rect x="24" y="8" width="16" height="2" fill="#c03434"/>
+  </g>
+  <g class="p ht-3">
+    <rect x="18" y="4" width="28" height="12" fill="#262626"/>
+    <rect x="20" y="6" width="24" height="10" fill="#c03434"/>
+    <rect x="22" y="16" width="2" height="6" fill="#c03434"/>
+    <rect x="40" y="16" width="2" height="6" fill="#c03434"/>
+  </g>
+  <g class="p ht-4">
+    <rect x="22" y="12" width="20" height="2" fill="#c03434"/>
+  </g>
+  <g class="p ex-1">
+    <rect x="24" y="26" width="2" height="2" fill="#6f4a24"/>
+    <rect x="28" y="24" width="2" height="2" fill="#6f4a24"/>
+    <rect x="34" y="24" width="2" height="2" fill="#6f4a24"/>
+    <rect x="38" y="26" width="2" height="2" fill="#6f4a24"/>
+  </g>
+  <g class="p ex-2">
+    <rect x="20" y="30" width="2" height="4" fill="#e8b83a"/>
+  </g>
+  <g class="p ex-3">
+    <rect x="24" y="26" width="4" height="2" fill="#d98a6a"/>
+    <rect x="36" y="26" width="4" height="2" fill="#d98a6a"/>
+  </g>
+</svg>

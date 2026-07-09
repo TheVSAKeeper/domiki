@@ -1,5 +1,6 @@
 import type { DomikTypeDto, WorkerDto } from '../types/api';
 import { formatDuration, remainingSeconds } from '../utils/time';
+import { WorkerSprite } from './sprites';
 
 interface WorkersBoxProps {
     workers: WorkerDto[];
@@ -34,28 +35,31 @@ export const WorkersBox = ({ workers, domikTypes, now }: WorkersBoxProps) => {
                     const visibleSkills = worker.skills.filter(skill => skill.bonusPercent > 0);
                     return (
                         <div key={worker.id} className={className}>
-                            <span className="worker-name">{worker.name}</span>
-                            <span className="worker-trait">{worker.traitName}{effect}</span>
-                            <span className="worker-state">{state}</span>
-                            {worker.noFatigue &&
-                                <span className="worker-effect">не устаёт</span>
-                            }
-                            {visibleSkills.length > 0 &&
-                                <span className="worker-skills">
-                                    {visibleSkills.map(skill => {
-                                        const domikType = domikTypes.find(x => x.id === skill.domikTypeId);
-                                        if (domikType == null) {
-                                            return null;
-                                        }
+                            <WorkerSprite name={worker.name} className="worker-avatar" aria-hidden="true" />
+                            <div className="worker-chip-body">
+                                <span className="worker-name">{worker.name}</span>
+                                <span className="worker-trait">{worker.traitName}{effect}</span>
+                                <span className="worker-state">{state}</span>
+                                {worker.noFatigue &&
+                                    <span className="worker-effect">не устаёт</span>
+                                }
+                                {visibleSkills.length > 0 &&
+                                    <span className="worker-skills">
+                                        {visibleSkills.map(skill => {
+                                            const domikType = domikTypes.find(x => x.id === skill.domikTypeId);
+                                            if (domikType == null) {
+                                                return null;
+                                            }
 
-                                        return (
-                                            <span key={skill.domikTypeId} className="worker-skill" title={`${skill.uses} завершённых работ`}>
-                                                {domikType.name} +{skill.bonusPercent} %
-                                            </span>
-                                        );
-                                    })}
-                                </span>
-                            }
+                                            return (
+                                                <span key={skill.domikTypeId} className="worker-skill" title={`${skill.uses} завершённых работ`}>
+                                                    {domikType.name} +{skill.bonusPercent} %
+                                                </span>
+                                            );
+                                        })}
+                                    </span>
+                                }
+                            </div>
                         </div>
                     );
                 })}

@@ -13,6 +13,7 @@ import { formatDuration, remainingSeconds } from '../utils/time';
 import { ResourceChip } from './ResourceChip';
 import { StatChip } from './StatChip';
 import { ProgressBar } from './ProgressBar';
+import { WorkerSprite } from './sprites';
 
 const durationBetween = (startDate: string, finishDate: string) =>
     Math.max(1, Math.round((new Date(finishDate).getTime() - new Date(startDate).getTime()) / 1000));
@@ -123,6 +124,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
                                         <button key={worker.id} type="button"
                                             className={'worker-chip worker-chip-pick' + (picked.includes(worker.id) ? ' worker-chip-selected' : '')}
                                             onClick={() => toggleWorker(type.id, worker.id, type.workerCount)}>
+                                            <WorkerSprite name={worker.name} className="worker-avatar" aria-hidden="true" />
                                             <span className="worker-name">{worker.name}</span>
                                         </button>
                                     ))}

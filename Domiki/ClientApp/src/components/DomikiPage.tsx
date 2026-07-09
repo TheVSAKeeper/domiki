@@ -37,7 +37,7 @@ import { ExpeditionsBox } from './ExpeditionsBox';
 import { DecorBox } from './DecorBox';
 import { TolokaBox } from './TolokaBox';
 import { MarketBox } from './MarketBox';
-import { DomikSprite } from './sprites';
+import { DomikSprite, WorkerSprite } from './sprites';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 
 const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
@@ -648,6 +648,7 @@ export const DomikiPage = () => {
                                                                             <button key={worker.id} type="button"
                                                                                 className={'worker-chip worker-chip-pick' + (isSelected ? ' worker-chip-selected' : '')}
                                                                                 onClick={() => toggleSelectedWorker(receipt.id, worker.id, receipt.plodderCount)}>
+                                                                                <WorkerSprite name={worker.name} className="worker-avatar" aria-hidden="true" />
                                                                                 <span className="worker-name">{worker.name}</span>
                                                                                 <span className="worker-effect">{fitness >= 0 ? '+' : ''}{fitness} %</span>
                                                                             </button>
