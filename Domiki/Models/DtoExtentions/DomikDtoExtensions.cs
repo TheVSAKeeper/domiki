@@ -19,6 +19,7 @@ namespace Domiki.Web.Models
                     FinishDate = DateTime.SpecifyKind(x.FinishDate, DateTimeKind.Utc),
                     PlodderCount = x.PlodderCount,
                     ReceiptId = x.ReceiptId,
+                    AutoRepeat = x.AutoRepeat,
                 }).ToArray()
             };
         }

@@ -23,18 +23,19 @@ namespace Domiki.Web.Business.Core
         {
             var dbResources = _context.Resources.Where(x => x.PlayerId == playerId).ToArray();
             var resourceTypes = _resourceManager.GetResourceTypes();
+            foreach (var group in resources.GroupBy(x => x.Type.Id))
+            {
+                var dbResource = dbResources.FirstOrDefault(x => x.TypeId == group.Key);
+                if (dbResource == null || dbResource.Value < group.Sum(x => x.Value))
+                {
+                    throw new BusinessException("Недостаточно " + GetResourceName(group.First(), resourceTypes));
+                }
+            }
+
             foreach (var needResource in resources)
             {
-                var dbResource = dbResources.FirstOrDefault(x => x.TypeId == needResource.Type.Id);
-                if (dbResource == null)
-                {
-                    throw new BusinessException("Недостаточно " + GetResourceName(needResource, resourceTypes));
-                }
+                var dbResource = dbResources.First(x => x.TypeId == needResource.Type.Id);
                 dbResource.Value -= needResource.Value;
-                if (dbResource.Value < 0)
-                {
-                    throw new BusinessException("Недостаточно " + GetResourceName(needResource, resourceTypes));
-                }
             }
         }
 

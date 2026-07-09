@@ -10,9 +10,10 @@ interface ManufactureBoxProps {
     remainingText: string;
     goldValue: number;
     onHurry: (manufactureId: number) => void;
+    onToggleAutoRepeat: (manufactureId: number, next: boolean) => void;
 }
 
-export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldValue, onHurry }: ManufactureBoxProps) => {
+export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldValue, onHurry, onToggleAutoRepeat }: ManufactureBoxProps) => {
     const percent = manufactureProgressPercent(manufacture, receipt, now);
     const hurryCost = instaFinishCost(manufacture.finishDate, now);
     const tooFar = !canInstaFinish(manufacture.finishDate, now);
@@ -36,6 +37,11 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
                 <ZapIcon className="btn-ico" aria-hidden="true" />
                 Поторопить ({Math.max(1, hurryCost)} золота)
             </button>
+            <label className="receipt-optional">
+                <input type="checkbox" checked={manufacture.autoRepeat}
+                    onChange={() => onToggleAutoRepeat(manufacture.id, !manufacture.autoRepeat)} />
+                Повторять
+            </label>
         </div>
     );
 };

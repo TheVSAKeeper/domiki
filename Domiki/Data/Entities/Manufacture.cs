@@ -23,5 +23,9 @@ namespace Domiki.Web.Data
         public DateTime FinishDate { get; set; }
 
         public int OutputPercent { get; set; } = 100;
+
+        public bool AutoRepeat { get; set; }
+
+        public bool UseOptional { get; set; }
     }
 }

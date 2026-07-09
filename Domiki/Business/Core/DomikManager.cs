@@ -153,6 +153,7 @@ namespace Domiki.Web.Business.Core
                         FinishDate = x.FinishDate,
                         PlodderCount = x.PlodderCount,
                         ReceiptId = x.ReceiptId,
+                        AutoRepeat = x.AutoRepeat,
                     }).ToArray(),
                 }).ToList();
         }
@@ -310,7 +311,7 @@ namespace Domiki.Web.Business.Core
             _uow.AfterEventAction = () => _calculator.Remove(playerId, domikId, CalculateTypes.Domiks);
         }
 
-        public void StartManufacture(int playerId, int domikId, int receiptId, bool useOptional = false, int[] workerIds = null)
+        public void StartManufacture(int playerId, int domikId, int receiptId, bool useOptional = false, int[] workerIds = null, bool autoRepeat = false)
         {
             var date = DateTimeHelper.GetNowDate();
 
@@ -414,6 +415,8 @@ namespace Domiki.Web.Business.Core
                 FinishDate = date.AddSeconds(duration),
                 PlodderCount = needPlodderCount,
                 OutputPercent = outputPercent,
+                AutoRepeat = autoRepeat,
+                UseOptional = useOptional && receipt.OptionalInputResources is not null && receipt.OptionalInputResources.Length > 0,
             };
             _context.Manufactures.Add(manufacture);
             _context.SaveChanges();
@@ -442,6 +445,11 @@ namespace Domiki.Web.Business.Core
             if (date >= dbManufacture.FinishDate)
             {
                 var recept = _resourceManager.GetReceipts().First(x => x.Id == dbManufacture.ReceiptId);
+                var receiptId = dbManufacture.ReceiptId;
+                var useOptional = dbManufacture.UseOptional;
+                var autoRepeat = dbManufacture.AutoRepeat;
+                var domikId = dbManufacture.DomikId;
+                var playerId = calcInfo.PlayerId;
                 var produced = new List<object>();
                 foreach (var resource in recept.OutputResources)
                 {
@@ -455,6 +463,7 @@ namespace Domiki.Web.Business.Core
                     _resourceManager.GetDecorTypes());
                 var restSeconds = RestSeconds * (100 - Math.Min(RestComfortMaxPercent, comfort)) / 100;
                 var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
+                var freedWorkerIds = new List<int>();
                 foreach (var worker in _context.Workers.Where(x => x.ManufactureId == dbManufacture.Id).ToArray())
                 {
                     IncrementWorkerSkill(worker.Id, dbDomik.TypeId);
@@ -469,9 +478,21 @@ namespace Domiki.Web.Business.Core
                     }
 
                     worker.ManufactureId = null;
+                    freedWorkerIds.Add(worker.Id);
                 }
                 _context.Manufactures.Remove(dbManufacture);
                 _playerEventManager.Record(calcInfo.PlayerId, Data.PlayerEventType.ManufactureFinished, new { domikTypeId = dbDomik.TypeId, resources = produced });
+                if (autoRepeat)
+                {
+                    _context.SaveChanges();
+                    try
+                    {
+                        StartManufacture(playerId, domikId, receiptId, useOptional, freedWorkerIds.ToArray(), autoRepeat: true);
+                    }
+                    catch (BusinessException)
+                    {
+                    }
+                }
                 return true;
             }
             return false;
@@ -505,7 +526,25 @@ namespace Domiki.Web.Business.Core
                 Date = date,
             });
 
-            _uow.AfterEventAction = () => _calculator.Remove(playerId, manufactureId, CalculateTypes.Manufacture);
+            var afterFinishAction = _uow.AfterEventAction;
+            _uow.AfterEventAction = () =>
+            {
+                afterFinishAction?.Invoke();
+                _calculator.Remove(playerId, manufactureId, CalculateTypes.Manufacture);
+            };
+        }
+
+        public void SetManufactureAutoRepeat(int playerId, int manufactureId, bool autoRepeat)
+        {
+            _playerResourceManager.LockDbPlayerRow(playerId);
+
+            var dbManufacture = _context.Manufactures.SingleOrDefault(x => x.Id == manufactureId && x.DomikPlayerId == playerId);
+            if (dbManufacture == null)
+            {
+                throw new BusinessException("Производство не найдено");
+            }
+
+            dbManufacture.AutoRepeat = autoRepeat;
         }
 
         private void IncrementWorkerSkill(int workerId, int domikTypeId)

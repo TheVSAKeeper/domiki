@@ -28,6 +28,7 @@ export const manufactureSchema = z.object({
     finishDate: z.string(),
     plodderCount: z.number(),
     receiptId: z.number(),
+    autoRepeat: z.boolean(),
 });
 export type ManufactureDto = z.infer<typeof manufactureSchema>;
 

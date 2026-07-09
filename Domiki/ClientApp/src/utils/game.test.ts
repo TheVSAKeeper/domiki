@@ -23,7 +23,7 @@ describe('computePlodderCount', () => {
     it('sums modificator values for domiks with a level and subtracts working manufactures', () => {
         const domiks: DomikDto[] = [
             { id: 1, typeId: 1, level: 1, finishDate: null, manufactures: null },
-            { id: 2, typeId: 1, level: 2, finishDate: null, manufactures: [{ id: 1, finishDate: '2026-01-01T00:00:00.000Z', plodderCount: 2, receiptId: 1 }] },
+            { id: 2, typeId: 1, level: 2, finishDate: null, manufactures: [{ id: 1, finishDate: '2026-01-01T00:00:00.000Z', plodderCount: 2, receiptId: 1, autoRepeat: false }] },
         ];
 
         expect(computePlodderCount(domiks, domikTypes)).toEqual({ max: 8, free: 6 });
@@ -123,7 +123,7 @@ describe('manufactureProgressPercent', () => {
         [-10, 100],
     ])('finishDate %i seconds from now -> %i%%', (secondsFromNow, expected) => {
         const now = 0;
-        const manufacture: ManufactureDto = { id: 1, finishDate: new Date(secondsFromNow * 1000).toISOString(), plodderCount: 1, receiptId: 1 };
+        const manufacture: ManufactureDto = { id: 1, finishDate: new Date(secondsFromNow * 1000).toISOString(), plodderCount: 1, receiptId: 1, autoRepeat: false };
         expect(manufactureProgressPercent(manufacture, receipt, now)).toBe(expected);
     });
 });

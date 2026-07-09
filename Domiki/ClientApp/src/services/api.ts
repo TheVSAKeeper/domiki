@@ -102,6 +102,9 @@ export const completeOrder = (orderId: number, signal?: AbortSignal): Promise<vo
 export const hurryManufacture = (manufactureId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/HurryManufacture/${manufactureId}`, signal);
 
+export const setManufactureAutoRepeat = (manufactureId: number, autoRepeat: boolean, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/SetManufactureAutoRepeat/${manufactureId}?autoRepeat=${String(autoRepeat)}`, signal);
+
 export const hurryDomik = (domikId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/HurryDomik/${domikId}`, signal);
 

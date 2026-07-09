@@ -217,10 +217,10 @@ namespace Domiki.Controllers
 
         [HttpPost]
         [Route("/Domiki/StartManufacture/{domikId}/{receiptId}")]
-        public Response StartManufacture(int domikId, int receiptId, [FromQuery] bool useOptional = false, [FromQuery] int[] workerIds = null)
+        public Response StartManufacture(int domikId, int receiptId, [FromQuery] bool useOptional = false, [FromQuery] int[] workerIds = null, [FromQuery] bool autoRepeat = false)
         {
             int playerId = GetPlayerId();
-            _domikManager.StartManufacture(playerId, domikId, receiptId, useOptional, workerIds);
+            _domikManager.StartManufacture(playerId, domikId, receiptId, useOptional, workerIds, autoRepeat);
             return new Response { Type = ResponseType.Success };
         }
 
@@ -230,6 +230,15 @@ namespace Domiki.Controllers
         {
             int playerId = GetPlayerId();
             _domikManager.HurryManufacture(playerId, manufactureId);
+            return new Response { Type = ResponseType.Success };
+        }
+
+        [HttpPost]
+        [Route("/Domiki/SetManufactureAutoRepeat/{manufactureId}")]
+        public Response SetManufactureAutoRepeat(int manufactureId, [FromQuery] bool autoRepeat)
+        {
+            int playerId = GetPlayerId();
+            _domikManager.SetManufactureAutoRepeat(playerId, manufactureId, autoRepeat);
             return new Response { Type = ResponseType.Success };
         }
 

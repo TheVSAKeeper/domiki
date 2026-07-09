@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, setVillage as setVillageApi, startExpedition as startExpeditionApi } from '../services/api';
+import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, setManufactureAutoRepeat as setManufactureAutoRepeatApi, setVillage as setVillageApi, startExpedition as startExpeditionApi } from '../services/api';
 import { useToast } from '../services/toast';
 import {
     domikTypeSchema,
@@ -48,6 +48,7 @@ export interface GameData {
     refreshPurchaseTypes: () => Promise<void>;
     setVillage: (name: string, crestIcon: number, crestColor: number) => Promise<void>;
     hurryManufacture: (manufactureId: number) => Promise<void>;
+    setManufactureAutoRepeat: (manufactureId: number, autoRepeat: boolean) => Promise<void>;
     hurryDomik: (domikId: number) => Promise<void>;
     startExpedition: (expeditionTypeId: number, workerIds?: number[]) => Promise<void>;
     buyDecor: (decorTypeId: number) => Promise<void>;
@@ -158,6 +159,11 @@ export function useGameData(): GameData {
 
     const hurryManufacture = useCallback(async (manufactureId: number) => {
         await hurryManufactureApi(manufactureId);
+        await reload();
+    }, [reload]);
+
+    const setManufactureAutoRepeat = useCallback(async (manufactureId: number, autoRepeat: boolean) => {
+        await setManufactureAutoRepeatApi(manufactureId, autoRepeat);
         await reload();
     }, [reload]);
 
@@ -358,6 +364,7 @@ export function useGameData(): GameData {
         refreshPurchaseTypes,
         setVillage,
         hurryManufacture,
+        setManufactureAutoRepeat,
         hurryDomik,
         startExpedition,
         buyDecor,

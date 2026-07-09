@@ -65,7 +65,7 @@ interface GameTab {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, hurryDomik, startExpedition, buyDecor, contributeToloka, postLot, acceptLot, cancelLot, recap, clearRecap } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, postLot, acceptLot, cancelLot, recap, clearRecap } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -73,6 +73,7 @@ export const DomikiPage = () => {
     const [activeTab, setActiveTab] = useState('');
     const [expandedReceiptId, setExpandedReceiptId] = useState<number | null>(null);
     const [optionalReceiptIds, setOptionalReceiptIds] = useState<ReadonlySet<number>>(new Set());
+    const [autoRepeatReceiptIds, setAutoRepeatReceiptIds] = useState<ReadonlySet<number>>(new Set());
     const [manualReceiptIds, setManualReceiptIds] = useState<ReadonlySet<number>>(new Set());
     const [selectedWorkerIdsByReceipt, setSelectedWorkerIdsByReceipt] = useState<Record<number, number[]>>({});
     const [identityOpen, setIdentityOpen] = useState(false);
@@ -88,6 +89,16 @@ export const DomikiPage = () => {
         setExpandedReceiptId(prev => (prev === receiptId ? null : receiptId));
 
     const toggleOptional = (receiptId: number) => setOptionalReceiptIds(prev => {
+        const next = new Set(prev);
+        if (next.has(receiptId)) {
+            next.delete(receiptId);
+        } else {
+            next.add(receiptId);
+        }
+        return next;
+    });
+
+    const toggleAutoRepeat = (receiptId: number) => setAutoRepeatReceiptIds(prev => {
         const next = new Set(prev);
         if (next.has(receiptId)) {
             next.delete(receiptId);
@@ -191,9 +202,9 @@ export const DomikiPage = () => {
         await reload();
     }, 'Улучшение запущено');
 
-    const startManufacture = (domikId: number, receiptId: number, useOptional: boolean, workerIds?: number[]) => runAction(async () => {
+    const startManufacture = (domikId: number, receiptId: number, useOptional: boolean, autoRepeat: boolean, workerIds?: number[]) => runAction(async () => {
         const workerIdsQuery = (workerIds ?? []).map(id => `&workerIds=${id}`).join('');
-        await apiPost(`Domiki/StartManufacture/${domikId}/${receiptId}?useOptional=${String(useOptional)}${workerIdsQuery}`);
+        await apiPost(`Domiki/StartManufacture/${domikId}/${receiptId}?useOptional=${String(useOptional)}&autoRepeat=${String(autoRepeat)}${workerIdsQuery}`);
         setSelectedWorkerIdsByReceipt(prev => ({ ...prev, [receiptId]: [] }));
         await reload();
     }, 'Производство запущено');
@@ -207,6 +218,8 @@ export const DomikiPage = () => {
     }, 'Заказ выполнен');
 
     const hurryManufactureAction = (manufactureId: number) => runAction(() => hurryManufacture(manufactureId), 'Производство ускорено');
+
+    const toggleManufactureAutoRepeat = (manufactureId: number, next: boolean) => runAction(() => setManufactureAutoRepeat(manufactureId, next));
 
     const hurryDomikAction = (domikId: number) => runAction(() => hurryDomik(domikId), 'Улучшение ускорено');
 
@@ -682,6 +695,7 @@ export const DomikiPage = () => {
                                         {selected.receipts.map(receipt => {
                                             const hasOptional = receipt.optionalInputResources.length > 0;
                                             const useOptional = optionalReceiptIds.has(receipt.id);
+                                            const autoRepeat = autoRepeatReceiptIds.has(receipt.id);
                                             const view = computeReceiptView(receipt, resources, plodder.free, hasOptional && useOptional);
                                             const expanded = expandedReceiptId === receipt.id;
                                             const isManual = manualReceiptIds.has(receipt.id);
@@ -738,6 +752,11 @@ export const DomikiPage = () => {
                                                                     с инструментом (−{receipt.speedupPercent}%)
                                                                 </label>
                                                             }
+                                                            <label className="receipt-optional">
+                                                                <input type="checkbox" checked={autoRepeat}
+                                                                    onChange={() => toggleAutoRepeat(receipt.id)} />
+                                                                Повторять
+                                                            </label>
                                                             {weatherEffect != null &&
                                                                 <p className="weather-modifier">
                                                                     Погода: {weatherEffect.outputPercent >= 100 ? '+' : ''}{weatherEffect.outputPercent - 100} % выход
@@ -776,7 +795,7 @@ export const DomikiPage = () => {
                                                             }
                                                             <button className="btn-game"
                                                                 disabled={!canRun}
-                                                                onClick={() => startManufacture(selected.domik.id, receipt.id, hasOptional && useOptional, isManual ? validSelectedIds : undefined)}>
+                                                                onClick={() => startManufacture(selected.domik.id, receipt.id, hasOptional && useOptional, autoRepeat, isManual ? validSelectedIds : undefined)}>
                                                                 <PlayIcon className="btn-ico" aria-hidden="true" />
                                                                 Запустить
                                                             </button>
@@ -808,7 +827,8 @@ export const DomikiPage = () => {
                                         return (
                                             <ManufactureBox key={manufacture.id} manufacture={manufacture} receipt={receipt}
                                                 now={now} remainingText={formatDuration(remainingSeconds(manufacture.finishDate, now))}
-                                                goldValue={goldValue} onHurry={hurryManufactureAction} />
+                                                goldValue={goldValue} onHurry={hurryManufactureAction}
+                                                onToggleAutoRepeat={toggleManufactureAutoRepeat} />
                                         );
                                     })}
                                 </div>
