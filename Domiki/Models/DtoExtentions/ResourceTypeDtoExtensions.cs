@@ -1,4 +1,5 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Business.Core;
+using Domiki.Web.Business.Models;
 
 namespace Domiki.Web.Models
 {
@@ -6,7 +7,7 @@ namespace Domiki.Web.Models
     {
         public static ResourceTypeDto ToDto(this ResourceType resourceType)
         {
-            return new ResourceTypeDto { Id = resourceType.Id, LogicName = resourceType.LogicName, Name = resourceType.Name };
+            return new ResourceTypeDto { Id = resourceType.Id, LogicName = resourceType.LogicName, Name = resourceType.Name, MarketValue = ResourceManager.GetMarketValue(resourceType.Id) };
         }
     }
 }

@@ -29,6 +29,8 @@ const mergeResources = (resources: ResourceDto[]): ResourceDto[] => {
 const getResourceName = (resourceTypes: ResourceTypeDto[], resourceTypeId: number) =>
     resourceTypes.find(x => x.id === resourceTypeId)?.name ?? 'Ресурс';
 
+const formatPercent = (rate: number) => (rate * 100).toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + '%';
+
 const LotResources = ({ lot, resourceTypes }: { lot: TradeLotDto; resourceTypes: ResourceTypeDto[] }) => (
     <div className="market-lot-resources">
         <div className="market-side">
@@ -76,10 +78,19 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
     const [giveValue, setGiveValue] = useState(10);
     const [wantValue, setWantValue] = useState(1);
 
+    const commissionFee = useMemo(() => {
+        if (market == null) {
+            return 0;
+        }
+
+        const marketValue = resourceTypes.find(x => x.id === giveResourceTypeId)?.marketValue ?? 0;
+        return Math.max(market.commissionMin, Math.round(marketValue * giveValue * market.commissionRate));
+    }, [giveResourceTypeId, giveValue, market, resourceTypes]);
+
     const postCost = useMemo(() => market == null ? [] : mergeResources([
         { typeId: giveResourceTypeId, value: giveValue },
-        { typeId: 1, value: market.commission },
-    ]), [giveResourceTypeId, giveValue, market]);
+        { typeId: 1, value: commissionFee },
+    ]), [commissionFee, giveResourceTypeId, giveValue, market]);
 
     if (market == null) {
         return null;
@@ -100,7 +111,12 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                     <StoreIcon className="market-title-ico" aria-hidden="true" />
                     <h3 className="panel-title">Ярмарка</h3>
                 </div>
-                <span className="reputation-chip">Комиссия: {market.commission} монет</span>
+                <span className="reputation-chip commission-chip" title="Ставка зависит от уровня Торгового двора – качайте, чтобы платить меньше">
+                    Комиссия – {formatPercent(market.commissionRate)}
+                    {market.nextCommissionRate != null && (
+                        <span className="chip-sub"> · ур.{market.buildingLevel + 1} → {formatPercent(market.nextCommissionRate)}</span>
+                    )}
+                </span>
             </div>
             <div className="market-layout">
                 <form className="market-card market-form" onSubmit={event => { event.preventDefault(); void submitPost(); }}>
@@ -122,7 +138,7 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                     </div>
                     <div className="market-commission">
                         <CoinsIcon className="btn-ico" aria-hidden="true" />
-                        Комиссия: {market.commission} монет
+                        Комиссия за лот: {commissionFee} монет
                     </div>
                     <ResourcesBox resources={postCost} resourceTypes={resourceTypes} have={resources} />
                     {invalidPair && <p className="note-warn">Нужны разные ресурсы</p>}

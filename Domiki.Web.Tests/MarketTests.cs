@@ -15,6 +15,8 @@ namespace Domiki.Web.Tests
         private const int FountainDecorTypeId = 4;
         private const int MarketYardDomikTypeId = 9;
 
+        private static int Commission(int giveResourceTypeId, int giveValue) => MarketManager.ComputeCommission(1, giveResourceTypeId, giveValue);
+
         [SetUp]
         public void SetUp()
         {
@@ -42,11 +44,25 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetUnlockedPlayerId();
 
-            var market = GetMarket(playerId);
+            var market = GetMarket(playerId)!;
 
             Assert.That(market.Lots, Is.Empty);
             Assert.That(market.MyLots, Is.Empty);
-            Assert.That(market.Commission, Is.EqualTo(MarketManager.MarketCommissionCoins));
+            Assert.That(market.BuildingLevel, Is.EqualTo(1));
+            Assert.That(market.CommissionRate, Is.EqualTo(MarketManager.CommissionRateL1));
+            Assert.That(market.CommissionMin, Is.EqualTo(MarketManager.MinCommissionCoins));
+            Assert.That(market.NextCommissionRate, Is.Null);
+        }
+
+        [TestCase(1, 4, 20, 16)]
+        [TestCase(5, 4, 20, 6)]
+        [TestCase(1, 6, 1, 3)]
+        [TestCase(6, 6, 1, 2)]
+        [TestCase(1, 4, 1, 2)]
+        [TestCase(6, 4, 100, 30)]
+        public void ComputeCommissionByLevelTest(int level, int giveResourceTypeId, int giveValue, int expected)
+        {
+            Assert.That(MarketManager.ComputeCommission(level, giveResourceTypeId, giveValue), Is.EqualTo(expected));
         }
 
         [Test]
@@ -56,7 +72,7 @@ namespace Domiki.Web.Tests
             GrantResource(playerId, ClayResourceTypeId, 100);
             var before = GetResourceValue(playerId, ClayResourceTypeId);
 
-            var ex = Assert.Throws<BusinessException>(() => PostLot(playerId, ClayResourceTypeId, 20, GoldResourceTypeId, 3));
+            var ex = Assert.Throws<BusinessException>(() => PostLot(playerId, ClayResourceTypeId, 20, GoldResourceTypeId, 3))!;
 
             Assert.That(ex.Message, Is.EqualTo("Нужен Торговый двор"));
             Assert.That(GetMarket(playerId), Is.Null);
@@ -76,10 +92,10 @@ namespace Domiki.Web.Tests
             var lotId = PostLot(sellerId, ClayResourceTypeId, 20, GoldResourceTypeId, 3);
 
             Assert.That(GetResourceValue(sellerId, ClayResourceTypeId), Is.EqualTo(80));
-            Assert.That(GetResourceValue(sellerId, CoinResourceTypeId), Is.EqualTo(coinBefore - MarketManager.MarketCommissionCoins));
-            var sellerMarket = GetMarket(sellerId);
+            Assert.That(GetResourceValue(sellerId, CoinResourceTypeId), Is.EqualTo(coinBefore - Commission(ClayResourceTypeId, 20)));
+            var sellerMarket = GetMarket(sellerId)!;
             Assert.That(sellerMarket.MyLots.Single().Id, Is.EqualTo(lotId));
-            var buyerLot = GetMarket(buyerId).Lots.Single();
+            var buyerLot = GetMarket(buyerId)!.Lots.Single();
             Assert.That(buyerLot.Id, Is.EqualTo(lotId));
             Assert.That(buyerLot.SellerVillageName, Is.EqualTo(villageName));
             Assert.That(buyerLot.SellerCrestIcon, Is.EqualTo(2));
@@ -98,7 +114,7 @@ namespace Domiki.Web.Tests
             SetResource(playerId, CoinResourceTypeId, 0);
             Assert.Throws<BusinessException>(() => PostLot(playerId, ClayResourceTypeId, 1, GoldResourceTypeId, 1));
 
-            Assert.That(GetMarket(playerId).MyLots, Is.Empty);
+            Assert.That(GetMarket(playerId)!.MyLots, Is.Empty);
             Assert.That(GetResourceValue(playerId, ClayResourceTypeId), Is.EqualTo(10));
         }
 
@@ -118,9 +134,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetResourceValue(buyerId, ClayResourceTypeId), Is.EqualTo(20));
             Assert.That(GetResourceValue(sellerId, GoldResourceTypeId), Is.EqualTo(3));
             Assert.That(GetResourceValue(sellerId, ClayResourceTypeId), Is.EqualTo(80));
-            Assert.That(GetResourceValue(sellerId, CoinResourceTypeId), Is.EqualTo(sellerCoins - MarketManager.MarketCommissionCoins));
-            Assert.That(GetMarket(sellerId).MyLots, Is.Empty);
-            Assert.That(GetMarket(buyerId).Lots, Is.Empty);
+            Assert.That(GetResourceValue(sellerId, CoinResourceTypeId), Is.EqualTo(sellerCoins - Commission(ClayResourceTypeId, 20)));
+            Assert.That(GetMarket(sellerId)!.MyLots, Is.Empty);
+            Assert.That(GetMarket(buyerId)!.Lots, Is.Empty);
         }
 
         [Test]
@@ -139,7 +155,7 @@ namespace Domiki.Web.Tests
             Assert.Throws<BusinessException>(() => AcceptLot(buyerId, lotId));
             Assert.Throws<BusinessException>(() => AcceptLot(buyerId, 987654));
 
-            Assert.That(GetMarket(sellerId).MyLots.Single().Id, Is.EqualTo(lotId));
+            Assert.That(GetMarket(sellerId)!.MyLots.Single().Id, Is.EqualTo(lotId));
             Assert.That(GetResourceValue(sellerId, ClayResourceTypeId), Is.EqualTo(80));
             Assert.That(GetResourceValue(buyerId, GoldResourceTypeId), Is.EqualTo(1));
         }
@@ -157,8 +173,8 @@ namespace Domiki.Web.Tests
             CancelLot(sellerId, lotId);
 
             Assert.That(GetResourceValue(sellerId, ClayResourceTypeId), Is.EqualTo(100));
-            Assert.That(GetResourceValue(sellerId, CoinResourceTypeId), Is.EqualTo(sellerCoins - MarketManager.MarketCommissionCoins));
-            Assert.That(GetMarket(sellerId).MyLots, Is.Empty);
+            Assert.That(GetResourceValue(sellerId, CoinResourceTypeId), Is.EqualTo(sellerCoins - Commission(ClayResourceTypeId, 20)));
+            Assert.That(GetMarket(sellerId)!.MyLots, Is.Empty);
         }
 
         [Test]
@@ -174,8 +190,8 @@ namespace Domiki.Web.Tests
             FinishTradeLot(sellerId, lotId, expireDate);
 
             Assert.That(GetResourceValue(sellerId, ClayResourceTypeId), Is.EqualTo(100));
-            Assert.That(GetResourceValue(sellerId, CoinResourceTypeId), Is.EqualTo(sellerCoins - MarketManager.MarketCommissionCoins));
-            Assert.That(GetMarket(sellerId).MyLots, Is.Empty);
+            Assert.That(GetResourceValue(sellerId, CoinResourceTypeId), Is.EqualTo(sellerCoins - Commission(ClayResourceTypeId, 20)));
+            Assert.That(GetMarket(sellerId)!.MyLots, Is.Empty);
         }
 
         [Test]
@@ -194,7 +210,7 @@ namespace Domiki.Web.Tests
                 Task.Run(() => TryAcceptLot(secondBuyerId, lotId)));
 
             Assert.That(results.Count(x => x), Is.EqualTo(1));
-            Assert.That(GetMarket(sellerId).MyLots, Is.Empty);
+            Assert.That(GetMarket(sellerId)!.MyLots, Is.Empty);
             Assert.That(GetResourceValue(sellerId, GoldResourceTypeId), Is.EqualTo(3));
             Assert.That(GetResourceValue(firstBuyerId, ClayResourceTypeId) + GetResourceValue(secondBuyerId, ClayResourceTypeId), Is.EqualTo(20));
         }
@@ -216,8 +232,8 @@ namespace Domiki.Web.Tests
                 Task.Run(() => TryAcceptLot(secondId, firstLotId)));
 
             Assert.That(results, Is.All.True);
-            Assert.That(GetMarket(firstId).MyLots, Is.Empty);
-            Assert.That(GetMarket(secondId).MyLots, Is.Empty);
+            Assert.That(GetMarket(firstId)!.MyLots, Is.Empty);
+            Assert.That(GetMarket(secondId)!.MyLots, Is.Empty);
         }
 
         private int GetPlayerId()

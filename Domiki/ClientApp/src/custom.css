@@ -1968,9 +1968,15 @@ progress {
     padding: 4px 8px;
     font-size: 12px;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
     background: var(--plank-dark);
     border: 2px solid var(--ink);
     clip-path: var(--cut);
+}
+
+.commission-chip .chip-sub {
+    opacity: .6;
+    font-weight: 400;
 }
 
 .orders-grid {
@@ -2572,6 +2578,10 @@ progress {
     display: flex;
     align-items: center;
     gap: 10px;
+}
+
+.market-commission {
+    font-variant-numeric: tabular-nums;
 }
 
 .market-head {

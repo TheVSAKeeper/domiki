@@ -150,7 +150,7 @@ namespace Domiki.Web.Business.Core
             var tier = _tiers[Random.Shared.Next(_tiers.Length)];
             var now = DateTimeHelper.GetNowDate();
             var expireDate = now.AddSeconds(tier.DurationSeconds);
-            var rewardCoins = (int)Math.Round(tier.Quantity * GetMarketValue(neighbor.PrimaryResourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero);
+            var rewardCoins = (int)Math.Round(tier.Quantity * ResourceManager.GetMarketValue(neighbor.PrimaryResourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero);
 
             var order = new Data.Order
             {
@@ -206,16 +206,6 @@ namespace Domiki.Web.Business.Core
                         Value = r.Value,
                     }).ToArray(),
                 }).ToArray();
-        }
-
-        private int GetMarketValue(int resourceTypeId)
-        {
-            if (resourceTypeId == 6 || resourceTypeId == 7)
-            {
-                return 35;
-            }
-
-            return 10;
         }
 
         private class OrderTier

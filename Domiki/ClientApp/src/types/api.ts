@@ -65,6 +65,7 @@ export const resourceTypeSchema = z.object({
     id: z.number(),
     name: z.string(),
     logicName: z.string(),
+    marketValue: z.number(),
 });
 export type ResourceTypeDto = z.infer<typeof resourceTypeSchema>;
 
@@ -326,7 +327,10 @@ export type TradeLotDto = z.infer<typeof tradeLotSchema>;
 export const marketStateSchema = z.object({
     lots: z.array(tradeLotSchema),
     myLots: z.array(tradeLotSchema),
-    commission: z.number(),
+    buildingLevel: z.number(),
+    commissionRate: z.number(),
+    commissionMin: z.number(),
+    nextCommissionRate: z.number().nullable(),
 });
 export type MarketStateDto = z.infer<typeof marketStateSchema>;
 

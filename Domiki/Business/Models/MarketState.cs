@@ -19,6 +19,9 @@
     {
         public TradeLot[] Lots { get; set; }
         public TradeLot[] MyLots { get; set; }
-        public int Commission { get; set; }
+        public int BuildingLevel { get; set; }
+        public double CommissionRate { get; set; }
+        public int CommissionMin { get; set; }
+        public double? NextCommissionRate { get; set; }
     }
 }

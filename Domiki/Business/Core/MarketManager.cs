@@ -5,7 +5,10 @@ namespace Domiki.Web.Business.Core
 {
     public class MarketManager
     {
-        public const int MarketCommissionCoins = 10;
+        public const double CommissionRateL1 = 0.08;
+        public const double CommissionRateStep = 0.0125;
+        public const double CommissionRateMin = 0.03;
+        public const int MinCommissionCoins = 2;
         public const int MarketLotDurationSeconds = 24 * 3600;
         public const int CoinResourceTypeId = 1;
 
@@ -26,11 +29,14 @@ namespace Domiki.Web.Business.Core
 
         public MarketState GetMarket(int playerId)
         {
-            if (!HasBuilding(playerId, "market_yard"))
+            var level = GetMarketYardLevel(playerId);
+            if (level < 1)
             {
                 return null;
             }
 
+            var marketType = _resourceManager.GetDomikTypes().First(x => x.LogicName == "market_yard");
+            var nextLevel = level + 1;
             var lots = _context.TradeLots.Include(x => x.Seller)
                 .OrderBy(x => x.ExpireDate)
                 .ThenBy(x => x.Id)
@@ -40,7 +46,10 @@ namespace Domiki.Web.Business.Core
             {
                 Lots = lots.Where(x => x.SellerId != playerId).Select(ToModel).ToArray(),
                 MyLots = lots.Where(x => x.SellerId == playerId).Select(ToModel).ToArray(),
-                Commission = MarketCommissionCoins,
+                BuildingLevel = level,
+                CommissionRate = GetCommissionRate(level),
+                CommissionMin = MinCommissionCoins,
+                NextCommissionRate = nextLevel <= marketType.MaxLevel ? GetCommissionRate(nextLevel) : (double?)null,
             };
         }
 
@@ -49,15 +58,17 @@ namespace Domiki.Web.Business.Core
             ValidateLot(giveResourceTypeId, giveValue, wantResourceTypeId, wantValue);
             _playerResourceManager.LockDbPlayerRow(playerId);
 
-            if (!HasBuilding(playerId, "market_yard"))
+            var level = GetMarketYardLevel(playerId);
+            if (level < 1)
             {
                 throw new BusinessException("Нужен Торговый двор");
             }
 
+            var commission = ComputeCommission(level, giveResourceTypeId, giveValue);
             _playerResourceManager.WriteOffResources(playerId, new[]
             {
                 new Resource { Type = new ResourceType { Id = giveResourceTypeId }, Value = giveValue },
-                new Resource { Type = new ResourceType { Id = CoinResourceTypeId }, Value = MarketCommissionCoins },
+                new Resource { Type = new ResourceType { Id = CoinResourceTypeId }, Value = commission },
             });
 
             var lot = new Data.TradeLot
@@ -67,7 +78,7 @@ namespace Domiki.Web.Business.Core
                 GiveValue = giveValue,
                 WantResourceTypeId = wantResourceTypeId,
                 WantValue = wantValue,
-                CommissionCoins = MarketCommissionCoins,
+                CommissionCoins = commission,
                 CreateDate = date,
                 ExpireDate = date.AddSeconds(MarketLotDurationSeconds),
             };
@@ -215,6 +226,27 @@ namespace Domiki.Web.Business.Core
         {
             var typeId = _resourceManager.GetDomikTypes().First(x => x.LogicName == logicName).Id;
             return _context.Domiks.Any(x => x.PlayerId == playerId && x.TypeId == typeId && x.Level >= 1);
+        }
+
+        public static double GetCommissionRate(int marketLevel)
+        {
+            return Math.Max(CommissionRateMin, CommissionRateL1 - (marketLevel - 1) * CommissionRateStep);
+        }
+
+        public static int ComputeCommission(int marketLevel, int giveResourceTypeId, int giveValue)
+        {
+            var coinValue = ResourceManager.GetMarketValue(giveResourceTypeId) * giveValue;
+            var rate = GetCommissionRate(marketLevel);
+            return Math.Max(MinCommissionCoins, (int)Math.Round(coinValue * rate, MidpointRounding.AwayFromZero));
+        }
+
+        private int GetMarketYardLevel(int playerId)
+        {
+            var typeId = _resourceManager.GetDomikTypes().First(x => x.LogicName == "market_yard").Id;
+            return _context.Domiks
+                .Where(x => x.PlayerId == playerId && x.TypeId == typeId)
+                .Select(x => (int?)x.Level)
+                .Max() ?? 0;
         }
 
         private static TradeLot ToModel(Data.TradeLot lot)

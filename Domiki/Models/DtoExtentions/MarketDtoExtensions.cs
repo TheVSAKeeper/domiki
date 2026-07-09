@@ -10,7 +10,10 @@ namespace Domiki.Web.Models
             {
                 Lots = state.Lots.Select(x => x.ToDto()).ToArray(),
                 MyLots = state.MyLots.Select(x => x.ToDto()).ToArray(),
-                Commission = state.Commission,
+                BuildingLevel = state.BuildingLevel,
+                CommissionRate = state.CommissionRate,
+                CommissionMin = state.CommissionMin,
+                NextCommissionRate = state.NextCommissionRate,
             };
         }
 
