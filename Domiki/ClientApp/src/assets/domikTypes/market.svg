@@ -26,27 +26,32 @@
   <rect x="38" y="38" width="8" height="14" fill="#6f4a24"/>
 
   <g class="lvl2">
-    <rect x="12" y="32" width="4" height="4" fill="#c03434"/>
-    <rect x="16" y="32" width="4" height="4" fill="#efe6d4"/>
-    <rect x="20" y="32" width="4" height="4" fill="#c03434"/>
-    <rect x="24" y="32" width="4" height="4" fill="#efe6d4"/>
-    <rect x="28" y="32" width="4" height="4" fill="#c03434"/>
+    <rect x="12" y="30" width="4" height="4" fill="#c03434"/>
+    <rect x="16" y="30" width="4" height="4" fill="#efe6d4"/>
+    <rect x="20" y="30" width="4" height="4" fill="#c03434"/>
+    <rect x="24" y="30" width="4" height="4" fill="#efe6d4"/>
+    <rect x="28" y="30" width="4" height="4" fill="#c03434"/>
   </g>
 
   <g class="lvl3">
-    <rect x="20" y="12" width="24" height="12" fill="#262626"/>
-    <rect x="22" y="14" width="20" height="8" fill="#c03434"/>
-    <rect x="30" y="16" width="4" height="4" fill="#efe6d4"/>
+    <rect x="46" y="42" width="12" height="12" fill="#262626"/>
+    <rect x="48" y="44" width="4" height="2" fill="#6f4a24"/>
+    <rect x="48" y="46" width="4" height="6" fill="#d88a1b"/>
+    <rect x="52" y="42" width="4" height="2" fill="#6f4a24"/>
+    <rect x="52" y="44" width="4" height="8" fill="#d88a1b"/>
   </g>
 
   <g class="lvl4">
-    <rect x="46" y="42" width="10" height="12" fill="#262626"/>
-    <rect x="48" y="44" width="6" height="8" fill="#d88a1b"/>
-    <rect x="50" y="44" width="2" height="2" fill="#6f4a24"/>
+    <rect x="4" y="28" width="4" height="2" fill="#6f4a24"/>
+    <rect x="6" y="30" width="2" height="2" fill="#6f4a24"/>
+    <rect x="2" y="32" width="10" height="8" fill="#262626"/>
+    <rect x="4" y="34" width="6" height="4" fill="#9a6a38"/>
+    <rect x="6" y="34" width="2" height="2" fill="#262626"/>
   </g>
 
   <g class="lvl5">
-    <rect x="30" y="16" width="4" height="4" fill="#e8b83a"/>
     <rect x="8" y="26" width="48" height="2" fill="#e8b83a"/>
+    <rect x="4" y="34" width="6" height="4" fill="#e8b83a"/>
+    <rect x="6" y="34" width="2" height="2" fill="#262626"/>
   </g>
 </svg>
