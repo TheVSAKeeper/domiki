@@ -51,7 +51,7 @@ namespace Domiki.Web.Tests
             Assert.That(market.BuildingLevel, Is.EqualTo(1));
             Assert.That(market.CommissionRate, Is.EqualTo(MarketManager.CommissionRateL1));
             Assert.That(market.CommissionMin, Is.EqualTo(MarketManager.MinCommissionCoins));
-            Assert.That(market.NextCommissionRate, Is.Null);
+            Assert.That(market.NextCommissionRate, Is.EqualTo(MarketManager.GetCommissionRate(2)));
         }
 
         [TestCase(1, 4, 20, 16)]
