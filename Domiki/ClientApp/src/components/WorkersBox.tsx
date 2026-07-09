@@ -1,6 +1,8 @@
 import type { DomikTypeDto, WorkerDto } from '../types/api';
 import { formatDuration, remainingSeconds } from '../utils/time';
-import { WorkerSprite } from './sprites';
+import { DomikSprite, WorkerSprite } from './sprites';
+
+type WorkerState = 'expedition' | 'busy' | 'resting' | 'free';
 
 interface WorkersBoxProps {
     workers: WorkerDto[];
@@ -22,45 +24,53 @@ export const WorkersBox = ({ workers, domikTypes, now }: WorkersBoxProps) => {
                         : ` ${worker.traitDurationPercent} %`;
                     const restingSeconds = worker.restUntil == null ? 0 : remainingSeconds(worker.restUntil, now);
                     const isResting = worker.manufactureId == null && worker.expeditionId == null && worker.restUntil != null && restingSeconds > 0;
-                    const state = worker.expeditionId != null
-                        ? 'в экспедиции'
+                    const stateKey: WorkerState = worker.expeditionId != null
+                        ? 'expedition'
                         : worker.manufactureId != null
-                            ? 'работает'
+                            ? 'busy'
                             : isResting
-                                ? `отдыхает до ${new Date(worker.restUntil as string).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${formatDuration(restingSeconds)})`
-                                : 'свободен';
-                    const className = 'worker-chip'
-                        + (worker.manufactureId == null && worker.expeditionId == null ? '' : ' worker-busy')
-                        + (isResting ? ' worker-resting' : '');
+                                ? 'resting'
+                                : 'free';
+                    const stateLabel = { expedition: 'В экспедиции', busy: 'Работает', resting: 'Отдыхает', free: 'Свободен' }[stateKey];
+                    const restTitle = worker.restUntil == null
+                        ? undefined
+                        : `Отдыхает до ${new Date(worker.restUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${formatDuration(restingSeconds)})`;
                     const visibleSkills = worker.skills.filter(skill => skill.bonusPercent > 0);
                     return (
-                        <div key={worker.id} className={className}>
-                            <WorkerSprite name={worker.name} className="worker-avatar" aria-hidden="true" />
-                            <div className="worker-chip-body">
-                                <span className="worker-name">{worker.name}</span>
-                                <span className="worker-trait">{worker.traitName}{effect}</span>
-                                <span className="worker-state">{state}</span>
-                                {worker.noFatigue &&
-                                    <span className="worker-effect">не устаёт</span>
-                                }
-                                {visibleSkills.length > 0 &&
-                                    <span className="worker-skills">
-                                        {visibleSkills.map(skill => {
-                                            const domikType = domikTypes.find(x => x.id === skill.domikTypeId);
-                                            if (domikType == null) {
-                                                return null;
-                                            }
-
-                                            return (
-                                                <span key={skill.domikTypeId} className="worker-skill" title={`${skill.uses} завершённых работ`}>
-                                                    {domikType.name} +{skill.bonusPercent} %
-                                                </span>
-                                            );
-                                        })}
+                        <article key={worker.id} className={`worker-card worker--${stateKey}`}>
+                            <div className="worker-card-head">
+                                <WorkerSprite name={worker.name} className="worker-avatar" aria-hidden="true" />
+                                <div className="worker-headings">
+                                    <span className="worker-name">{worker.name}</span>
+                                    <span className="worker-badge" title={stateKey === 'resting' ? restTitle : undefined}>
+                                        {stateLabel}
                                     </span>
-                                }
+                                </div>
                             </div>
-                        </div>
+                            <span className="worker-trait">{worker.traitName}{effect}</span>
+                            {(worker.noFatigue || visibleSkills.length > 0) &&
+                                <div className="worker-skills">
+                                    {worker.noFatigue && <span className="worker-flag">не устаёт</span>}
+                                    {visibleSkills.map(skill => {
+                                        const domikType = domikTypes.find(x => x.id === skill.domikTypeId);
+                                        if (domikType == null) {
+                                            return null;
+                                        }
+
+                                        return (
+                                            <span
+                                                key={skill.domikTypeId}
+                                                className="worker-skill"
+                                                title={`${domikType.name}: +${skill.bonusPercent} % · ${skill.uses} завершённых работ`}
+                                            >
+                                                <DomikSprite logicName={domikType.logicName} className="worker-skill-ico" aria-hidden="true" />
+                                                +{skill.bonusPercent} %
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            }
+                        </article>
                     );
                 })}
             </div>

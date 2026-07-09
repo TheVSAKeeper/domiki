@@ -2176,9 +2176,14 @@ progress {
 }
 
 .workers-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
+    align-items: start;
+}
+
+.workers-list .hint {
+    grid-column: 1 / -1;
 }
 
 .worker-chip {
@@ -2191,17 +2196,34 @@ progress {
     clip-path: var(--cut);
 }
 
-.worker-chip-body {
-    display: grid;
-    grid-template-columns: auto auto auto;
+.worker-card {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 9px 10px;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.worker-card-head {
+    display: flex;
     align-items: center;
-    gap: 6px 8px;
+    gap: 9px;
+}
+
+.worker-headings {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
 }
 
 .worker-avatar {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     flex: none;
+    image-rendering: pixelated;
 }
 
 .worker-chip-pick .worker-avatar {
@@ -2209,65 +2231,121 @@ progress {
     height: 24px;
 }
 
-.worker-busy {
-    background: var(--plank-dark);
-    border-color: var(--roof);
-}
-
-.worker-resting {
-    background: #eef6ff;
-    border-color: #517ea6;
-}
-
 .worker-name {
+    font-size: 13px;
     font-weight: 700;
-}
-
-.worker-trait,
-.worker-state,
-.worker-effect {
-    font-size: 12px;
-    font-weight: 700;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .worker-trait {
-    color: var(--pine);
-}
-
-.worker-state {
-    color: var(--roof);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pine-dark);
 }
 
 .worker-effect {
+    font-size: 12px;
+    font-weight: 700;
     color: #517e2d;
 }
 
 .worker-skills {
-    grid-column: 1 / -1;
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 5px;
+    margin-top: auto;
 }
 
 .worker-skill {
-    padding: 2px 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 6px 2px 3px;
     background: #e3f0d1;
-    border: 1px solid var(--pine);
+    border: 2px solid var(--pine);
     clip-path: var(--cut);
     font-size: 11px;
     font-weight: 700;
-    color: var(--pine);
+    color: var(--pine-dark);
+    font-variant-numeric: tabular-nums;
+}
+
+.worker-skill-ico {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    image-rendering: pixelated;
+}
+
+.worker-flag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 6px;
+    background: #d9ead1;
+    border: 2px solid #517e2d;
+    clip-path: var(--cut);
+    font-size: 11px;
+    font-weight: 700;
+    color: #517e2d;
+}
+
+.worker--free {
+    border-color: var(--pine);
+}
+
+.worker--free .worker-badge {
+    background: var(--pine);
+    border-color: var(--pine-dark);
+}
+
+.worker--busy {
+    border-color: var(--roof);
+    background: #f7ece4;
+}
+
+.worker--busy .worker-badge {
+    background: var(--roof);
+    border-color: var(--ink);
+}
+
+.worker--resting {
+    border-color: #517ea6;
+    background: #eef6ff;
+}
+
+.worker--resting .worker-badge {
+    background: #517ea6;
+    border-color: var(--ink);
+}
+
+.worker--expedition {
+    border-color: #b8860b;
+    background: #fdf0c4;
+}
+
+.worker--expedition .worker-badge {
+    background: #b8860b;
+    border-color: var(--ink);
+}
+
+.worker-badge {
+    align-self: flex-start;
+    padding: 2px 7px;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--plank);
+    white-space: nowrap;
 }
 
 @media (max-width: 575px) {
     .worker-chip {
         align-items: start;
         width: 100%;
-    }
-
-    .worker-chip-body {
-        grid-template-columns: 1fr;
-        align-items: start;
     }
 }
 
