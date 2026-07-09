@@ -6,10 +6,13 @@ import CoinsIcon from 'pixelarticons/svg/coins.svg?react';
 import UsersIcon from 'pixelarticons/svg/users.svg?react';
 import MapPinIcon from 'pixelarticons/svg/map-pin.svg?react';
 import HeartIcon from 'pixelarticons/svg/heart.svg?react';
+import CalendarIcon from 'pixelarticons/svg/calendar.svg?react';
+import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import { ApiError, getWorld, visitVillage } from '../services/api';
 import { useToast } from '../services/toast';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 import { formatDuration, remainingSeconds } from '../utils/time';
+import { StatChip } from './StatChip';
 import type { VillageVisitDto, WorldDto, WorldVillageDto } from '../types/api';
 
 type SortKey = 'level' | 'seasonOrders' | 'seasonToloka' | 'seasonExpeditions' | 'comfort';
@@ -145,8 +148,17 @@ export const WorldPage = () => {
             <section className="wiki-intro pixel-panel world-head">
                 <div>
                     <h1 className="wiki-title">Мир</h1>
-                    <div className="world-count">{world.villages.length} деревень</div>
-                    <div className="world-season">Сезон {world.season.number} · до конца {formatDuration(seasonLeft)}</div>
+                    <div className="world-head-stats">
+                        <StatChip icon={<HomeIcon className="stat-chip-ico" aria-hidden="true" />} title="Деревень в мире">
+                            {world.villages.length} деревень
+                        </StatChip>
+                        <StatChip icon={<CalendarIcon className="stat-chip-ico" aria-hidden="true" />} title="Текущий сезон">
+                            Сезон {world.season.number}
+                        </StatChip>
+                        <StatChip icon={<ClockIcon className="stat-chip-ico" aria-hidden="true" />} title="До конца сезона">
+                            {formatDuration(seasonLeft)}
+                        </StatChip>
+                    </div>
                 </div>
                 <Link className="btn-game" to="/domiki-page">
                     <ArrowLeftIcon className="btn-ico" aria-hidden="true" />

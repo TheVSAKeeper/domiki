@@ -58,6 +58,18 @@ const SellerBadge = ({ lot }: { lot: TradeLotDto }) => {
     );
 };
 
+const ResourcePicker = ({ resourceTypes, selectedId, onSelect, label }: { resourceTypes: ResourceTypeDto[]; selectedId: number; onSelect: (id: number) => void; label: string }) => (
+    <div className="resource-picker" role="radiogroup" aria-label={label}>
+        {resourceTypes.map(type => (
+            <button key={type.id} type="button" role="radio" aria-checked={type.id === selectedId}
+                className={'resource-option' + (type.id === selectedId ? ' resource-option-selected' : '')}
+                title={type.name} onClick={() => onSelect(type.id)}>
+                <img src={'/images/resourceTypes/' + type.logicName + '.png'} alt={type.name} />
+            </button>
+        ))}
+    </div>
+);
+
 export const MarketBox = ({ market, resourceTypes, resources, villageLevel, now, onPost, onAccept, onCancel }: MarketBoxProps) => {
     const firstTypeId = resourceTypes[0]?.id ?? 1;
     const secondTypeId = resourceTypes.find(x => x.id !== firstTypeId)?.id ?? firstTypeId;
@@ -105,22 +117,18 @@ export const MarketBox = ({ market, resourceTypes, resources, villageLevel, now,
                         <ArrowsIcon className="btn-ico" aria-hidden="true" />
                         Выставить лот
                     </div>
-                    <label className="market-field">
+                    <div className="market-field">
                         <span className="panel-label">даю</span>
-                        <select value={giveResourceTypeId} onChange={event => setGiveResourceTypeId(Number(event.target.value))}>
-                            {resourceTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
-                        </select>
-                        <input type="number" min={1} step={1} value={giveValue}
+                        <ResourcePicker resourceTypes={resourceTypes} selectedId={giveResourceTypeId} onSelect={setGiveResourceTypeId} label="Ресурс, который даю" />
+                        <input type="number" min={1} step={1} value={giveValue} aria-label="Сколько даю"
                             onChange={event => setGiveValue(Math.max(1, Math.floor(Number(event.target.value) || 1)))} />
-                    </label>
-                    <label className="market-field">
+                    </div>
+                    <div className="market-field">
                         <span className="panel-label">хочу</span>
-                        <select value={wantResourceTypeId} onChange={event => setWantResourceTypeId(Number(event.target.value))}>
-                            {resourceTypes.map(type => <option key={type.id} value={type.id}>{type.name}</option>)}
-                        </select>
-                        <input type="number" min={1} step={1} value={wantValue}
+                        <ResourcePicker resourceTypes={resourceTypes} selectedId={wantResourceTypeId} onSelect={setWantResourceTypeId} label="Ресурс, который хочу" />
+                        <input type="number" min={1} step={1} value={wantValue} aria-label="Сколько хочу"
                             onChange={event => setWantValue(Math.max(1, Math.floor(Number(event.target.value) || 1)))} />
-                    </label>
+                    </div>
                     <div className="market-commission">
                         <CoinsIcon className="btn-ico" aria-hidden="true" />
                         Комиссия: {market.commission} монет

@@ -1,7 +1,9 @@
 import CheckIcon from 'pixelarticons/svg/check.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
 import NoteIcon from 'pixelarticons/svg/note.svg?react';
+import UserIcon from 'pixelarticons/svg/user.svg?react';
 import type { BlueprintDto } from '../types/api';
+import { ProgressBar } from './ProgressBar';
 
 interface BlueprintsBoxProps {
     blueprints: BlueprintDto[];
@@ -25,7 +27,13 @@ export const BlueprintsBox = ({ blueprints }: BlueprintsBoxProps) => {
                         <div key={blueprint.id} className={'blueprint-row' + (blueprint.owned ? ' blueprint-owned' : '')}>
                             <div className="blueprint-main">
                                 <span className="blueprint-name">{blueprint.name}</span>
-                                <span className="blueprint-source">{blueprint.neighborName}: {progress}/{blueprint.reputationThreshold}</span>
+                                <span className="blueprint-source">
+                                    <UserIcon className="stat-chip-ico" aria-hidden="true" />
+                                    {blueprint.neighborName}
+                                </span>
+                                <ProgressBar value={progress} max={blueprint.reputationThreshold}
+                                    label={blueprint.owned ? 'Открыт' : `${progress}/${blueprint.reputationThreshold}`}
+                                    done={blueprint.owned} />
                             </div>
                             {blueprint.owned
                                 ? <CheckIcon className="blueprint-state" aria-label="Открыт" />
