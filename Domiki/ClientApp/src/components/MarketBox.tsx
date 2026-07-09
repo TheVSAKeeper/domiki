@@ -111,6 +111,9 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                     <StoreIcon className="market-title-ico" aria-hidden="true" />
                     <h3 className="panel-title">Ярмарка</h3>
                 </div>
+                <span className="reputation-chip" title="Максимум активных лотов">
+                    мест на прилавке: {market.maxLots}
+                </span>
                 <span className="reputation-chip commission-chip" title="Ставка зависит от уровня Торгового двора – качайте, чтобы платить меньше">
                     Комиссия – {formatPercent(market.commissionRate)}
                     {market.nextCommissionRate != null && (

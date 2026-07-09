@@ -15,5 +15,7 @@
         public bool BuffActive { get; set; }
         public DateTime? BuffUntil { get; set; }
         public int BuffPercent { get; set; }
+        public int BuffHours { get; set; }
+        public int? NextBuffHours { get; set; }
     }
 }

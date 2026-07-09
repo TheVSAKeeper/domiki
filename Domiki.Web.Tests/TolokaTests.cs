@@ -53,6 +53,20 @@ namespace Domiki.Web.Tests
             Assert.That(toloka.MyContribution, Is.EqualTo(0));
         }
 
+        [TestCase(1, 8)]
+        [TestCase(2, 10)]
+        [TestCase(5, 16)]
+        public void GatheringLevelControlsBuffHoursTest(int level, int expectedHours)
+        {
+            var playerId = GetUnlockedPlayerId();
+            SetGatheringLevel(playerId, level);
+
+            var state = GetToloka(playerId)!;
+
+            Assert.That(state.BuffHours, Is.EqualTo(expectedHours));
+            Assert.That(state.NextBuffHours, Is.EqualTo(level < 5 ? expectedHours + 2 : (int?)null));
+        }
+
         [Test]
         public void ContributeWithoutBuildingThrowsAndDoesNotChangeTolokaTest()
         {
@@ -284,6 +298,15 @@ namespace Domiki.Web.Tests
             {
                 var domikManager = GetDomikManager(uow);
                 domikManager.BuyDomik(playerId, domikTypeId);
+                uow.Commit();
+            }
+        }
+
+        private void SetGatheringLevel(int playerId, int level)
+        {
+            using (var uow = GetUow())
+            {
+                uow.Context.Domiks.Single(x => x.PlayerId == playerId && x.TypeId == GatheringDomikTypeId).Level = level;
                 uow.Commit();
             }
         }

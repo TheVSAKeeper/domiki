@@ -12,6 +12,7 @@ namespace Domiki.Web.Models
                 Types = state.Types.Select(x => x.ToDto()).ToArray(),
                 ExpeditionsSincePity = state.ExpeditionsSincePity,
                 PityThreshold = state.PityThreshold,
+                MaxActive = state.MaxActive,
             };
         }
 

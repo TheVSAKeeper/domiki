@@ -103,6 +103,19 @@ namespace Domiki.Web.Tests
         }
 
         [Test]
+        public void MarketYardLevelOneAllowsTwoActiveLotsOnlyTest()
+        {
+            var playerId = GetUnlockedPlayerId();
+            GrantResource(playerId, ClayResourceTypeId, 3);
+
+            PostLot(playerId, ClayResourceTypeId, 1, GoldResourceTypeId, 1);
+            PostLot(playerId, ClayResourceTypeId, 1, GoldResourceTypeId, 1);
+
+            var ex = Assert.Throws<BusinessException>(() => PostLot(playerId, ClayResourceTypeId, 1, GoldResourceTypeId, 1));
+            Assert.That(ex!.Message, Is.EqualTo("Все места на прилавке заняты – улучшите Торговый двор"));
+        }
+
+        [Test]
         public void PostLotInvalidOrInsufficientDoesNotCreateLotTest()
         {
             var playerId = GetUnlockedPlayerId();

@@ -38,6 +38,7 @@ namespace Domiki.Web.Business.Core
             var marketType = _resourceManager.GetDomikTypes().First(x => x.LogicName == "market_yard");
             var nextLevel = level + 1;
             var lots = _context.TradeLots.Include(x => x.Seller)
+                .Where(x => x.ExpireDate > DateTimeHelper.GetNowDate())
                 .OrderBy(x => x.ExpireDate)
                 .ThenBy(x => x.Id)
                 .ToArray();
@@ -50,6 +51,7 @@ namespace Domiki.Web.Business.Core
                 CommissionRate = GetCommissionRate(level),
                 CommissionMin = MinCommissionCoins,
                 NextCommissionRate = nextLevel <= marketType.MaxLevel ? GetCommissionRate(nextLevel) : (double?)null,
+                MaxLots = level + 1,
             };
         }
 
@@ -62,6 +64,11 @@ namespace Domiki.Web.Business.Core
             if (level < 1)
             {
                 throw new BusinessException("Нужен Торговый двор");
+            }
+
+            if (_context.TradeLots.Count(x => x.SellerId == playerId && x.ExpireDate > date) >= level + 1)
+            {
+                throw new BusinessException("Все места на прилавке заняты – улучшите Торговый двор");
             }
 
             var commission = ComputeCommission(level, giveResourceTypeId, giveValue);

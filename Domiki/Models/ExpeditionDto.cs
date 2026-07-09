@@ -6,6 +6,7 @@
         public ExpeditionTypeDto[] Types { get; set; }
         public int ExpeditionsSincePity { get; set; }
         public int PityThreshold { get; set; }
+        public int MaxActive { get; set; }
     }
 
     public class ExpeditionDto

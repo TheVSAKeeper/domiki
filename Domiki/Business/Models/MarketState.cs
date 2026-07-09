@@ -23,5 +23,6 @@
         public double CommissionRate { get; set; }
         public int CommissionMin { get; set; }
         public double? NextCommissionRate { get; set; }
+        public int MaxLots { get; set; }
     }
 }

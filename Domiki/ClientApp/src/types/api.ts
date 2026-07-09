@@ -263,6 +263,7 @@ export const expeditionStateSchema = z.object({
     types: z.array(expeditionTypeSchema),
     expeditionsSincePity: z.number(),
     pityThreshold: z.number(),
+    maxActive: z.number(),
 });
 export type ExpeditionStateDto = z.infer<typeof expeditionStateSchema>;
 
@@ -306,6 +307,8 @@ export const tolokaStateSchema = z.object({
     buffActive: z.boolean(),
     buffUntil: z.string().nullable(),
     buffPercent: z.number(),
+    buffHours: z.number(),
+    nextBuffHours: z.number().nullable(),
 });
 export type TolokaStateDto = z.infer<typeof tolokaStateSchema>;
 
@@ -331,6 +334,7 @@ export const marketStateSchema = z.object({
     commissionRate: z.number(),
     commissionMin: z.number(),
     nextCommissionRate: z.number().nullable(),
+    maxLots: z.number(),
 });
 export type MarketStateDto = z.infer<typeof marketStateSchema>;
 

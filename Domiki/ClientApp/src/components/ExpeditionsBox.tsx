@@ -63,6 +63,9 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
                     <BackpackIcon className="expedition-title-ico" aria-hidden="true" />
                     <h3 className="panel-title">Экспедиции</h3>
                 </div>
+                <span className="reputation-chip" title="Максимум параллельных экспедиций">
+                    отрядов: {expeditions.maxActive}
+                </span>
                 <span className="reputation-chip" title="Экспедиций без редкой находки">
                     <TargetIcon className="pity-ico" aria-hidden="true" />
                     до находки: {untilPity}

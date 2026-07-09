@@ -14,6 +14,7 @@ namespace Domiki.Web.Models
                 CommissionRate = state.CommissionRate,
                 CommissionMin = state.CommissionMin,
                 NextCommissionRate = state.NextCommissionRate,
+                MaxLots = state.MaxLots,
             };
         }
 

@@ -45,6 +45,20 @@ namespace Domiki.Web.Tests
         }
 
         [Test]
+        public void ScoutHutLevelOneAllowsOneActiveExpeditionOnlyTest()
+        {
+            var playerId = GetPlayerId();
+            BuyBarracks(playerId, 2);
+            GrantResource(playerId, GoldResourceTypeId, 2);
+            GrantResource(playerId, PlankResourceTypeId, 4);
+
+            StartExpedition(playerId, ShortScoutId);
+
+            var ex = Assert.Throws<BusinessException>(() => StartExpedition(playerId, ShortScoutId));
+            Assert.That(ex!.Message, Is.EqualTo("Все отряды в походе – улучшите Сторожку"));
+        }
+
+        [Test]
         public void StartExpeditionWithoutBuildingThrowsTest()
         {
             var playerId = GetPlayerId();
@@ -152,7 +166,10 @@ namespace Domiki.Web.Tests
                 test.SetWorkerRest(workerIds[1], DateTimeHelper.GetNowDate().AddHours(1));
             })).SetName("Resting");
             yield return new TestCaseData(new Action<ExpeditionTests, int, int[]>((test, playerId, workerIds) =>
-                test.StartExpedition(playerId, ShortScoutId))).SetName("BusyWithOtherExpedition");
+            {
+                test.SetScoutHutLevel(playerId, 2);
+                test.StartExpedition(playerId, ShortScoutId);
+            })).SetName("BusyWithOtherExpedition");
         }
 
         [TestCaseSource(nameof(InsufficientWorkerCases))]
@@ -406,6 +423,16 @@ namespace Domiki.Web.Tests
                     uow.Context.SaveChanges();
                 }
 
+                uow.Commit();
+            }
+        }
+
+        private void SetScoutHutLevel(int playerId, int level)
+        {
+            AddBuiltDomik(playerId, ScoutHutDomikTypeId);
+            using (var uow = GetUow())
+            {
+                uow.Context.Domiks.Single(x => x.PlayerId == playerId && x.TypeId == ScoutHutDomikTypeId).Level = level;
                 uow.Commit();
             }
         }

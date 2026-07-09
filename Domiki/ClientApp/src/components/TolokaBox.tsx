@@ -41,6 +41,9 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute 
                     <BuildingCommunityIcon className="toloka-title-ico" aria-hidden="true" />
                     <h3 className="panel-title">Толока</h3>
                 </div>
+                <span className="reputation-chip" title="Длительность баффа Сходни">
+                    бафф: {toloka.buffHours}ч{toloka.nextBuffHours != null ? ` → ${toloka.nextBuffHours}ч` : ''}
+                </span>
                 {toloka.buffActive && toloka.buffUntil != null && buffLeft > 0 &&
                     <span className="reputation-chip">+{toloka.buffPercent} % выход: {formatDuration(buffLeft)}</span>
                 }

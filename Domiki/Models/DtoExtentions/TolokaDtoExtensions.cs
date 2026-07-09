@@ -13,6 +13,8 @@ namespace Domiki.Web.Models
                 BuffActive = state.BuffActive,
                 BuffUntil = state.BuffUntil == null ? null : DateTime.SpecifyKind(state.BuffUntil.Value, DateTimeKind.Utc),
                 BuffPercent = state.BuffPercent,
+                BuffHours = state.BuffHours,
+                NextBuffHours = state.NextBuffHours,
             };
         }
 

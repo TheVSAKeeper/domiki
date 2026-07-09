@@ -6,7 +6,7 @@ namespace Domiki.Web.Business.Core
     public class TolokaManager
     {
         public const int TolokaBuffPercent = 25;
-        public const int TolokaBuffSeconds = 8 * 3600;
+        public static int GetBuffSeconds(int level) => (6 + 2 * level) * 3600;
 
         private readonly Data.ApplicationDbContext _context;
         private readonly ResourceManager _resourceManager;
@@ -35,6 +35,8 @@ namespace Domiki.Web.Business.Core
                 .Select(x => x.Value)
                 .SingleOrDefault();
             var buffUntil = GetBuffUntil(playerId, date);
+            var level = Math.Max(1, GetGatheringLevel(playerId));
+            var maxLevel = _resourceManager.GetDomikTypes().First(x => x.LogicName == "gathering").MaxLevel;
 
             return new TolokaState
             {
@@ -43,6 +45,8 @@ namespace Domiki.Web.Business.Core
                 BuffActive = buffUntil != null,
                 BuffUntil = buffUntil,
                 BuffPercent = TolokaBuffPercent,
+                BuffHours = GetBuffSeconds(level) / 3600,
+                NextBuffHours = level < maxLevel ? GetBuffSeconds(level + 1) / 3600 : (int?)null,
             };
         }
 
@@ -120,11 +124,12 @@ namespace Domiki.Web.Business.Core
 
         private DateTime? GetBuffUntil(int playerId, DateTime date)
         {
+            var buffSeconds = GetBuffSeconds(Math.Max(1, GetGatheringLevel(playerId)));
             return _context.TolokaContributions
                 .Where(x => x.PlayerId == playerId
                     && x.Toloka.CompletedDate != null
-                    && x.Toloka.CompletedDate > date.AddSeconds(-TolokaBuffSeconds))
-                .Select(x => (DateTime?)x.Toloka.CompletedDate.Value.AddSeconds(TolokaBuffSeconds))
+                    && x.Toloka.CompletedDate > date.AddSeconds(-buffSeconds))
+                .Select(x => (DateTime?)x.Toloka.CompletedDate.Value.AddSeconds(buffSeconds))
                 .OrderByDescending(x => x)
                 .FirstOrDefault();
         }
@@ -133,6 +138,13 @@ namespace Domiki.Web.Business.Core
         {
             var typeId = _resourceManager.GetDomikTypes().First(x => x.LogicName == logicName).Id;
             return _context.Domiks.Any(x => x.PlayerId == playerId && x.TypeId == typeId && x.Level >= 1);
+        }
+
+        private int GetGatheringLevel(int playerId)
+        {
+            var typeId = _resourceManager.GetDomikTypes().First(x => x.LogicName == "gathering").Id;
+            return _context.Domiks.Where(x => x.PlayerId == playerId && x.TypeId == typeId)
+                .Select(x => (int?)x.Level).Max() ?? 0;
         }
 
         private static TolokaType PickTolokaType(TolokaType[] tolokaTypes)

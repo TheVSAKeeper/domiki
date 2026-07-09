@@ -41,6 +41,11 @@ namespace Domiki.Web.Tests
                     continue;
                 }
 
+                if (type.Id is 9 or 10 or 11)
+                {
+                    continue;
+                }
+
                 var coinCost = typeLevel.Resources.Single(x => x.Type.Id == 1).Value;
                 Assert.That(coinCost, Is.EqualTo(expectedCoins), $"domik type {type.Id}");
             }

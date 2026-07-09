@@ -45,6 +45,7 @@ namespace Domiki.Web.Business.Core
 
             var types = _resourceManager.GetExpeditionTypes();
             var dbPlayer = _context.Players.Single(x => x.Id == playerId);
+            var scoutHutLevel = GetScoutHutLevel(playerId);
             var active = _context.Expeditions.Where(x => x.PlayerId == playerId).OrderBy(x => x.FinishDate).ToArray()
                 .Select(x => new Expedition
                 {
@@ -60,6 +61,7 @@ namespace Domiki.Web.Business.Core
                 Types = types,
                 ExpeditionsSincePity = dbPlayer.ExpeditionsSincePity,
                 PityThreshold = ExpeditionPityThreshold,
+                MaxActive = scoutHutLevel,
             };
         }
 
@@ -77,6 +79,11 @@ namespace Domiki.Web.Business.Core
             if (type == null)
             {
                 throw new BusinessException("Экспедиция не найдена");
+            }
+
+            if (_context.Expeditions.Count(x => x.PlayerId == playerId) >= GetScoutHutLevel(playerId))
+            {
+                throw new BusinessException("Все отряды в походе – улучшите Сторожку");
             }
 
             var workers = _workerManager.EnsureWorkers(playerId);
@@ -238,6 +245,13 @@ namespace Domiki.Web.Business.Core
         {
             var typeId = _resourceManager.GetDomikTypes().First(x => x.LogicName == logicName).Id;
             return _context.Domiks.Any(x => x.PlayerId == playerId && x.TypeId == typeId && x.Level >= 1);
+        }
+
+        private int GetScoutHutLevel(int playerId)
+        {
+            var typeId = _resourceManager.GetDomikTypes().First(x => x.LogicName == "scout_hut").Id;
+            return _context.Domiks.Where(x => x.PlayerId == playerId && x.TypeId == typeId)
+                .Select(x => (int?)x.Level).Max() ?? 0;
         }
     }
 }
