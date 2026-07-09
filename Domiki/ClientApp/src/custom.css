@@ -2189,6 +2189,21 @@ progress {
     gap: 6px;
 }
 
+.expedition-manual-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.expedition-manual-count {
+    margin-left: auto;
+    font-family: var(--pixel);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--pine);
+    font-variant-numeric: tabular-nums;
+}
+
 .expedition-card .btn-game {
     justify-content: center;
     margin-top: auto;

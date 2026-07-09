@@ -58,7 +58,7 @@ namespace Domiki.Web.Business.Core
             };
         }
 
-        public void StartExpedition(int playerId, int expeditionTypeId)
+        public void StartExpedition(int playerId, int expeditionTypeId, int[] workerIds = null)
         {
             var date = DateTimeHelper.GetNowDate();
             _playerResourceManager.LockDbPlayerRow(playerId);
@@ -74,6 +74,27 @@ namespace Domiki.Web.Business.Core
             if (freeWorkers.Length < type.WorkerCount)
             {
                 throw new BusinessException("Недостаточно трудяг");
+            }
+
+            Data.Worker[] selectedWorkers;
+            if (workerIds == null || workerIds.Length == 0)
+            {
+                selectedWorkers = freeWorkers.Take(type.WorkerCount).ToArray();
+            }
+            else
+            {
+                if (workerIds.Length != type.WorkerCount)
+                {
+                    throw new BusinessException("Неверное число трудяг");
+                }
+                if (workerIds.Distinct().Count() != workerIds.Length)
+                {
+                    throw new BusinessException("Дублирующиеся трудяги");
+                }
+
+                var freeById = freeWorkers.ToDictionary(x => x.Id);
+                selectedWorkers = workerIds.Select(id =>
+                    freeById.TryGetValue(id, out var w) ? w : throw new BusinessException("Трудяга недоступен")).ToArray();
             }
 
             var resourceTypes = _resourceManager.GetResourceTypes().ToDictionary(x => x.Id, x => x);
@@ -101,7 +122,7 @@ namespace Domiki.Web.Business.Core
             _context.Expeditions.Add(expedition);
             _context.SaveChanges();
 
-            foreach (var worker in freeWorkers.Take(type.WorkerCount))
+            foreach (var worker in selectedWorkers)
             {
                 worker.ExpeditionId = expedition.Id;
             }

@@ -48,7 +48,7 @@ export interface GameData {
     setVillage: (name: string, crestIcon: number, crestColor: number) => Promise<void>;
     hurryManufacture: (manufactureId: number) => Promise<void>;
     hurryDomik: (domikId: number) => Promise<void>;
-    startExpedition: (expeditionTypeId: number) => Promise<void>;
+    startExpedition: (expeditionTypeId: number, workerIds?: number[]) => Promise<void>;
     buyDecor: (decorTypeId: number) => Promise<void>;
     contributeToloka: (amount: number) => Promise<void>;
     postLot: (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => Promise<void>;
@@ -152,8 +152,8 @@ export function useGameData(): GameData {
         await reload();
     }, [reload]);
 
-    const startExpedition = useCallback(async (expeditionTypeId: number) => {
-        await startExpeditionApi(expeditionTypeId);
+    const startExpedition = useCallback(async (expeditionTypeId: number, workerIds?: number[]) => {
+        await startExpeditionApi(expeditionTypeId, workerIds);
         await reload();
     }, [reload]);
 

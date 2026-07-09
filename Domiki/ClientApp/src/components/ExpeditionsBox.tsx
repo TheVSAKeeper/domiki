@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import BackpackIcon from 'pixelarticons/svg/backpack.svg?react';
 import MapPinIcon from 'pixelarticons/svg/map-pin.svg?react';
 import FlagIcon from 'pixelarticons/svg/flag.svg?react';
@@ -22,7 +23,7 @@ interface ExpeditionsBoxProps {
     resources: ResourceDto[];
     workers: WorkerDto[];
     now: number;
-    onStart: (expeditionTypeId: number) => void;
+    onStart: (expeditionTypeId: number, workerIds?: number[]) => void;
 }
 
 const EXPEDITION_ICONS: Record<string, typeof MapPinIcon> = {
@@ -31,13 +32,28 @@ const EXPEDITION_ICONS: Record<string, typeof MapPinIcon> = {
 };
 
 export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers, now, onStart }: ExpeditionsBoxProps) => {
+    const [manualMode, setManualMode] = useState<Record<number, boolean>>({});
+    const [picks, setPicks] = useState<Record<number, number[]>>({});
+
     if (expeditions == null) {
         return null;
     }
 
-    const freeWorkerCount = workers.filter(worker => isWorkerFree(worker, now)).length;
+    const freeWorkers = workers.filter(worker => isWorkerFree(worker, now));
     const untilPity = Math.max(0, expeditions.pityThreshold - expeditions.expeditionsSincePity);
     const goldType = resourceTypes.find(x => x.id === GOLD_RESOURCE_TYPE_ID);
+
+    const toggleManual = (typeId: number) => setManualMode(mode => ({ ...mode, [typeId]: !mode[typeId] }));
+    const toggleWorker = (typeId: number, workerId: number, max: number) => setPicks(prev => {
+        const current = prev[typeId] ?? [];
+        if (current.includes(workerId)) {
+            return { ...prev, [typeId]: current.filter(id => id !== workerId) };
+        }
+        if (current.length >= max) {
+            return prev;
+        }
+        return { ...prev, [typeId]: [...current, workerId] };
+    });
 
     return (
         <section className="expeditions-panel pixel-panel">
@@ -55,9 +71,15 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
                 {expeditions.types.map(type => {
                     const TypeIcon = EXPEDITION_ICONS[type.logicName] ?? BackpackIcon;
                     const canAffordGold = hasResourcesFor([{ typeId: GOLD_RESOURCE_TYPE_ID, value: type.goldCost }], resources);
-                    const hasWorkers = freeWorkerCount >= type.workerCount;
-                    const canStart = canAffordGold && hasWorkers;
-                    const blockedTitle = !hasWorkers ? 'Не хватает свободных трудяг' : !canAffordGold ? 'Не хватает золота' : undefined;
+                    const hasWorkers = freeWorkers.length >= type.workerCount;
+                    const isManual = manualMode[type.id] ?? false;
+                    const picked = (picks[type.id] ?? []).filter(id => freeWorkers.some(worker => worker.id === id));
+                    const manualReady = picked.length === type.workerCount;
+                    const canStart = canAffordGold && hasWorkers && (!isManual || manualReady);
+                    const blockedTitle = !hasWorkers ? 'Не хватает свободных трудяг'
+                        : !canAffordGold ? 'Не хватает золота'
+                            : isManual && !manualReady ? `Выберите ${type.workerCount} трудяг`
+                                : undefined;
                     return (
                         <div key={type.id} className="expedition-card">
                             <div className="expedition-topline">
@@ -88,7 +110,26 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
                                     );
                                 })}
                             </div>
-                            <button className="btn-game" disabled={!canStart} title={blockedTitle} onClick={() => onStart(type.id)}>
+                            <label className="receipt-optional expedition-manual-toggle">
+                                <input type="checkbox" checked={isManual} disabled={freeWorkers.length === 0}
+                                    onChange={() => toggleManual(type.id)} />
+                                Выбрать трудяг вручную
+                                {isManual && <span className="expedition-manual-count">{picked.length} / {type.workerCount}</span>}
+                            </label>
+                            {isManual &&
+                                <div className="worker-picker">
+                                    {freeWorkers.length === 0 && <span className="hint">Нет свободных трудяг</span>}
+                                    {freeWorkers.map(worker => (
+                                        <button key={worker.id} type="button"
+                                            className={'worker-chip worker-chip-pick' + (picked.includes(worker.id) ? ' worker-chip-selected' : '')}
+                                            onClick={() => toggleWorker(type.id, worker.id, type.workerCount)}>
+                                            <span className="worker-name">{worker.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            }
+                            <button className="btn-game" disabled={!canStart} title={blockedTitle}
+                                onClick={() => onStart(type.id, isManual ? picked : undefined)}>
                                 <TypeIcon className="btn-ico" aria-hidden="true" />
                                 Отправить
                             </button>

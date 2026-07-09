@@ -54,6 +54,69 @@ namespace Domiki.Web.Tests
             Assert.That(ResourceValue(resources, PlankResourceTypeId), Is.EqualTo(0));
         }
 
+        [Test]
+        public void StartExpeditionWithChosenWorkersAssignsExactlyThoseTest()
+        {
+            var playerId = GetPlayerId();
+            BuyBarracks(playerId, 3);
+            GrantResource(playerId, GoldResourceTypeId, 1);
+            GrantResource(playerId, PlankResourceTypeId, EquipmentCost(ShortScoutId));
+            var workerIds = GetWorkers(playerId).OrderBy(x => x.Id).Select(x => x.Id).ToArray();
+            var chosen = new[] { workerIds[0], workerIds[2] };
+
+            StartExpedition(playerId, ShortScoutId, chosen);
+
+            var expedition = GetExpeditions(playerId).Active.Single();
+            var assigned = GetWorkers(playerId).Where(x => x.ExpeditionId == expedition.Id).Select(x => x.Id).ToArray();
+            Assert.That(assigned, Is.EquivalentTo(chosen));
+        }
+
+        [Test]
+        public void StartExpeditionWithWrongWorkerCountThrowsAndKeepsStateTest()
+        {
+            var playerId = GetPlayerId();
+            BuyBarracks(playerId, 3);
+            GrantResource(playerId, GoldResourceTypeId, 1);
+            GrantResource(playerId, PlankResourceTypeId, EquipmentCost(ShortScoutId));
+            var oneWorker = GetWorkers(playerId).Select(x => x.Id).Take(1).ToArray();
+
+            var ex = Assert.Throws<BusinessException>(() => StartExpedition(playerId, ShortScoutId, oneWorker));
+
+            Assert.That(ex.Message, Is.EqualTo("Неверное число трудяг"));
+            Assert.That(GetExpeditions(playerId).Active, Is.Empty);
+            Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void StartExpeditionWithDuplicateWorkerThrowsTest()
+        {
+            var playerId = GetPlayerId();
+            BuyBarracks(playerId, 3);
+            GrantResource(playerId, GoldResourceTypeId, 1);
+            GrantResource(playerId, PlankResourceTypeId, EquipmentCost(ShortScoutId));
+            var workerId = GetWorkers(playerId).First().Id;
+
+            var ex = Assert.Throws<BusinessException>(() => StartExpedition(playerId, ShortScoutId, new[] { workerId, workerId }));
+
+            Assert.That(ex.Message, Is.EqualTo("Дублирующиеся трудяги"));
+        }
+
+        [Test]
+        public void StartExpeditionWithBusyChosenWorkerThrowsTest()
+        {
+            var playerId = GetPlayerId();
+            BuyBarracks(playerId, 3);
+            BuyDomik(playerId, ProducerDomikTypeId);
+            GrantResource(playerId, GoldResourceTypeId, 1);
+            GrantResource(playerId, PlankResourceTypeId, EquipmentCost(ShortScoutId));
+            var workerIds = GetWorkers(playerId).OrderBy(x => x.Id).Select(x => x.Id).ToArray();
+            StartManufacture(playerId, 4, 1, new[] { workerIds[0] });
+
+            var ex = Assert.Throws<BusinessException>(() => StartExpedition(playerId, ShortScoutId, new[] { workerIds[0], workerIds[1] }));
+
+            Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
+        }
+
         private static IEnumerable<TestCaseData> InsufficientWorkerCases()
         {
             yield return new TestCaseData(new Action<ExpeditionTests, int, int[]>((test, playerId, workerIds) =>
@@ -388,12 +451,12 @@ namespace Domiki.Web.Tests
             }
         }
 
-        private void StartExpedition(int playerId, int expeditionTypeId)
+        private void StartExpedition(int playerId, int expeditionTypeId, int[]? workerIds = null)
         {
             using (var uow = GetUow())
             {
                 var manager = GetExpeditionManager(uow, calculatorJustFinishMode: false);
-                manager.StartExpedition(playerId, expeditionTypeId);
+                manager.StartExpedition(playerId, expeditionTypeId, workerIds);
                 uow.Commit();
             }
         }

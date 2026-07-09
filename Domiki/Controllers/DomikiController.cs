@@ -382,10 +382,10 @@ namespace Domiki.Controllers
 
         [HttpPost]
         [Route("/Domiki/StartExpedition/{expeditionTypeId}")]
-        public Response StartExpedition(int expeditionTypeId)
+        public Response StartExpedition(int expeditionTypeId, [FromQuery] int[] workerIds = null)
         {
             int playerId = GetPlayerId();
-            _expeditionManager.StartExpedition(playerId, expeditionTypeId);
+            _expeditionManager.StartExpedition(playerId, expeditionTypeId, workerIds);
             return new Response { Type = ResponseType.Success };
         }
 

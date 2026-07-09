@@ -123,8 +123,10 @@ export const getSeason = (signal?: AbortSignal): Promise<SeasonDto> =>
 export const getExpeditions = (signal?: AbortSignal): Promise<ExpeditionStateDto> =>
     apiGet('Domiki/GetExpeditions', expeditionStateSchema, signal);
 
-export const startExpedition = (expeditionTypeId: number, signal?: AbortSignal): Promise<void> =>
-    apiPost(`Domiki/StartExpedition/${expeditionTypeId}`, signal);
+export const startExpedition = (expeditionTypeId: number, workerIds?: number[], signal?: AbortSignal): Promise<void> => {
+    const query = (workerIds ?? []).map(id => `workerIds=${id}`).join('&');
+    return apiPost(`Domiki/StartExpedition/${expeditionTypeId}${query ? `?${query}` : ''}`, signal);
+};
 
 export const getDecor = (signal?: AbortSignal): Promise<DecorStateDto> =>
     apiGet('Domiki/GetDecor', decorStateSchema, signal);

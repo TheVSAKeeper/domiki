@@ -176,7 +176,7 @@ export const DomikiPage = () => {
 
     const hurryDomikAction = (domikId: number) => runAction(() => hurryDomik(domikId));
 
-    const startExpeditionAction = (expeditionTypeId: number) => runAction(() => startExpedition(expeditionTypeId));
+    const startExpeditionAction = (expeditionTypeId: number, workerIds?: number[]) => runAction(() => startExpedition(expeditionTypeId, workerIds));
 
     const buyDecorAction = (decorTypeId: number) => runAction(() => buyDecor(decorTypeId));
 
