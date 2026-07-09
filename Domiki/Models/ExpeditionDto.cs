@@ -27,6 +27,13 @@
         public int GoldCost { get; set; }
         public int RollCount { get; set; }
         public ExpeditionLootDto[] Loot { get; set; }
+        public ExpeditionEquipmentDto[] Equipment { get; set; }
+    }
+
+    public class ExpeditionEquipmentDto
+    {
+        public int ResourceTypeId { get; set; }
+        public int Value { get; set; }
     }
 
     public class ExpeditionLootDto

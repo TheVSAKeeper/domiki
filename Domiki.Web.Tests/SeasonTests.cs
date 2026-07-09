@@ -12,6 +12,7 @@ namespace Domiki.Web.Tests
         private const int BridgeTolokaTypeId = 1;
         private const int StoneResourceTypeId = 2;
         private const int GoldResourceTypeId = 5;
+        private const int PlankResourceTypeId = 7;
         private const int FountainDecorTypeId = 4;
         private const int BarracksTypeId = 2;
         private const int ShortScoutId = 1;
@@ -75,6 +76,7 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             BuyBarracks(playerId, 2);
             GrantResource(playerId, GoldResourceTypeId, 1);
+            GrantResource(playerId, PlankResourceTypeId, 2);
             StartExpedition(playerId, ShortScoutId);
             var expedition = GetExpeditions(playerId).Active.Single();
             var season = GetSeason(DateTimeHelper.GetNowDate());

@@ -11,6 +11,8 @@ namespace Domiki.Web.Tests
         private const int BarracksTypeId = 2;
         private const int ProducerDomikTypeId = 5;
         private const int GoldResourceTypeId = 5;
+        private const int PlankResourceTypeId = 7;
+        private const int OrdinaryTraitId = 1;
         private const int StoneResourceTypeId = 2;
         private const int WoodResourceTypeId = 3;
         private const int ClayResourceTypeId = 4;
@@ -37,6 +39,7 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             BuyBarracks(playerId, workerCount);
             GrantResource(playerId, GoldResourceTypeId, goldCost);
+            GrantResource(playerId, PlankResourceTypeId, EquipmentCost(expeditionTypeId));
             var start = DateTimeHelper.GetNowDate();
 
             StartExpedition(playerId, expeditionTypeId);
@@ -46,7 +49,9 @@ namespace Domiki.Web.Tests
             Assert.That(expedition.ExpeditionType.Id, Is.EqualTo(expeditionTypeId));
             Assert.That((expedition.FinishDate - start).TotalSeconds, Is.EqualTo(durationSeconds).Within(2));
             Assert.That(GetWorkers(playerId).Count(x => x.ExpeditionId == expedition.Id), Is.EqualTo(workerCount));
-            Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(0));
+            var resources = GetResources(playerId);
+            Assert.That(ResourceValue(resources, GoldResourceTypeId), Is.EqualTo(0));
+            Assert.That(ResourceValue(resources, PlankResourceTypeId), Is.EqualTo(0));
         }
 
         private static IEnumerable<TestCaseData> InsufficientWorkerCases()
@@ -73,6 +78,7 @@ namespace Domiki.Web.Tests
             BuyDomik(playerId, ProducerDomikTypeId);
             BuyDomik(playerId, ProducerDomikTypeId);
             GrantResource(playerId, GoldResourceTypeId, 3);
+            GrantResource(playerId, PlankResourceTypeId, 2);
             var workerIds = GetWorkers(playerId).Select(x => x.Id).ToArray();
 
             occupy(this, playerId, workerIds);
@@ -86,12 +92,29 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             BuyBarracks(playerId, 2);
+            GrantResource(playerId, PlankResourceTypeId, 2);
 
             var ex = Assert.Throws<BusinessException>(() => StartExpedition(playerId, ShortScoutId));
 
             Assert.That(ex.Message, Is.EqualTo("Недостаточно Золото"));
             Assert.That(GetExpeditions(playerId).Active, Is.Empty);
             Assert.That(GetWorkers(playerId).All(x => x.ExpeditionId == null), Is.True);
+            Assert.That(ResourceValue(GetResources(playerId), PlankResourceTypeId), Is.EqualTo(2));
+        }
+
+        [Test]
+        public void StartExpeditionWithoutEnoughPlanksThrowsAndKeepsStateTest()
+        {
+            var playerId = GetPlayerId();
+            BuyBarracks(playerId, 2);
+            GrantResource(playerId, GoldResourceTypeId, 1);
+
+            var ex = Assert.Throws<BusinessException>(() => StartExpedition(playerId, ShortScoutId));
+
+            Assert.That(ex.Message, Is.EqualTo("Недостаточно Доска"));
+            Assert.That(GetExpeditions(playerId).Active, Is.Empty);
+            Assert.That(GetWorkers(playerId).All(x => x.ExpeditionId == null), Is.True);
+            Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(1));
         }
 
         [Test]
@@ -111,6 +134,7 @@ namespace Domiki.Web.Tests
             BuyBarracks(playerId, 2);
             BuyDomik(playerId, ProducerDomikTypeId);
             GrantResource(playerId, GoldResourceTypeId, 1);
+            GrantResource(playerId, PlankResourceTypeId, 2);
 
             StartExpedition(playerId, ShortScoutId);
 
@@ -124,6 +148,7 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             BuyBarracks(playerId, 2);
             GrantResource(playerId, GoldResourceTypeId, 1);
+            GrantResource(playerId, PlankResourceTypeId, 2);
             StartExpedition(playerId, ShortScoutId);
             var expedition = GetExpeditions(playerId).Active.Single();
 
@@ -140,6 +165,7 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             BuyBarracks(playerId, 5);
             GrantResource(playerId, GoldResourceTypeId, 2);
+            GrantResource(playerId, PlankResourceTypeId, 6);
             StartExpedition(playerId, LongJourneyId);
             var expedition = GetExpeditions(playerId).Active.Single();
             var before = GetResources(playerId);
@@ -168,6 +194,7 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             BuyBarracks(playerId, 2);
             GrantResource(playerId, GoldResourceTypeId, 1);
+            GrantResource(playerId, PlankResourceTypeId, 2);
             StartExpedition(playerId, ShortScoutId);
             var expedition = GetExpeditions(playerId).Active.Single();
             var before = GetResources(playerId);
@@ -188,6 +215,7 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             BuyBarracks(playerId, workerCount);
             GrantResource(playerId, GoldResourceTypeId, goldCost);
+            GrantResource(playerId, PlankResourceTypeId, EquipmentCost(expeditionTypeId));
             SetPityCounter(playerId, ExpeditionManager.ExpeditionPityThreshold);
             StartExpedition(playerId, expeditionTypeId);
             var expedition = GetExpeditions(playerId).Active.Single();
@@ -199,6 +227,53 @@ namespace Domiki.Web.Tests
             var after = GetResources(playerId);
             Assert.That(ResourceValue(after, rareResourceTypeId) - ResourceValue(before, rareResourceTypeId), Is.InRange(minGranted, maxGranted));
             Assert.That(GetPityCounter(playerId), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void FinishExpeditionSetsRestForNonNoFatigueWorkersTest()
+        {
+            var playerId = GetPlayerId();
+            BuyBarracks(playerId, 2);
+            GetWorkers(playerId);
+            SetAllWorkerTraits(playerId, OrdinaryTraitId);
+            GrantResource(playerId, GoldResourceTypeId, 1);
+            GrantResource(playerId, PlankResourceTypeId, 2);
+            StartExpedition(playerId, ShortScoutId);
+            var expedition = GetExpeditions(playerId).Active.Single();
+            var assignedWorkerIds = GetWorkers(playerId).Where(x => x.ExpeditionId == expedition.Id).Select(x => x.Id).ToArray();
+            var finishDate = DateTimeHelper.GetNowDate().AddSeconds(-1);
+
+            SetExpeditionFinish(expedition.Id, finishDate);
+            FinishExpedition(playerId, expedition.Id, DateTimeHelper.GetNowDate());
+
+            var workers = GetWorkers(playerId).Where(x => assignedWorkerIds.Contains(x.Id)).ToArray();
+            foreach (var worker in workers)
+            {
+                Assert.That(worker.RestUntil, Is.Not.Null);
+                Assert.That((worker.RestUntil!.Value - finishDate.AddSeconds(ExpeditionManager.ExpeditionRestSeconds)).TotalSeconds, Is.EqualTo(0).Within(2));
+            }
+        }
+
+        [TestCase(ShortScoutId)]
+        [TestCase(LongJourneyId)]
+        public void ExpeditionEquipmentDoesNotOverlapLootTest(int expeditionTypeId)
+        {
+            using (var uow = GetUow())
+            {
+                var type = GetResourceManager(uow).GetExpeditionTypes().Single(x => x.Id == expeditionTypeId);
+
+                Assert.That(type.Equipment.Select(x => x.ResourceTypeId).Intersect(type.Loot.Select(x => x.ResourceTypeId)), Is.Empty);
+                uow.Commit();
+            }
+        }
+
+        [TestCase(false, 10, 0, 10)]
+        [TestCase(true, 10, 0, 10)]
+        [TestCase(true, 10, 100, 20)]
+        [TestCase(false, 10, 100, 10)]
+        public void ScaleWeightAppliesLuckOnlyToRareEntriesTest(bool isRare, int weight, int luckPercent, int expected)
+        {
+            Assert.That(ExpeditionManager.ScaleWeight(isRare, weight, luckPercent), Is.EqualTo(expected));
         }
 
         private int GetPlayerId()
@@ -248,6 +323,19 @@ namespace Domiki.Web.Tests
                 var workers = workerManager.GetWorkers(playerId).ToArray();
                 uow.Commit();
                 return workers;
+            }
+        }
+
+        private void SetAllWorkerTraits(int playerId, int traitId)
+        {
+            using (var uow = GetUow())
+            {
+                foreach (var worker in uow.Context.Workers.Where(x => x.PlayerId == playerId))
+                {
+                    worker.TraitId = traitId;
+                }
+
+                uow.Commit();
             }
         }
 
@@ -353,6 +441,11 @@ namespace Domiki.Web.Tests
             {
                 return uow.Context.Players.Single(x => x.Id == playerId).ExpeditionsSincePity;
             }
+        }
+
+        private int EquipmentCost(int expeditionTypeId)
+        {
+            return expeditionTypeId == ShortScoutId ? 2 : 6;
         }
 
         private int ResourceValue(Resource[] resources, int typeId)

@@ -124,7 +124,7 @@ namespace Domiki.Web.Business.Core
             foreach (var domikType in _resourceManager.GetDomikTypes())
             {
                 var current = domiks.Count(x => x.Type.Id == domikType.Id);
-                var availableCount = domikType.MaxCount - current;
+                var availableCount = Math.Max(0, domikType.MaxCount - current);
                 if (availableCount > 0)
                 {
                     available.Add((domikType, availableCount));

@@ -43,6 +43,7 @@ namespace Domiki.Web.Data
 
         public DbSet<ExpeditionType> ExpeditionTypes { get; set; }
         public DbSet<ExpeditionLoot> ExpeditionLoot { get; set; }
+        public DbSet<ExpeditionEquipment> ExpeditionEquipment { get; set; }
         public DbSet<Expedition> Expeditions { get; set; }
 
         public DbSet<DecorType> DecorTypes { get; set; }
@@ -87,10 +88,11 @@ namespace Domiki.Web.Data
                 .UsePropertyAccessMode(PropertyAccessMode.Property);
 
             modelBuilder.Entity<Trait>().HasData(
-                new Trait { Id = 1, Name = "Обычный", LogicName = "ordinary", DurationPercent = 0, NoFatigue = false },
-                new Trait { Id = 2, Name = "Проворный", LogicName = "nimble", DurationPercent = -10, NoFatigue = false },
-                new Trait { Id = 3, Name = "Работящий", LogicName = "diligent", DurationPercent = -20, NoFatigue = false },
-                new Trait { Id = 4, Name = "Соня", LogicName = "sonya", DurationPercent = 15, NoFatigue = true });
+                new Trait { Id = 1, Name = "Обычный", LogicName = "ordinary", DurationPercent = 0, NoFatigue = false, LuckWeightPercent = 0 },
+                new Trait { Id = 2, Name = "Проворный", LogicName = "nimble", DurationPercent = -10, NoFatigue = false, LuckWeightPercent = 0 },
+                new Trait { Id = 3, Name = "Работящий", LogicName = "diligent", DurationPercent = -20, NoFatigue = false, LuckWeightPercent = 0 },
+                new Trait { Id = 4, Name = "Соня", LogicName = "sonya", DurationPercent = 15, NoFatigue = true, LuckWeightPercent = 0 },
+                new Trait { Id = 5, Name = "Везучий", LogicName = "lucky", DurationPercent = 0, NoFatigue = false, LuckWeightPercent = 100 });
 
             modelBuilder.Entity<Worker>()
                 .HasOne(s => s.Player)
@@ -313,6 +315,18 @@ namespace Domiki.Web.Data
                 });
 
             modelBuilder.Entity<ExpeditionLoot>()
+                .HasOne(s => s.ExpeditionType)
+                .WithMany()
+                .HasForeignKey(e => e.ExpeditionTypeId);
+
+            modelBuilder.Entity<ExpeditionEquipment>()
+                .HasKey(p => new
+                {
+                    p.ExpeditionTypeId,
+                    p.ResourceTypeId,
+                });
+
+            modelBuilder.Entity<ExpeditionEquipment>()
                 .HasOne(s => s.ExpeditionType)
                 .WithMany()
                 .HasForeignKey(e => e.ExpeditionTypeId);

@@ -7,5 +7,6 @@
         public string LogicName { get; set; }
         public int DurationPercent { get; set; }
         public bool NoFatigue { get; set; }
+        public int LuckWeightPercent { get; set; }
     }
 }

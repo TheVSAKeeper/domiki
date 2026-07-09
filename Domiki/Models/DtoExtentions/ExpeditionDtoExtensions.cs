@@ -45,6 +45,11 @@ namespace Domiki.Web.Models
                     MaxValue = x.MaxValue,
                     IsRare = x.IsRare,
                 }).ToArray(),
+                Equipment = type.Equipment.Select(x => new ExpeditionEquipmentDto
+                {
+                    ResourceTypeId = x.ResourceTypeId,
+                    Value = x.Value,
+                }).ToArray(),
             };
         }
     }

@@ -142,6 +142,7 @@ namespace Domiki.Web.Tests
         {
             var config = new ConfigurationBuilder()
                .AddJsonFile("appsettings.json")
+               .AddJsonFile("appsettings.Development.json", optional: true)
                .AddEnvironmentVariables()
                 .Build();
             return config;

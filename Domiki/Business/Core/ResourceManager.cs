@@ -51,6 +51,7 @@ namespace Domiki.Web.Business.Core
                     Name = x.Name,
                     DurationPercent = x.DurationPercent,
                     NoFatigue = x.NoFatigue,
+                    LuckWeightPercent = x.LuckWeightPercent,
                 }).ToArray();
             }
 
@@ -168,6 +169,7 @@ namespace Domiki.Web.Business.Core
             if (_expeditionTypes == null)
             {
                 var loot = _context.ExpeditionLoot.ToArray();
+                var equipment = _context.ExpeditionEquipment.ToArray();
                 _expeditionTypes = _context.ExpeditionTypes.Select(x => new ExpeditionType
                 {
                     Id = x.Id,
@@ -190,6 +192,14 @@ namespace Domiki.Web.Business.Core
                             MaxValue = x.MaxValue,
                             Weight = x.Weight,
                             IsRare = x.IsRare,
+                        })
+                        .ToArray();
+                    expeditionType.Equipment = equipment
+                        .Where(x => x.ExpeditionTypeId == expeditionType.Id)
+                        .Select(x => new ExpeditionEquipment
+                        {
+                            ResourceTypeId = x.ResourceTypeId,
+                            Value = x.Value,
                         })
                         .ToArray();
                 }

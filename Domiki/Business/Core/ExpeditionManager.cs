@@ -5,6 +5,7 @@ namespace Domiki.Web.Business.Core
     public class ExpeditionManager
     {
         public const int ExpeditionPityThreshold = 8;
+        public const int ExpeditionRestSeconds = 2 * 3600;
         private const int GoldResourceTypeId = 5;
 
         private Data.ApplicationDbContext _context;
@@ -75,15 +76,20 @@ namespace Domiki.Web.Business.Core
                 throw new BusinessException("Недостаточно трудяг");
             }
 
-            var goldType = _resourceManager.GetResourceTypes().First(x => x.Id == GoldResourceTypeId);
-            _playerResourceManager.WriteOffResources(playerId, new[]
+            var resourceTypes = _resourceManager.GetResourceTypes().ToDictionary(x => x.Id, x => x);
+            var writeOffResources = new[]
             {
                 new Resource
                 {
-                    Type = goldType,
+                    Type = resourceTypes[GoldResourceTypeId],
                     Value = type.GoldCost,
                 },
-            });
+            }.Concat(type.Equipment.Select(x => new Resource
+            {
+                Type = resourceTypes[x.ResourceTypeId],
+                Value = x.Value,
+            })).ToArray();
+            _playerResourceManager.WriteOffResources(playerId, writeOffResources);
 
             var expedition = new Data.Expedition
             {
@@ -129,6 +135,9 @@ namespace Domiki.Web.Business.Core
 
             var type = _resourceManager.GetExpeditionTypes().First(x => x.Id == dbExpedition.ExpeditionTypeId);
             var dbPlayer = _context.Players.Single(x => x.Id == calcInfo.PlayerId);
+            var assignedWorkers = _context.Workers.Where(x => x.ExpeditionId == dbExpedition.Id).ToArray();
+            var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
+            var groupLuck = assignedWorkers.Length == 0 ? 0 : assignedWorkers.Max(x => traits[x.TraitId].LuckWeightPercent);
 
             var forced = dbPlayer.ExpeditionsSincePity >= ExpeditionPityThreshold;
             var gotRare = false;
@@ -140,7 +149,7 @@ namespace Domiki.Web.Business.Core
                     pool = type.Loot;
                 }
 
-                var entry = PickLoot(pool);
+                var entry = PickLoot(pool, groupLuck);
                 if (entry.IsRare)
                 {
                     gotRare = true;
@@ -153,8 +162,13 @@ namespace Domiki.Web.Business.Core
             dbPlayer.ExpeditionsSincePity = gotRare ? 0 : dbPlayer.ExpeditionsSincePity + 1;
             _seasonManager.IncrementCounter(calcInfo.PlayerId, SeasonMetric.Expeditions, 1, date);
 
-            foreach (var worker in _context.Workers.Where(x => x.ExpeditionId == dbExpedition.Id).ToArray())
+            foreach (var worker in assignedWorkers)
             {
+                if (!traits[worker.TraitId].NoFatigue)
+                {
+                    worker.RestUntil = dbExpedition.FinishDate.AddSeconds(ExpeditionRestSeconds);
+                }
+
                 worker.ExpeditionId = null;
             }
 
@@ -162,14 +176,19 @@ namespace Domiki.Web.Business.Core
             return true;
         }
 
-        private static ExpeditionLoot PickLoot(ExpeditionLoot[] loot)
+        private static ExpeditionLoot PickLoot(ExpeditionLoot[] loot, int luckPercent)
         {
-            var totalWeight = loot.Sum(x => x.Weight);
+            var totalWeight = loot.Sum(x => ScaleWeight(x.IsRare, x.Weight, luckPercent));
+            if (totalWeight <= 0)
+            {
+                throw new InvalidOperationException("Нет доступной добычи экспедиции");
+            }
+
             var roll = Random.Shared.Next(totalWeight);
             var cumulative = 0;
             foreach (var entry in loot)
             {
-                cumulative += entry.Weight;
+                cumulative += ScaleWeight(entry.IsRare, entry.Weight, luckPercent);
                 if (roll < cumulative)
                 {
                     return entry;
@@ -177,6 +196,11 @@ namespace Domiki.Web.Business.Core
             }
 
             return loot[^1];
+        }
+
+        public static int ScaleWeight(bool isRare, int weight, int luckPercent)
+        {
+            return isRare ? weight * (100 + luckPercent) / 100 : weight;
         }
     }
 }
