@@ -10,6 +10,7 @@ import CloudSunIcon from 'pixelarticons/svg/cloud-sun.svg?react';
 import ClipboardIcon from 'pixelarticons/svg/clipboard-note.svg?react';
 import HomeIcon from 'pixelarticons/svg/home.svg?react';
 import { authService } from '../services/auth';
+import { DomikSprite } from './sprites';
 
 const buildings = ['market', 'lumber_mill', 'clay_mine', 'stone_mine', 'gold_mine', 'forge', 'workshop', 'barracks'];
 
@@ -126,7 +127,7 @@ export const Home = () => {
                 <div className="scene">
                     <div className="village-strip" aria-hidden="true">
                         {buildings.map((name, i) => (
-                            <img key={name} src={'/images/domikTypes/' + name + '.png'} alt="" style={{ '--i': i } as CSSProperties} />
+                            <DomikSprite key={name} logicName={name} level={(i % 5) + 1} style={{ '--i': i } as CSSProperties} />
                         ))}
                     </div>
                     <LiveTreasury />

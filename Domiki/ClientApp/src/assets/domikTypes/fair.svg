@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-level="1">
+  <title>Ярмарка</title>
+  <style>
+    svg[data-level="1"] .lvl2, svg[data-level="1"] .lvl3, svg[data-level="1"] .lvl4, svg[data-level="1"] .lvl5,
+    svg[data-level="2"] .lvl3, svg[data-level="2"] .lvl4, svg[data-level="2"] .lvl5,
+    svg[data-level="3"] .lvl4, svg[data-level="3"] .lvl5,
+    svg[data-level="4"] .lvl5 { display: none }
+  </style>
+
+  <rect x="0" y="54" width="64" height="2" fill="#565656"/>
+  <rect x="0" y="56" width="64" height="6" fill="#8f8f8f"/>
+  <rect x="10" y="58" width="2" height="2" fill="#6e6e6e"/>
+  <rect x="34" y="58" width="2" height="2" fill="#6e6e6e"/>
+  <rect x="52" y="58" width="2" height="2" fill="#6e6e6e"/>
+
+  <rect x="10" y="26" width="4" height="28" fill="#6f4a24"/>
+  <rect x="50" y="26" width="4" height="28" fill="#6f4a24"/>
+
+  <rect x="6" y="36" width="52" height="18" fill="#262626"/>
+  <rect x="8" y="38" width="48" height="4" fill="#b07c42"/>
+  <rect x="8" y="42" width="48" height="10" fill="#9a6a38"/>
+  <rect x="20" y="44" width="2" height="8" fill="#6f4a24"/>
+  <rect x="32" y="44" width="2" height="8" fill="#6f4a24"/>
+  <rect x="44" y="44" width="2" height="8" fill="#6f4a24"/>
+
+  <rect x="12" y="30" width="12" height="8" fill="#262626"/>
+  <rect x="14" y="32" width="8" height="4" fill="#b07c42"/>
+  <rect x="28" y="32" width="6" height="6" fill="#4f9a3c"/>
+  <rect x="38" y="34" width="4" height="4" fill="#cf3c3c"/>
+  <rect x="44" y="30" width="6" height="8" fill="#e0a63a"/>
+  <rect x="46" y="30" width="2" height="2" fill="#6f4a24"/>
+
+  <rect x="4" y="12" width="56" height="14" fill="#262626"/>
+  <rect x="6" y="14" width="4" height="10" fill="#c03434"/>
+  <rect x="10" y="14" width="4" height="10" fill="#efe6d4"/>
+  <rect x="14" y="14" width="4" height="10" fill="#c03434"/>
+  <rect x="18" y="14" width="4" height="10" fill="#efe6d4"/>
+  <rect x="22" y="14" width="4" height="10" fill="#c03434"/>
+  <rect x="26" y="14" width="4" height="10" fill="#efe6d4"/>
+  <rect x="30" y="14" width="4" height="10" fill="#c03434"/>
+  <rect x="34" y="14" width="4" height="10" fill="#efe6d4"/>
+  <rect x="38" y="14" width="4" height="10" fill="#c03434"/>
+  <rect x="42" y="14" width="4" height="10" fill="#efe6d4"/>
+  <rect x="46" y="14" width="4" height="10" fill="#c03434"/>
+  <rect x="50" y="14" width="4" height="10" fill="#efe6d4"/>
+  <rect x="54" y="14" width="4" height="10" fill="#c03434"/>
+  <rect x="8" y="26" width="4" height="2" fill="#262626"/>
+  <rect x="20" y="26" width="4" height="2" fill="#262626"/>
+  <rect x="32" y="26" width="4" height="2" fill="#262626"/>
+  <rect x="44" y="26" width="4" height="2" fill="#262626"/>
+  <rect x="56" y="26" width="4" height="2" fill="#262626"/>
+
+  <g class="lvl2">
+    <rect x="30" y="2" width="4" height="10" fill="#6f4a24"/>
+    <rect x="34" y="2" width="8" height="4" fill="#cf3c3c"/>
+    <rect x="34" y="6" width="4" height="2" fill="#cf3c3c"/>
+  </g>
+
+  <g class="lvl3">
+    <rect x="26" y="42" width="12" height="8" fill="#262626"/>
+    <rect x="28" y="44" width="8" height="4" fill="#efe6d4"/>
+    <rect x="32" y="44" width="4" height="4" fill="#e0a63a"/>
+  </g>
+
+  <g class="lvl4">
+    <rect x="4" y="4" width="2" height="8" fill="#6f4a24"/>
+    <rect x="6" y="4" width="6" height="4" fill="#4f9a3c"/>
+    <rect x="58" y="4" width="2" height="8" fill="#6f4a24"/>
+    <rect x="52" y="4" width="6" height="4" fill="#4f9a3c"/>
+  </g>
+
+  <g class="lvl5">
+    <rect x="6" y="24" width="52" height="2" fill="#e8b83a"/>
+    <rect x="54" y="40" width="8" height="14" fill="#262626"/>
+    <rect x="56" y="42" width="4" height="10" fill="#9a6a38"/>
+    <rect x="56" y="44" width="4" height="2" fill="#e8b83a"/>
+    <rect x="56" y="48" width="4" height="2" fill="#e8b83a"/>
+  </g>
+</svg>

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-level="1">
+  <title>Кузница</title>
+  <style>
+    svg[data-level="1"] .lvl2, svg[data-level="1"] .lvl3, svg[data-level="1"] .lvl4, svg[data-level="1"] .lvl5,
+    svg[data-level="2"] .lvl3, svg[data-level="2"] .lvl4, svg[data-level="2"] .lvl5,
+    svg[data-level="3"] .lvl4, svg[data-level="3"] .lvl5,
+    svg[data-level="4"] .lvl5 { display: none }
+  </style>
+
+  <rect x="0" y="54" width="64" height="2" fill="#565656"/>
+  <rect x="0" y="56" width="64" height="6" fill="#8f8f8f"/>
+  <rect x="6" y="58" width="2" height="2" fill="#6e6e6e"/>
+  <rect x="30" y="58" width="2" height="2" fill="#6e6e6e"/>
+  <rect x="52" y="58" width="2" height="2" fill="#6e6e6e"/>
+
+  <rect x="12" y="8" width="12" height="20" fill="#262626"/>
+  <rect x="14" y="10" width="8" height="16" fill="#565656"/>
+
+  <rect x="10" y="32" width="36" height="22" fill="#262626"/>
+  <rect x="12" y="34" width="32" height="18" fill="#8f8f8f"/>
+  <rect x="16" y="38" width="4" height="2" fill="#565656"/>
+  <rect x="38" y="44" width="4" height="2" fill="#565656"/>
+
+  <rect x="8" y="26" width="40" height="8" fill="#262626"/>
+  <rect x="10" y="28" width="36" height="4" fill="#6f4a24"/>
+
+  <rect x="24" y="36" width="16" height="18" fill="#262626"/>
+  <rect x="28" y="46" width="8" height="6" fill="#d88a1b"/>
+  <rect x="30" y="48" width="4" height="4" fill="#e0a63a"/>
+
+  <rect x="48" y="42" width="12" height="4" fill="#565656"/>
+  <rect x="52" y="46" width="4" height="4" fill="#565656"/>
+  <rect x="50" y="50" width="8" height="4" fill="#565656"/>
+
+  <g class="lvl2">
+    <rect x="14" y="2" width="8" height="4" fill="#efe6d4"/>
+  </g>
+
+  <g class="lvl3">
+    <rect x="2" y="42" width="8" height="12" fill="#262626"/>
+    <rect x="4" y="44" width="4" height="8" fill="#9a6a38"/>
+    <rect x="4" y="44" width="4" height="2" fill="#4a7ab5"/>
+  </g>
+
+  <g class="lvl4">
+    <rect x="48" y="40" width="8" height="2" fill="#e8b83a"/>
+    <rect x="50" y="38" width="4" height="2" fill="#e8b83a"/>
+  </g>
+
+  <g class="lvl5">
+    <rect x="10" y="30" width="36" height="2" fill="#e8b83a"/>
+    <rect x="10" y="4" width="2" height="2" fill="#e8b83a"/>
+    <rect x="24" y="4" width="2" height="2" fill="#e8b83a"/>
+  </g>
+</svg>

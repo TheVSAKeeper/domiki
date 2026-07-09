@@ -3,6 +3,7 @@ import { ApiError, getGameState } from '../services/api';
 import { useToast } from '../services/toast';
 import { formatDuration } from '../utils/time';
 import type { DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto } from '../types/api';
+import { DomikSprite } from './sprites';
 
 interface Catalog {
     domikTypes: DomikTypeDto[];
@@ -120,7 +121,7 @@ export const Wiki = () => {
                     {buildings.map(type => (
                         <div key={type.id} className="wiki-building pixel-panel">
                             <div className="wiki-building-head">
-                                <img src={'/images/domikTypes/' + type.logicName + '.png'} alt={type.name} />
+                                <DomikSprite logicName={type.logicName} />
                                 <div>
                                     <h3 className="wiki-building-name">{type.name}</h3>
                                     <p className="wiki-building-meta">

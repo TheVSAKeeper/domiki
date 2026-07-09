@@ -6,6 +6,7 @@ import type { ResourceDto, ResourceTypeDto, TolokaStateDto, VillageLevelDto } fr
 import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ResourcesBox } from './ResourcesBox';
+import { TolokaSprite } from './sprites';
 
 interface TolokaBoxProps {
     toloka: TolokaStateDto | null;
@@ -31,6 +32,7 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, villageLevel, now,
     const canContribute = toloka.canContribute && canAfford;
     const lockText = `Откроется при обжитости ${toloka.unlockLevel}`;
     const buffLeft = toloka.buffUntil == null ? 0 : remainingSeconds(toloka.buffUntil, now);
+    const buildStage = 1 + Math.floor(active.collected * 4 / active.goal);
 
     const submit = async () => {
         await onContribute(amount);
@@ -48,6 +50,7 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, villageLevel, now,
                 }
             </div>
             <div className="toloka-card">
+                <TolokaSprite className="toloka-sprite" logicName={active.logicName} level={buildStage} aria-hidden="true" />
                 <div className="toloka-topline">
                     <span className="toloka-name">{active.name}</span>
                     {resourceType != null &&

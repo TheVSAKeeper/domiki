@@ -1151,7 +1151,7 @@ progress {
         }
 
     .icon-busy,
-    .village-strip img,
+    .village-strip svg,
     .actions {
         animation: none;
     }
@@ -1293,11 +1293,10 @@ progress {
     box-shadow: inset 0 8px 0 var(--grass-dark);
 }
 
-    .village-strip img {
+    .village-strip svg {
         width: clamp(40px, 11vw, 84px);
-        height: auto;
+        height: clamp(40px, 11vw, 84px);
         margin-top: -38px;
-        image-rendering: pixelated;
         animation: rise .5s steps(3, end) backwards, bump 2.4s steps(2, end) infinite;
         animation-delay: calc(var(--i) * .08s), calc(var(--i) * .2s);
     }
@@ -1443,7 +1442,7 @@ progress {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .village-strip img,
+    .village-strip svg,
     .pillar {
         animation: none;
     }
@@ -1566,10 +1565,9 @@ progress {
     margin-bottom: 14px;
 }
 
-    .wiki-building-head img {
+    .wiki-building-head svg {
         width: 64px;
         height: 64px;
-        image-rendering: pixelated;
         flex-shrink: 0;
     }
 
@@ -2489,6 +2487,12 @@ progress {
     background: rgba(255, 255, 255, .24);
     border: 3px solid var(--ink);
     clip-path: var(--cut);
+}
+
+.toloka-sprite {
+    align-self: center;
+    width: 96px;
+    height: 96px;
 }
 
 .toloka-topline {

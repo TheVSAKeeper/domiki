@@ -37,6 +37,7 @@ import { ExpeditionsBox } from './ExpeditionsBox';
 import { DecorBox } from './DecorBox';
 import { TolokaBox } from './TolokaBox';
 import { MarketBox } from './MarketBox';
+import { DomikSprite } from './sprites';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 
 const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
@@ -337,7 +338,7 @@ export const DomikiPage = () => {
                                         <span key={effect.domikTypeId}
                                             className={'weather-effect' + (buff ? ' weather-effect-buff' : ' weather-effect-nerf')}
                                             title={`${domikType.name}: ${buff ? "+" : ""}${delta}% выход`}>
-                                            <img className="weather-effect-ico" src={`/images/domikTypes/${domikType.logicName}.png`} alt={domikType.name} />
+                                            <DomikSprite className="weather-effect-ico" logicName={domikType.logicName} />
                                             {buff ? '+' : ''}{delta}%
                                         </span>
                                     );
@@ -434,7 +435,6 @@ export const DomikiPage = () => {
                                 <span className="hint">Магазин пуст</span>
                             }
                             {purchaseDomikTypes.map(purchaseDomikType => {
-                                const image = '/images/domikTypes/' + purchaseDomikType.logicName + '.png';
                                 const firstLevel = purchaseDomikType.levels[0];
                                 const levelLocked = villageLevel != null && purchaseDomikType.unlockLevel > villageLevel.level;
                                 const blueprint = purchaseDomikType.blueprintId == null ? null : blueprints.find(x => x.id === purchaseDomikType.blueprintId) ?? null;
@@ -447,7 +447,7 @@ export const DomikiPage = () => {
                                         : undefined;
                                 return (
                                     <div key={purchaseDomikType.id} className={'plot plot-shop' + (isLocked ? ' plot-locked' : '')} title={isLocked ? lockTitle : undefined}>
-                                        <img className="plot-sprite" src={image} alt={purchaseDomikType.name} />
+                                        <DomikSprite className="plot-sprite" logicName={purchaseDomikType.logicName} />
                                         <span className="plot-name">{purchaseDomikType.name}</span>
                                         <span className="plot-status">
                                             {isLocked ? lockTitle : `Доступно: ${purchaseDomikType.availableCount}/${purchaseDomikType.maxCount}`}
@@ -471,7 +471,6 @@ export const DomikiPage = () => {
                                     return null;
                                 }
 
-                                const image = '/images/domikTypes/' + domikType.logicName + '.png';
                                 const hasManufacture = domik.manufactures != null && domik.manufactures.length > 0;
                                 const durationSecondsText = domik.finishDate != null
                                     ? formatDuration(remainingSeconds(domik.finishDate, now))
@@ -488,7 +487,7 @@ export const DomikiPage = () => {
                                                 {cardWeather.outputPercent > 100 ? '+' : ''}{cardWeather.outputPercent - 100}%
                                             </span>
                                         }
-                                        <img className="plot-sprite" src={image} alt={domikType.name} />
+                                        <DomikSprite className="plot-sprite" logicName={domikType.logicName} level={domik.level} />
                                         <span className="plot-name">{domikType.name}</span>
                                         <UpgradeBox durationSeconds={durationSecondsText} level={domik.level} />
                                         <span className="plot-status">
