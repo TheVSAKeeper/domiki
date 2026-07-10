@@ -9,7 +9,7 @@ interface ManufactureBoxProps {
     now: number;
     remainingText: string;
     goldValue: number;
-    goldIconSrc?: string;
+    goldIconSrc?: string | undefined;
     onHurry: (manufactureId: number) => void;
     onToggleAutoRepeat: (manufactureId: number, next: boolean) => void;
 }
