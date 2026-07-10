@@ -1,0 +1,58 @@
+:root {
+    --cur-arrow: url('../assets/cursors/arrow.svg') 2 2;
+    --cur-hand: url('../assets/cursors/hand.svg') 8 2;
+    --cur-hand-press: url('../assets/cursors/hand-press.svg') 8 2;
+    --cur-no: url('../assets/cursors/no.svg') 12 12;
+    --cur-help: url('../assets/cursors/help.svg') 12 12;
+    --cur-locked: url('../assets/cursors/locked.svg') 12 12;
+}
+
+html {
+    cursor: var(--cur-arrow), auto;
+}
+
+a[href],
+button,
+summary,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="checkbox"],
+input[type="radio"] {
+    cursor: var(--cur-hand), pointer !important;
+}
+
+a[href]:active,
+button:active,
+summary:active,
+[role="button"]:active,
+input[type="button"]:active,
+input[type="submit"]:active,
+input[type="checkbox"]:active,
+input[type="radio"]:active {
+    cursor: var(--cur-hand-press), pointer !important;
+}
+
+:disabled,
+[aria-disabled="true"] {
+    cursor: var(--cur-no), not-allowed !important;
+}
+
+[title]:not(:where(a, button, [role="button"], input, select, summary, label)) {
+    cursor: var(--cur-help), help;
+}
+
+.is-locked,
+[data-locked="true"] {
+    cursor: var(--cur-locked), not-allowed !important;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+textarea,
+[contenteditable="true"] {
+    cursor: text;
+}
