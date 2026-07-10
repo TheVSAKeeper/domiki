@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ApiError, getGameState } from '../services/api';
 import { useToast } from '../services/toast';
 import { formatDuration } from '../utils/time';
+import { domikLore } from '../utils/domikLore';
 import type { DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, WeatherStateDto } from '../types/api';
 import { DomikSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
@@ -247,6 +248,7 @@ export const Wiki = () => {
                 <div className="wiki-buildings">
                     {buildings.map(type => {
                         const open = openIds.has(type.id);
+                        const lore = domikLore[type.logicName];
                         const outputTypeIds = [...new Set(
                             type.levels.flatMap(l => l.receiptIds)
                                 .map(receiptById).filter((r): r is ReceiptDto => r != null)
@@ -282,6 +284,7 @@ export const Wiki = () => {
                                 </button>
                                 {open && (
                                     <div className="wiki-levels">
+                                        {lore != null && <p className="wiki-building-lore">{lore}</p>}
                                         {type.levels.map(level => {
                                             const levelReceipts = level.receiptIds.map(receiptById).filter((r): r is ReceiptDto => r != null);
                                             if (level.resources.length === 0 && levelReceipts.length === 0) {

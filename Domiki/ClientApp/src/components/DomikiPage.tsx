@@ -32,6 +32,7 @@ import { useGameData } from '../hooks/useGameData';
 import { GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, sortDomiks, workerFitness } from '../utils/game';
 import type { DomikSortMode } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
+import { domikLore } from '../utils/domikLore';
 import { ManufactureBox } from './ManufactureBox';
 import { ProgressBar } from './ProgressBar';
 import { ResourcesBox } from './ResourcesBox';
@@ -717,6 +718,9 @@ export const DomikiPage = () => {
                         <div>
                             <h3 className="panel-title">{selected.domikType.name}</h3>
                             <span className="domik-level">ур. {selected.domik.level}</span>
+                            {domikLore[selected.domikType.logicName] != null &&
+                                <p className="domik-lore">{domikLore[selected.domikType.logicName]}</p>
+                            }
                             {selected.upgrade != null &&
                                 <div className="panel-block">
                                     <div className="upgrade-row">

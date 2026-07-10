@@ -207,6 +207,14 @@
     font-variant-numeric: tabular-nums;
 }
 
+.domik-lore {
+    margin: 10px 0 0;
+    font-size: 13px;
+    font-style: italic;
+    line-height: 1.45;
+    color: rgba(51, 41, 26, .75);
+}
+
 .timer {
     font-family: var(--pixel);
     font-size: 11px;

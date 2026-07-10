@@ -150,6 +150,13 @@
     padding: 0 20px 18px;
 }
 
+.wiki-building-lore {
+    margin: 0;
+    font-size: 13px;
+    font-style: italic;
+    color: rgba(51, 41, 26, .75);
+}
+
 .wiki-level {
     padding-top: 12px;
     border-top: 2px dashed var(--plank-dark);
