@@ -28,6 +28,7 @@ import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
 import { GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, sortDomiks, workerFitness } from '../utils/game';
 import type { DomikSortMode } from '../utils/game';
+import { domikThemedName } from '../utils/domikNames';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { domikLore } from '../utils/domikLore';
 import { ManufactureBox } from './ManufactureBox';
@@ -225,7 +226,9 @@ export const DomikiPage = () => {
         return { ordinalById, countByType };
     }, [domiks]);
     const domikDisplayName = (typeId: number, id: number, name: string) =>
-        (domikOrdinals.countByType.get(typeId) ?? 1) > 1 ? `${name} ${domikOrdinals.ordinalById.get(id)}` : name;
+        (domikOrdinals.countByType.get(typeId) ?? 1) > 1
+            ? domikThemedName(name, typeId, domikOrdinals.ordinalById.get(id) ?? 1)
+            : name;
     const currentWeather = weather?.current ?? null;
     const weatherEffect = selected == null
         ? null
