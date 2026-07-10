@@ -12,6 +12,7 @@ const baseWorker: WorkerDto = {
     name: 'Аким',
     traitId: 1,
     traitName: 'Упрямый',
+    traitLogicName: 'ordinary',
     traitDurationPercent: 0,
     noFatigue: false,
     manufactureId: null,

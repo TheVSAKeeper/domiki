@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64">
+  <title>Глинищи</title>
+  <style>
+    .micro { }
+    .tiny { }
+    svg[data-size="32"] .tiny, svg[data-size="24"] .tiny { display:none }
+    svg[data-size="24"] .micro { display:none }
+</style>
+  <g id="tightened_canvas" transform="translate(-17.7778 -17.7778) scale(1.5556)">
+    <rect x="16" y="14" width="32" height="36" fill="#262626" />
+    <rect x="18" y="16" width="28" height="28" fill="#efe6d4" />
+    <rect x="22" y="44" width="20" height="4" fill="#efe6d4" />
+    <rect x="24" y="48" width="16" height="2" fill="#efe6d4" />
+    <rect x="24" y="22" width="16" height="18" fill="#262626" />
+    <rect x="26" y="24" width="12" height="14" fill="#5d9991" />
+    <rect x="28" y="22" width="8" height="2" fill="#7ab3a9" />
+    <rect x="30" y="20" width="4" height="2" fill="#7ab3a9" />
+    <g class="tiny">
+      <rect x="28" y="30" width="8" height="4" fill="#7ab3a9" />
+    </g>
+  </g>
+</svg>

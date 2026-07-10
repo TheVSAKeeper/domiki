@@ -4,7 +4,7 @@ import NoteIcon from 'pixelarticons/svg/note.svg?react';
 import UserIcon from 'pixelarticons/svg/user.svg?react';
 import type { BlueprintDto, DomikTypeDto } from '../types/api';
 import { ProgressBar } from './ProgressBar';
-import { DomikSprite } from './sprites';
+import { DomikSprite, MechanicSprite } from './sprites';
 
 interface BlueprintsBoxProps {
     blueprints: BlueprintDto[];
@@ -19,7 +19,7 @@ export const BlueprintsBox = ({ blueprints, domikTypes }: BlueprintsBoxProps) =>
     return (
         <section className="blueprints-panel pixel-panel">
             <div className="blueprints-head">
-                <h2 className="panel-title">Чертежи</h2>
+                <h2 className="panel-title mech-title"><MechanicSprite logicName="blueprints" size={24} className="panel-title-ico" aria-hidden="true" />Чертежи</h2>
                 <NoteIcon className="blueprint-title-ico" aria-hidden="true" />
             </div>
             <div className="blueprints-list">

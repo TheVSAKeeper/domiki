@@ -94,6 +94,7 @@ export const orderSchema = z.object({
     id: z.number(),
     neighborId: z.number(),
     neighborName: z.string(),
+    neighborLogicName: z.string(),
     expireDate: z.string(),
     required: z.array(orderResourceSchema),
     rewardCoins: z.number(),
@@ -105,6 +106,7 @@ export type OrderDto = z.infer<typeof orderSchema>;
 export const neighborReputationSchema = z.object({
     neighborId: z.number(),
     neighborName: z.string(),
+    neighborLogicName: z.string(),
     points: z.number(),
 });
 export type NeighborReputationDto = z.infer<typeof neighborReputationSchema>;
@@ -200,6 +202,7 @@ export const workerSchema = z.object({
     name: z.string(),
     traitId: z.number(),
     traitName: z.string(),
+    traitLogicName: z.string(),
     traitDurationPercent: z.number(),
     noFatigue: z.boolean(),
     manufactureId: z.number().nullable(),

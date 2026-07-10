@@ -12,6 +12,7 @@ namespace Domiki.Web.Models
                 Name = worker.Name,
                 TraitId = worker.Trait.Id,
                 TraitName = worker.Trait.Name,
+                TraitLogicName = worker.Trait.LogicName,
                 TraitDurationPercent = worker.Trait.DurationPercent,
                 NoFatigue = worker.Trait.NoFatigue,
                 ManufactureId = worker.ManufactureId,

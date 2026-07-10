@@ -13,7 +13,7 @@ import { formatDuration, remainingSeconds } from '../utils/time';
 import { ResourceChip } from './ResourceChip';
 import { StatChip } from './StatChip';
 import { ProgressBar } from './ProgressBar';
-import { WorkerSprite } from './sprites';
+import { MechanicSprite, WorkerSprite } from './sprites';
 
 const durationBetween = (startDate: string, finishDate: string) =>
     Math.max(1, Math.round((new Date(finishDate).getTime() - new Date(startDate).getTime()) / 1000));
@@ -62,7 +62,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
             <div className="expeditions-head">
                 <div className="expeditions-title-row">
                     <BackpackIcon className="expedition-title-ico" aria-hidden="true" />
-                    <h3 className="panel-title">Экспедиции</h3>
+                    <h3 className="panel-title mech-title"><MechanicSprite logicName="expeditions" size={24} className="panel-title-ico" aria-hidden="true" />Экспедиции</h3>
                 </div>
                 <span className="reputation-chip" title="Отрядов в походе из максимума">
                     отрядов: {expeditions.active.length}/{expeditions.maxActive}

@@ -103,3 +103,28 @@
 }
 
 
+
+.reputation-chip,
+.reputation-reward {
+    gap: 4px;
+}
+
+.order-neighbor {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.neighbor-ico {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    image-rendering: pixelated;
+}
+
+.reputation-ico {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    image-rendering: pixelated;
+}

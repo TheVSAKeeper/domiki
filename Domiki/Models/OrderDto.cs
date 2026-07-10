@@ -5,6 +5,7 @@
         public int Id { get; set; }
         public int NeighborId { get; set; }
         public string NeighborName { get; set; }
+        public string NeighborLogicName { get; set; }
         public DateTime ExpireDate { get; set; }
         public OrderResourceDto[] Required { get; set; }
         public int RewardCoins { get; set; }

@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64">
+  <title>Работящий</title>
+  <style>
+    .micro { }
+    .tiny { }
+    svg[data-size="32"] .tiny, svg[data-size="24"] .tiny { display:none }
+    svg[data-size="24"] .micro { display:none }
+</style>
+  <g id="tightened_canvas" transform="translate(-5.7391 -8.1739) scale(1.2174)">
+    <rect x="10" y="16" width="26" height="8" fill="#262626" />
+    <rect x="12" y="18" width="22" height="4" fill="#c9c2b4" />
+    <rect x="18" y="24" width="6" height="24" fill="#262626" />
+    <rect x="20" y="24" width="2" height="22" fill="#6f4a24" />
+    <rect x="28" y="28" width="26" height="26" fill="#262626" />
+    <rect x="30" y="30" width="22" height="22" fill="#efe6d4" />
+    <rect x="34" y="38" width="4" height="8" fill="#4f9a3c" />
+    <rect x="38" y="44" width="8" height="4" fill="#4f9a3c" />
+    <rect x="42" y="36" width="4" height="8" fill="#4f9a3c" />
+    <g class="micro">
+      <rect x="34" y="34" width="14" height="2" fill="#6e6e6e" />
+    </g>
+    <g class="tiny">
+      <rect x="8" y="12" width="6" height="4" fill="#e0a63a" />
+    </g>
+  </g>
+</svg>

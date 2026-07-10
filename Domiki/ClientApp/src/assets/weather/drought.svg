@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64">
+  <title>Сушь</title>
+  <style>
+    .micro { }
+    .tiny { }
+    svg[data-size="32"] .tiny, svg[data-size="24"] .tiny { display:none }
+    svg[data-size="24"] .micro { display:none }
+</style>
+  <g id="tightened_canvas" transform="translate(-6.0800 -0.4800) scale(1.1200)">
+    <rect x="38" y="8" width="16" height="16" fill="#262626" />
+    <rect x="40" y="10" width="12" height="12" fill="#e8b83a" />
+    <rect x="26" y="26" width="4" height="18" fill="#6f4a24" />
+    <rect x="20" y="30" width="8" height="4" fill="#6f4a24" />
+    <rect x="28" y="34" width="8" height="4" fill="#6f4a24" />
+    <rect x="18" y="28" width="4" height="4" fill="#9a6a38" />
+    <rect x="34" y="32" width="4" height="4" fill="#9a6a38" />
+    <rect x="10" y="42" width="44" height="6" fill="#262626" />
+    <rect x="12" y="44" width="40" height="10" fill="#e0a63a" />
+    <rect x="16" y="48" width="10" height="2" fill="#6f4a24" />
+    <rect x="26" y="48" width="4" height="6" fill="#6f4a24" />
+    <rect x="30" y="50" width="12" height="2" fill="#6f4a24" />
+    <rect x="42" y="46" width="4" height="6" fill="#6f4a24" />
+    <g class="micro">
+      <rect x="42" y="4" width="8" height="4" fill="#e0a63a" />
+      <rect x="34" y="12" width="4" height="6" fill="#e0a63a" />
+      <rect x="54" y="12" width="4" height="6" fill="#e0a63a" />
+    </g>
+    <g class="tiny">
+      <rect x="46" y="24" width="4" height="4" fill="#e0a63a" />
+    </g>
+  </g>
+</svg>

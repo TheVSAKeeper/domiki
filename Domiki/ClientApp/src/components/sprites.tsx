@@ -14,6 +14,36 @@ import WorkshopSprite from '../assets/domikTypes/workshop.svg?react';
 import BridgeSprite from '../assets/tolokaTypes/bridge.svg?react';
 import GranarySprite from '../assets/tolokaTypes/granary.svg?react';
 import WorkerPortrait from '../assets/workers/portrait.svg?react';
+import WeatherClearSprite from '../assets/weather/clear.svg?react';
+import WeatherRainSprite from '../assets/weather/rain.svg?react';
+import WeatherDroughtSprite from '../assets/weather/drought.svg?react';
+import WeatherFairDaySprite from '../assets/weather/fair_day.svg?react';
+import TraitOrdinarySprite from '../assets/traits/ordinary.svg?react';
+import TraitNimbleSprite from '../assets/traits/nimble.svg?react';
+import TraitDiligentSprite from '../assets/traits/diligent.svg?react';
+import TraitSonyaSprite from '../assets/traits/sonya.svg?react';
+import TraitLuckySprite from '../assets/traits/lucky.svg?react';
+import TraitThriftySprite from '../assets/traits/thrifty.svg?react';
+import NeighborGenericSprite from '../assets/neighbors/generic.svg?react';
+import NeighborZarechyeSprite from '../assets/neighbors/zarechye.svg?react';
+import NeighborBorovoeSprite from '../assets/neighbors/borovoe.svg?react';
+import NeighborKamenkaSprite from '../assets/neighbors/kamenka.svg?react';
+import NeighborGlinischiSprite from '../assets/neighbors/glinischi.svg?react';
+import NeighborDubravaSprite from '../assets/neighbors/dubrava.svg?react';
+import ReputationSprite from '../assets/abstract/reputation.svg?react';
+import WorkerSkillSprite from '../assets/abstract/worker_skill.svg?react';
+import FatigueRestSprite from '../assets/abstract/fatigue_rest.svg?react';
+import PrestigeSprite from '../assets/abstract/prestige_new_valley.svg?react';
+import ProductionRecipeSprite from '../assets/abstract/production_recipe.svg?react';
+import MechObzhitostSprite from '../assets/mechanics/obzhitost.svg?react';
+import MechOrdersSprite from '../assets/mechanics/orders.svg?react';
+import MechWorkersSprite from '../assets/mechanics/workers.svg?react';
+import MechWeatherSprite from '../assets/mechanics/weather.svg?react';
+import MechBlueprintsSprite from '../assets/mechanics/blueprints.svg?react';
+import MechExpeditionsSprite from '../assets/mechanics/expeditions.svg?react';
+import MechMarketSprite from '../assets/mechanics/market.svg?react';
+import MechTolokaSprite from '../assets/mechanics/toloka.svg?react';
+import MechDecorSprite from '../assets/mechanics/decor.svg?react';
 
 type SpriteComponent = FC<SVGProps<SVGSVGElement>>;
 
@@ -36,6 +66,68 @@ const tolokaSprites: Record<string, SpriteComponent> = {
     bridge: BridgeSprite,
     granary: GranarySprite,
 };
+
+const weatherSprites: Record<string, SpriteComponent> = {
+    clear: WeatherClearSprite,
+    rain: WeatherRainSprite,
+    drought: WeatherDroughtSprite,
+    fair_day: WeatherFairDaySprite,
+};
+
+const traitSprites: Record<string, SpriteComponent> = {
+    ordinary: TraitOrdinarySprite,
+    nimble: TraitNimbleSprite,
+    diligent: TraitDiligentSprite,
+    sonya: TraitSonyaSprite,
+    lucky: TraitLuckySprite,
+    thrifty: TraitThriftySprite,
+};
+
+const neighborSprites: Record<string, SpriteComponent> = {
+    generic: NeighborGenericSprite,
+    zarechye: NeighborZarechyeSprite,
+    borovoe: NeighborBorovoeSprite,
+    kamenka: NeighborKamenkaSprite,
+    glinischi: NeighborGlinischiSprite,
+    dubrava: NeighborDubravaSprite,
+};
+
+const abstractSprites: Record<string, SpriteComponent> = {
+    reputation: ReputationSprite,
+    worker_skill: WorkerSkillSprite,
+    fatigue_rest: FatigueRestSprite,
+    prestige_new_valley: PrestigeSprite,
+    production_recipe: ProductionRecipeSprite,
+};
+
+interface IconSpriteProps extends SVGProps<SVGSVGElement> {
+    logicName: string;
+    size?: 24 | 32 | 64;
+}
+
+const makeIconSprite = (sprites: Record<string, SpriteComponent>, fallback?: SpriteComponent) =>
+    ({ logicName, size = 32, ...props }: IconSpriteProps) => {
+        const Sprite = sprites[logicName] ?? fallback;
+        return Sprite == null ? null : <Sprite data-size={size} {...props} />;
+    };
+
+const mechanicSprites: Record<string, SpriteComponent> = {
+    obzhitost: MechObzhitostSprite,
+    orders: MechOrdersSprite,
+    workers: MechWorkersSprite,
+    weather: MechWeatherSprite,
+    blueprints: MechBlueprintsSprite,
+    expeditions: MechExpeditionsSprite,
+    market: MechMarketSprite,
+    toloka: MechTolokaSprite,
+    decor: MechDecorSprite,
+};
+
+export const MechanicSprite = makeIconSprite(mechanicSprites);
+export const WeatherSprite = makeIconSprite(weatherSprites);
+export const TraitSprite = makeIconSprite(traitSprites, TraitOrdinarySprite);
+export const NeighborSprite = makeIconSprite(neighborSprites, NeighborGenericSprite);
+export const AbstractSprite = makeIconSprite(abstractSprites);
 
 interface SpriteProps extends SVGProps<SVGSVGElement> {
     logicName: string;

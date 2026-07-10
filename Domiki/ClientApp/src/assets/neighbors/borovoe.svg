@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64">
+  <title>Боровое</title>
+  <style>
+    .micro { }
+    .tiny { }
+    svg[data-size="32"] .tiny, svg[data-size="24"] .tiny { display:none }
+    svg[data-size="24"] .micro { display:none }
+</style>
+  <g id="tightened_canvas" transform="translate(-17.7778 -17.7778) scale(1.5556)">
+    <rect x="16" y="14" width="32" height="36" fill="#262626" />
+    <rect x="18" y="16" width="28" height="28" fill="#efe6d4" />
+    <rect x="22" y="44" width="20" height="4" fill="#efe6d4" />
+    <rect x="24" y="48" width="16" height="2" fill="#efe6d4" />
+    <rect x="30" y="36" width="4" height="8" fill="#6f4a24" />
+    <rect x="26" y="30" width="12" height="8" fill="#4f9a3c" />
+    <rect x="28" y="26" width="8" height="6" fill="#4f9a3c" />
+    <rect x="30" y="22" width="4" height="4" fill="#4f9a3c" />
+    <g class="tiny">
+      <rect x="38" y="40" width="4" height="8" fill="#6f4a24" />
+      <rect x="34" y="34" width="12" height="8" fill="#4f9a3c" />
+      <rect x="36" y="30" width="8" height="6" fill="#4f9a3c" />
+      <rect x="38" y="26" width="4" height="4" fill="#4f9a3c" />
+    </g>
+  </g>
+</svg>

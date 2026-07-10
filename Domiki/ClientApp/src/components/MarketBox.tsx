@@ -6,6 +6,7 @@ import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import TrashIcon from 'pixelarticons/svg/trash.svg?react';
 import type { MarketStateDto, ResourceDto, ResourceTypeDto, TradeLotDto } from '../types/api';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
+import { MechanicSprite } from './sprites';
 import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { NumberStepper } from './NumberStepper';
@@ -111,7 +112,7 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
             <div className="market-head">
                 <div className="market-title-row">
                     <StoreIcon className="market-title-ico" aria-hidden="true" />
-                    <h3 className="panel-title">Ярмарка</h3>
+                    <h3 className="panel-title mech-title"><MechanicSprite logicName="market" size={24} className="panel-title-ico" aria-hidden="true" />Ярмарка</h3>
                 </div>
                 <span className="reputation-chip" title="Занято мест на прилавке из максимума">
                     мест на прилавке: {market.myLots.length}/{market.maxLots}

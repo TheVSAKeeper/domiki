@@ -11,6 +11,7 @@ namespace Domiki.Web.Models
                 Id = order.Id,
                 NeighborId = order.Neighbor.Id,
                 NeighborName = order.Neighbor.Name,
+                NeighborLogicName = order.Neighbor.LogicName,
                 ExpireDate = DateTime.SpecifyKind(order.ExpireDate, DateTimeKind.Utc),
                 Required = order.Resources.Select(x => new OrderResourceDto
                 {
@@ -29,6 +30,7 @@ namespace Domiki.Web.Models
             {
                 NeighborId = reputation.Neighbor.Id,
                 NeighborName = reputation.Neighbor.Name,
+                NeighborLogicName = reputation.Neighbor.LogicName,
                 Points = reputation.Points,
             };
         }

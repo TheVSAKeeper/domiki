@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64">
+  <title>Обжитость</title>
+  <style>
+    .micro { }
+    .tiny { }
+    svg[data-size="32"] .tiny, svg[data-size="24"] .tiny { display:none }
+    svg[data-size="24"] .micro { display:none }
+        </style>
+  <g id="tightened_canvas" transform="translate(-0.1481 -0.1481) scale(1.0370)">
+    <rect x="4" y="38" width="16" height="14" fill="#262626" />
+    <rect x="6" y="40" width="12" height="10" fill="#efe6d4" />
+    <rect x="4" y="34" width="16" height="6" fill="#262626" />
+    <rect x="6" y="36" width="12" height="4" fill="#9a6a38" />
+    <rect x="8" y="44" width="4" height="4" fill="#4a7ab5" />
+    <rect x="12" y="44" width="4" height="4" fill="#4a7ab5" />
+    <rect x="18" y="30" width="24" height="20" fill="#262626" />
+    <rect x="20" y="32" width="20" height="16" fill="#efe6d4" />
+    <rect x="18" y="26" width="24" height="6" fill="#262626" />
+    <rect x="20" y="28" width="20" height="4" fill="#c03434" />
+    <rect x="28" y="42" width="4" height="6" fill="#6f4a24" />
+    <rect x="22" y="36" width="4" height="4" fill="#4a7ab5" />
+    <rect x="34" y="36" width="4" height="4" fill="#4a7ab5" />
+    <rect x="42" y="38" width="16" height="14" fill="#262626" />
+    <rect x="44" y="40" width="12" height="10" fill="#efe6d4" />
+    <rect x="42" y="34" width="16" height="6" fill="#262626" />
+    <rect x="44" y="36" width="12" height="4" fill="#9a6a38" />
+    <rect x="46" y="44" width="4" height="4" fill="#4a7ab5" />
+    <rect x="50" y="44" width="4" height="4" fill="#4a7ab5" />
+    <rect x="46" y="14" width="10" height="24" fill="#262626" />
+    <rect x="48" y="16" width="6" height="20" fill="#4f9a3c" />
+    <rect x="44" y="18" width="14" height="6" fill="#262626" />
+    <rect x="46" y="20" width="10" height="2" fill="#e0a63a" />
+    <rect x="46" y="22" width="10" height="2" fill="#e0a63a" />
+    <rect x="48" y="16" width="6" height="4" fill="#e0a63a" />
+    <g class="micro">
+      <rect x="28" y="12" width="4" height="4" fill="#e8b83a" />
+      <rect x="36" y="10" width="4" height="4" fill="#e8b83a" />
+      <rect x="44" y="12" width="4" height="4" fill="#e8b83a" />
+    </g>
+  </g>
+</svg>

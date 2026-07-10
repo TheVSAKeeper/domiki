@@ -1,7 +1,7 @@
 import type { DomikDto, DomikTypeDto, ExpeditionStateDto, WorkerDto } from '../types/api';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { describeWorker } from '../utils/worker';
-import { DomikSprite, WorkerSprite } from './sprites';
+import { AbstractSprite, DomikSprite, MechanicSprite, TraitSprite, WorkerSprite } from './sprites';
 
 type WorkerState = 'expedition' | 'busy' | 'resting' | 'free';
 
@@ -16,7 +16,7 @@ interface WorkersBoxProps {
 export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, now }: WorkersBoxProps) => {
     return (
         <section className="workers-panel pixel-panel">
-            <h3 className="panel-title">Трудяги</h3>
+            <h3 className="panel-title mech-title"><MechanicSprite logicName="workers" size={24} className="panel-title-ico" aria-hidden="true" />Трудяги</h3>
             <div className="workers-list">
                 {workers.length === 0 &&
                     <span className="hint">Постройте барак, чтобы поселить трудяг.</span>
@@ -73,16 +73,21 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, now }: Wo
                                 <div className="worker-headings">
                                     <span className="worker-name">{worker.name}</span>
                                     <span className="worker-badge" title={stateKey === 'resting' ? restTitle : undefined}>
+                                        {stateKey === 'resting' && <AbstractSprite logicName="fatigue_rest" size={24} className="worker-badge-ico" aria-hidden="true" />}
                                         {stateLabel}
                                     </span>
                                     {freeInLabel != null && <span className="worker-free-in">{freeInLabel}</span>}
                                 </div>
                             </div>
-                            <span className="worker-trait">{worker.traitName}{effect}</span>
+                            <span className="worker-trait">
+                                <TraitSprite logicName={worker.traitLogicName} size={24} className="worker-trait-ico" aria-hidden="true" />
+                                {worker.traitName}{effect}
+                            </span>
                             <span className="worker-desc">{describeWorker(worker, domikTypes)}</span>
                             {(worker.noFatigue || visibleSkills.length > 0) &&
                                 <div className="worker-skills">
-                                    {worker.noFatigue && <span className="worker-flag">не устаёт</span>}
+                                    {worker.noFatigue && <span className="worker-flag"><AbstractSprite logicName="fatigue_rest" size={24} className="worker-flag-ico" aria-hidden="true" />не устаёт</span>}
+                                    {visibleSkills.length > 0 && <AbstractSprite logicName="worker_skill" size={24} className="worker-skill-label" aria-hidden="true" />}
                                     {visibleSkills.map(skill => {
                                         const domikType = domikTypes.find(x => x.id === skill.domikTypeId);
                                         if (domikType == null) {

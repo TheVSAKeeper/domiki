@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64">
+  <title>Трудяги</title>
+  <style>
+    .micro { }
+    .tiny { }
+    svg[data-size="32"] .tiny, svg[data-size="24"] .tiny { display:none }
+    svg[data-size="24"] .micro { display:none }
+        </style>
+  <g id="tightened_canvas" transform="translate(-5.7391 -6.9565) scale(1.2174)">
+    <rect x="8" y="18" width="20" height="18" fill="#262626" />
+    <rect x="10" y="20" width="16" height="14" fill="#c99e6f" />
+    <rect x="8" y="36" width="20" height="14" fill="#262626" />
+    <rect x="10" y="38" width="16" height="10" fill="#4f9a3c" />
+    <rect x="10" y="14" width="16" height="6" fill="#262626" />
+    <rect x="12" y="16" width="12" height="4" fill="#6f4a24" />
+    <rect x="14" y="24" width="2" height="2" fill="#262626" />
+    <rect x="20" y="24" width="2" height="2" fill="#262626" />
+    <rect x="26" y="14" width="24" height="22" fill="#262626" />
+    <rect x="28" y="16" width="20" height="18" fill="#e8c9a2" />
+    <rect x="24" y="36" width="28" height="16" fill="#262626" />
+    <rect x="26" y="38" width="24" height="12" fill="#c03434" />
+    <rect x="28" y="12" width="20" height="6" fill="#262626" />
+    <rect x="30" y="14" width="16" height="4" fill="#9a6a38" />
+    <rect x="32" y="22" width="2" height="2" fill="#262626" />
+    <rect x="42" y="22" width="2" height="2" fill="#262626" />
+    <rect x="36" y="28" width="4" height="2" fill="#262626" />
+    <rect x="46" y="36" width="4" height="14" fill="#6f4a24" />
+    <rect x="42" y="32" width="12" height="4" fill="#262626" />
+    <rect x="44" y="28" width="8" height="4" fill="#c9c2b4" />
+    <g class="tiny">
+      <rect x="46" y="12" width="4" height="4" fill="#e8b83a" />
+      <rect x="44" y="14" width="8" height="2" fill="#e8b83a" />
+      <rect x="46" y="16" width="4" height="4" fill="#e8b83a" />
+    </g>
+  </g>
+</svg>

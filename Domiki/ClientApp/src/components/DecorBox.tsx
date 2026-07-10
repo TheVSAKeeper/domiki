@@ -6,6 +6,7 @@ import PlusIcon from 'pixelarticons/svg/plus-box.svg?react';
 import type { DecorStateDto, ResourceDto, ResourceTypeDto } from '../types/api';
 import { hasResourcesFor } from '../utils/game';
 import { ResourcesBox } from './ResourcesBox';
+import { MechanicSprite } from './sprites';
 
 interface DecorBoxProps {
     decor: DecorStateDto | null;
@@ -31,7 +32,7 @@ export const DecorBox = ({ decor, resourceTypes, resources, onBuy }: DecorBoxPro
             <div className="decor-head">
                 <div className="decor-title-row">
                     <GardenIcon className="decor-title-ico" aria-hidden="true" />
-                    <h3 className="panel-title">Декор</h3>
+                    <h3 className="panel-title mech-title"><MechanicSprite logicName="decor" size={24} className="panel-title-ico" aria-hidden="true" />Декор</h3>
                 </div>
                 <span className="reputation-chip">Уют деревни: {decor.comfort}</span>
             </div>

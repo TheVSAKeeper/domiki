@@ -6,7 +6,7 @@ import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { NumberStepper } from './NumberStepper';
 import { ResourcesBox } from './ResourcesBox';
-import { TolokaSprite } from './sprites';
+import { MechanicSprite, TolokaSprite } from './sprites';
 
 interface TolokaBoxProps {
     toloka: TolokaStateDto | null;
@@ -40,7 +40,7 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute 
             <div className="toloka-head">
                 <div className="toloka-title-row">
                     <BuildingCommunityIcon className="toloka-title-ico" aria-hidden="true" />
-                    <h3 className="panel-title">Толока</h3>
+                    <h3 className="panel-title mech-title"><MechanicSprite logicName="toloka" size={24} className="panel-title-ico" aria-hidden="true" />Толока</h3>
                 </div>
                 <span className="reputation-chip" title="Длительность баффа Сходни">
                     бафф: {toloka.buffHours}ч{toloka.nextBuffHours != null ? ` → ${toloka.nextBuffHours}ч` : ''}

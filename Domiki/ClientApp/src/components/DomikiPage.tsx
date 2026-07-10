@@ -10,9 +10,6 @@ import PlayIcon from 'pixelarticons/svg/play.svg?react';
 import SettingsIcon from 'pixelarticons/svg/settings-cog.svg?react';
 import CloseIcon from 'pixelarticons/svg/close.svg?react';
 import SaveIcon from 'pixelarticons/svg/save.svg?react';
-import CloudSunIcon from 'pixelarticons/svg/cloud-sun.svg?react';
-import CloudIcon from 'pixelarticons/svg/cloud.svg?react';
-import FireIcon from 'pixelarticons/svg/fire.svg?react';
 import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
 import EarthIcon from 'pixelarticons/svg/earth.svg?react';
@@ -46,17 +43,12 @@ import { TolokaBox } from './TolokaBox';
 import { MarketBox } from './MarketBox';
 import { ResourceChip } from './ResourceChip';
 import { JournalBox } from './JournalBox';
-import { DomikSprite, WorkerSprite } from './sprites';
+import { AbstractSprite, DomikSprite, MechanicSprite, WeatherSprite, WorkerSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import { HudResource } from './HudResource';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 import { buildRecapView } from '../utils/recap';
 
-const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
-    clear: CloudSunIcon,
-    rain: CloudIcon,
-    drought: FireIcon,
-};
 
 const MECHANIC_TAB: Record<string, string> = {
     market_yard: 'market',
@@ -200,7 +192,6 @@ export const DomikiPage = () => {
     const weatherEffect = selected == null
         ? null
         : currentWeather?.effects.find(effect => effect.domikTypeId === selected.domikType.id) ?? null;
-    const CurrentWeatherIcon = currentWeather == null ? null : WEATHER_ICONS[currentWeather.logicName] ?? CloudSunIcon;
     const goldValue = resources.find(x => x.typeId === GOLD_RESOURCE_TYPE_ID)?.value ?? 0;
     const recapView = useMemo(() => buildRecapView(recap?.events ?? []), [recap]);
     const recapVisible = recap != null && recap.events.length > 0 && recap.awaySeconds >= 1800;
@@ -382,6 +373,7 @@ export const DomikiPage = () => {
                                 }
                                 setVillageLevelOpen(prev => !prev);
                             }}>
+                            <MechanicSprite logicName="obzhitost" size={24} className="village-level-ico" aria-hidden="true" />
                             <span className="village-level-label">Обжитость</span>
                             <span className="village-level-value">{villageLevel.level}</span>
                         </button>
@@ -408,9 +400,9 @@ export const DomikiPage = () => {
                             </div>}
                     </>
                 }
-                {weather != null && currentWeather != null && CurrentWeatherIcon != null &&
+                {weather != null && currentWeather != null &&
                     <div className="weather-strip" title={currentWeather.weatherName}>
-                        <CurrentWeatherIcon className="weather-ico" aria-hidden="true" />
+                        <WeatherSprite logicName={currentWeather.logicName} className="weather-ico" aria-hidden="true" />
                         <span className="weather-name">{currentWeather.weatherName}</span>
                         {currentWeather.effects.some(effect => effect.outputPercent !== 100) &&
                             <div className="weather-effects">
@@ -435,7 +427,6 @@ export const DomikiPage = () => {
                         }
                         <div className="weather-forecast">
                             {weather.forecast.map(period => {
-                                const ForecastIcon = WEATHER_ICONS[period.logicName] ?? CloudSunIcon;
                                 const hoursAhead = Math.max(1, Math.round(remainingSeconds(period.startDate, now) / 3600));
                                 const hint = period.effects
                                     .filter(effect => effect.outputPercent !== 100)
@@ -446,7 +437,7 @@ export const DomikiPage = () => {
                                     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0];
                                 return (
                                     <span key={period.startDate} className="weather-chip" title={period.weatherName}>
-                                        <ForecastIcon className="weather-chip-ico" aria-hidden="true" />
+                                        <WeatherSprite logicName={period.logicName} size={24} className="weather-chip-ico" aria-hidden="true" />
                                         через {hoursAhead}ч
                                         {hint != null &&
                                             <span className={'weather-effect' + (hint.delta > 0 ? ' weather-effect-buff' : ' weather-effect-nerf')}
@@ -711,7 +702,7 @@ export const DomikiPage = () => {
                                                 <img className="status-icon icon-busy" src="/images/upgrade_in_process.png" alt="Идёт улучшение" title="Идёт улучшение" />
                                             }
                                             {hasManufacture &&
-                                                <img className="status-icon" src="/images/manufacture.png" alt="Идёт производство" title="Идёт производство" />
+                                                <AbstractSprite logicName="production_recipe" size={24} className="status-icon" aria-label="Идёт производство" />
                                             }
                                         </span>
                                     </button>

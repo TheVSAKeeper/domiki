@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64">
+  <title>Каменка</title>
+  <style>
+    .micro { }
+    .tiny { }
+    svg[data-size="32"] .tiny, svg[data-size="24"] .tiny { display:none }
+    svg[data-size="24"] .micro { display:none }
+</style>
+  <g id="tightened_canvas" transform="translate(-17.7778 -17.7778) scale(1.5556)">
+    <rect x="16" y="14" width="32" height="36" fill="#262626" />
+    <rect x="18" y="16" width="28" height="28" fill="#efe6d4" />
+    <rect x="22" y="44" width="20" height="4" fill="#efe6d4" />
+    <rect x="24" y="48" width="16" height="2" fill="#efe6d4" />
+    <rect x="22" y="26" width="20" height="16" fill="#262626" />
+    <rect x="24" y="28" width="16" height="12" fill="#8f8f8f" />
+    <rect x="28" y="22" width="8" height="6" fill="#6e6e6e" />
+    <g class="micro">
+      <rect x="26" y="32" width="2" height="2" fill="#565656" />
+      <rect x="36" y="34" width="2" height="2" fill="#565656" />
+    </g>
+  </g>
+</svg>

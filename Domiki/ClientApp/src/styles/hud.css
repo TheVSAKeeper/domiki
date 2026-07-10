@@ -444,3 +444,9 @@
     0% { color: var(--coin); transform: translateY(-2px); }
     100% { color: inherit; transform: translateY(0); }
 }
+
+.village-level-ico {
+    width: 22px;
+    height: 22px;
+    flex: none;
+}

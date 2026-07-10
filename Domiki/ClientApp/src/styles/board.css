@@ -358,3 +358,15 @@
         cursor: not-allowed;
     }
 
+
+.mech-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-title-ico {
+    width: 24px;
+    height: 24px;
+    flex: none;
+}

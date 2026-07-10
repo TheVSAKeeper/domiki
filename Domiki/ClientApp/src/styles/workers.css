@@ -193,3 +193,38 @@
     }
 }
 
+
+.worker-trait {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.worker-trait-ico {
+    width: 22px;
+    height: 22px;
+    flex: none;
+    image-rendering: pixelated;
+}
+
+.worker-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.worker-badge-ico,
+.worker-flag-ico {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    image-rendering: pixelated;
+}
+
+.worker-skill-label {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    align-self: center;
+    image-rendering: pixelated;
+}
