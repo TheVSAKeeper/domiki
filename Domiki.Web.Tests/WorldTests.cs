@@ -137,13 +137,8 @@ namespace Domiki.Web.Tests
         private int CreateNamedPlayer(string prefix, int crestIcon, int crestColor)
         {
             var playerId = GetPlayerId();
-            SetVillage(playerId, UniqueVillageName(prefix), crestIcon, crestColor);
+            SetVillage(playerId, TestVillageName(prefix), crestIcon, crestColor);
             return playerId;
-        }
-
-        private static string UniqueVillageName(string prefix)
-        {
-            return prefix + " " + Guid.NewGuid().ToString("N").Substring(0, 8);
         }
 
         private World GetWorld(int currentPlayerId)

@@ -190,7 +190,7 @@ namespace Domiki.Web.Tests
             using (var uow = GetUow())
             {
                 var domikManager = GetDomikManager(uow);
-                domikManager.SetVillageIdentity(playerId, prefix + " " + Guid.NewGuid().ToString("N").Substring(0, 8), crestIcon, crestColor);
+                domikManager.SetVillageIdentity(playerId, TestVillageName(prefix), crestIcon, crestColor);
                 uow.Commit();
             }
 

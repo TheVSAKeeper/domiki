@@ -14,6 +14,17 @@ namespace Domiki.Web.Tests
         private static bool _migrated;
         private static readonly object _migrateLock = new object();
 
+        private static readonly string[] VillageNameRoots =
+        {
+            "Заречье", "Полянка", "Боровое", "Ключи", "Лесное", "Озерки", "Холмы", "Родники", "Выселки", "Гари", "Луговое", "Верховье",
+        };
+
+        protected static string TestVillageName() =>
+            TestVillageName(VillageNameRoots[Random.Shared.Next(VillageNameRoots.Length)]);
+
+        protected static string TestVillageName(string prefix) =>
+            $"{prefix}-{Guid.NewGuid().ToString("N")[..6]}";
+
         public TestBase()
         {
             var config = InitConfiguration();

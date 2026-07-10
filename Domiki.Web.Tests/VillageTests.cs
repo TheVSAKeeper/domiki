@@ -21,7 +21,7 @@ namespace Domiki.Web.Tests
         public void SetVillageValidSavesNormalizedNameAndCrestTest()
         {
             var playerId = GetPlayerId();
-            var name = UniqueVillageName("Тихая Долина");
+            var name = TestVillageName("Тихая Долина");
 
             SetVillage(playerId, "  " + name.Replace(" ", "   ") + "  ", 2, 3);
 
@@ -36,8 +36,8 @@ namespace Domiki.Web.Tests
         {
             var firstPlayerId = GetPlayerId();
             var secondPlayerId = GetPlayerId();
-            var takenName = UniqueVillageName("Тихий Бор");
-            var keptName = UniqueVillageName("Ясная Поляна");
+            var takenName = TestVillageName("Тихий Бор");
+            var keptName = TestVillageName("Ясная Поляна");
             SetVillage(firstPlayerId, takenName, 1, 2);
             SetVillage(secondPlayerId, keptName, 3, 4);
 
@@ -47,11 +47,6 @@ namespace Domiki.Web.Tests
             Assert.That(village.VillageName, Is.EqualTo(keptName));
             Assert.That(village.CrestIcon, Is.EqualTo(3));
             Assert.That(village.CrestColor, Is.EqualTo(4));
-        }
-
-        private static string UniqueVillageName(string prefix)
-        {
-            return prefix + " " + Guid.NewGuid().ToString("N").Substring(0, 8);
         }
 
         [TestCaseSource(nameof(InvalidLengthNames))]

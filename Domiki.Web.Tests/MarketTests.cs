@@ -84,7 +84,7 @@ namespace Domiki.Web.Tests
         {
             var sellerId = GetUnlockedPlayerId();
             var buyerId = GetUnlockedPlayerId();
-            var villageName = "Слоб" + Guid.NewGuid().ToString("N")[..8];
+            var villageName = TestVillageName();
             SetVillage(sellerId, villageName, 2, 3);
             GrantResource(sellerId, ClayResourceTypeId, 100);
             var coinBefore = GetResourceValue(sellerId, CoinResourceTypeId);
