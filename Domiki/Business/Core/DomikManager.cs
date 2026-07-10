@@ -451,12 +451,19 @@ namespace Domiki.Web.Business.Core
                 var autoRepeat = dbManufacture.AutoRepeat;
                 var domikId = dbManufacture.DomikId;
                 var playerId = calcInfo.PlayerId;
-                var produced = new List<object>();
+                var produced = new Dictionary<int, int>();
                 foreach (var resource in recept.OutputResources)
                 {
                     var granted = Math.Max(1, (int)Math.Round(resource.Value * dbManufacture.OutputPercent / 100.0));
                     _playerResourceManager.GrantResource(calcInfo.PlayerId, resource.Type.Id, granted);
-                    produced.Add(new { resourceTypeId = resource.Type.Id, value = granted });
+                    if (produced.TryGetValue(resource.Type.Id, out var value))
+                    {
+                        produced[resource.Type.Id] = value + granted;
+                    }
+                    else
+                    {
+                        produced[resource.Type.Id] = granted;
+                    }
                 }
                 var dbDomik = _context.Domiks.Single(x => x.PlayerId == calcInfo.PlayerId && x.Id == dbManufacture.DomikId);
                 var comfort = DecorCalculator.GetComfort(
@@ -482,7 +489,7 @@ namespace Domiki.Web.Business.Core
                     freedWorkerIds.Add(worker.Id);
                 }
                 _context.Manufactures.Remove(dbManufacture);
-                _playerEventManager.Record(calcInfo.PlayerId, Data.PlayerEventType.ManufactureFinished, new { domikTypeId = dbDomik.TypeId, resources = produced });
+                _playerEventManager.RecordManufactureFinished(calcInfo.PlayerId, dbDomik.TypeId, produced);
                 if (autoRepeat)
                 {
                     _context.SaveChanges();

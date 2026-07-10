@@ -2,6 +2,7 @@
 using Domiki.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Domiki.Web.Business.Core
 {
@@ -22,6 +23,58 @@ namespace Domiki.Web.Business.Core
                 Type = type,
                 Date = DateTimeHelper.GetNowDate(),
                 Data = JsonSerializer.Serialize(payload),
+            });
+        }
+
+        public void RecordManufactureFinished(int playerId, int domikTypeId, Dictionary<int, int> producedByResourceTypeId)
+        {
+            var events = _context.PlayerEvents.Where(x => x.PlayerId == playerId && !x.Read && x.Type == PlayerEventType.ManufactureFinished).ToList();
+            foreach (var playerEvent in events)
+            {
+                var payload = JsonSerializer.Deserialize<ManufactureFinishedPayload>(playerEvent.Data);
+                if (payload?.DomikTypeId != domikTypeId)
+                {
+                    continue;
+                }
+
+                foreach (var produced in producedByResourceTypeId)
+                {
+                    var resource = payload.Resources.FirstOrDefault(x => x.ResourceTypeId == produced.Key);
+                    if (resource == null)
+                    {
+                        payload.Resources.Add(new ManufactureFinishedResourcePayload
+                        {
+                            ResourceTypeId = produced.Key,
+                            Value = produced.Value,
+                        });
+                    }
+                    else
+                    {
+                        resource.Value += produced.Value;
+                    }
+                }
+
+                payload.Cycles = Math.Max(1, payload.Cycles) + 1;
+                playerEvent.Data = JsonSerializer.Serialize(payload);
+                playerEvent.Date = DateTimeHelper.GetNowDate();
+                return;
+            }
+
+            _context.PlayerEvents.Add(new PlayerEvent
+            {
+                PlayerId = playerId,
+                Type = PlayerEventType.ManufactureFinished,
+                Date = DateTimeHelper.GetNowDate(),
+                Data = JsonSerializer.Serialize(new ManufactureFinishedPayload
+                {
+                    DomikTypeId = domikTypeId,
+                    Resources = producedByResourceTypeId.Select(x => new ManufactureFinishedResourcePayload
+                    {
+                        ResourceTypeId = x.Key,
+                        Value = x.Value,
+                    }).ToList(),
+                    Cycles = 1,
+                }),
             });
         }
 
@@ -61,6 +114,27 @@ namespace Domiki.Web.Business.Core
                     Date = x.Date,
                     Data = JsonSerializer.Deserialize<JsonElement>(x.Data),
                 }).ToList();
+        }
+
+        private sealed class ManufactureFinishedPayload
+        {
+            [JsonPropertyName("domikTypeId")]
+            public int DomikTypeId { get; set; }
+
+            [JsonPropertyName("resources")]
+            public List<ManufactureFinishedResourcePayload> Resources { get; set; } = new List<ManufactureFinishedResourcePayload>();
+
+            [JsonPropertyName("cycles")]
+            public int Cycles { get; set; }
+        }
+
+        private sealed class ManufactureFinishedResourcePayload
+        {
+            [JsonPropertyName("resourceTypeId")]
+            public int ResourceTypeId { get; set; }
+
+            [JsonPropertyName("value")]
+            public int Value { get; set; }
         }
     }
 }

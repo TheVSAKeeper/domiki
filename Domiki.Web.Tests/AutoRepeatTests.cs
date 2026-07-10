@@ -1,5 +1,8 @@
 ﻿using Domiki.Web.Business.Core;
 using Domiki.Web.Business.Models;
+using Domiki.Web.Business;
+using System.Text.Json;
+using PlayerEventType = Domiki.Web.Data.PlayerEventType;
 
 namespace Domiki.Web.Tests
 {
@@ -18,6 +21,50 @@ namespace Domiki.Web.Tests
             Assert.That(GetWorkers(playerId).All(x => x.ManufactureId == null), Is.True);
             Assert.That(GetResourceValue(playerId, 4), Is.Zero);
             Assert.That(GetResourceValue(playerId, 6), Is.EqualTo(2));
+        }
+
+        [Test]
+        public void AutoRepeatMergesManufactureFinishedEventsTest()
+        {
+            var playerId = GetPlayerId();
+            BuyForgeWithWorker(playerId);
+            GrantResource(playerId, 4, 4);
+
+            StartManufacture(playerId, 2, 22, true);
+
+            using (var uow = GetUow())
+            {
+                var events = uow.Context.PlayerEvents.Where(x => x.PlayerId == playerId && !x.Read && x.Type == PlayerEventType.ManufactureFinished).ToList();
+                Assert.That(events, Has.Count.EqualTo(1));
+
+                using var data = JsonDocument.Parse(events[0].Data);
+                Assert.That(data.RootElement.GetProperty("cycles").GetInt32(), Is.EqualTo(2));
+                var resource = data.RootElement.GetProperty("resources").EnumerateArray().Single(x => x.GetProperty("resourceTypeId").GetInt32() == 6);
+                Assert.That(resource.GetProperty("value").GetInt32(), Is.EqualTo(2));
+                uow.Commit();
+            }
+
+            using (var uow = GetUow())
+            {
+                var recap = GetPlayerEventManager(uow).TakeRecap(playerId, DateTimeHelper.GetNowDate());
+                Assert.That(recap.Events.Count(x => x.Type == PlayerEventType.ManufactureFinished), Is.EqualTo(1));
+                uow.Commit();
+            }
+        }
+
+        [Test]
+        public void ManufactureFinishedEventsOfDifferentDomikTypesAreNotMergedTest()
+        {
+            var playerId = GetPlayerId();
+            RecordManufactureFinished(playerId, 1);
+            RecordManufactureFinished(playerId, 2);
+
+            using (var uow = GetUow())
+            {
+                var events = uow.Context.PlayerEvents.Where(x => x.PlayerId == playerId && !x.Read && x.Type == PlayerEventType.ManufactureFinished).ToList();
+                Assert.That(events, Has.Count.EqualTo(2));
+                uow.Commit();
+            }
         }
 
         [Test]
@@ -108,6 +155,15 @@ namespace Domiki.Web.Tests
                 var value = GetDomikManager(uow).GetResources(playerId).Single(x => x.Type.Id == resourceTypeId).Value;
                 uow.Commit();
                 return value;
+            }
+        }
+
+        private void RecordManufactureFinished(int playerId, int domikTypeId)
+        {
+            using (var uow = GetUow())
+            {
+                GetPlayerEventManager(uow).RecordManufactureFinished(playerId, domikTypeId, new Dictionary<int, int> { { 6, 1 } });
+                uow.Commit();
             }
         }
 

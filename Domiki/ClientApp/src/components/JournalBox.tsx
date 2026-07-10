@@ -31,7 +31,7 @@ const renderRow = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], domik
         return (
             <>
                 <BuildingIcon aria-hidden="true" />
-                <span className="journal-text">Производство</span>
+                <span className="journal-text">{isNumber(data.cycles) && data.cycles > 1 ? `Производство ×${data.cycles}` : 'Производство'}</span>
                 <span className="journal-chips">
                     {resources.map(resource => {
                         const resourceType = findResourceType(resourceTypes, resource.typeId);
