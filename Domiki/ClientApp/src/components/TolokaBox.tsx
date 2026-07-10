@@ -4,6 +4,7 @@ import HandIcon from 'pixelarticons/svg/hand.svg?react';
 import type { ResourceDto, ResourceTypeDto, TolokaStateDto } from '../types/api';
 import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
+import { NumberStepper } from './NumberStepper';
 import { ResourcesBox } from './ResourcesBox';
 import { TolokaSprite } from './sprites';
 
@@ -64,8 +65,7 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute 
                     <span className="panel-label">мой вклад: {toloka.myContribution}</span>
                 </div>
                 <div className="toloka-form">
-                    <input type="number" min={1} step={1} value={amount}
-                        onChange={event => setAmount(Math.max(1, Math.floor(Number(event.target.value) || 1)))} />
+                    <NumberStepper value={amount} onChange={setAmount} />
                     <ResourcesBox resources={cost} resourceTypes={resourceTypes} have={resources} />
                     <button className="btn-game" disabled={!canAfford} title={canAfford ? undefined : 'Не хватает ресурсов'} onClick={submit}>
                         <HandIcon className="btn-ico" aria-hidden="true" />

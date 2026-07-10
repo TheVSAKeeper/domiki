@@ -8,6 +8,7 @@ import type { MarketStateDto, ResourceDto, ResourceTypeDto, TradeLotDto } from '
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
+import { NumberStepper } from './NumberStepper';
 import { ResourcesBox } from './ResourcesBox';
 
 interface MarketBoxProps {
@@ -130,14 +131,12 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                     <div className="market-field">
                         <span className="panel-label">даю</span>
                         <ResourcePicker resourceTypes={resourceTypes} selectedId={giveResourceTypeId} onSelect={setGiveResourceTypeId} label="Ресурс, который даю" />
-                        <input type="number" min={1} step={1} value={giveValue} aria-label="Сколько даю"
-                            onChange={event => setGiveValue(Math.max(1, Math.floor(Number(event.target.value) || 1)))} />
+                        <NumberStepper value={giveValue} onChange={setGiveValue} />
                     </div>
                     <div className="market-field">
                         <span className="panel-label">хочу</span>
                         <ResourcePicker resourceTypes={resourceTypes} selectedId={wantResourceTypeId} onSelect={setWantResourceTypeId} label="Ресурс, который хочу" />
-                        <input type="number" min={1} step={1} value={wantValue} aria-label="Сколько хочу"
-                            onChange={event => setWantValue(Math.max(1, Math.floor(Number(event.target.value) || 1)))} />
+                        <NumberStepper value={wantValue} onChange={setWantValue} />
                     </div>
                     <div className="market-commission">
                         <CoinsIcon className="btn-ico" aria-hidden="true" />

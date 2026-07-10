@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
@@ -88,6 +88,8 @@ export const DomikiPage = () => {
     const [villageLevelOpen, setVillageLevelOpen] = useState(false);
     const [villageLevelPos, setVillageLevelPos] = useState<{ top: number; right: number; width: number } | null>(null);
     const villageLevelBtnRef = useRef<HTMLButtonElement>(null);
+    const gameTabsRef = useRef<HTMLDivElement>(null);
+    const tabAnchorReady = useRef(false);
     const [identityDismissed, setIdentityDismissed] = useState(false);
     const [draftVillageName, setDraftVillageName] = useState('');
     const [draftCrestIcon, setDraftCrestIcon] = useState(0);
@@ -100,6 +102,35 @@ export const DomikiPage = () => {
         setSortMode(mode);
         localStorage.setItem('domik-sort-mode', mode);
     };
+
+    useEffect(() => {
+        if (!villageLevelOpen) {
+            return;
+        }
+
+        const reposition = () => {
+            const rect = villageLevelBtnRef.current?.getBoundingClientRect();
+            if (rect != null) {
+                setVillageLevelPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right, width: rect.width });
+            }
+        };
+
+        window.addEventListener('scroll', reposition, { capture: true, passive: true });
+        window.addEventListener('resize', reposition);
+        return () => {
+            window.removeEventListener('scroll', reposition, { capture: true });
+            window.removeEventListener('resize', reposition);
+        };
+    }, [villageLevelOpen]);
+
+    useEffect(() => {
+        if (!tabAnchorReady.current) {
+            tabAnchorReady.current = true;
+            return;
+        }
+
+        gameTabsRef.current?.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+    }, [activeTab]);
 
     const toggleExpand = (receiptId: number) =>
         setExpandedReceiptId(prev => (prev === receiptId ? null : receiptId));
@@ -873,7 +904,7 @@ export const DomikiPage = () => {
                     }
                 </aside>
             </div>
-            <div className="game-tabs">
+            <div className="game-tabs" ref={gameTabsRef}>
                 {visibleGameTabs.map(tab => (
                     <button type="button" key={tab.key}
                         className={'game-tab' + (tab.key === activeGameTab?.key ? ' game-tab-active' : '')}

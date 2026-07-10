@@ -197,11 +197,6 @@
         color: var(--pine);
     }
 
-.worker-chip-selected {
-    background: var(--coin);
-    border-color: var(--ink);
-}
-
 .manufacture-box {
     padding: 10px;
     margin-top: 10px;
