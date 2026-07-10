@@ -1,15 +1,61 @@
 {
-    "short_name": "Domiki",
-    "name": "Domiki",
+    "id": "/",
+    "name": "Домики",
+    "short_name": "Домики",
+    "description": "Браузерная idle-игра: покупай домики, улучшай их, запускай производства по рецептам и развивай свою деревню.",
+    "lang": "ru",
+    "dir": "ltr",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "display_override": ["standalone", "minimal-ui"],
+    "launch_handler": {
+        "client_mode": "navigate-existing"
+    },
+    "theme_color": "#40632f",
+    "background_color": "#90a878",
+    "categories": ["games", "entertainment"],
     "icons": [
         {
-            "src": "favicon.ico",
-            "sizes": "64x64 32x32 24x24 16x16",
-            "type": "image/x-icon"
+            "src": "/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        },
+        {
+            "src": "/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "/icon-512-maskable.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
         }
     ],
-    "start_url": "./index.html",
-    "display": "standalone",
-    "theme_color": "#000000",
-    "background_color": "#ffffff"
+    "shortcuts": [
+        {
+            "name": "Деревня",
+            "description": "Открыть свою деревню",
+            "url": "/domiki-page",
+            "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+        },
+        {
+            "name": "Мир",
+            "description": "Карта мира и соседи",
+            "url": "/world",
+            "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+        },
+        {
+            "name": "Вики",
+            "description": "Справочник по игре",
+            "url": "/wiki",
+            "icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+        }
+    ]
 }
