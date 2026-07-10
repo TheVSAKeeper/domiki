@@ -61,10 +61,15 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, now }: Wo
                         }
                         return null;
                     })();
+                    const portraitState = stateKey === 'resting'
+                        ? 'resting'
+                        : stateKey === 'busy' || stateKey === 'expedition'
+                            ? 'working'
+                            : 'idle';
                     return (
                         <article key={worker.id} className={`worker-card worker--${stateKey}`}>
                             <div className="worker-card-head">
-                                <WorkerSprite name={worker.name} className="worker-avatar" aria-hidden="true" />
+                                <WorkerSprite name={worker.name} state={portraitState} className="worker-avatar" aria-hidden="true" />
                                 <div className="worker-headings">
                                     <span className="worker-name">{worker.name}</span>
                                     <span className="worker-badge" title={stateKey === 'resting' ? restTitle : undefined}>

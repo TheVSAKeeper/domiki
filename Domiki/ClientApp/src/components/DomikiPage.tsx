@@ -687,7 +687,7 @@ export const DomikiPage = () => {
                                                 {cardWeather.outputPercent > 100 ? '+' : ''}{cardWeather.outputPercent - 100}%
                                             </span>
                                         }
-                                        <AnimatedDomikSprite mode="levelup" className="plot-sprite" logicName={domikType.logicName} level={domik.level} />
+                                        <AnimatedDomikSprite mode="levelup" className="plot-sprite" logicName={domikType.logicName} level={domik.level} working={hasManufacture} />
                                         <span className="plot-name">{domikType.name}</span>
                                         <UpgradeBox durationSeconds={durationSecondsText} level={domik.level} />
                                         <span className="plot-status">

@@ -40,13 +40,14 @@ const tolokaSprites: Record<string, SpriteComponent> = {
 interface SpriteProps extends SVGProps<SVGSVGElement> {
     logicName: string;
     level?: number;
+    working?: boolean;
 }
 
 const clampLevel = (level: number) => Math.min(5, Math.max(1, Math.floor(level)));
 
-export const DomikSprite = ({ logicName, level = 1, ...props }: SpriteProps) => {
+export const DomikSprite = ({ logicName, level = 1, working = false, ...props }: SpriteProps) => {
     const Sprite = domikSprites[logicName];
-    return Sprite == null ? null : <Sprite data-level={clampLevel(level)} {...props} />;
+    return Sprite == null ? null : <Sprite data-level={clampLevel(level)} data-working={working ? 'true' : 'false'} {...props} />;
 };
 
 export const TolokaSprite = ({ logicName, level = 1, ...props }: SpriteProps) => {
@@ -102,12 +103,13 @@ const fallbackLook = (name: string): WorkerLook => {
 
 interface WorkerSpriteProps extends SVGProps<SVGSVGElement> {
     name: string;
+    state?: 'idle' | 'working' | 'resting';
 }
 
-export const WorkerSprite = ({ name, ...props }: WorkerSpriteProps) => {
+export const WorkerSprite = ({ name, state = 'idle', ...props }: WorkerSpriteProps) => {
     const [skin, hair, style, beard, hat, shirt, extra] = workerLooks[name] ?? fallbackLook(name);
     return (
-        <WorkerPortrait data-skin={skin} data-hair={hair} data-style={style}
+        <WorkerPortrait data-skin={skin} data-hair={hair} data-style={style} data-state={state}
             data-beard={beard} data-hat={hat} data-shirt={shirt} data-extra={extra} {...props} />
     );
 };

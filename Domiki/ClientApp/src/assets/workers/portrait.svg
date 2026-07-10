@@ -1,143 +1,320 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-skin="1" data-hair="1" data-style="m1" data-beard="0" data-hat="0" data-shirt="4" data-extra="0">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges"
+  data-size="64" data-state="idle" data-motion="on"
+  data-skin="1" data-hair="1" data-style="m1" data-beard="0" data-hat="0" data-shirt="4" data-extra="0" data-skilled="false">
   <title>Трудяга</title>
   <style>
-    .p { display: none }
-    svg[data-style="m1"] .st-m1, svg[data-style="m2"] .st-m2, svg[data-style="m3"] .st-m3, svg[data-style="m4"] .st-m4,
-    svg[data-style="f1"] .st-f1, svg[data-style="f2"] .st-f2, svg[data-style="f3"] .st-f3, svg[data-style="f4"] .st-f4,
-    svg[data-beard="1"] .bd-1, svg[data-beard="2"] .bd-2, svg[data-beard="3"] .bd-3,
-    svg[data-hat="1"] .ht-1, svg[data-hat="2"] .ht-2, svg[data-hat="3"] .ht-3, svg[data-hat="4"] .ht-4,
-    svg[data-extra="1"] .ex-1, svg[data-extra="2"] .ex-2, svg[data-extra="3"] .ex-3 { display: inline }
+    .part, .style-part, .face-mode, .state-part { display: none }
+    .hair { fill: #443528 }
+    .shirt { fill: #efe6d4 }
+    .skin { fill: #e8c9a2 }
+    .skin-shadow { fill: #c99e6f }
+
+    svg[data-style="m1"] .style-m1, svg[data-style="m2"] .style-m2,
+    svg[data-style="m3"] .style-m3, svg[data-style="m4"] .style-m4,
+    svg[data-style="f1"] .style-f1, svg[data-style="f2"] .style-f2,
+    svg[data-style="f3"] .style-f3, svg[data-style="f4"] .style-f4,
+    svg[data-beard="1"] .beard-1, svg[data-beard="2"] .beard-2,
+    svg[data-beard="3"] .beard-3,
+    svg[data-hat="1"] .hat-1, svg[data-hat="2"] .hat-2,
+    svg[data-hat="3"] .hat-3, svg[data-hat="4"] .hat-4,
+    svg[data-extra="1"] .extra-1, svg[data-extra="2"] .extra-2,
+    svg[data-extra="3"] .extra-3,
+    svg[data-skilled="true"] .skilled,
+    svg[data-state="idle"] .face-idle,
+    svg[data-state="working"] .face-working,
+    svg[data-state="resting"] .face-resting,
+    svg[data-state="working"] .state-working,
+    svg[data-state="resting"] .state-resting { display: inline }
+
     svg[data-skin="2"] .skin { fill: #c99e6f }
+    svg[data-skin="2"] .skin-shadow { fill: #9a6a38 }
+
     svg[data-hair="2"] .hair { fill: #9a6a38 }
     svg[data-hair="3"] .hair { fill: #e0a63a }
     svg[data-hair="4"] .hair { fill: #b5563a }
     svg[data-hair="5"] .hair { fill: #c9c2b4 }
+
     svg[data-shirt="1"] .shirt { fill: #c03434 }
     svg[data-shirt="2"] .shirt { fill: #4f9a3c }
     svg[data-shirt="3"] .shirt { fill: #4a7ab5 }
     svg[data-shirt="5"] .shirt { fill: #d88a1b }
+
+    svg[data-size="24"] .micro { display: none }
+    svg[data-size="24"] .compact-hide { display: none }
+    svg[data-size="32"] .compact-hide-32 { display: none }
+
+    .anim {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    svg[data-motion="paused"] .anim { animation-play-state: paused !important }
+    svg[data-motion="off"] .anim { animation: none !important }
+    svg[data-state="working"][data-motion="on"] .anim-body-work { animation: workerBodyBob var(--domiki-worker-speed, 0.9s) steps(2, end) infinite }
+    svg[data-state="working"][data-motion="on"] .anim-tool-work { animation: workerTool var(--domiki-worker-speed, 0.9s) steps(2, end) infinite }
+    svg[data-state="working"][data-motion="on"] .anim-spark-work { animation: workerSpark var(--domiki-worker-speed, 0.9s) steps(2, end) infinite }
+    svg[data-state="resting"][data-motion="on"] .anim-body-rest { animation: workerRest var(--domiki-rest-speed, 1.8s) steps(2, end) infinite }
+    svg[data-state="resting"][data-motion="on"] .anim-z-rest { animation: workerZ var(--domiki-rest-speed, 1.8s) linear infinite }
+    svg[data-state="resting"][data-motion="on"] .anim-blanket-rest { animation: workerBlanket var(--domiki-rest-speed, 1.8s) steps(2, end) infinite }
+
+    @keyframes workerBodyBob {
+      0%, 100% { transform: translateY(0px) }
+      50% { transform: translateY(2px) }
+    }
+    @keyframes workerTool {
+      0%, 100% { transform: translate(0px, 0px) }
+      50% { transform: translate(-2px, 2px) }
+    }
+    @keyframes workerSpark {
+      0%, 45% { opacity: 0; transform: translate(0px, 0px) }
+      50% { opacity: 1; transform: translate(0px, 0px) }
+      100% { opacity: 0; transform: translate(2px, -2px) }
+    }
+    @keyframes workerRest {
+      0%, 100% { transform: translateY(0px) }
+      50% { transform: translateY(2px) }
+    }
+    @keyframes workerBlanket {
+      0%, 100% { transform: translateY(0px) }
+      50% { transform: translateY(1px) }
+    }
+    @keyframes workerZ {
+      0% { opacity: 0; transform: translate(0px, 4px) }
+      30% { opacity: 1; transform: translate(0px, 2px) }
+      80% { opacity: 1; transform: translate(0px, -4px) }
+      100% { opacity: 0; transform: translate(0px, -6px) }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .anim { animation: none !important }
+    }
   </style>
-  <rect x="16" y="38" width="32" height="6" fill="#262626"/>
-  <rect x="12" y="42" width="40" height="20" fill="#262626"/>
-  <rect class="shirt" x="18" y="40" width="28" height="4" fill="#efe6d4"/>
-  <rect class="shirt" x="14" y="44" width="36" height="18" fill="#efe6d4"/>
-  <g class="p st-f4">
-    <rect x="14" y="6" width="36" height="34" fill="#262626"/>
-    <rect class="hair" x="16" y="8" width="32" height="30" fill="#443528"/>
+
+  <!-- Рубаха и плечи -->
+  <g class="anim anim-body-work anim-body-rest">
+    <g class="base-body">
+      <rect x="16" y="40" width="32" height="6" fill="#262626"/>
+      <rect x="10" y="46" width="44" height="18" fill="#262626"/>
+      <rect class="shirt" x="18" y="42" width="28" height="4" fill="#efe6d4"/>
+      <rect class="shirt" x="12" y="48" width="40" height="16" fill="#efe6d4"/>
+      <rect class="micro" x="30" y="50" width="4" height="14" fill="#262626"/>
+      <rect x="22" y="40" width="20" height="6" fill="#262626"/>
+      <rect class="shirt" x="24" y="42" width="16" height="4" fill="#efe6d4"/>
+      <rect class="compact-hide" x="20" y="58" width="8" height="2" fill="#262626" opacity="0.25"/>
+      <rect class="compact-hide" x="36" y="58" width="8" height="2" fill="#262626" opacity="0.25"/>
+    </g>
+
+    <!-- Волосы сзади -->
+    <g class="style-part style-f4">
+      <rect x="14" y="8" width="36" height="36" fill="#262626"/>
+      <rect class="hair" x="16" y="10" width="32" height="32" fill="#443528"/>
+      <rect class="hair" x="18" y="40" width="8" height="8" fill="#443528"/>
+      <rect class="hair" x="38" y="40" width="8" height="8" fill="#443528"/>
+    </g>
+
+    <!-- Шея -->
+    <rect x="26" y="34" width="12" height="10" fill="#262626"/>
+    <rect class="skin" x="28" y="36" width="8" height="8" fill="#e8c9a2"/>
+
+    <!-- Уши -->
+    <rect x="18" y="20" width="6" height="12" fill="#262626"/>
+    <rect x="40" y="20" width="6" height="12" fill="#262626"/>
+    <rect class="skin" x="20" y="22" width="4" height="8" fill="#e8c9a2"/>
+    <rect class="skin" x="40" y="22" width="4" height="8" fill="#e8c9a2"/>
+
+    <!-- Голова -->
+    <rect x="20" y="10" width="24" height="24" fill="#262626"/>
+    <rect x="22" y="34" width="20" height="4" fill="#262626"/>
+    <rect class="skin" x="22" y="12" width="20" height="22" fill="#e8c9a2"/>
+    <rect class="skin" x="24" y="34" width="16" height="2" fill="#e8c9a2"/>
+
+    <!-- Лица -->
+    <g class="face-mode face-idle">
+      <rect class="micro hair" x="24" y="18" width="6" height="2" fill="#443528"/>
+      <rect class="micro hair" x="34" y="18" width="6" height="2" fill="#443528"/>
+      <rect x="26" y="22" width="2" height="2" fill="#262626"/>
+      <rect x="36" y="22" width="2" height="2" fill="#262626"/>
+      <rect class="micro skin-shadow" x="30" y="24" width="4" height="4" fill="#c99e6f"/>
+      <rect x="30" y="30" width="4" height="2" fill="#262626"/>
+    </g>
+    <g class="face-mode face-working">
+      <rect class="micro hair" x="24" y="18" width="6" height="2" fill="#443528"/>
+      <rect class="micro hair" x="34" y="18" width="6" height="2" fill="#443528"/>
+      <rect x="26" y="22" width="2" height="2" fill="#262626"/>
+      <rect x="36" y="22" width="2" height="2" fill="#262626"/>
+      <rect class="micro skin-shadow" x="30" y="24" width="4" height="4" fill="#c99e6f"/>
+      <rect x="28" y="30" width="8" height="2" fill="#262626"/>
+      <rect class="state-part state-working compact-hide" x="40" y="24" width="2" height="4" fill="#4a7ab5"/>
+      <rect class="state-part state-working compact-hide" x="38" y="26" width="2" height="4" fill="#4a7ab5"/>
+    </g>
+    <g class="face-mode face-resting">
+      <rect x="24" y="22" width="6" height="2" fill="#262626"/>
+      <rect x="34" y="22" width="6" height="2" fill="#262626"/>
+      <rect class="micro skin-shadow" x="30" y="24" width="4" height="4" fill="#c99e6f"/>
+      <rect x="28" y="30" width="8" height="2" fill="#262626"/>
+      <rect x="30" y="32" width="4" height="2" fill="#262626"/>
+    </g>
+
+    <!-- Бороды -->
+    <g class="part beard-1">
+      <rect class="hair" x="26" y="28" width="4" height="2" fill="#443528"/>
+      <rect class="hair" x="34" y="28" width="4" height="2" fill="#443528"/>
+    </g>
+    <g class="part beard-2">
+      <rect class="hair" x="26" y="28" width="4" height="2" fill="#443528"/>
+      <rect class="hair" x="34" y="28" width="4" height="2" fill="#443528"/>
+      <rect class="hair" x="24" y="30" width="4" height="6" fill="#443528"/>
+      <rect class="hair" x="36" y="30" width="4" height="6" fill="#443528"/>
+      <rect class="hair" x="28" y="34" width="8" height="4" fill="#443528"/>
+    </g>
+    <g class="part beard-3">
+      <rect x="20" y="28" width="24" height="12" fill="#262626"/>
+      <rect class="hair" x="22" y="30" width="20" height="8" fill="#443528"/>
+      <rect class="hair" x="26" y="28" width="4" height="2" fill="#443528"/>
+      <rect class="hair" x="34" y="28" width="4" height="2" fill="#443528"/>
+      <rect class="hair" x="26" y="38" width="12" height="4" fill="#443528"/>
+    </g>
+
+    <!-- Причёски -->
+    <g class="style-part style-m1">
+      <rect x="20" y="8" width="24" height="8" fill="#262626"/>
+      <rect class="hair" x="22" y="10" width="20" height="6" fill="#443528"/>
+      <rect class="hair" x="20" y="14" width="4" height="6" fill="#443528"/>
+      <rect class="hair" x="40" y="14" width="4" height="6" fill="#443528"/>
+    </g>
+    <g class="style-part style-m2">
+      <rect x="18" y="6" width="28" height="12" fill="#262626"/>
+      <rect class="hair" x="20" y="8" width="24" height="8" fill="#443528"/>
+      <rect class="hair" x="20" y="16" width="8" height="4" fill="#443528"/>
+      <rect class="hair" x="30" y="16" width="6" height="4" fill="#443528"/>
+      <rect class="hair" x="38" y="16" width="6" height="4" fill="#443528"/>
+    </g>
+    <g class="style-part style-m3">
+      <rect class="hair" x="20" y="12" width="6" height="8" fill="#443528"/>
+      <rect class="hair" x="38" y="12" width="6" height="8" fill="#443528"/>
+      <rect class="micro hair" x="28" y="10" width="8" height="2" fill="#443528"/>
+    </g>
+    <g class="style-part style-m4">
+      <rect x="18" y="6" width="8" height="8" fill="#262626"/>
+      <rect x="24" y="4" width="16" height="10" fill="#262626"/>
+      <rect x="38" y="6" width="8" height="8" fill="#262626"/>
+      <rect class="hair" x="20" y="8" width="6" height="6" fill="#443528"/>
+      <rect class="hair" x="26" y="6" width="12" height="8" fill="#443528"/>
+      <rect class="hair" x="38" y="8" width="6" height="6" fill="#443528"/>
+      <rect class="hair" x="20" y="14" width="4" height="6" fill="#443528"/>
+      <rect class="hair" x="40" y="14" width="4" height="6" fill="#443528"/>
+    </g>
+    <g class="style-part style-f1">
+      <rect x="20" y="8" width="24" height="10" fill="#262626"/>
+      <rect class="hair" x="22" y="10" width="20" height="8" fill="#443528"/>
+      <rect x="38" y="30" width="10" height="24" fill="#262626"/>
+      <rect class="hair" x="40" y="32" width="6" height="6" fill="#443528"/>
+      <rect class="hair" x="42" y="38" width="4" height="6" fill="#443528"/>
+      <rect class="hair" x="40" y="44" width="6" height="6" fill="#443528"/>
+      <rect class="hair" x="42" y="50" width="4" height="2" fill="#443528"/>
+    </g>
+    <g class="style-part style-f2">
+      <rect x="24" y="2" width="16" height="10" fill="#262626"/>
+      <rect class="hair" x="26" y="4" width="12" height="8" fill="#443528"/>
+      <rect x="20" y="8" width="24" height="10" fill="#262626"/>
+      <rect class="hair" x="22" y="10" width="20" height="6" fill="#443528"/>
+      <rect class="hair" x="22" y="16" width="6" height="4" fill="#443528"/>
+      <rect class="hair" x="36" y="16" width="6" height="4" fill="#443528"/>
+    </g>
+    <g class="style-part style-f3">
+      <rect x="20" y="8" width="24" height="10" fill="#262626"/>
+      <rect class="hair" x="22" y="10" width="20" height="8" fill="#443528"/>
+      <rect x="12" y="18" width="10" height="24" fill="#262626"/>
+      <rect x="42" y="18" width="10" height="24" fill="#262626"/>
+      <rect class="hair" x="14" y="20" width="6" height="6" fill="#443528"/>
+      <rect class="hair" x="16" y="26" width="4" height="6" fill="#443528"/>
+      <rect class="hair" x="14" y="32" width="6" height="8" fill="#443528"/>
+      <rect class="hair" x="44" y="20" width="6" height="6" fill="#443528"/>
+      <rect class="hair" x="44" y="26" width="4" height="6" fill="#443528"/>
+      <rect class="hair" x="44" y="32" width="6" height="8" fill="#443528"/>
+    </g>
+    <g class="style-part style-f4">
+      <rect x="20" y="8" width="24" height="10" fill="#262626"/>
+      <rect class="hair" x="22" y="10" width="20" height="8" fill="#443528"/>
+      <rect class="hair" x="20" y="16" width="6" height="8" fill="#443528"/>
+      <rect class="hair" x="38" y="16" width="6" height="8" fill="#443528"/>
+    </g>
+
+    <!-- Уборы -->
+    <g class="part hat-1">
+      <rect x="18" y="4" width="28" height="10" fill="#262626"/>
+      <rect x="20" y="6" width="24" height="6" fill="#6f4a24"/>
+      <rect x="16" y="12" width="24" height="4" fill="#262626"/>
+      <rect x="18" y="12" width="20" height="2" fill="#9a6a38"/>
+    </g>
+    <g class="part hat-2">
+      <rect x="12" y="8" width="40" height="8" fill="#262626"/>
+      <rect x="14" y="10" width="36" height="4" fill="#e0a63a"/>
+      <rect x="22" y="2" width="20" height="10" fill="#262626"/>
+      <rect x="24" y="4" width="16" height="8" fill="#e0a63a"/>
+      <rect x="24" y="10" width="16" height="2" fill="#c03434"/>
+    </g>
+    <g class="part hat-3">
+      <rect x="18" y="4" width="28" height="14" fill="#262626"/>
+      <rect x="20" y="6" width="24" height="10" fill="#c03434"/>
+      <rect x="18" y="16" width="8" height="8" fill="#262626"/>
+      <rect x="38" y="16" width="8" height="8" fill="#262626"/>
+      <rect x="20" y="16" width="4" height="6" fill="#c03434"/>
+      <rect x="40" y="16" width="4" height="6" fill="#c03434"/>
+    </g>
+    <g class="part hat-4">
+      <rect x="20" y="10" width="24" height="6" fill="#262626"/>
+      <rect x="22" y="12" width="20" height="2" fill="#c03434"/>
+      <rect x="40" y="14" width="4" height="6" fill="#c03434"/>
+    </g>
+
+    <!-- Экстры -->
+    <g class="part extra-1 micro">
+      <rect x="24" y="26" width="2" height="2" fill="#6f4a24"/>
+      <rect x="28" y="26" width="2" height="2" fill="#6f4a24"/>
+      <rect x="34" y="26" width="2" height="2" fill="#6f4a24"/>
+      <rect x="38" y="26" width="2" height="2" fill="#6f4a24"/>
+    </g>
+    <g class="part extra-2">
+      <rect x="18" y="28" width="4" height="6" fill="#262626"/>
+      <rect x="20" y="30" width="2" height="4" fill="#e8b83a"/>
+    </g>
+    <g class="part extra-3">
+      <rect x="24" y="26" width="4" height="2" fill="#d98a6a"/>
+      <rect x="36" y="26" width="4" height="2" fill="#d98a6a"/>
+    </g>
+    <g class="part skilled">
+      <rect x="18" y="50" width="6" height="8" fill="#262626"/>
+      <rect x="20" y="52" width="2" height="4" fill="#e8b83a"/>
+    </g>
   </g>
-  <rect class="skin" x="28" y="36" width="8" height="6" fill="#e8c9a2"/>
-  <rect x="20" y="10" width="24" height="26" fill="#262626"/>
-  <rect class="skin" x="22" y="12" width="20" height="22" fill="#e8c9a2"/>
-  <rect x="26" y="22" width="2" height="2" fill="#262626"/>
-  <rect x="36" y="22" width="2" height="2" fill="#262626"/>
-  <rect x="30" y="28" width="4" height="2" fill="#262626"/>
-  <g class="p bd-1">
-    <rect class="hair" x="26" y="26" width="12" height="2" fill="#443528"/>
+
+  <!-- Работа -->
+  <g class="state-part state-working anim anim-tool-work">
+    <rect x="44" y="40" width="10" height="4" fill="#262626"/>
+    <rect x="46" y="34" width="4" height="8" fill="#6f4a24"/>
+    <rect x="44" y="30" width="8" height="4" fill="#262626"/>
+    <rect x="46" y="28" width="4" height="2" fill="#c9c2b4"/>
+    <rect class="compact-hide" x="42" y="34" width="2" height="4" fill="#262626"/>
   </g>
-  <g class="p bd-2">
-    <rect class="hair" x="26" y="26" width="12" height="2" fill="#443528"/>
-    <rect class="hair" x="24" y="28" width="2" height="6" fill="#443528"/>
-    <rect class="hair" x="38" y="28" width="2" height="6" fill="#443528"/>
-    <rect class="hair" x="26" y="30" width="12" height="4" fill="#443528"/>
+  <g class="state-part state-working anim anim-spark-work compact-hide-32">
+    <rect x="52" y="26" width="2" height="2" fill="#e8b83a"/>
+    <rect x="50" y="28" width="2" height="2" fill="#e0a63a"/>
+    <rect x="54" y="28" width="2" height="2" fill="#e0a63a"/>
+    <rect x="52" y="30" width="2" height="2" fill="#e8b83a"/>
   </g>
-  <g class="p bd-3">
-    <rect x="22" y="30" width="20" height="10" fill="#262626"/>
-    <rect class="hair" x="26" y="26" width="12" height="2" fill="#443528"/>
-    <rect class="hair" x="24" y="26" width="2" height="4" fill="#443528"/>
-    <rect class="hair" x="38" y="26" width="2" height="4" fill="#443528"/>
-    <rect class="hair" x="24" y="30" width="16" height="8" fill="#443528"/>
+
+  <!-- Отдых -->
+  <g class="state-part state-resting anim anim-blanket-rest">
+    <rect x="8" y="48" width="18" height="12" fill="#262626"/>
+    <rect x="10" y="50" width="14" height="8" fill="#4a7ab5"/>
+    <rect class="compact-hide" x="12" y="52" width="4" height="2" fill="#c9c2b4"/>
+    <rect class="compact-hide" x="18" y="52" width="4" height="2" fill="#c9c2b4"/>
   </g>
-  <g class="p st-m1">
-    <rect x="20" y="8" width="24" height="2" fill="#262626"/>
-    <rect class="hair" x="22" y="10" width="20" height="6" fill="#443528"/>
-    <rect class="hair" x="22" y="16" width="2" height="4" fill="#443528"/>
-    <rect class="hair" x="40" y="16" width="2" height="4" fill="#443528"/>
-  </g>
-  <g class="p st-m2">
-    <rect x="18" y="6" width="28" height="2" fill="#262626"/>
-    <rect x="18" y="8" width="2" height="8" fill="#262626"/>
-    <rect x="44" y="8" width="2" height="8" fill="#262626"/>
-    <rect class="hair" x="20" y="8" width="24" height="8" fill="#443528"/>
-  </g>
-  <g class="p st-m3">
-    <rect class="hair" x="22" y="16" width="4" height="4" fill="#443528"/>
-    <rect class="hair" x="38" y="16" width="4" height="4" fill="#443528"/>
-  </g>
-  <g class="p st-m4">
-    <rect x="18" y="4" width="28" height="2" fill="#262626"/>
-    <rect x="18" y="6" width="2" height="12" fill="#262626"/>
-    <rect x="44" y="6" width="2" height="12" fill="#262626"/>
-    <rect class="hair" x="20" y="6" width="24" height="10" fill="#443528"/>
-    <rect x="24" y="8" width="2" height="2" fill="#262626"/>
-    <rect x="32" y="6" width="2" height="2" fill="#262626"/>
-    <rect x="38" y="10" width="2" height="2" fill="#262626"/>
-    <rect x="28" y="12" width="2" height="2" fill="#262626"/>
-  </g>
-  <g class="p st-f1">
-    <rect x="20" y="8" width="24" height="2" fill="#262626"/>
-    <rect class="hair" x="22" y="10" width="20" height="6" fill="#443528"/>
-    <rect x="38" y="32" width="8" height="22" fill="#262626"/>
-    <rect class="hair" x="40" y="34" width="4" height="4" fill="#443528"/>
-    <rect class="hair" x="40" y="40" width="4" height="4" fill="#443528"/>
-    <rect class="hair" x="40" y="46" width="4" height="4" fill="#443528"/>
-  </g>
-  <g class="p st-f2">
-    <rect x="26" y="4" width="12" height="2" fill="#262626"/>
-    <rect x="26" y="6" width="2" height="4" fill="#262626"/>
-    <rect x="36" y="6" width="2" height="4" fill="#262626"/>
-    <rect class="hair" x="28" y="6" width="8" height="4" fill="#443528"/>
-    <rect x="20" y="8" width="24" height="2" fill="#262626"/>
-    <rect class="hair" x="22" y="10" width="20" height="4" fill="#443528"/>
-    <rect class="hair" x="22" y="14" width="4" height="2" fill="#443528"/>
-    <rect class="hair" x="38" y="14" width="4" height="2" fill="#443528"/>
-  </g>
-  <g class="p st-f3">
-    <rect x="20" y="8" width="24" height="2" fill="#262626"/>
-    <rect class="hair" x="22" y="10" width="20" height="6" fill="#443528"/>
-    <rect x="14" y="18" width="8" height="22" fill="#262626"/>
-    <rect class="hair" x="16" y="20" width="4" height="18" fill="#443528"/>
-    <rect x="16" y="26" width="2" height="2" fill="#262626"/>
-    <rect x="18" y="32" width="2" height="2" fill="#262626"/>
-    <rect x="42" y="18" width="8" height="22" fill="#262626"/>
-    <rect class="hair" x="44" y="20" width="4" height="18" fill="#443528"/>
-    <rect x="46" y="26" width="2" height="2" fill="#262626"/>
-    <rect x="44" y="32" width="2" height="2" fill="#262626"/>
-  </g>
-  <g class="p st-f4">
-    <rect class="hair" x="22" y="10" width="20" height="6" fill="#443528"/>
-  </g>
-  <g class="p ht-1">
-    <rect x="18" y="4" width="28" height="8" fill="#262626"/>
-    <rect x="20" y="6" width="24" height="6" fill="#6f4a24"/>
-    <rect x="16" y="12" width="32" height="2" fill="#262626"/>
-  </g>
-  <g class="p ht-2">
-    <rect x="14" y="6" width="36" height="8" fill="#262626"/>
-    <rect x="16" y="8" width="32" height="4" fill="#e0a63a"/>
-    <rect x="22" y="2" width="20" height="8" fill="#262626"/>
-    <rect x="24" y="4" width="16" height="6" fill="#e0a63a"/>
-    <rect x="24" y="8" width="16" height="2" fill="#c03434"/>
-  </g>
-  <g class="p ht-3">
-    <rect x="18" y="4" width="28" height="12" fill="#262626"/>
-    <rect x="20" y="6" width="24" height="10" fill="#c03434"/>
-    <rect x="22" y="16" width="2" height="6" fill="#c03434"/>
-    <rect x="40" y="16" width="2" height="6" fill="#c03434"/>
-  </g>
-  <g class="p ht-4">
-    <rect x="22" y="12" width="20" height="2" fill="#c03434"/>
-  </g>
-  <g class="p ex-1">
-    <rect x="24" y="26" width="2" height="2" fill="#6f4a24"/>
-    <rect x="28" y="24" width="2" height="2" fill="#6f4a24"/>
-    <rect x="34" y="24" width="2" height="2" fill="#6f4a24"/>
-    <rect x="38" y="26" width="2" height="2" fill="#6f4a24"/>
-  </g>
-  <g class="p ex-2">
-    <rect x="20" y="30" width="2" height="4" fill="#e8b83a"/>
-  </g>
-  <g class="p ex-3">
-    <rect x="24" y="26" width="4" height="2" fill="#d98a6a"/>
-    <rect x="36" y="26" width="4" height="2" fill="#d98a6a"/>
+  <g class="state-part state-resting anim anim-z-rest">
+    <rect x="48" y="10" width="6" height="2" fill="#4a7ab5"/>
+    <rect x="52" y="12" width="2" height="2" fill="#4a7ab5"/>
+    <rect x="48" y="14" width="6" height="2" fill="#4a7ab5"/>
+    <rect class="compact-hide" x="44" y="18" width="8" height="2" fill="#4a7ab5"/>
+    <rect class="compact-hide" x="48" y="20" width="2" height="2" fill="#4a7ab5"/>
+    <rect class="compact-hide" x="44" y="22" width="8" height="2" fill="#4a7ab5"/>
   </g>
 </svg>
