@@ -20,11 +20,14 @@ import GardenIcon from 'pixelarticons/svg/tree.svg?react';
 import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
 import UsersIcon from 'pixelarticons/svg/users.svg?react';
 import BellIcon from 'pixelarticons/svg/bell.svg?react';
+import BellOffIcon from 'pixelarticons/svg/bell-off.svg?react';
 import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
 import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
 import JournalIcon from 'pixelarticons/svg/article.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
+import { disablePush, enablePush, getPushState } from '../services/push';
+import type { PushState } from '../services/push';
 import { useGameData } from '../hooks/useGameData';
 import { GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, sortDomiks, workerFitness } from '../utils/game';
 import type { DomikSortMode } from '../utils/game';
@@ -114,6 +117,35 @@ export const DomikiPage = () => {
     const [sortOpen, setSortOpen] = useState(false);
     const sortRef = useRef<HTMLDivElement>(null);
     const activeSort = SORT_MODES.find(item => item.mode === sortMode) ?? SORT_MODES[0];
+    const [pushState, setPushState] = useState<PushState>('unsupported');
+    const [pushBusy, setPushBusy] = useState(false);
+
+    useEffect(() => {
+        void getPushState().then(setPushState);
+    }, []);
+
+    const togglePush = async () => {
+        if (pushState === 'denied') {
+            toast.error('Уведомления заблокированы в настройках браузера');
+            return;
+        }
+
+        setPushBusy(true);
+        try {
+            if (pushState === 'on') {
+                await disablePush();
+                toast.success('Уведомления выключены');
+            } else {
+                await enablePush();
+                toast.success('Уведомления включены');
+            }
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Не удалось изменить настройку уведомлений');
+        } finally {
+            setPushState(await getPushState());
+            setPushBusy(false);
+        }
+    };
 
     useEffect(() => {
         if (!sortOpen) {
@@ -663,6 +695,14 @@ export const DomikiPage = () => {
                                 </div>
                             }
                         </div>
+                    }
+                    {pushState !== 'unsupported' &&
+                        <button type="button" className="btn-game btn-ghost" title="Уведомления" aria-label="Уведомления"
+                            disabled={pushBusy} onClick={() => void togglePush()}>
+                            {pushState === 'on'
+                                ? <BellIcon className="btn-ico" aria-hidden="true" />
+                                : <BellOffIcon className="btn-ico" aria-hidden="true" />}
+                        </button>
                     }
                     <Link className="btn-game" to="/world">
                         <EarthIcon className="btn-ico" aria-hidden="true" />

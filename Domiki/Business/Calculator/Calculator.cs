@@ -110,6 +110,20 @@ namespace Domiki.Web.Business
                             uow.Context.SaveChanges();
                             uow.Commit();
 
+                            if (result)
+                            {
+                                var pushSender = scope.ServiceProvider.GetRequiredService<PushSender>();
+                                switch (calcDate.Type)
+                                {
+                                    case CalculateTypes.Domiks:
+                                        pushSender.Notify(calcDate.PlayerId, "Домики", "Домик достроен – загляни в деревню", "/domiki-page");
+                                        break;
+                                    case CalculateTypes.Manufacture:
+                                        pushSender.Notify(calcDate.PlayerId, "Домики", "Производство завершено – товары готовы", "/domiki-page");
+                                        break;
+                                }
+                            }
+
                             var time = (DateTime.Now - startDate).TotalMilliseconds;
                             _logger.LogInformation("Calculator - tick success: " + calcDate.PlayerId + " - " + calcDate.ObjectId + " - " + calcDate.Type + " " + time + "ms");
                             if (result)

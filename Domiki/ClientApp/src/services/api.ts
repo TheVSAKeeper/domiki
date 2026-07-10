@@ -154,3 +154,12 @@ export const acceptLot = (lotId: number, signal?: AbortSignal): Promise<void> =>
 
 export const cancelLot = (lotId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/CancelLot/${lotId}`, signal);
+
+export const getPushPublicKey = (signal?: AbortSignal): Promise<string> =>
+    apiGet('Push/PublicKey', z.string(), signal);
+
+export const subscribePush = (subscription: { endpoint: string; p256dh: string; auth: string }, signal?: AbortSignal): Promise<void> =>
+    request('POST', 'Push/Subscribe', null, signal, subscription);
+
+export const unsubscribePush = (endpoint: string, signal?: AbortSignal): Promise<void> =>
+    request('POST', 'Push/Unsubscribe', null, signal, { endpoint });

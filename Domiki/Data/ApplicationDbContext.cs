@@ -56,6 +56,7 @@ namespace Domiki.Web.Data
         public DbSet<TradeLot> TradeLots { get; set; }
         public DbSet<SeasonCounter> SeasonCounters { get; set; }
         public DbSet<PlayerEvent> PlayerEvents { get; set; }
+        public DbSet<PlayerPushSubscription> PlayerPushSubscriptions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -90,6 +91,10 @@ namespace Domiki.Web.Data
 
             modelBuilder.Entity<PlayerEvent>()
                 .HasIndex(p => new { p.PlayerId, p.Date });
+
+            modelBuilder.Entity<PlayerPushSubscription>()
+                .HasIndex(p => p.Endpoint)
+                .IsUnique();
 
             modelBuilder.Entity<Trait>().HasData(
                 new Trait { Id = 1, Name = "Обычный", LogicName = "ordinary", DurationPercent = 0, NoFatigue = false, LuckWeightPercent = 0 },

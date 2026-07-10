@@ -105,6 +105,8 @@ builder.Services.AddScoped<WorldManager>();
 builder.Services.AddScoped<SeasonManager>();
 builder.Services.AddScoped<VillageLevelCalculator>();
 builder.Services.AddScoped<PlayerEventManager>();
+builder.Services.AddScoped<PushManager>();
+builder.Services.AddSingleton<PushSender>();
 builder.Services.AddSingleton<ICalculator, Calculator>();
 builder.Services.AddScoped<CalculatorTick>();
 builder.Services.AddHostedService<CalculatorBackgroundService>();
@@ -188,6 +190,10 @@ app.UseStaticFiles(new StaticFileOptions
         if (path != null && path.StartsWith("/assets/", StringComparison.Ordinal))
         {
             context.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+        }
+        else if (path == "/sw.js")
+        {
+            context.Context.Response.Headers.CacheControl = "no-cache";
         }
     }
 });

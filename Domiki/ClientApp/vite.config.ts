@@ -39,6 +39,7 @@ const target = env.ASPNETCORE_HTTPS_PORT
 
 const backendPaths = [
     '/Domiki',
+    '/Push',
     '/System',
     '/authentication',
     '/_configuration',

@@ -141,6 +141,11 @@ namespace Domiki.Web.Tests
             return new PlayerEventManager(uow.Context);
         }
 
+        public PushManager GetPushManager(UnitOfWork uow)
+        {
+            return new PushManager(uow.Context);
+        }
+
         public MarketManager GetMarketManager(UnitOfWork uow, bool calculatorJustFinishMode = false)
         {
             var resourceManager = new ResourceManager(uow.Context);
