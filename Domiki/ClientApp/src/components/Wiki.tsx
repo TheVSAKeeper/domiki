@@ -4,6 +4,7 @@ import { useToast } from '../services/toast';
 import { formatDuration } from '../utils/time';
 import type { DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, WeatherStateDto } from '../types/api';
 import { DomikSprite } from './sprites';
+import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import CloudSunIcon from 'pixelarticons/svg/cloud-sun.svg?react';
 import CloudIcon from 'pixelarticons/svg/cloud.svg?react';
@@ -255,7 +256,7 @@ export const Wiki = () => {
                         return (
                             <div key={type.id} className={'wiki-building pixel-panel' + (open ? ' receipt-open' : '')}>
                                 <button type="button" className="wiki-building-head" aria-expanded={open} onClick={() => toggleBuilding(type.id)}>
-                                    <DomikSprite logicName={type.logicName} />
+                                    <AnimatedDomikSprite mode="loop" logicName={type.logicName} maxLevel={type.levels.length} active={open} />
                                     <span className="wiki-building-titles">
                                         <span className="wiki-building-name">{type.name}</span>
                                         <span className="wiki-building-meta">

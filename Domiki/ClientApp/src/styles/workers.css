@@ -78,6 +78,13 @@
     color: var(--pine-dark);
 }
 
+.worker-desc {
+    font-size: 12px;
+    font-style: italic;
+    color: var(--pine-dark);
+    line-height: 1.4;
+}
+
 .worker-effect {
     font-size: 12px;
     font-weight: 700;

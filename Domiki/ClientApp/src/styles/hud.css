@@ -408,3 +408,14 @@
     font-weight: 600;
     font-variant-numeric: tabular-nums;
 }
+
+@media (prefers-reduced-motion: no-preference) {
+    .resource-value.res-gain {
+        animation: res-gain 480ms ease-out;
+    }
+}
+
+@keyframes res-gain {
+    0% { color: var(--coin); transform: translateY(-2px); }
+    100% { color: inherit; transform: translateY(0); }
+}

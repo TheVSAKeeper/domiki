@@ -1,5 +1,6 @@
 import type { DomikDto, DomikTypeDto, ExpeditionStateDto, WorkerDto } from '../types/api';
 import { formatDuration, remainingSeconds } from '../utils/time';
+import { describeWorker } from '../utils/worker';
 import { DomikSprite, WorkerSprite } from './sprites';
 
 type WorkerState = 'expedition' | 'busy' | 'resting' | 'free';
@@ -73,6 +74,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, now }: Wo
                                 </div>
                             </div>
                             <span className="worker-trait">{worker.traitName}{effect}</span>
+                            <span className="worker-desc">{describeWorker(worker, domikTypes)}</span>
                             {(worker.noFatigue || visibleSkills.length > 0) &&
                                 <div className="worker-skills">
                                     {worker.noFatigue && <span className="worker-flag">не устаёт</span>}

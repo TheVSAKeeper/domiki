@@ -46,6 +46,8 @@ import { MarketBox } from './MarketBox';
 import { ResourceChip } from './ResourceChip';
 import { JournalBox } from './JournalBox';
 import { DomikSprite, WorkerSprite } from './sprites';
+import { AnimatedDomikSprite } from './AnimatedDomikSprite';
+import { HudResource } from './HudResource';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 import { buildRecapView } from '../utils/recap';
 
@@ -325,13 +327,7 @@ export const DomikiPage = () => {
                                 return null;
                             }
 
-                            const image = '/images/resourceTypes/' + resourceType.logicName + '.png';
-                            return (
-                                <div key={resource.typeId} className="resource-box" title={resourceType.name}>
-                                    <img src={image} alt={resourceType.name} />
-                                    <span className="resource-value">{resource.value}</span>
-                                </div>
-                            );
+                            return <HudResource key={resource.typeId} resourceType={resourceType} value={resource.value} />;
                         })
                     }
                 </div>
@@ -659,7 +655,7 @@ export const DomikiPage = () => {
                                                 {cardWeather.outputPercent > 100 ? '+' : ''}{cardWeather.outputPercent - 100}%
                                             </span>
                                         }
-                                        <DomikSprite className="plot-sprite" logicName={domikType.logicName} level={domik.level} />
+                                        <AnimatedDomikSprite mode="levelup" className="plot-sprite" logicName={domikType.logicName} level={domik.level} />
                                         <span className="plot-name">{domikType.name}</span>
                                         <UpgradeBox durationSeconds={durationSecondsText} level={domik.level} />
                                         <span className="plot-status">
