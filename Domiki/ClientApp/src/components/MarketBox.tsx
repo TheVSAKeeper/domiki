@@ -98,8 +98,9 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
     }
 
     const invalidPair = giveResourceTypeId === wantResourceTypeId;
+    const lotsFull = market.myLots.length >= market.maxLots;
     const canAffordPost = giveValue > 0 && wantValue > 0 && !invalidPair && hasResourcesFor(postCost, resources);
-    const canPost = canAffordPost;
+    const canPost = canAffordPost && !lotsFull;
 
     const submitPost = async () => {
         await onPost(giveResourceTypeId, giveValue, wantResourceTypeId, wantValue);
@@ -112,8 +113,8 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                     <StoreIcon className="market-title-ico" aria-hidden="true" />
                     <h3 className="panel-title">Ярмарка</h3>
                 </div>
-                <span className="reputation-chip" title="Максимум активных лотов">
-                    мест на прилавке: {market.maxLots}
+                <span className="reputation-chip" title="Занято мест на прилавке из максимума">
+                    мест на прилавке: {market.myLots.length}/{market.maxLots}
                 </span>
                 <span className="reputation-chip commission-chip" title="Ставка зависит от уровня Торгового двора – качайте, чтобы платить меньше">
                     Комиссия – {formatPercent(market.commissionRate)}
@@ -144,7 +145,9 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                     </div>
                     <ResourcesBox resources={postCost} resourceTypes={resourceTypes} have={resources} />
                     {invalidPair && <p className="note-warn">Нужны разные ресурсы</p>}
-                    <button className="btn-game" disabled={!canPost} title={canAffordPost ? undefined : 'Не хватает ресурсов'}>
+                    {lotsFull && <p className="note-warn">Все места на прилавке заняты – качайте Торговый двор</p>}
+                    <button className="btn-game" disabled={!canPost}
+                        title={lotsFull ? 'Все места на прилавке заняты' : canAffordPost ? undefined : 'Не хватает ресурсов'}>
                         <StoreIcon className="btn-ico" aria-hidden="true" />
                         Выставить
                     </button>

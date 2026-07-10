@@ -43,6 +43,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
     const freeWorkers = workers.filter(worker => isWorkerFree(worker, now));
     const untilPity = Math.max(0, expeditions.pityThreshold - expeditions.expeditionsSincePity);
     const goldType = resourceTypes.find(x => x.id === GOLD_RESOURCE_TYPE_ID);
+    const allOut = expeditions.active.length >= expeditions.maxActive;
 
     const toggleManual = (typeId: number) => setManualMode(mode => ({ ...mode, [typeId]: !mode[typeId] }));
     const toggleWorker = (typeId: number, workerId: number, max: number) => setPicks(prev => {
@@ -63,8 +64,8 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
                     <BackpackIcon className="expedition-title-ico" aria-hidden="true" />
                     <h3 className="panel-title">Экспедиции</h3>
                 </div>
-                <span className="reputation-chip" title="Максимум параллельных экспедиций">
-                    отрядов: {expeditions.maxActive}
+                <span className="reputation-chip" title="Отрядов в походе из максимума">
+                    отрядов: {expeditions.active.length}/{expeditions.maxActive}
                 </span>
                 <span className="reputation-chip" title="Экспедиций без редкой находки">
                     <TargetIcon className="pity-ico" aria-hidden="true" />
@@ -83,12 +84,13 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
                     const isManual = manualMode[type.id] ?? false;
                     const picked = (picks[type.id] ?? []).filter(id => freeWorkers.some(worker => worker.id === id));
                     const manualReady = picked.length === type.workerCount;
-                    const canStart = canAffordGold && canAffordEquipment && hasWorkers && (!isManual || manualReady);
-                    const blockedTitle = !hasWorkers ? 'Не хватает свободных трудяг'
-                        : !canAffordGold ? 'Не хватает золота'
-                            : !canAffordEquipment ? 'Не хватает снаряжения'
-                                : isManual && !manualReady ? `Выберите ${type.workerCount} трудяг`
-                                    : undefined;
+                    const canStart = !allOut && canAffordGold && canAffordEquipment && hasWorkers && (!isManual || manualReady);
+                    const blockedTitle = allOut ? 'Все отряды в походе'
+                        : !hasWorkers ? 'Не хватает свободных трудяг'
+                            : !canAffordGold ? 'Не хватает золота'
+                                : !canAffordEquipment ? 'Не хватает снаряжения'
+                                    : isManual && !manualReady ? `Выберите ${type.workerCount} трудяг`
+                                        : undefined;
                     return (
                         <div key={type.id} className="expedition-card">
                             <div className="expedition-topline">
