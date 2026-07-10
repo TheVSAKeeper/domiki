@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ResourceDto } from '../types/api';
-import { canAffordUpgrade, computePlodderCount, computeReceiptView, manufactureProgressPercent, progressPercent } from './game';
+import { canAffordUpgrade, computePlodderCount, computeReceiptView, manufactureProgressPercent, progressPercent, sortDomiks } from './game';
 
 const domikTypes: DomikTypeDto[] = [
     {
@@ -131,5 +131,84 @@ describe('manufactureProgressPercent', () => {
 describe('progressPercent', () => {
     it('returns 0 when total duration is not positive', () => {
         expect(progressPercent('2026-01-01T00:00:00.000Z', 0, 0)).toBe(0);
+    });
+});
+
+describe('sortDomiks', () => {
+    const sortTypes: DomikTypeDto[] = [
+        {
+            id: 1,
+            name: 'Шахта',
+            logicName: 'mine',
+            maxCount: 1,
+            availableCount: 0,
+            maxLevel: 2,
+            unlockLevel: 0,
+            blueprintId: null,
+            levels: [
+                { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
+                { value: 2, resources: [], modificators: [], receiptIds: [] },
+            ],
+        },
+        {
+            id: 2,
+            name: 'Ферма',
+            logicName: 'farm',
+            maxCount: 1,
+            availableCount: 0,
+            maxLevel: 1,
+            unlockLevel: 0,
+            blueprintId: null,
+            levels: [
+                { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
+            ],
+        },
+    ];
+
+    const idle: DomikDto = { id: 1, typeId: 1, level: 2, finishDate: null, upgradeSeconds: null, manufactures: null };
+    const upgradeReady: DomikDto = { id: 2, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null };
+    const producing: DomikDto = {
+        id: 3, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null,
+        manufactures: [{ id: 1, finishDate: '2026-01-01T00:00:00.000Z', plodderCount: 1, receiptId: 1, autoRepeat: false }],
+    };
+    const upgrading: DomikDto = { id: 4, typeId: 1, level: 1, finishDate: '2026-01-01T00:00:00.000Z', upgradeSeconds: 60, manufactures: null };
+    const poorResources: ResourceDto[] = [{ typeId: 1, value: 0 }];
+    const richResources: ResourceDto[] = [{ typeId: 1, value: 100 }];
+
+    it('attention: orders upgradeReady, idle, producing, upgrading', () => {
+        const domiks = [upgrading, producing, idle, upgradeReady];
+        const sorted = sortDomiks(domiks, sortTypes, richResources, 'attention');
+        expect(sorted.map(x => x.id)).toEqual([2, 1, 3, 4]);
+    });
+
+    it('attention: keeps original order for domiks with equal rank', () => {
+        const first: DomikDto = { id: 5, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null };
+        const second: DomikDto = { id: 6, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null };
+        const sorted = sortDomiks([first, second], sortTypes, poorResources, 'attention');
+        expect(sorted.map(x => x.id)).toEqual([5, 6]);
+    });
+
+    it('does not mutate the input array', () => {
+        const domiks = [upgrading, idle];
+        sortDomiks(domiks, sortTypes, richResources, 'attention');
+        expect(domiks.map(x => x.id)).toEqual([4, 1]);
+    });
+
+    it('type: sorts by typeId ascending, then level descending', () => {
+        const domiks: DomikDto[] = [
+            { id: 1, typeId: 2, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null },
+            { id: 2, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null },
+            { id: 3, typeId: 1, level: 2, finishDate: null, upgradeSeconds: null, manufactures: null },
+        ];
+        expect(sortDomiks(domiks, sortTypes, poorResources, 'type').map(x => x.id)).toEqual([3, 2, 1]);
+    });
+
+    it('level: sorts by level descending, then typeId ascending', () => {
+        const domiks: DomikDto[] = [
+            { id: 1, typeId: 2, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null },
+            { id: 2, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null },
+            { id: 3, typeId: 1, level: 2, finishDate: null, upgradeSeconds: null, manufactures: null },
+        ];
+        expect(sortDomiks(domiks, sortTypes, poorResources, 'level').map(x => x.id)).toEqual([3, 2, 1]);
     });
 });

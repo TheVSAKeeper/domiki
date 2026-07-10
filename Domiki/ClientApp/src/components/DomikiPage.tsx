@@ -22,10 +22,14 @@ import BackpackIcon from 'pixelarticons/svg/backpack.svg?react';
 import GardenIcon from 'pixelarticons/svg/tree.svg?react';
 import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
 import UsersIcon from 'pixelarticons/svg/users.svg?react';
+import BellIcon from 'pixelarticons/svg/bell.svg?react';
+import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
+import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
-import { GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, workerFitness } from '../utils/game';
+import { GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, sortDomiks, workerFitness } from '../utils/game';
+import type { DomikSortMode } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ManufactureBox } from './ManufactureBox';
 import { ProgressBar } from './ProgressBar';
@@ -84,6 +88,14 @@ export const DomikiPage = () => {
     const [draftVillageName, setDraftVillageName] = useState('');
     const [draftCrestIcon, setDraftCrestIcon] = useState(0);
     const [draftCrestColor, setDraftCrestColor] = useState(0);
+    const [sortMode, setSortMode] = useState<DomikSortMode>(() => {
+        const saved = localStorage.getItem('domik-sort-mode');
+        return saved === 'type' || saved === 'level' ? saved : 'attention';
+    });
+    const changeSortMode = (mode: DomikSortMode) => {
+        setSortMode(mode);
+        localStorage.setItem('domik-sort-mode', mode);
+    };
 
     const toggleExpand = (receiptId: number) =>
         setExpandedReceiptId(prev => (prev === receiptId ? null : receiptId));
@@ -143,6 +155,10 @@ export const DomikiPage = () => {
     const selected = useMemo(
         () => computeSelectedDomikView(selectedDomikId, domiks, domikTypes, receipts, resources, now),
         [selectedDomikId, domiks, domikTypes, receipts, resources, now],
+    );
+    const sortedDomiks = useMemo(
+        () => sortDomiks(domiks, domikTypes, resources, sortMode),
+        [domiks, domikTypes, resources, sortMode],
     );
     const currentWeather = weather?.current ?? null;
     const weatherEffect = selected == null
@@ -594,9 +610,28 @@ export const DomikiPage = () => {
                             }
                         </div>
                     }
+                    {domiks.length > 1 &&
+                        <div className="domik-sort">
+                            <button type="button" className={'game-tab' + (sortMode === 'attention' ? ' game-tab-active' : '')}
+                                onClick={() => changeSortMode('attention')}>
+                                <BellIcon className="game-tab-ico" aria-hidden="true" />
+                                Внимание
+                            </button>
+                            <button type="button" className={'game-tab' + (sortMode === 'type' ? ' game-tab-active' : '')}
+                                onClick={() => changeSortMode('type')}>
+                                <GridIcon className="game-tab-ico" aria-hidden="true" />
+                                Тип
+                            </button>
+                            <button type="button" className={'game-tab' + (sortMode === 'level' ? ' game-tab-active' : '')}
+                                onClick={() => changeSortMode('level')}>
+                                <ChevronUpIcon className="game-tab-ico" aria-hidden="true" />
+                                Уровень
+                            </button>
+                        </div>
+                    }
                     <div className="domiks">
                         {domikTypes.length > 0 &&
-                            domiks.map(domik => {
+                            sortedDomiks.map(domik => {
                                 const domikType = domikTypes.find(x => x.id === domik.typeId);
                                 if (domikType == null) {
                                     return null;

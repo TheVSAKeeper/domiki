@@ -153,3 +153,40 @@ export function canInstaFinish(finishDate: string, now: number): boolean {
     const remaining = remainingSeconds(finishDate, now);
     return remaining > 0 && remaining <= INSTA_FINISH_SECONDS_PER_GOLD * INSTA_FINISH_MAX_GOLD;
 }
+
+export type DomikStatus = 'upgradeReady' | 'upgrading' | 'producing' | 'idle';
+export type DomikSortMode = 'attention' | 'type' | 'level';
+
+export function domikStatus(domik: DomikDto, domikType: DomikTypeDto, resources: ResourceDto[]): DomikStatus {
+    if (domik.finishDate != null) {
+        return 'upgrading';
+    }
+    if (domik.manufactures != null && domik.manufactures.length > 0) {
+        return 'producing';
+    }
+    if (canAffordUpgrade(domik, domikType, resources)) {
+        return 'upgradeReady';
+    }
+    return 'idle';
+}
+
+const ATTENTION_ORDER: Record<DomikStatus, number> = { upgradeReady: 0, idle: 1, producing: 2, upgrading: 3 };
+
+function attentionRank(domik: DomikDto, domikTypes: DomikTypeDto[], resources: ResourceDto[]): number {
+    const type = domikTypes.find(x => x.id === domik.typeId);
+    if (type == null) {
+        return 9;
+    }
+    return ATTENTION_ORDER[domikStatus(domik, type, resources)];
+}
+
+export function sortDomiks(domiks: DomikDto[], domikTypes: DomikTypeDto[], resources: ResourceDto[], mode: DomikSortMode): DomikDto[] {
+    const copy = [...domiks];
+    if (mode === 'type') {
+        return copy.sort((a, b) => a.typeId - b.typeId || b.level - a.level);
+    }
+    if (mode === 'level') {
+        return copy.sort((a, b) => b.level - a.level || a.typeId - b.typeId);
+    }
+    return copy.sort((a, b) => attentionRank(a, domikTypes, resources) - attentionRank(b, domikTypes, resources));
+}

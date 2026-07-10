@@ -66,6 +66,13 @@
     clip-path: var(--cut);
 }
 
+.domik-sort {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
 .domiks {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
