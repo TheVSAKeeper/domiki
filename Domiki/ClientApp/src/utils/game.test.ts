@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ResourceDto } from '../types/api';
-import { canAffordUpgrade, computePlodderCount, computeReceiptView, manufactureProgressPercent } from './game';
+import { canAffordUpgrade, computePlodderCount, computeReceiptView, manufactureProgressPercent, progressPercent } from './game';
 
 const domikTypes: DomikTypeDto[] = [
     {
@@ -22,8 +22,8 @@ const domikTypes: DomikTypeDto[] = [
 describe('computePlodderCount', () => {
     it('sums modificator values for domiks with a level and subtracts working manufactures', () => {
         const domiks: DomikDto[] = [
-            { id: 1, typeId: 1, level: 1, finishDate: null, manufactures: null },
-            { id: 2, typeId: 1, level: 2, finishDate: null, manufactures: [{ id: 1, finishDate: '2026-01-01T00:00:00.000Z', plodderCount: 2, receiptId: 1, autoRepeat: false }] },
+            { id: 1, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null },
+            { id: 2, typeId: 1, level: 2, finishDate: null, upgradeSeconds: null, manufactures: [{ id: 1, finishDate: '2026-01-01T00:00:00.000Z', plodderCount: 2, receiptId: 1, autoRepeat: false }] },
         ];
 
         expect(computePlodderCount(domiks, domikTypes)).toEqual({ max: 8, free: 6 });
@@ -31,8 +31,8 @@ describe('computePlodderCount', () => {
 
     it('ignores domiks at level 0 and domiks with no matching level', () => {
         const domiks: DomikDto[] = [
-            { id: 1, typeId: 1, level: 0, finishDate: null, manufactures: null },
-            { id: 2, typeId: 1, level: 99, finishDate: null, manufactures: null },
+            { id: 1, typeId: 1, level: 0, finishDate: null, upgradeSeconds: null, manufactures: null },
+            { id: 2, typeId: 1, level: 99, finishDate: null, upgradeSeconds: null, manufactures: null },
         ];
 
         expect(computePlodderCount(domiks, domikTypes)).toEqual({ max: 0, free: 0 });
@@ -54,7 +54,7 @@ describe('canAffordUpgrade', () => {
             { value: 2, resources: [], modificators: [], receiptIds: [] },
         ],
     };
-    const base: DomikDto = { id: 1, typeId: 1, level: 1, finishDate: null, manufactures: null };
+    const base: DomikDto = { id: 1, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null };
 
     it('true only when upgrade available and resources suffice', () => {
         expect(canAffordUpgrade(base, mineType, [{ typeId: 1, value: 100 }])).toBe(true);
@@ -125,5 +125,11 @@ describe('manufactureProgressPercent', () => {
         const now = 0;
         const manufacture: ManufactureDto = { id: 1, finishDate: new Date(secondsFromNow * 1000).toISOString(), plodderCount: 1, receiptId: 1, autoRepeat: false };
         expect(manufactureProgressPercent(manufacture, receipt, now)).toBe(expected);
+    });
+});
+
+describe('progressPercent', () => {
+    it('returns 0 when total duration is not positive', () => {
+        expect(progressPercent('2026-01-01T00:00:00.000Z', 0, 0)).toBe(0);
     });
 });

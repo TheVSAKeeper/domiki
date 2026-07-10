@@ -37,6 +37,7 @@ export const domikSchema = z.object({
     typeId: z.number(),
     level: z.number(),
     finishDate: z.string().nullable(),
+    upgradeSeconds: z.number().nullable(),
     manufactures: z.array(manufactureSchema).nullable(),
 });
 export type DomikDto = z.infer<typeof domikSchema>;

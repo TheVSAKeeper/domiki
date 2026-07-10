@@ -67,3 +67,18 @@
     color: var(--pine);
 }
 
+.blueprint-building {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.blueprint-building-ico {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+

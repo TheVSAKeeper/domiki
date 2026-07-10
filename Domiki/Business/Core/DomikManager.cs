@@ -147,6 +147,7 @@ namespace Domiki.Web.Business.Core
                     Type = domikTypes.First(y => y.Id == domik.TypeId),
                     Level = domik.Level,
                     FinishDate = domik.UpgradeSeconds == null ? null : (domik.UpgradeCalculateDate.Value.AddSeconds((int)domik.UpgradeSeconds)),
+                    UpgradeSeconds = (int?)domik.UpgradeSeconds,
                     Manufactures = manufactureGroups.FirstOrDefault(m => m.Key == domik.Id)?.Select(x => new Manufacture
                     {
                         Id = x.Id,

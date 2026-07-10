@@ -13,6 +13,7 @@ namespace Domiki.Web.Models
                 TypeId = domik.Type.Id,
                 // todo вынести в нормальный хэлпер или в БД с часовым поясом хранить, или ещё чего
                 FinishDate = domik.FinishDate == null ? null : DateTime.SpecifyKind(domik.FinishDate.Value, DateTimeKind.Utc),
+                UpgradeSeconds = domik.UpgradeSeconds,
                 Manufactures = domik.Manufactures?.Select(x => new ManufactureDto
                 {
                     Id = x.Id,

@@ -25,7 +25,7 @@ import UsersIcon from 'pixelarticons/svg/users.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
-import { GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, workerFitness } from '../utils/game';
+import { GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, workerFitness } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ManufactureBox } from './ManufactureBox';
 import { ProgressBar } from './ProgressBar';
@@ -265,7 +265,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'blueprints', label: 'Чертежи', Icon: NoteIcon, visible: blueprints.length > 0,
-            node: <BlueprintsBox blueprints={blueprints} />,
+            node: <BlueprintsBox blueprints={blueprints} domikTypes={domikTypes} />,
         },
         {
             key: 'expeditions', label: 'Экспедиции', Icon: BackpackIcon, visible: expeditions != null,
@@ -674,8 +674,7 @@ export const DomikiPage = () => {
 
                                         return (
                                             <>
-                                                <span className="panel-label">Строится</span>
-                                                <span className="timer">{selected.remainingText}</span>
+                                                <ProgressBar value={progressPercent(selected.domik.finishDate, selected.domik.upgradeSeconds ?? 0, now)} max={100} label={selected.remainingText ?? ''} />
                                                 <button type="button" className="btn-game"
                                                     disabled={tooFar || notEnoughGold}
                                                     title={hurryTitle}

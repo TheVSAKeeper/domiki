@@ -131,11 +131,18 @@ export function workerFitness(worker: WorkerDto, domikTypeId: number): number {
     return -worker.traitDurationPercent + skillBonus;
 }
 
-export function manufactureProgressPercent(manufacture: ManufactureDto, receipt: ReceiptDto, now: number): number {
-    const total = receipt.durationSeconds;
-    const current = remainingSeconds(manufacture.finishDate, now);
-    const percent = 100 - Math.floor((current * 100) / total);
+export function progressPercent(finishDate: string, totalSeconds: number, now: number): number {
+    if (totalSeconds <= 0) {
+        return 0;
+    }
+
+    const current = remainingSeconds(finishDate, now);
+    const percent = 100 - Math.floor((current * 100) / totalSeconds);
     return Math.min(100, Math.max(0, percent));
+}
+
+export function manufactureProgressPercent(manufacture: ManufactureDto, receipt: ReceiptDto, now: number): number {
+    return progressPercent(manufacture.finishDate, receipt.durationSeconds, now);
 }
 
 export function instaFinishCost(finishDate: string, now: number): number {

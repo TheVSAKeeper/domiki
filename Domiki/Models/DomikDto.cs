@@ -6,6 +6,7 @@
         public int TypeId { get; set; }
         public int Level { get; set; }
         public DateTime? FinishDate { get; set; }
+        public int? UpgradeSeconds { get; set; }
         public ManufactureDto[] Manufactures { get; set; }
     }
 }
