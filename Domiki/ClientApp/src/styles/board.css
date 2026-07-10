@@ -12,6 +12,11 @@
     margin-top: 20px;
     padding-bottom: 8px;
     overflow-x: auto;
+    scroll-margin-top: 80px;
+}
+
+.game-tab-panel {
+    min-height: calc(100vh - 120px);
 }
 
 .game-tab {
@@ -66,11 +71,59 @@
     clip-path: var(--cut);
 }
 
-.domik-sort {
+.domik-sort-menu {
+    position: relative;
+}
+
+.btn-game.btn-ghost {
+    background: #fffaec;
+    color: var(--ink);
+}
+
+    .btn-game.btn-ghost:hover:not(:disabled) {
+        background: var(--plank-dark);
+    }
+
+.domik-sort-pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 60;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 100%;
+    padding: 8px;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.domik-sort-option {
+    display: inline-flex;
+    align-items: center;
     gap: 8px;
-    margin-bottom: 16px;
+    padding: 8px 12px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+    .domik-sort-option:hover {
+        background: var(--plank-dark);
+    }
+
+.domik-sort-option-active {
+    color: var(--plank);
+    background: var(--pine);
+    border-color: var(--pine-dark);
 }
 
 .domiks {

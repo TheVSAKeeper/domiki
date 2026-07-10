@@ -56,6 +56,12 @@ const MECHANIC_TAB: Record<string, string> = {
     scout_hut: 'expeditions',
 };
 
+const SORT_MODES: { mode: DomikSortMode; label: string; Icon: typeof StoreIcon }[] = [
+    { mode: 'attention', label: 'Внимание', Icon: BellIcon },
+    { mode: 'type', label: 'Тип', Icon: GridIcon },
+    { mode: 'level', label: 'Уровень', Icon: ChevronUpIcon },
+];
+
 interface GameTab {
     key: string;
     label: string;
@@ -78,11 +84,18 @@ export const DomikiPage = () => {
     const [manualReceiptIds, setManualReceiptIds] = useState<ReadonlySet<number>>(new Set());
     const [selectedWorkerIdsByReceipt, setSelectedWorkerIdsByReceipt] = useState<Record<number, number[]>>({});
     const [identityOpen, setIdentityOpen] = useState(false);
-    const [villageLevelOpen, setVillageLevelOpen] = useState(false);
-    const [villageLevelPos, setVillageLevelPos] = useState<{ top: number; right: number; width: number } | null>(null);
-    const villageLevelBtnRef = useRef<HTMLButtonElement>(null);
+    const [levelFlyout, setLevelFlyout] = useState<{ top: number; left: number; width: number } | null>(null);
+    const villageLevelRef = useRef<HTMLDivElement>(null);
+    const openLevelFlyout = () => {
+        const rect = villageLevelRef.current?.getBoundingClientRect();
+        if (rect != null) {
+            setLevelFlyout({ top: rect.bottom + 6, left: rect.left, width: rect.width });
+        }
+    };
+    const closeLevelFlyout = () => setLevelFlyout(null);
     const gameTabsRef = useRef<HTMLDivElement>(null);
     const tabAnchorReady = useRef(false);
+    const scrollTabsPending = useRef(false);
     const [identityDismissed, setIdentityDismissed] = useState(false);
     const [draftVillageName, setDraftVillageName] = useState('');
     const [draftCrestIcon, setDraftCrestIcon] = useState(0);
@@ -95,26 +108,24 @@ export const DomikiPage = () => {
         setSortMode(mode);
         localStorage.setItem('domik-sort-mode', mode);
     };
+    const [sortOpen, setSortOpen] = useState(false);
+    const sortRef = useRef<HTMLDivElement>(null);
+    const activeSort = SORT_MODES.find(item => item.mode === sortMode) ?? SORT_MODES[0];
 
     useEffect(() => {
-        if (!villageLevelOpen) {
+        if (!sortOpen) {
             return;
         }
 
-        const reposition = () => {
-            const rect = villageLevelBtnRef.current?.getBoundingClientRect();
-            if (rect != null) {
-                setVillageLevelPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right, width: rect.width });
+        const onDown = (event: MouseEvent) => {
+            if (sortRef.current != null && !sortRef.current.contains(event.target as Node)) {
+                setSortOpen(false);
             }
         };
 
-        window.addEventListener('scroll', reposition, { capture: true, passive: true });
-        window.addEventListener('resize', reposition);
-        return () => {
-            window.removeEventListener('scroll', reposition, { capture: true });
-            window.removeEventListener('resize', reposition);
-        };
-    }, [villageLevelOpen]);
+        document.addEventListener('mousedown', onDown);
+        return () => { document.removeEventListener('mousedown', onDown); };
+    }, [sortOpen]);
 
     useEffect(() => {
         if (!tabAnchorReady.current) {
@@ -122,7 +133,12 @@ export const DomikiPage = () => {
             return;
         }
 
-        gameTabsRef.current?.scrollIntoView({ behavior: 'auto', block: 'nearest' });
+        if (!scrollTabsPending.current) {
+            return;
+        }
+
+        scrollTabsPending.current = false;
+        gameTabsRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
     }, [activeTab]);
 
     const toggleExpand = (receiptId: number) =>
@@ -296,7 +312,8 @@ export const DomikiPage = () => {
     const selectDomik = (id: number, logicName: string) => {
         setSelectedDomikId(id);
         const mechTab = MECHANIC_TAB[logicName];
-        if (mechTab) {
+        if (mechTab && mechTab !== activeTab) {
+            scrollTabsPending.current = true;
             setActiveTab(mechTab);
         }
     };
@@ -362,23 +379,18 @@ export const DomikiPage = () => {
                 }
                 {villageLevel != null &&
                     <>
-                        <button type="button" className="village-level-box"
-                            ref={villageLevelBtnRef}
-                            title={`Постройки ${villageLevel.buildings}, жители ${villageLevel.residents}, репутация ${villageLevel.reputation}, уют ${villageLevel.comfort}`}
-                            aria-expanded={villageLevelOpen}
-                            onClick={() => {
-                                const rect = villageLevelBtnRef.current?.getBoundingClientRect();
-                                if (rect != null) {
-                                    setVillageLevelPos({ top: rect.bottom + 8, right: window.innerWidth - rect.right, width: rect.width });
-                                }
-                                setVillageLevelOpen(prev => !prev);
-                            }}>
-                            <MechanicSprite logicName="obzhitost" size={24} className="village-level-ico" aria-hidden="true" />
-                            <span className="village-level-label">Обжитость</span>
-                            <span className="village-level-value">{villageLevel.level}</span>
-                        </button>
-                        {villageLevelOpen && villageLevelPos != null && createPortal(
-                            <div className="village-level-popover" style={{ top: villageLevelPos.top, right: villageLevelPos.right, minWidth: villageLevelPos.width }}>
+                        <div className="village-level" ref={villageLevelRef}
+                            onMouseEnter={openLevelFlyout} onMouseLeave={closeLevelFlyout}
+                            onFocus={openLevelFlyout} onBlur={closeLevelFlyout}>
+                            <button type="button" className="village-level-box"
+                                title={`Постройки ${villageLevel.buildings}, жители ${villageLevel.residents}, репутация ${villageLevel.reputation}, уют ${villageLevel.comfort}`}>
+                                <MechanicSprite logicName="obzhitost" size={24} className="village-level-ico" aria-hidden="true" />
+                                <span className="village-level-label">Обжитость</span>
+                                <span className="village-level-value">{villageLevel.level}</span>
+                            </button>
+                        </div>
+                        {levelFlyout != null && createPortal(
+                            <div className="village-level-flyout" style={{ top: levelFlyout.top, left: levelFlyout.left, width: levelFlyout.width }}>
                                 <span>Постройки: {villageLevel.buildings}</span>
                                 <span>Жители: {villageLevel.residents}</span>
                                 <span>Репутация: {villageLevel.reputation}</span>
@@ -600,6 +612,28 @@ export const DomikiPage = () => {
                     </button>
                 </div>
                 <div className="village-header-actions">
+                    {domiks.length > 1 &&
+                        <div className="domik-sort-menu" ref={sortRef}>
+                            <button type="button" className="btn-game btn-ghost" aria-expanded={sortOpen}
+                                onClick={() => setSortOpen(prev => !prev)}>
+                                <activeSort.Icon className="btn-ico" aria-hidden="true" />
+                                {activeSort.label}
+                                <ChevronDownIcon className="btn-ico" aria-hidden="true" />
+                            </button>
+                            {sortOpen &&
+                                <div className="domik-sort-pop">
+                                    {SORT_MODES.map(item =>
+                                        <button key={item.mode} type="button"
+                                            className={'domik-sort-option' + (item.mode === sortMode ? ' domik-sort-option-active' : '')}
+                                            onClick={() => { changeSortMode(item.mode); setSortOpen(false); }}>
+                                            <item.Icon className="game-tab-ico" aria-hidden="true" />
+                                            {item.label}
+                                        </button>,
+                                    )}
+                                </div>
+                            }
+                        </div>
+                    }
                     <Link className="btn-game" to="/world">
                         <EarthIcon className="btn-ico" aria-hidden="true" />
                         Мир
@@ -646,25 +680,6 @@ export const DomikiPage = () => {
                                 );
                             })
                             }
-                        </div>
-                    }
-                    {domiks.length > 1 &&
-                        <div className="domik-sort">
-                            <button type="button" className={'game-tab' + (sortMode === 'attention' ? ' game-tab-active' : '')}
-                                onClick={() => changeSortMode('attention')}>
-                                <BellIcon className="game-tab-ico" aria-hidden="true" />
-                                Внимание
-                            </button>
-                            <button type="button" className={'game-tab' + (sortMode === 'type' ? ' game-tab-active' : '')}
-                                onClick={() => changeSortMode('type')}>
-                                <GridIcon className="game-tab-ico" aria-hidden="true" />
-                                Тип
-                            </button>
-                            <button type="button" className={'game-tab' + (sortMode === 'level' ? ' game-tab-active' : '')}
-                                onClick={() => changeSortMode('level')}>
-                                <ChevronUpIcon className="game-tab-ico" aria-hidden="true" />
-                                Уровень
-                            </button>
                         </div>
                     }
                     <div className="domiks">
@@ -922,7 +937,9 @@ export const DomikiPage = () => {
                     </button>
                 ))}
             </div>
-            {activeGameTab?.node}
+            <div className="game-tab-panel">
+                {activeGameTab?.node}
+            </div>
         </div>
     );
 };

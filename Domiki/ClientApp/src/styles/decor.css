@@ -12,18 +12,17 @@
     margin-bottom: 12px;
 }
 
-.decor-title-row,
 .decor-topline {
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: 8px;
 }
 
-.decor-title-ico,
 .decor-card-ico {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
+    align-self: center;
 }
 
 .decor-grid {
@@ -46,7 +45,7 @@
 .decor-name {
     overflow: hidden;
     font-family: var(--pixel);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -57,6 +56,23 @@
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
+}
+
+.decor-comfort {
+    font-family: var(--pixel);
+    font-size: 11px;
+    padding: 3px 7px 2px;
+    color: var(--pine-dark);
+    background: #e3f0d1;
+    border: 2px solid var(--pine);
+    clip-path: var(--cut);
+}
+
+.decor-owned {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--pine-dark);
+    opacity: .75;
 }
 
 .decor-card .btn-game {

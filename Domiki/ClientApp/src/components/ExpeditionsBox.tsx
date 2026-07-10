@@ -60,10 +60,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
     return (
         <section className="expeditions-panel pixel-panel">
             <div className="expeditions-head">
-                <div className="expeditions-title-row">
-                    <BackpackIcon className="expedition-title-ico" aria-hidden="true" />
-                    <h3 className="panel-title mech-title"><MechanicSprite logicName="expeditions" size={24} className="panel-title-ico" aria-hidden="true" />Экспедиции</h3>
-                </div>
+                <h3 className="panel-title mech-title"><MechanicSprite logicName="expeditions" size={24} className="panel-title-ico" aria-hidden="true" />Экспедиции</h3>
                 <span className="reputation-chip" title="Отрядов в походе из максимума">
                     отрядов: {expeditions.active.length}/{expeditions.maxActive}
                 </span>
@@ -97,7 +94,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
                                 <TypeIcon className="expedition-card-ico" aria-hidden="true" />
                                 <span className="expedition-name">{type.name}</span>
                             </div>
-                            <div className="expedition-row">
+                            <div className="expedition-meta">
                                 <StatChip icon={<ClockIcon className="stat-chip-ico" aria-hidden="true" />} title="Длительность">
                                     {formatDuration(type.durationSeconds)}
                                 </StatChip>
@@ -107,9 +104,11 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
                                 {goldType != null
                                     ? <ResourceChip resourceType={goldType} value={type.goldCost} />
                                     : <StatChip icon={<CoinsIcon className="stat-chip-ico" aria-hidden="true" />} tone="gold" title="Золото">{type.goldCost}</StatChip>}
-                                {type.equipment.length > 0 &&
-                                    <span className={'expedition-equipment' + (canAffordEquipment ? '' : ' expedition-equipment-short')}>
-                                        <span className="panel-label">снаряжение:</span>
+                            </div>
+                            {type.equipment.length > 0 &&
+                                <div className={'expedition-req' + (canAffordEquipment ? '' : ' expedition-req-short')}>
+                                    <span className="panel-label">снаряжение</span>
+                                    <div className="expedition-chips">
                                         {type.equipment.map(entry => {
                                             const resourceType = resourceTypes.find(x => x.id === entry.resourceTypeId);
                                             if (resourceType == null) {
@@ -118,20 +117,23 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
 
                                             return <ResourceChip key={entry.resourceTypeId} resourceType={resourceType} value={entry.value} />;
                                         })}
-                                    </span>}
-                            </div>
-                            <div className="expedition-loot">
-                                {type.loot.map(entry => {
-                                    const resourceType = resourceTypes.find(x => x.id === entry.resourceTypeId);
-                                    if (resourceType == null) {
-                                        return null;
-                                    }
+                                    </div>
+                                </div>}
+                            <div className="expedition-reward">
+                                <span className="panel-label">добыча</span>
+                                <div className="expedition-loot">
+                                    {type.loot.map(entry => {
+                                        const resourceType = resourceTypes.find(x => x.id === entry.resourceTypeId);
+                                        if (resourceType == null) {
+                                            return null;
+                                        }
 
-                                    return (
-                                        <ResourceChip key={entry.resourceTypeId} resourceType={resourceType}
-                                            min={entry.minValue} max={entry.maxValue} rare={entry.isRare} />
-                                    );
-                                })}
+                                        return (
+                                            <ResourceChip key={entry.resourceTypeId} resourceType={resourceType}
+                                                min={entry.minValue} max={entry.maxValue} rare={entry.isRare} />
+                                        );
+                                    })}
+                                </div>
                             </div>
                             <label className="receipt-optional expedition-manual-toggle">
                                 <input type="checkbox" checked={isManual} disabled={freeWorkers.length === 0}

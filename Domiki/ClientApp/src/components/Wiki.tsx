@@ -4,19 +4,12 @@ import { useToast } from '../services/toast';
 import { formatDuration } from '../utils/time';
 import { domikLore } from '../utils/domikLore';
 import type { DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, WeatherStateDto } from '../types/api';
-import { DomikSprite } from './sprites';
+import { DomikSprite, MechanicSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import CloudSunIcon from 'pixelarticons/svg/cloud-sun.svg?react';
 import CloudIcon from 'pixelarticons/svg/cloud.svg?react';
 import FireIcon from 'pixelarticons/svg/fire.svg?react';
-import BackpackIcon from 'pixelarticons/svg/backpack.svg?react';
-import UsersIcon from 'pixelarticons/svg/users.svg?react';
-import UserIcon from 'pixelarticons/svg/user.svg?react';
-import StoreIcon from 'pixelarticons/svg/store.svg?react';
-import ClipboardIcon from 'pixelarticons/svg/clipboard.svg?react';
-import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
-import NoteIcon from 'pixelarticons/svg/note.svg?react';
 import GardenIcon from 'pixelarticons/svg/tree.svg?react';
 import FenceIcon from 'pixelarticons/svg/grid-3x2.svg?react';
 import FlowerIcon from 'pixelarticons/svg/heart.svg?react';
@@ -45,8 +38,8 @@ const DECOR_ICONS: Record<string, typeof FenceIcon> = {
 
 interface Mechanic {
     key: string;
+    logic: string;
     name: string;
-    Icon: typeof CloudSunIcon;
     teaser: string;
     description: string;
 }
@@ -54,63 +47,63 @@ interface Mechanic {
 const MECHANICS: Mechanic[] = [
     {
         key: 'village',
-        Icon: BuildingCommunityIcon,
+        logic: 'obzhitost',
         name: 'Обжитость',
         teaser: 'уровень деревни, открывает контент',
         description: 'Уровень деревни – не опыт, а производная от её состояния: сумма уровней построек ×1, жители ×2, вехи репутации ×5, очки уюта. Нафармить дёшево нельзя. Пороги обжитости открывают новые постройки, соседей, приросты и здания механик.',
     },
     {
         key: 'orders',
-        Icon: ClipboardIcon,
+        logic: 'orders',
         name: 'Заказы',
         teaser: 'спрос соседей, репутация',
         description: 'Доска заказов соседей: «15 кирпичей и 5 досок за 600 монет и 2 золота, истекает через 8 часов». Платят больше магазина, требуют цепочек и срока. Выполненные заказы копят репутацию у конкретного соседа, а она открывает уникальные рецепты, чертежи и декор.',
     },
     {
         key: 'workers',
-        Icon: UserIcon,
+        logic: 'workers',
         name: 'Трудяги',
         teaser: 'персонажи с чертами и опытом',
         description: 'Трудяги – именованные персонажи, а не счётчик. У каждого одна черта (Проворный, Запасливый, Соня, Везучий), опыт по профессии растёт от работы до +15 %, а после долгой смены нужен отдых в бараке. Кого куда ставить – решаешь ты, по умолчанию авторасстановка.',
     },
     {
         key: 'weather',
-        Icon: CloudSunIcon,
+        logic: 'weather',
         name: 'Погода',
         teaser: 'глобальные ±% на выход',
         description: 'Погода одна на всю деревню и меняется раз в 6–12 часов, а прогноз виден на сутки вперёд. Дождь, сушь и ясные дни меняют выход разных построек на ±25–50 %. Это планирование, а не рулетка: подстраивай производства под выгодный период.',
     },
     {
         key: 'blueprints',
-        Icon: NoteIcon,
+        logic: 'blueprints',
         name: 'Чертежи',
         teaser: 'открывают новые постройки',
         description: 'Чертежи открывают постройки следующего круга – пекарню, гончарню и дальше. Их нельзя купить: только найти в экспедиции или заслужить репутацией у соседей.',
     },
     {
         key: 'expeditions',
-        Icon: BackpackIcon,
+        logic: 'expeditions',
         name: 'Экспедиции',
         teaser: 'поход за редкостями',
         description: 'Отправь трудяг с припасами на 4–24 часа – вернутся с сундуком: редкие ресурсы, чертежи, декор, новые трудяги. Это единственная случайность в игре, с гарантией редкости за несколько походов. Вход – снаряжение из кузницы, а поход утомляет трудяг. Открывается зданием «Сторожка».',
     },
     {
         key: 'market',
-        Icon: StoreIcon,
+        logic: 'market',
         name: 'Ярмарка',
         teaser: 'обмен лотами между деревнями',
         description: 'Ярмарка – асинхронный обмен: выставил лот «20 глины за 3 золота» и вышел, кто-то примет позже. Комиссия убывает с уровнем «Торгового двора». Торгуются только массовые ресурсы, чертежи и трудяги – нет. Открывается зданием «Торговый двор».',
     },
     {
         key: 'toloka',
-        Icon: UsersIcon,
+        logic: 'toloka',
         name: 'Толока',
         teaser: 'общий проект деревни',
         description: 'Толока – общий проект всех игроков: «на мост нужно 5000 камня со всех». Каждый вкладывает в общий счётчик, и при достижении цели все участники получают временный бафф и отметку. Кооперация без риска. Открывается зданием «Сходня».',
     },
     {
         key: 'decor',
-        Icon: GardenIcon,
+        logic: 'decor',
         name: 'Декор',
         teaser: 'уют ускоряет отдых',
         description: 'Заборы, фонтаны, сады – сток излишков ресурсов. Каждый предмет даёт очки уюта, а чем уютнее деревня, тем быстрее трудяги отдыхают в бараке.',
@@ -317,12 +310,11 @@ export const Wiki = () => {
                 <div className="wiki-buildings">
                     {MECHANICS.map(m => {
                         const open = openMechanics.has(m.key);
-                        const Icon = m.Icon;
 
                         return (
                             <div key={m.key} className={'wiki-building pixel-panel' + (open ? ' receipt-open' : '')}>
                                 <button type="button" className="wiki-building-head" aria-expanded={open} onClick={() => toggleMechanic(m.key)}>
-                                    <Icon aria-hidden="true" />
+                                    <MechanicSprite logicName={m.logic} size={24} className="wiki-mech-ico" aria-hidden="true" />
                                     <span className="wiki-building-titles">
                                         <span className="wiki-building-name">{m.name}</span>
                                         <span className="wiki-building-meta">{m.teaser}</span>

@@ -1,4 +1,5 @@
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
+import JournalIcon from 'pixelarticons/svg/article.svg?react';
 import BackpackIcon from 'pixelarticons/svg/backpack.svg?react';
 import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
@@ -124,7 +125,7 @@ const renderRow = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], domik
 export const JournalBox = ({ events, resourceTypes, domikTypes, now }: JournalBoxProps) => {
     return (
         <section className="journal-panel pixel-panel">
-            <h3 className="panel-title">Журнал</h3>
+            <h3 className="panel-title mech-title"><JournalIcon className="panel-title-ico" aria-hidden="true" />Журнал</h3>
             <div className="journal-list">
                 {events.length === 0 &&
                     <span className="hint">Пока событий нет. Стройте, производите, отправляйте экспедиции.</span>

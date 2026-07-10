@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatDuration, remainingSeconds } from './time';
+import { formatDuration, formatDurationShort, remainingSeconds } from './time';
 
 describe('formatDuration', () => {
     it.each<[number, string]>([
@@ -17,6 +17,20 @@ describe('formatDuration', () => {
         [90061, '1д 1ч 1м 1с'],
     ])('formatDuration(%i) -> %s', (totalSeconds, expected) => {
         expect(formatDuration(totalSeconds)).toBe(expected);
+    });
+});
+
+describe('formatDurationShort', () => {
+    it.each<[number, string]>([
+        [0, '0с'],
+        [13, '13с'],
+        [59, '59с'],
+        [65, '1м'],
+        [3600, '1ч'],
+        [28513, '7ч 55м'],
+        [90061, '1д 1ч 1м'],
+    ])('formatDurationShort(%i) -> %s', (totalSeconds, expected) => {
+        expect(formatDurationShort(totalSeconds)).toBe(expected);
     });
 });
 

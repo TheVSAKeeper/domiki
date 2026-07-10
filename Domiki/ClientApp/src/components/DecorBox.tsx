@@ -30,10 +30,7 @@ export const DecorBox = ({ decor, resourceTypes, resources, onBuy }: DecorBoxPro
     return (
         <section className="decor-panel pixel-panel">
             <div className="decor-head">
-                <div className="decor-title-row">
-                    <GardenIcon className="decor-title-ico" aria-hidden="true" />
-                    <h3 className="panel-title mech-title"><MechanicSprite logicName="decor" size={24} className="panel-title-ico" aria-hidden="true" />Декор</h3>
-                </div>
+                <h3 className="panel-title mech-title"><MechanicSprite logicName="decor" size={24} className="panel-title-ico" aria-hidden="true" />Декор</h3>
                 <span className="reputation-chip">Уют деревни: {decor.comfort}</span>
             </div>
             <div className="decor-grid">
@@ -48,8 +45,8 @@ export const DecorBox = ({ decor, resourceTypes, resources, onBuy }: DecorBoxPro
                                 <span className="decor-name">{type.name}</span>
                             </div>
                             <div className="decor-row">
-                                <span className="panel-label">+{type.comfortPoints} уюта</span>
-                                <span className="panel-label">в наличии: {owned}</span>
+                                <span className="decor-comfort">+{type.comfortPoints} уюта</span>
+                                <span className="decor-owned">в наличии: {owned}</span>
                             </div>
                             <ResourcesBox resources={type.cost} resourceTypes={resourceTypes} have={resources} />
                             <button className="btn-game" disabled={!canBuy} title={canBuy ? undefined : 'Не хватает ресурсов'} onClick={() => onBuy(type.id)}>

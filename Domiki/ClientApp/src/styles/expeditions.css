@@ -12,13 +12,6 @@
     margin-bottom: 12px;
 }
 
-.expeditions-title-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.expedition-title-ico,
 .pity-ico {
     width: 20px;
     height: 20px;
@@ -63,29 +56,43 @@
     white-space: nowrap;
 }
 
-.expedition-row {
+.expedition-meta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
 }
 
-.expedition-equipment {
-    display: inline-flex;
+.expedition-req,
+.expedition-reward {
+    display: flex;
     align-items: center;
-    gap: 6px;
     flex-wrap: wrap;
+    gap: 6px 8px;
 }
 
-.expedition-equipment-short {
+.expedition-reward {
+    margin-top: 2px;
+    padding-top: 10px;
+    border-top: 2px dotted rgba(51, 41, 26, .28);
+}
+
+    .expedition-req .panel-label,
+    .expedition-reward .panel-label {
+        margin-bottom: 0;
+        color: var(--pine-dark);
+    }
+
+.expedition-req-short {
     outline: 2px solid var(--roof);
-    outline-offset: 2px;
+    outline-offset: 3px;
 }
 
 .expeditions-hint {
     margin: 0 0 4px;
 }
 
+.expedition-chips,
 .expedition-loot {
     display: flex;
     flex-wrap: wrap;

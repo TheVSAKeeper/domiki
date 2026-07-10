@@ -12,7 +12,6 @@
     margin-bottom: 12px;
 }
 
-.toloka-title-row,
 .toloka-topline,
 .toloka-row,
 .toloka-form {
@@ -20,12 +19,6 @@
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
-}
-
-.toloka-title-ico {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
 }
 
 .toloka-card {

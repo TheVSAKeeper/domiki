@@ -29,19 +29,57 @@
 }
 
 .worker-card {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    gap: 7px;
-    padding: 9px 10px;
+}
+
+.worker-card-face {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 76px;
+    padding: 10px 11px;
     background: #fffaec;
     border: 3px solid var(--ink);
     clip-path: var(--cut);
+    cursor: help;
 }
 
-.worker-card-head {
+.worker-details {
+    position: fixed;
+    z-index: 120;
     display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 11px;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+    pointer-events: none;
+}
+
+.worker-card:focus-visible .worker-card-face {
+    outline: none;
+    border-color: var(--coin);
+}
+
+.worker-timer {
+    display: inline-flex;
     align-items: center;
-    gap: 9px;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pine-dark);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.worker-timer-ico {
+    width: 15px;
+    height: 15px;
+    flex: none;
 }
 
 .worker-headings {
@@ -52,8 +90,8 @@
 }
 
 .worker-avatar {
-    width: 36px;
-    height: 36px;
+    width: 56px;
+    height: 56px;
     flex: none;
     image-rendering: pixelated;
 }
@@ -94,8 +132,8 @@
 .worker-skills {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: 5px;
-    margin-top: auto;
 }
 
 .worker-skill {
@@ -131,7 +169,7 @@
     color: #517e2d;
 }
 
-.worker--free {
+.worker--free .worker-card-face {
     border-color: var(--pine);
 }
 
@@ -140,7 +178,7 @@
     border-color: var(--pine-dark);
 }
 
-.worker--busy {
+.worker--busy .worker-card-face {
     border-color: var(--roof);
     background: #f7ece4;
 }
@@ -150,7 +188,7 @@
     border-color: var(--ink);
 }
 
-.worker--resting {
+.worker--resting .worker-card-face {
     border-color: #517ea6;
     background: #eef6ff;
 }
@@ -160,7 +198,7 @@
     border-color: var(--ink);
 }
 
-.worker--expedition {
+.worker--expedition .worker-card-face {
     border-color: #b8860b;
     background: #fdf0c4;
 }
@@ -179,11 +217,6 @@
     font-weight: 700;
     color: var(--plank);
     white-space: nowrap;
-}
-
-.worker-free-in {
-    font-size: 12px;
-    color: var(--pine-dark);
 }
 
 @media (max-width: 575px) {

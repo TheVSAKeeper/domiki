@@ -110,10 +110,7 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
     return (
         <section className="market-panel pixel-panel">
             <div className="market-head">
-                <div className="market-title-row">
-                    <StoreIcon className="market-title-ico" aria-hidden="true" />
-                    <h3 className="panel-title mech-title"><MechanicSprite logicName="market" size={24} className="panel-title-ico" aria-hidden="true" />Ярмарка</h3>
-                </div>
+                <h3 className="panel-title mech-title"><MechanicSprite logicName="market" size={24} className="panel-title-ico" aria-hidden="true" />Ярмарка</h3>
                 <span className="reputation-chip" title="Занято мест на прилавке из максимума">
                     мест на прилавке: {market.myLots.length}/{market.maxLots}
                 </span>

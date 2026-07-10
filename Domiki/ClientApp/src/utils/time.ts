@@ -24,6 +24,11 @@ export function formatDuration(totalSeconds: number): string {
     return parts.length > 0 ? parts.join(' ') : '0с';
 }
 
+export function formatDurationShort(totalSeconds: number): string {
+    const total = Math.max(0, Math.round(totalSeconds));
+    return total < 60 ? `${total}с` : formatDuration(total - (total % 60));
+}
+
 export function remainingSeconds(finishDate: string, now: number): number {
     return (new Date(finishDate).getTime() - now) / 1000;
 }

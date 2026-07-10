@@ -70,16 +70,19 @@
     width: auto;
 }
 
-.village-level-popover {
+.village-level {
+    position: relative;
+    display: inline-flex;
+}
+
+.village-level-flyout {
     position: fixed;
     z-index: 120;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 4px;
-    width: max-content;
-    max-width: 240px;
-    padding: 5px 9px 9px;
+    padding: 7px 10px 10px;
     font-size: 12px;
     font-weight: 700;
     text-align: left;
@@ -88,6 +91,7 @@
     border: 3px solid var(--ink);
     clip-path: var(--cut);
     box-shadow: inset 0 -4px 0 var(--plank-dark);
+    pointer-events: none;
 }
 
 .village-level-next {

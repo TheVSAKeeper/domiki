@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
 import HandIcon from 'pixelarticons/svg/hand.svg?react';
 import type { ResourceDto, ResourceTypeDto, TolokaStateDto } from '../types/api';
 import { hasResourcesFor } from '../utils/game';
@@ -38,10 +37,7 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute 
     return (
         <section className="toloka-panel pixel-panel">
             <div className="toloka-head">
-                <div className="toloka-title-row">
-                    <BuildingCommunityIcon className="toloka-title-ico" aria-hidden="true" />
-                    <h3 className="panel-title mech-title"><MechanicSprite logicName="toloka" size={24} className="panel-title-ico" aria-hidden="true" />Толока</h3>
-                </div>
+                <h3 className="panel-title mech-title"><MechanicSprite logicName="toloka" size={24} className="panel-title-ico" aria-hidden="true" />Толока</h3>
                 <span className="reputation-chip" title="Длительность баффа Сходни">
                     бафф: {toloka.buffHours}ч{toloka.nextBuffHours != null ? ` → ${toloka.nextBuffHours}ч` : ''}
                 </span>
