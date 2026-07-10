@@ -668,9 +668,37 @@ internal sealed class SimulationRun
         }
 
         return candidates
-            .OrderByDescending(x => GetReceiptEv(x.Receipt, x.UseOptional, GetWeatherOutputPercent(domik.Type.Id)) / x.Receipt.PlodderCount)
+            .OrderByDescending(x => GetReceiptEv(x.Receipt, x.UseOptional, GetWeatherOutputPercent(domik.Type.Id)) * GetSaturationDiscount(x.Receipt) / x.Receipt.PlodderCount)
             .ThenBy(x => x.Receipt.Id)
             .First();
+    }
+
+    private double GetSaturationDiscount(Receipt receipt)
+    {
+        return receipt.OutputResources.Min(output => GetResourceSaturationDiscount(output.Type.Id));
+    }
+
+    private double GetResourceSaturationDiscount(int resourceTypeId)
+    {
+        var target = GetExpectedDemand(resourceTypeId);
+        if (target <= 0)
+        {
+            return 1.0;
+        }
+
+        return Math.Max(0.0, 1.0 - GetResource(resourceTypeId) / (double)target);
+    }
+
+    private int GetExpectedDemand(int resourceTypeId)
+    {
+        var orderDemand = _state.Orders
+            .Where(order => order.ResourceTypeId == resourceTypeId)
+            .Sum(order => order.Quantity);
+        var upgradeDemand = GetCandidates()
+            .Sum(candidate => candidate.Level.Resources
+                .Where(resource => resource.Type.Id == resourceTypeId)
+                .Sum(resource => resource.Value));
+        return orderDemand + upgradeDemand;
     }
 
     private bool ShouldUseOptional(int domikTypeId, Receipt receipt)
