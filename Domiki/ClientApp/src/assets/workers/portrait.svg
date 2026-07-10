@@ -2,6 +2,7 @@
   data-size="64" data-state="idle" data-motion="on"
   data-skin="1" data-hair="1" data-style="m1" data-beard="0" data-hat="0" data-shirt="4" data-extra="0" data-skilled="false">
   <title>Трудяга</title>
+  <desc>Пиксельный портрет с предметными состояниями: спокойное ожидание, удар молотом и сон.</desc>
   <style>
     .part, .style-part, .face-mode, .state-part { display: none }
     .hair { fill: #443528 }
@@ -43,53 +44,184 @@
     svg[data-size="24"] .compact-hide { display: none }
     svg[data-size="32"] .compact-hide-32 { display: none }
 
+    /* Semantic motion system: every secondary effect follows a visible cause. */
+    svg {
+      --worker-idle-cycle: 3.6s;
+      --worker-blink-cycle: 4.8s;
+      --worker-work-cycle: 1.28s;
+      --worker-sweat-cycle: 2.56s;
+      --worker-rest-cycle: 2.4s;
+      --worker-sleep-cycle: 3.4s;
+    }
+    svg[data-motion="slow"] {
+      --worker-idle-cycle: 5.2s;
+      --worker-blink-cycle: 6.8s;
+      --worker-work-cycle: 1.8s;
+      --worker-sweat-cycle: 3.6s;
+      --worker-rest-cycle: 3.4s;
+      --worker-sleep-cycle: 4.8s;
+    }
+    svg[data-motion="fast"] {
+      --worker-idle-cycle: 2.6s;
+      --worker-blink-cycle: 3.6s;
+      --worker-work-cycle: 0.9s;
+      --worker-sweat-cycle: 1.8s;
+      --worker-rest-cycle: 1.8s;
+      --worker-sleep-cycle: 2.6s;
+    }
+
     .anim {
       transform-box: fill-box;
       transform-origin: center;
     }
+    .idle-eye-open { opacity: 1 }
+    .idle-eye-closed { opacity: 0 }
+    .work-frame { opacity: 0 }
+    .work-ready { opacity: 1 }
+    .work-spark { opacity: 0 }
+    .work-flash { opacity: 0 }
+    .anim-sweat-work { opacity: 0 }
+    .sleep-z-small { opacity: 1 }
+    .sleep-z-large { opacity: 0 }
+
+    svg[data-size="24"] .compact-hide-32 { display: none }
+
     svg[data-motion="paused"] .anim { animation-play-state: paused !important }
     svg[data-motion="off"] .anim { animation: none !important }
-    svg[data-state="working"][data-motion="on"] .anim-body-work { animation: workerBodyBob var(--domiki-worker-speed, 0.9s) steps(2, end) infinite }
-    svg[data-state="working"][data-motion="on"] .anim-tool-work { animation: workerTool var(--domiki-worker-speed, 0.9s) steps(2, end) infinite }
-    svg[data-state="working"][data-motion="on"] .anim-spark-work { animation: workerSpark var(--domiki-worker-speed, 0.9s) steps(2, end) infinite }
-    svg[data-state="resting"][data-motion="on"] .anim-body-rest { animation: workerRest var(--domiki-rest-speed, 1.8s) steps(2, end) infinite }
-    svg[data-state="resting"][data-motion="on"] .anim-z-rest { animation: workerZ var(--domiki-rest-speed, 1.8s) linear infinite }
-    svg[data-state="resting"][data-motion="on"] .anim-blanket-rest { animation: workerBlanket var(--domiki-rest-speed, 1.8s) steps(2, end) infinite }
 
-    @keyframes workerBodyBob {
-      0%, 100% { transform: translateY(0px) }
-      50% { transform: translateY(2px) }
+    /* Idle: weight settles through the shoulders; blinking is infrequent and independent. */
+    svg[data-state="idle"]:not([data-motion="off"]) .anim-body-idle {
+      animation: workerIdleBreath var(--worker-idle-cycle) steps(1, end) infinite;
     }
-    @keyframes workerTool {
-      0%, 100% { transform: translate(0px, 0px) }
-      50% { transform: translate(-2px, 2px) }
+    svg[data-state="idle"]:not([data-motion="off"]) .anim-eye-idle-open {
+      animation: workerEyeOpen var(--worker-blink-cycle) steps(1, end) infinite;
+    }
+    svg[data-state="idle"]:not([data-motion="off"]) .anim-eye-idle-closed {
+      animation: workerEyeClosed var(--worker-blink-cycle) steps(1, end) infinite;
+    }
+
+    /* Working: prepare -> lift -> strike -> sparks -> recoil. */
+    svg[data-state="working"]:not([data-motion="off"]) .anim-body-work {
+      animation: workerBodyWork var(--worker-work-cycle) steps(1, end) infinite;
+    }
+    svg[data-state="working"]:not([data-motion="off"]) .work-ready {
+      animation: workerFrameReady var(--worker-work-cycle) steps(1, end) infinite;
+    }
+    svg[data-state="working"]:not([data-motion="off"]) .work-lift {
+      animation: workerFrameLift var(--worker-work-cycle) steps(1, end) infinite;
+    }
+    svg[data-state="working"]:not([data-motion="off"]) .work-strike {
+      animation: workerFrameStrike var(--worker-work-cycle) steps(1, end) infinite;
+    }
+    svg[data-state="working"]:not([data-motion="off"]) .work-rebound {
+      animation: workerFrameRebound var(--worker-work-cycle) steps(1, end) infinite;
+    }
+    svg[data-state="working"]:not([data-motion="off"]) .anim-spark-work {
+      animation: workerSpark var(--worker-work-cycle) steps(1, end) infinite;
+    }
+    svg[data-state="working"]:not([data-motion="off"]) .anim-flash-work {
+      animation: workerFlash var(--worker-work-cycle) steps(1, end) infinite;
+    }
+    svg[data-state="working"]:not([data-motion="off"]) .anim-sweat-work {
+      animation: workerSweat var(--worker-sweat-cycle) steps(1, end) infinite;
+    }
+
+    /* Resting: one slow breathing loop; the second Z follows the first instead of moving as a block. */
+    svg[data-state="resting"]:not([data-motion="off"]) .anim-body-rest {
+      animation: workerRestBreath var(--worker-rest-cycle) steps(1, end) infinite;
+    }
+    svg[data-state="resting"]:not([data-motion="off"]) .anim-blanket-rest {
+      animation: workerBlanketBreath var(--worker-rest-cycle) steps(1, end) infinite;
+    }
+    svg[data-state="resting"]:not([data-motion="off"]) .anim-z-small-rest {
+      animation: workerZSmall var(--worker-sleep-cycle) steps(1, end) infinite;
+    }
+    svg[data-state="resting"]:not([data-motion="off"]) .anim-z-large-rest {
+      animation: workerZLarge var(--worker-sleep-cycle) steps(1, end) infinite;
+    }
+
+    @keyframes workerIdleBreath {
+      0%, 18%, 100% { transform: translate(0px, 0px) }
+      36%, 58% { transform: translate(0px, 1px) }
+      76% { transform: translate(0px, 0px) }
+    }
+    @keyframes workerEyeOpen {
+      0%, 87%, 92%, 100% { opacity: 1 }
+      88%, 91% { opacity: 0 }
+    }
+    @keyframes workerEyeClosed {
+      0%, 87%, 92%, 100% { opacity: 0 }
+      88%, 91% { opacity: 1 }
+    }
+
+    @keyframes workerBodyWork {
+      0%, 12%, 72%, 100% { transform: translate(0px, 0px) }
+      18%, 30% { transform: translate(-1px, -1px) }
+      34%, 43% { transform: translate(1px, 2px) }
+      48%, 60% { transform: translate(0px, 1px) }
+    }
+    @keyframes workerFrameReady {
+      0%, 14%, 70%, 100% { opacity: 1 }
+      15%, 69% { opacity: 0 }
+    }
+    @keyframes workerFrameLift {
+      0%, 14%, 32%, 100% { opacity: 0 }
+      15%, 31% { opacity: 1 }
+    }
+    @keyframes workerFrameStrike {
+      0%, 31%, 44%, 100% { opacity: 0 }
+      32%, 43% { opacity: 1 }
+    }
+    @keyframes workerFrameRebound {
+      0%, 43%, 70%, 100% { opacity: 0 }
+      44%, 69% { opacity: 1 }
     }
     @keyframes workerSpark {
-      0%, 45% { opacity: 0; transform: translate(0px, 0px) }
-      50% { opacity: 1; transform: translate(0px, 0px) }
-      100% { opacity: 0; transform: translate(2px, -2px) }
+      0%, 35%, 44%, 100% { opacity: 0; transform: translate(0px, 0px) }
+      36%, 39% { opacity: 1; transform: translate(0px, 0px) }
+      40%, 43% { opacity: 1; transform: translate(2px, -2px) }
     }
-    @keyframes workerRest {
-      0%, 100% { transform: translateY(0px) }
-      50% { transform: translateY(2px) }
+    @keyframes workerFlash {
+      0%, 34%, 42%, 100% { opacity: 0 }
+      35%, 41% { opacity: 1 }
     }
-    @keyframes workerBlanket {
-      0%, 100% { transform: translateY(0px) }
-      50% { transform: translateY(1px) }
+    @keyframes workerSweat {
+      0%, 56%, 72%, 100% { opacity: 0; transform: translate(0px, 0px) }
+      57%, 64% { opacity: 1; transform: translate(0px, 0px) }
+      65%, 71% { opacity: 1; transform: translate(0px, 2px) }
     }
-    @keyframes workerZ {
-      0% { opacity: 0; transform: translate(0px, 4px) }
-      30% { opacity: 1; transform: translate(0px, 2px) }
-      80% { opacity: 1; transform: translate(0px, -4px) }
-      100% { opacity: 0; transform: translate(0px, -6px) }
+
+    @keyframes workerRestBreath {
+      0%, 16%, 84%, 100% { transform: translate(0px, 0px) }
+      34%, 62% { transform: translate(0px, 1px) }
     }
+    @keyframes workerBlanketBreath {
+      0%, 16%, 84%, 100% { transform: translate(0px, 0px) }
+      34%, 62% { transform: translate(0px, -1px) }
+    }
+    @keyframes workerZSmall {
+      0%, 8% { opacity: 0; transform: translate(0px, 2px) }
+      14%, 38% { opacity: 1; transform: translate(0px, 0px) }
+      46% { opacity: 1; transform: translate(2px, -2px) }
+      54%, 100% { opacity: 0; transform: translate(2px, -4px) }
+    }
+    @keyframes workerZLarge {
+      0%, 34% { opacity: 0; transform: translate(0px, 2px) }
+      42%, 70% { opacity: 1; transform: translate(0px, 0px) }
+      78% { opacity: 1; transform: translate(2px, -2px) }
+      86%, 100% { opacity: 0; transform: translate(2px, -4px) }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .anim { animation: none !important }
+      .idle-eye-open, .work-ready, .sleep-z-small { opacity: 1 !important }
+      .idle-eye-closed, .work-lift, .work-strike, .work-rebound,
+      .work-spark, .work-flash, .sleep-z-large { opacity: 0 !important }
     }
   </style>
 
   <!-- Рубаха и плечи -->
-  <g class="anim anim-body-work anim-body-rest">
+  <g class="anim anim-body-idle anim-body-work anim-body-rest">
     <g class="base-body">
       <rect x="16" y="40" width="32" height="6" fill="#262626"/>
       <rect x="10" y="46" width="44" height="18" fill="#262626"/>
@@ -130,8 +262,14 @@
     <g class="face-mode face-idle">
       <rect class="micro hair" x="24" y="18" width="6" height="2" fill="#443528"/>
       <rect class="micro hair" x="34" y="18" width="6" height="2" fill="#443528"/>
-      <rect x="26" y="22" width="2" height="2" fill="#262626"/>
-      <rect x="36" y="22" width="2" height="2" fill="#262626"/>
+      <g class="anim anim-eye-idle-open idle-eye-open">
+        <rect x="26" y="22" width="2" height="2" fill="#262626"/>
+        <rect x="36" y="22" width="2" height="2" fill="#262626"/>
+      </g>
+      <g class="anim anim-eye-idle-closed idle-eye-closed">
+        <rect x="24" y="22" width="6" height="2" fill="#262626"/>
+        <rect x="34" y="22" width="6" height="2" fill="#262626"/>
+      </g>
       <rect class="micro skin-shadow" x="30" y="24" width="4" height="4" fill="#c99e6f"/>
       <rect x="30" y="30" width="4" height="2" fill="#262626"/>
     </g>
@@ -142,8 +280,10 @@
       <rect x="36" y="22" width="2" height="2" fill="#262626"/>
       <rect class="micro skin-shadow" x="30" y="24" width="4" height="4" fill="#c99e6f"/>
       <rect x="28" y="30" width="8" height="2" fill="#262626"/>
-      <rect class="state-part state-working compact-hide" x="40" y="24" width="2" height="4" fill="#4a7ab5"/>
-      <rect class="state-part state-working compact-hide" x="38" y="26" width="2" height="4" fill="#4a7ab5"/>
+      <g class="state-part state-working compact-hide anim anim-sweat-work">
+        <rect x="40" y="24" width="2" height="4" fill="#4a7ab5"/>
+        <rect x="38" y="28" width="2" height="2" fill="#4a7ab5"/>
+      </g>
     </g>
     <g class="face-mode face-resting">
       <rect x="24" y="22" width="6" height="2" fill="#262626"/>
@@ -287,34 +427,78 @@
     </g>
   </g>
 
-  <!-- Работа -->
-  <g class="state-part state-working anim anim-tool-work">
-    <rect x="44" y="40" width="10" height="4" fill="#262626"/>
-    <rect x="46" y="34" width="4" height="8" fill="#6f4a24"/>
-    <rect x="44" y="30" width="8" height="4" fill="#262626"/>
-    <rect x="46" y="28" width="4" height="2" fill="#c9c2b4"/>
-    <rect class="compact-hide" x="42" y="34" width="2" height="4" fill="#262626"/>
-  </g>
-  <g class="state-part state-working anim anim-spark-work compact-hide-32">
-    <rect x="52" y="26" width="2" height="2" fill="#e8b83a"/>
-    <rect x="50" y="28" width="2" height="2" fill="#e0a63a"/>
-    <rect x="54" y="28" width="2" height="2" fill="#e0a63a"/>
-    <rect x="52" y="30" width="2" height="2" fill="#e8b83a"/>
+  <!-- Работа: молот бьёт по заготовке; искры появляются только после контакта. -->
+  <g class="state-part state-working work-surface">
+    <rect x="46" y="48" width="16" height="4" fill="#262626"/>
+    <rect x="48" y="46" width="12" height="4" fill="#c9c2b4"/>
+    <rect class="anim anim-flash-work work-flash" x="52" y="46" width="6" height="2" fill="#efe6d4"/>
+    <rect x="50" y="52" width="10" height="4" fill="#262626"/>
+    <rect x="52" y="56" width="6" height="4" fill="#262626"/>
   </g>
 
-  <!-- Отдых -->
+  <g class="state-part state-working work-tool-frames">
+    <!-- Neutral grip: the frame shown when motion is disabled. -->
+    <g class="anim work-frame work-ready">
+      <rect x="46" y="28" width="14" height="6" fill="#262626"/>
+      <rect x="48" y="30" width="10" height="2" fill="#c9c2b4"/>
+      <rect x="50" y="34" width="4" height="12" fill="#6f4a24"/>
+      <rect x="48" y="40" width="8" height="8" fill="#262626"/>
+      <rect class="skin" x="50" y="42" width="4" height="4" fill="#e8c9a2"/>
+    </g>
+
+    <!-- Backswing: stepped diagonal keeps the pixel silhouette crisp. -->
+    <g class="anim work-frame work-lift">
+      <rect x="42" y="20" width="14" height="6" fill="#262626"/>
+      <rect x="44" y="22" width="10" height="2" fill="#c9c2b4"/>
+      <rect x="50" y="26" width="4" height="6" fill="#6f4a24"/>
+      <rect x="48" y="30" width="4" height="6" fill="#6f4a24"/>
+      <rect x="46" y="34" width="4" height="8" fill="#6f4a24"/>
+      <rect x="44" y="38" width="8" height="8" fill="#262626"/>
+      <rect class="skin" x="46" y="40" width="4" height="4" fill="#e8c9a2"/>
+    </g>
+
+    <!-- Contact frame: hammer head reaches the metal block. -->
+    <g class="anim work-frame work-strike">
+      <rect x="50" y="30" width="4" height="14" fill="#6f4a24"/>
+      <rect x="48" y="32" width="8" height="8" fill="#262626"/>
+      <rect class="skin" x="50" y="34" width="4" height="4" fill="#e8c9a2"/>
+      <rect x="46" y="42" width="16" height="6" fill="#262626"/>
+      <rect x="48" y="42" width="12" height="2" fill="#c9c2b4"/>
+    </g>
+
+    <!-- Recoil: tool leaves the workpiece before returning to neutral. -->
+    <g class="anim work-frame work-rebound">
+      <rect x="48" y="26" width="14" height="6" fill="#262626"/>
+      <rect x="50" y="28" width="10" height="2" fill="#c9c2b4"/>
+      <rect x="52" y="32" width="4" height="12" fill="#6f4a24"/>
+      <rect x="50" y="38" width="8" height="8" fill="#262626"/>
+      <rect class="skin" x="52" y="40" width="4" height="4" fill="#e8c9a2"/>
+    </g>
+  </g>
+
+  <g class="state-part state-working compact-hide-32 anim anim-spark-work work-spark">
+    <rect x="58" y="40" width="2" height="2" fill="#efe6d4"/>
+    <rect x="60" y="38" width="2" height="2" fill="#e8b83a"/>
+    <rect x="56" y="38" width="2" height="2" fill="#e0a63a"/>
+    <rect x="60" y="42" width="2" height="2" fill="#e0a63a"/>
+  </g>
+
+  <!-- Отдых: дыхание и последовательные знаки сна. -->
   <g class="state-part state-resting anim anim-blanket-rest">
     <rect x="8" y="48" width="18" height="12" fill="#262626"/>
     <rect x="10" y="50" width="14" height="8" fill="#4a7ab5"/>
     <rect class="compact-hide" x="12" y="52" width="4" height="2" fill="#c9c2b4"/>
     <rect class="compact-hide" x="18" y="52" width="4" height="2" fill="#c9c2b4"/>
   </g>
-  <g class="state-part state-resting anim anim-z-rest">
-    <rect x="48" y="10" width="6" height="2" fill="#4a7ab5"/>
-    <rect x="52" y="12" width="2" height="2" fill="#4a7ab5"/>
+
+  <g class="state-part state-resting anim anim-z-small-rest sleep-z-small">
     <rect x="48" y="14" width="6" height="2" fill="#4a7ab5"/>
-    <rect class="compact-hide" x="44" y="18" width="8" height="2" fill="#4a7ab5"/>
-    <rect class="compact-hide" x="48" y="20" width="2" height="2" fill="#4a7ab5"/>
-    <rect class="compact-hide" x="44" y="22" width="8" height="2" fill="#4a7ab5"/>
+    <rect x="52" y="16" width="2" height="2" fill="#4a7ab5"/>
+    <rect x="48" y="18" width="6" height="2" fill="#4a7ab5"/>
+  </g>
+  <g class="state-part state-resting compact-hide anim anim-z-large-rest sleep-z-large">
+    <rect x="44" y="8" width="8" height="2" fill="#4a7ab5"/>
+    <rect x="50" y="10" width="2" height="2" fill="#4a7ab5"/>
+    <rect x="46" y="12" width="6" height="2" fill="#4a7ab5"/>
   </g>
 </svg>
