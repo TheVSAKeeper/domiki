@@ -243,3 +243,34 @@
         image-rendering: pixelated;
     }
 
+.wiki-mechanic-body {
+    padding: 0 20px 18px;
+}
+
+    .wiki-mechanic-body > p {
+        margin: 0 0 12px;
+        line-height: 1.55;
+    }
+
+.wiki-mechanic-live {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+    .wiki-mechanic-live-label {
+        font-family: var(--pixel);
+        font-size: 11px;
+        color: var(--pine-dark);
+    }
+
+    .wiki-mechanic-live .wiki-res-grid {
+        margin-top: 4px;
+    }
+
+.wiki-res-cell svg {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
