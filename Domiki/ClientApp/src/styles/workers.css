@@ -174,6 +174,11 @@
     white-space: nowrap;
 }
 
+.worker-free-in {
+    font-size: 12px;
+    color: var(--pine-dark);
+}
+
 @media (max-width: 575px) {
     .worker-chip {
         align-items: start;

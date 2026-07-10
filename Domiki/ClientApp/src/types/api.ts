@@ -375,6 +375,10 @@ export const gameStateSchema = z.object({
     toloka: tolokaStateSchema.nullable(),
     market: marketStateSchema.nullable(),
     recap: recapSchema.nullish(),
+    events: z.array(z.unknown()).transform(items => items.flatMap(item => {
+        const parsed = recapEventSchema.safeParse(item);
+        return parsed.success ? [parsed.data] : [];
+    })).optional().default([]),
 });
 export type GameStateDto = z.infer<typeof gameStateSchema>;
 

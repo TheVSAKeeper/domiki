@@ -8,10 +8,10 @@ export interface RecapView {
     toloka: { tolokaTypeId: number }[];
 }
 
-const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
-const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+export const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
+export const isNumber = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
 
-const readResource = (value: unknown): { typeId: number; value: number } | null => {
+export const readResource = (value: unknown): { typeId: number; value: number } | null => {
     if (!isRecord(value) || !isNumber(value.resourceTypeId) || !isNumber(value.value)) {
         return null;
     }

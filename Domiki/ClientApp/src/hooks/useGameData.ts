@@ -17,6 +17,7 @@ import {
     type ResourceDto,
     type ResourceTypeDto,
     type RecapDto,
+    type RecapEventDto,
     type TolokaStateDto,
     type VillageDto,
     type VillageLevelDto,
@@ -58,6 +59,7 @@ export interface GameData {
     cancelLot: (lotId: number) => Promise<void>;
     recap: RecapDto | null;
     clearRecap: () => void;
+    events: RecapEventDto[];
 }
 
 export function useGameData(): GameData {
@@ -81,6 +83,7 @@ export function useGameData(): GameData {
     const [workers, setWorkers] = useState<WorkerDto[]>([]);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [recap, setRecap] = useState<RecapDto | null>(null);
+    const [events, setEvents] = useState<RecapEventDto[]>([]);
     const [now, setNow] = useState(() => Date.now());
 
     const refetching = useRef(false);
@@ -143,6 +146,7 @@ export function useGameData(): GameData {
         setDecor(state.decor);
         setToloka(state.toloka);
         setMarket(state.market);
+        setEvents(state.events);
         if (state.recap != null && state.recap.events.length > 0) {
             setRecap(state.recap);
         }
@@ -254,6 +258,7 @@ export function useGameData(): GameData {
                 setDecor(state.decor);
                 setToloka(state.toloka);
                 setMarket(state.market);
+                setEvents(state.events);
                 if (state.recap != null && state.recap.events.length > 0) {
                     setRecap(state.recap);
                 }
@@ -374,5 +379,6 @@ export function useGameData(): GameData {
         cancelLot,
         recap,
         clearRecap,
+        events,
     };
 }

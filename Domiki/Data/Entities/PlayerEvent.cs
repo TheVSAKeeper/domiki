@@ -15,5 +15,7 @@ namespace Domiki.Web.Data
 
         [Required(AllowEmptyStrings = false)]
         public string Data { get; set; }
+
+        public bool Read { get; set; }
     }
 }

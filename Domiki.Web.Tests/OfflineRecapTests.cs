@@ -32,6 +32,13 @@ namespace Domiki.Web.Tests
                 Assert.That(recap.Events, Is.Empty);
                 uow.Commit();
             }
+
+            using (var uow = GetUow())
+            {
+                var recentEvents = GetPlayerEventManager(uow).GetRecentEvents(playerId);
+                Assert.That(recentEvents.Select(x => x.Type), Does.Contain(PlayerEventType.ManufactureFinished));
+                uow.Commit();
+            }
         }
 
         [Test]

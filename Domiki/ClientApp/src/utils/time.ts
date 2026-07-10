@@ -27,3 +27,17 @@ export function formatDuration(totalSeconds: number): string {
 export function remainingSeconds(finishDate: string, now: number): number {
     return (new Date(finishDate).getTime() - now) / 1000;
 }
+
+export function formatRelativeTime(dateIso: string, now: number): string {
+    const seconds = Math.max(1, Math.floor((now - Date.parse(dateIso)) / 1000));
+    if (seconds < 45) {
+        return 'только что';
+    }
+    if (seconds < 3600) {
+        return `${Math.floor(seconds / 60)} мин назад`;
+    }
+    if (seconds < 86400) {
+        return `${Math.floor(seconds / 3600)} ч назад`;
+    }
+    return `${Math.floor(seconds / 86400)} дн назад`;
+}

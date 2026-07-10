@@ -1,4 +1,4 @@
-import type { DomikTypeDto, WorkerDto } from '../types/api';
+import type { DomikDto, DomikTypeDto, ExpeditionStateDto, WorkerDto } from '../types/api';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { DomikSprite, WorkerSprite } from './sprites';
 
@@ -7,10 +7,12 @@ type WorkerState = 'expedition' | 'busy' | 'resting' | 'free';
 interface WorkersBoxProps {
     workers: WorkerDto[];
     domikTypes: DomikTypeDto[];
+    domiks: DomikDto[];
+    expeditions: ExpeditionStateDto | null;
     now: number;
 }
 
-export const WorkersBox = ({ workers, domikTypes, now }: WorkersBoxProps) => {
+export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, now }: WorkersBoxProps) => {
     return (
         <section className="workers-panel pixel-panel">
             <h3 className="panel-title">Трудяги</h3>
@@ -36,6 +38,28 @@ export const WorkersBox = ({ workers, domikTypes, now }: WorkersBoxProps) => {
                         ? undefined
                         : `Отдыхает до ${new Date(worker.restUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${formatDuration(restingSeconds)})`;
                     const visibleSkills = worker.skills.filter(skill => skill.bonusPercent > 0);
+                    const freeInLabel = (() => {
+                        if (stateKey === 'resting') {
+                            return restingSeconds > 0 ? `отдохнёт через ${formatDuration(restingSeconds)}` : null;
+                        }
+                        if (stateKey === 'busy') {
+                            const manufacture = domiks.flatMap(d => d.manufactures ?? []).find(m => m.id === worker.manufactureId);
+                            if (manufacture == null) {
+                                return null;
+                            }
+                            const seconds = remainingSeconds(manufacture.finishDate, now);
+                            return seconds > 0 ? `освободится через ${formatDuration(seconds)}` : null;
+                        }
+                        if (stateKey === 'expedition') {
+                            const expedition = expeditions?.active.find(e => e.id === worker.expeditionId);
+                            if (expedition == null) {
+                                return null;
+                            }
+                            const seconds = remainingSeconds(expedition.finishDate, now);
+                            return seconds > 0 ? `вернётся через ${formatDuration(seconds)}` : null;
+                        }
+                        return null;
+                    })();
                     return (
                         <article key={worker.id} className={`worker-card worker--${stateKey}`}>
                             <div className="worker-card-head">
@@ -45,6 +69,7 @@ export const WorkersBox = ({ workers, domikTypes, now }: WorkersBoxProps) => {
                                     <span className="worker-badge" title={stateKey === 'resting' ? restTitle : undefined}>
                                         {stateLabel}
                                     </span>
+                                    {freeInLabel != null && <span className="worker-free-in">{freeInLabel}</span>}
                                 </div>
                             </div>
                             <span className="worker-trait">{worker.traitName}{effect}</span>

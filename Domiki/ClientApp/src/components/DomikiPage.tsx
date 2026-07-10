@@ -25,6 +25,7 @@ import UsersIcon from 'pixelarticons/svg/users.svg?react';
 import BellIcon from 'pixelarticons/svg/bell.svg?react';
 import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
 import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
+import JournalIcon from 'pixelarticons/svg/article.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { useGameData } from '../hooks/useGameData';
@@ -43,6 +44,7 @@ import { DecorBox } from './DecorBox';
 import { TolokaBox } from './TolokaBox';
 import { MarketBox } from './MarketBox';
 import { ResourceChip } from './ResourceChip';
+import { JournalBox } from './JournalBox';
 import { DomikSprite, WorkerSprite } from './sprites';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 import { buildRecapView } from '../utils/recap';
@@ -69,7 +71,7 @@ interface GameTab {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, postLot, acceptLot, cancelLot, recap, clearRecap } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -302,7 +304,11 @@ export const DomikiPage = () => {
         },
         {
             key: 'workers', label: 'Трудяги', Icon: UsersIcon, visible: true,
-            node: <WorkersBox workers={workers} domikTypes={domikTypes} now={now} />,
+            node: <WorkersBox workers={workers} domikTypes={domikTypes} domiks={domiks} expeditions={expeditions} now={now} />,
+        },
+        {
+            key: 'journal', label: 'Журнал', Icon: JournalIcon, visible: true,
+            node: <JournalBox events={events} resourceTypes={resourceTypes} domikTypes={domikTypes} now={now} />,
         },
     ];
     const visibleGameTabs = gameTabs.filter(tab => tab.visible);

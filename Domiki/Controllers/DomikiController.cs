@@ -74,6 +74,7 @@ namespace Domiki.Controllers
                 Toloka = _tolokaManager.GetToloka(DateTimeHelper.GetNowDate(), playerId)?.ToDto(),
                 Market = _marketManager.GetMarket(playerId)?.ToDto(),
                 Recap = _playerEventManager.TakeRecap(playerId, DateTimeHelper.GetNowDate()).ToDto(),
+                Events = _playerEventManager.GetRecentEvents(playerId).Select(x => x.ToDto()).ToArray(),
             };
             return new Response<GameStateDto>(content);
         }
