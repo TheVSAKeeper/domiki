@@ -131,6 +131,7 @@ internal sealed class SimulationRun
 {
     private const int HorizonSeconds = 45 * 24 * 60 * 60;
     private const int StallWarningSeconds = 24 * 60 * 60;
+    private const int BuyResourceCoinReserveMultiplier = 20;
 
     private readonly SimulationData _data;
     private readonly ScenarioKind _scenario;
@@ -162,7 +163,7 @@ internal sealed class SimulationRun
 
     public SimulationRunResult Run()
     {
-        AddResource(1, 1000);
+        AddResource(1, DomikManager.StartingCoins);
         _state.CurrentWeatherTypeId = PickWeatherType().Id;
         ObserveVillageLevel();
         Schedule(SimulationEventKind.WeatherBoundary, WeatherManager.WeatherPeriodSeconds, null);
@@ -365,13 +366,14 @@ internal sealed class SimulationRun
 
             var neighbor = openNeighbors[_random.Next(openNeighbors.Length)];
             var tier = OrderManager.Tiers[_random.Next(OrderManager.Tiers.Length)];
+            var quantity = OrderManager.GetOrderQuantity(tier, neighbor.PrimaryResourceTypeId);
             var order = new SimOrder
             {
                 Id = ++_state.NextOrderId,
                 Neighbor = neighbor,
                 ResourceTypeId = neighbor.PrimaryResourceTypeId,
-                Quantity = tier.Quantity,
-                RewardCoins = (int)Math.Round(tier.Quantity * ResourceManager.GetMarketValue(neighbor.PrimaryResourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero),
+                Quantity = quantity,
+                RewardCoins = (int)Math.Round(quantity * ResourceManager.GetMarketValue(neighbor.PrimaryResourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero),
                 RewardGold = tier.RewardGold,
                 RewardReputation = tier.RewardReputation,
                 ExpireAt = _now + tier.DurationSeconds,
@@ -483,6 +485,15 @@ internal sealed class SimulationRun
 
     private DomikCandidate SelectCandidate(DomikCandidate[] candidates)
     {
+        if (!_state.Domiks.Any(x => x.Type.LogicName == "market"))
+        {
+            var market = candidates.FirstOrDefault(x => x.Type.LogicName == "market");
+            if (market != null)
+            {
+                return market;
+            }
+        }
+
         if (_scenario == ScenarioKind.Casual)
         {
             return candidates
@@ -544,13 +555,17 @@ internal sealed class SimulationRun
     private int GetCoinReserve()
     {
         var mediumTier = OrderManager.Tiers[OrderManager.Tiers.Length / 2];
-        var marketValue = _data.Neighbors.Average(x => ResourceManager.GetMarketValue(x.PrimaryResourceTypeId));
-        return (int)Math.Round(mediumTier.Quantity * marketValue * mediumTier.DemandMultiplier, MidpointRounding.AwayFromZero);
+        var target = (int)Math.Round(_data.Neighbors.Average(neighbor =>
+            OrderManager.GetOrderQuantity(mediumTier, neighbor.PrimaryResourceTypeId)
+            * ResourceManager.GetMarketValue(neighbor.PrimaryResourceTypeId)
+            * mediumTier.DemandMultiplier), MidpointRounding.AwayFromZero);
+        var coins = GetResource(1);
+        return coins < 100 ? 0 : Math.Min(target, coins / 2);
     }
 
     private bool StartIdleManufactures()
     {
-        var started = false;
+        var started = TryStartNeededPurchase();
         var progress = true;
         while (progress)
         {
@@ -574,6 +589,48 @@ internal sealed class SimulationRun
         return started;
     }
 
+    private bool TryStartNeededPurchase()
+    {
+        var blocked = GetCandidates()
+            .Where(candidate => !CanAffordResources(candidate.Level.Resources))
+            .ToArray();
+        if (blocked.Length == 0)
+        {
+            return false;
+        }
+
+        var target = SelectCandidate(blocked);
+        var missingResource = target.Level.Resources
+            .Where(resource => GetResource(resource.Type.Id) < resource.Value)
+            .Select(resource => resource.Type.Id)
+            .FirstOrDefault(resourceTypeId => resourceTypeId is 2 or 3 or 4);
+        if (missingResource == 0)
+        {
+            return false;
+        }
+
+        var market = _state.Domiks
+            .Where(domik => domik.Type.LogicName == "market" && domik.Level > 0 && domik.Manufactures.Count < GetDomikLevel(domik).MaxManufactureCount)
+            .OrderBy(domik => domik.Id)
+            .FirstOrDefault();
+        if (market == null)
+        {
+            return false;
+        }
+
+        var receipt = GetReceipts(market)
+            .FirstOrDefault(candidate => candidate.LogicName.StartsWith("buy_")
+                && candidate.OutputResources.Single().Type.Id == missingResource);
+        if (receipt == null || GetFreeWorkers().Count < receipt.PlodderCount)
+        {
+            return false;
+        }
+
+        var coinCost = receipt.InputResources.Single(resource => resource.Type.Id == 1).Value;
+        return GetResource(1) >= coinCost * BuyResourceCoinReserveMultiplier
+            && StartManufacture(market, receipt, false, null);
+    }
+
     private (Receipt Receipt, bool UseOptional)? SelectReceiptForStart(SimDomik domik)
     {
         var candidates = GetReceipts(domik)
@@ -587,6 +644,26 @@ internal sealed class SimulationRun
 
         if (_scenario == ScenarioKind.Casual)
         {
+            var forOrder = candidates.FirstOrDefault(x => _state.Orders.Any(order =>
+                GetResource(order.ResourceTypeId) < order.Quantity
+                && x.Receipt.OutputResources.Any(output => output.Type.Id == order.ResourceTypeId)));
+            if (forOrder.Receipt != null)
+            {
+                return forOrder;
+            }
+
+            if (GetResource(1) < 100)
+            {
+                var bestSale = candidates
+                    .Where(x => x.Receipt.OutputResources.All(output => output.Type.Id == 1))
+                    .OrderByDescending(x => x.Receipt.OutputResources.Sum(output => output.Value))
+                    .FirstOrDefault();
+                if (bestSale.Receipt != null)
+                {
+                    return bestSale;
+                }
+            }
+
             return candidates[0];
         }
 

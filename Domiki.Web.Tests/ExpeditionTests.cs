@@ -34,6 +34,7 @@ namespace Domiki.Web.Tests
         public void GetExpeditionsWithBuildingListsTypesWithNoActiveTest()
         {
             var playerId = GetPlayerId();
+            GrantResource(playerId, 1, 50);
             BuyDomik(playerId, ScoutHutDomikTypeId);
 
             var state = GetExpeditions(playerId);

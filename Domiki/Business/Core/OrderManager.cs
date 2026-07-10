@@ -24,6 +24,11 @@ namespace Domiki.Web.Business.Core
             new OrderTier(30, 24 * 60 * 60, 3.0, 2, 4),
         };
 
+        public static int GetOrderQuantity(OrderTier tier, int resourceTypeId)
+        {
+            return Math.Max(1, (int)Math.Round(tier.Quantity * (double)ResourceManager.BaseMarketValue / ResourceManager.GetMarketValue(resourceTypeId), MidpointRounding.AwayFromZero));
+        }
+
         public OrderManager(
             Data.UnitOfWork uow,
             Data.ApplicationDbContext context,
@@ -150,7 +155,8 @@ namespace Domiki.Web.Business.Core
             var tier = Tiers[Random.Shared.Next(Tiers.Length)];
             var now = DateTimeHelper.GetNowDate();
             var expireDate = now.AddSeconds(tier.DurationSeconds);
-            var rewardCoins = (int)Math.Round(tier.Quantity * ResourceManager.GetMarketValue(neighbor.PrimaryResourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero);
+            var quantity = GetOrderQuantity(tier, neighbor.PrimaryResourceTypeId);
+            var rewardCoins = (int)Math.Round(quantity * ResourceManager.GetMarketValue(neighbor.PrimaryResourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero);
 
             var order = new Data.Order
             {
@@ -169,7 +175,7 @@ namespace Domiki.Web.Business.Core
             {
                 OrderId = order.Id,
                 ResourceTypeId = neighbor.PrimaryResourceTypeId,
-                Value = tier.Quantity,
+                Value = quantity,
             });
             _context.SaveChanges();
 

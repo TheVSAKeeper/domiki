@@ -83,6 +83,7 @@ namespace Domiki.Web.Tests
         public void GroupRecipeAssignsReceiptPlodderCountWorkersTest()
         {
             var playerId = GetPlayerId();
+            GrantResource(playerId, 1, 100);
             for (var i = 0; i < 5; i++)
             {
                 BuyDomik(playerId, 2);
@@ -356,6 +357,7 @@ namespace Domiki.Web.Tests
         public void ManualSelectionWithDuplicateWorkerThrowsTest()
         {
             var playerId = GetPlayerId();
+            GrantResource(playerId, 1, 100);
             for (var i = 0; i < 5; i++)
             {
                 BuyDomik(playerId, 2);
@@ -374,6 +376,7 @@ namespace Domiki.Web.Tests
         public void ManualSelectionForGroupRecipeReservesExactWorkersTest()
         {
             var playerId = GetPlayerId();
+            GrantResource(playerId, 1, 200);
             for (var i = 0; i < 5; i++)
             {
                 BuyDomik(playerId, 2);

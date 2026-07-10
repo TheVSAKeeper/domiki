@@ -5,6 +5,7 @@ namespace Domiki.Web.Business.Core
 {
     public class ResourceManager
     {
+        public const int BaseMarketValue = 10;
         private Data.ApplicationDbContext _context;
 
         // todo избавится от статиков
@@ -27,7 +28,7 @@ namespace Domiki.Web.Business.Core
 
         public static int GetMarketValue(int resourceTypeId)
         {
-            return resourceTypeId == 6 || resourceTypeId == 7 ? 35 : 10;
+            return resourceTypeId == 6 || resourceTypeId == 7 ? 35 : BaseMarketValue;
         }
 
         public ModificatorType[] GetModificatorTypes()

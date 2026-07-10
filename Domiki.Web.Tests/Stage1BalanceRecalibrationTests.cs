@@ -55,9 +55,11 @@ namespace Domiki.Web.Tests
         public void ForgeBrickShiftConsumesClayAndProducesBricksTest()
         {
             var playerId = GetPlayerId();
+            GrantResource(playerId, 1, 400);
             BuyDomik(playerId, 2);
             BuyDomik(playerId, 2);
             BuyDomik(playerId, 2);
+            UpgradeDomik(playerId, 1);
             BuyDomik(playerId, 1);
             GrantResource(playerId, 4, 16);
             var before = GetResources(playerId);
@@ -163,6 +165,16 @@ namespace Domiki.Web.Tests
             {
                 var domikManager = GetDomikManager(uow);
                 domikManager.BuyDomik(playerId, domikTypeId);
+                uow.Commit();
+            }
+        }
+
+        private void UpgradeDomik(int playerId, int domikId)
+        {
+            using (var uow = GetUow())
+            {
+                var domikManager = GetDomikManager(uow);
+                domikManager.UpgradeDomik(playerId, domikId);
                 uow.Commit();
             }
         }

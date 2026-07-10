@@ -263,7 +263,8 @@ namespace Domiki.Web.Tests
         private int GetUnlockedPlayerId()
         {
             var playerId = GetPlayerId();
-            GrantDecor(playerId, FountainDecorTypeId, 3);
+            GrantDecor(playerId, FountainDecorTypeId, 4);
+            GrantResource(playerId, CoinResourceTypeId, 800);
             BuyDomik(playerId, MarketYardDomikTypeId);
             return playerId;
         }

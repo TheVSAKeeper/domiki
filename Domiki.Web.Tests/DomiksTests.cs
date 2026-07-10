@@ -33,7 +33,7 @@ namespace Domiki.Web.Tests
             var resources = GetResources(playerId);
             Assert.That(resources.Count, Is.EqualTo(1));
             Assert.That(resources.First().Type.Id, Is.EqualTo(1));
-            Assert.That(resources.First().Value, Is.EqualTo(1000));
+            Assert.That(resources.First().Value, Is.EqualTo(DomikManager.StartingCoins));
         }
 
         /// <summary>
@@ -233,6 +233,7 @@ namespace Domiki.Web.Tests
         public void GroupRecipePlodderCountHonoredTest(int barakCount, bool expectThrow)
         {
             var playerId = GetPlayerId();
+            GrantResource(playerId, 1, 100);
             var barakTypeId = 2;
             var clayMineTypeId = 5;
             var groupReceiptId = 2;
@@ -257,6 +258,7 @@ namespace Domiki.Web.Tests
         public void GroupRecipeOutputPremiumTest()
         {
             var playerId = GetPlayerId();
+            GrantResource(playerId, 1, 100);
             var barakTypeId = 2;
             var clayMineTypeId = 5;
             var groupReceiptId = 2;
@@ -327,6 +329,7 @@ namespace Domiki.Web.Tests
         public void UpgradeToLevel3RequiresMaterialsTest()
         {
             var playerId = GetPlayerId();
+            GrantResource(playerId, 1, 50);
             var stoneMineTypeId = 3;
             BuyDomik(playerId, 2);
             BuyDomik(playerId, stoneMineTypeId);
@@ -338,6 +341,7 @@ namespace Domiki.Web.Tests
         public void ForgeBrickAndSellTest()
         {
             var playerId = GetPlayerId();
+            GrantResource(playerId, 1, 400);
             var barakTypeId = 2;
             var clayMineTypeId = 5;
             var forgeTypeId = 1;
@@ -421,7 +425,7 @@ namespace Domiki.Web.Tests
             Assert.That(resources.First(x => x.Type.Id == toolResourceTypeId).Value, Is.EqualTo(3));
         }
 
-        [TestCase(1, 20)]
+        [TestCase(1, 400)]
         [TestCase(2, 100)]
         [TestCase(3, 300)]
         [TestCase(4, 1500)]
