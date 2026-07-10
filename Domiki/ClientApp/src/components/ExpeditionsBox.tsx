@@ -71,19 +71,24 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
                     до находки: {untilPity}
                 </span>
             </div>
+            {expeditions.types.some(t => t.equipment.length > 0) &&
+                <p className="expeditions-hint hint">Снаряжение готовят постройки-переделы (кузница, лесопилка). Нет нужного ресурса – сначала наладьте производство.</p>}
             <div className="expeditions-grid">
                 {expeditions.types.map(type => {
                     const TypeIcon = EXPEDITION_ICONS[type.logicName] ?? BackpackIcon;
                     const canAffordGold = hasResourcesFor([{ typeId: GOLD_RESOURCE_TYPE_ID, value: type.goldCost }], resources);
+                    const equipmentReqs = type.equipment.map(e => ({ typeId: e.resourceTypeId, value: e.value }));
+                    const canAffordEquipment = hasResourcesFor(equipmentReqs, resources);
                     const hasWorkers = freeWorkers.length >= type.workerCount;
                     const isManual = manualMode[type.id] ?? false;
                     const picked = (picks[type.id] ?? []).filter(id => freeWorkers.some(worker => worker.id === id));
                     const manualReady = picked.length === type.workerCount;
-                    const canStart = canAffordGold && hasWorkers && (!isManual || manualReady);
+                    const canStart = canAffordGold && canAffordEquipment && hasWorkers && (!isManual || manualReady);
                     const blockedTitle = !hasWorkers ? 'Не хватает свободных трудяг'
                         : !canAffordGold ? 'Не хватает золота'
-                            : isManual && !manualReady ? `Выберите ${type.workerCount} трудяг`
-                                : undefined;
+                            : !canAffordEquipment ? 'Не хватает снаряжения'
+                                : isManual && !manualReady ? `Выберите ${type.workerCount} трудяг`
+                                    : undefined;
                     return (
                         <div key={type.id} className="expedition-card">
                             <div className="expedition-topline">
@@ -100,6 +105,18 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
                                 {goldType != null
                                     ? <ResourceChip resourceType={goldType} value={type.goldCost} />
                                     : <StatChip icon={<CoinsIcon className="stat-chip-ico" aria-hidden="true" />} tone="gold" title="Золото">{type.goldCost}</StatChip>}
+                                {type.equipment.length > 0 &&
+                                    <span className={'expedition-equipment' + (canAffordEquipment ? '' : ' expedition-equipment-short')}>
+                                        <span className="panel-label">снаряжение:</span>
+                                        {type.equipment.map(entry => {
+                                            const resourceType = resourceTypes.find(x => x.id === entry.resourceTypeId);
+                                            if (resourceType == null) {
+                                                return null;
+                                            }
+
+                                            return <ResourceChip key={entry.resourceTypeId} resourceType={resourceType} value={entry.value} />;
+                                        })}
+                                    </span>}
                             </div>
                             <div className="expedition-loot">
                                 {type.loot.map(entry => {

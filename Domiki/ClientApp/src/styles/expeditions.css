@@ -70,6 +70,22 @@
     gap: 8px;
 }
 
+.expedition-equipment {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.expedition-equipment-short {
+    outline: 2px solid var(--roof);
+    outline-offset: 2px;
+}
+
+.expeditions-hint {
+    margin: 0 0 4px;
+}
+
 .expedition-loot {
     display: flex;
     flex-wrap: wrap;
