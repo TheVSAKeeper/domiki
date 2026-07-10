@@ -124,3 +124,61 @@ code {
     clip-path: var(--cut);
 }
 
+.pixel-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 48px 0;
+}
+
+.pixel-loader-dots {
+    display: flex;
+    gap: 8px;
+}
+
+    .pixel-loader-dots span {
+        width: 14px;
+        height: 14px;
+        border: 2px solid var(--ink);
+    }
+
+        .pixel-loader-dots span:nth-child(1) {
+            background: var(--coin);
+        }
+
+        .pixel-loader-dots span:nth-child(2) {
+            background: var(--pine);
+        }
+
+        .pixel-loader-dots span:nth-child(3) {
+            background: var(--roof);
+        }
+
+.pixel-loader-label {
+    margin: 0;
+    font-family: var(--pixel);
+    font-size: 11px;
+    color: var(--pine-dark);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .pixel-loader-dots span {
+        animation: pixel-loader-hop .9s steps(2, end) infinite;
+    }
+
+        .pixel-loader-dots span:nth-child(2) {
+            animation-delay: .15s;
+        }
+
+        .pixel-loader-dots span:nth-child(3) {
+            animation-delay: .3s;
+        }
+}
+
+@keyframes pixel-loader-hop {
+    50% {
+        transform: translateY(-8px);
+    }
+}
+

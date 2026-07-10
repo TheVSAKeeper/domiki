@@ -9,11 +9,12 @@ interface ManufactureBoxProps {
     now: number;
     remainingText: string;
     goldValue: number;
+    goldIconSrc?: string;
     onHurry: (manufactureId: number) => void;
     onToggleAutoRepeat: (manufactureId: number, next: boolean) => void;
 }
 
-export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldValue, onHurry, onToggleAutoRepeat }: ManufactureBoxProps) => {
+export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldValue, goldIconSrc, onHurry, onToggleAutoRepeat }: ManufactureBoxProps) => {
     const percent = manufactureProgressPercent(manufacture, receipt, now);
     const hurryCost = instaFinishCost(manufacture.finishDate, now);
     const tooFar = !canInstaFinish(manufacture.finishDate, now);
@@ -35,7 +36,10 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
                 title={hurryTitle}
                 onClick={() => onHurry(manufacture.id)}>
                 <ZapIcon className="btn-ico" aria-hidden="true" />
-                Поторопить ({Math.max(1, hurryCost)} золота)
+                Поторопить – {Math.max(1, hurryCost)}
+                {goldIconSrc != null &&
+                    <img className="hurry-cost-ico" src={goldIconSrc} alt="золота" />
+                }
             </button>
             <label className="receipt-optional">
                 <input type="checkbox" checked={manufacture.autoRepeat}

@@ -4,12 +4,6 @@
     padding: 24px 0 56px;
 }
 
-.wiki-loading {
-    text-align: center;
-    padding: 40px 0;
-    color: var(--pine-dark);
-}
-
 .wiki-intro {
     padding: 24px 28px;
 }

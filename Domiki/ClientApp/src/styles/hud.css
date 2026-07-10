@@ -122,6 +122,16 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    border-left: 2px solid rgba(51, 41, 26, .25);
+    padding-left: 10px;
+}
+
+.weather-forecast-label {
+    font-family: var(--pixel);
+    font-size: 9px;
+    text-transform: uppercase;
+    color: rgba(51, 41, 26, .6);
+    padding-top: 2px;
 }
 
 .weather-chip {
@@ -129,7 +139,7 @@
     align-items: center;
     gap: 4px;
     font-size: 12px;
-    opacity: .7;
+    opacity: .85;
 }
 
 .weather-chip-ico {

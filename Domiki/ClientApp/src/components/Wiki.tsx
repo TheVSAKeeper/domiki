@@ -6,6 +6,7 @@ import { domikLore } from '../utils/domikLore';
 import type { DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, WeatherStateDto } from '../types/api';
 import { DomikSprite, MechanicSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
+import { PixelLoader } from './PixelLoader';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import CloudSunIcon from 'pixelarticons/svg/cloud-sun.svg?react';
 import CloudIcon from 'pixelarticons/svg/cloud.svg?react';
@@ -209,7 +210,7 @@ export const Wiki = () => {
     }, [toast]);
 
     if (catalog == null) {
-        return <div className="wiki"><p className="wiki-loading">Загрузка справочника…</p></div>;
+        return <div className="wiki"><PixelLoader label="Загрузка справочника…" /></div>;
     }
 
     const { domikTypes, resourceTypes, receipts, weather, decor } = catalog;

@@ -140,6 +140,8 @@
     padding: 14px;
     border: 3px dashed var(--ink);
     background: rgba(251, 243, 223, .45);
+    width: fit-content;
+    max-width: 100%;
 }
 
 .plot {
@@ -271,7 +273,7 @@
 .timer {
     font-family: var(--pixel);
     font-size: 11px;
-    color: var(--roof);
+    color: var(--pine-dark);
     font-variant-numeric: tabular-nums;
 }
 
@@ -410,6 +412,13 @@
         background: #97927e;
         cursor: not-allowed;
     }
+
+.hurry-cost-ico {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+}
 
 
 .mech-title {

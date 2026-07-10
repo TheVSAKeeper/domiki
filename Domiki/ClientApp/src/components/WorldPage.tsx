@@ -13,6 +13,7 @@ import { useToast } from '../services/toast';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { StatChip } from './StatChip';
+import { PixelLoader } from './PixelLoader';
 import type { VillageVisitDto, WorldDto, WorldVillageDto } from '../types/api';
 
 type SortKey = 'level' | 'seasonOrders' | 'seasonToloka' | 'seasonExpeditions' | 'comfort';
@@ -137,7 +138,7 @@ export const WorldPage = () => {
     };
 
     if (world == null) {
-        return <div className="wiki"><p className="wiki-loading">Загрузка мира…</p></div>;
+        return <div className="wiki"><PixelLoader label="Загрузка мира…" /></div>;
     }
 
     const seasonLeft = remainingSeconds(world.season.endDate, now);
@@ -221,7 +222,7 @@ export const WorldPage = () => {
                             </div>
                         </div>
                     }
-                    {visitLoading && <p className="hint">Загрузка визита…</p>}
+                    {visitLoading && <PixelLoader label="Загрузка визита…" />}
                     {visit != null &&
                         <>
                             <div className="world-visit-head">

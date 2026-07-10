@@ -56,7 +56,9 @@ const MECHANIC_TAB: Record<string, string> = {
     scout_hut: 'expeditions',
 };
 
-const SORT_MODES: { mode: DomikSortMode; label: string; Icon: typeof StoreIcon }[] = [
+type SortModeEntry = { mode: DomikSortMode; label: string; Icon: typeof StoreIcon };
+
+const SORT_MODES: readonly [SortModeEntry, ...SortModeEntry[]] = [
     { mode: 'attention', label: 'Внимание', Icon: BellIcon },
     { mode: 'type', label: 'Тип', Icon: GridIcon },
     { mode: 'level', label: 'Уровень', Icon: ChevronUpIcon },
@@ -204,11 +206,33 @@ export const DomikiPage = () => {
         () => sortDomiks(domiks, domikTypes, resources, sortMode),
         [domiks, domikTypes, resources, sortMode],
     );
+    const domikOrdinals = useMemo(() => {
+        const idsByType = new Map<number, number[]>();
+        for (const domik of domiks) {
+            const ids = idsByType.get(domik.typeId) ?? [];
+            ids.push(domik.id);
+            idsByType.set(domik.typeId, ids);
+        }
+
+        const ordinalById = new Map<number, number>();
+        const countByType = new Map<number, number>();
+        for (const [typeId, ids] of idsByType) {
+            const sortedIds = [...ids].sort((a, b) => a - b);
+            countByType.set(typeId, sortedIds.length);
+            sortedIds.forEach((id, index) => ordinalById.set(id, index + 1));
+        }
+
+        return { ordinalById, countByType };
+    }, [domiks]);
+    const domikDisplayName = (typeId: number, id: number, name: string) =>
+        (domikOrdinals.countByType.get(typeId) ?? 1) > 1 ? `${name} ${domikOrdinals.ordinalById.get(id)}` : name;
     const currentWeather = weather?.current ?? null;
     const weatherEffect = selected == null
         ? null
         : currentWeather?.effects.find(effect => effect.domikTypeId === selected.domikType.id) ?? null;
     const goldValue = resources.find(x => x.typeId === GOLD_RESOURCE_TYPE_ID)?.value ?? 0;
+    const goldType = resourceTypes.find(x => x.id === GOLD_RESOURCE_TYPE_ID);
+    const goldIconSrc = goldType == null ? undefined : '/images/resourceTypes/' + goldType.logicName + '.png';
     const recapView = useMemo(() => buildRecapView(recap?.events ?? []), [recap]);
     const recapVisible = recap != null && recap.events.length > 0 && recap.awaySeconds >= 1800;
 
@@ -437,7 +461,9 @@ export const DomikiPage = () => {
                                 })}
                             </div>
                         }
+                        {weather.forecast.length > 0 &&
                         <div className="weather-forecast">
+                            <span className="weather-forecast-label">далее</span>
                             {weather.forecast.map(period => {
                                 const hoursAhead = Math.max(1, Math.round(remainingSeconds(period.startDate, now) / 3600));
                                 const hint = period.effects
@@ -461,6 +487,7 @@ export const DomikiPage = () => {
                                 );
                             })}
                         </div>
+                        }
                     </div>
                 }
             </header>
@@ -707,7 +734,7 @@ export const DomikiPage = () => {
                                             </span>
                                         }
                                         <AnimatedDomikSprite mode="levelup" className="plot-sprite" logicName={domikType.logicName} level={domik.level} working={hasManufacture} />
-                                        <span className="plot-name">{domikType.name}</span>
+                                        <span className="plot-name">{domikDisplayName(domik.typeId, domik.id, domikType.name)}</span>
                                         <UpgradeBox durationSeconds={durationSecondsText} level={domik.level} />
                                         <span className="plot-status">
                                             {canAffordUpgrade(domik, domikType, resources) &&
@@ -735,7 +762,7 @@ export const DomikiPage = () => {
                     }
                     {selected != null &&
                         <div>
-                            <h3 className="panel-title">{selected.domikType.name}</h3>
+                            <h3 className="panel-title">{domikDisplayName(selected.domik.typeId, selected.domik.id, selected.domikType.name)}</h3>
                             <span className="domik-level">ур. {selected.domik.level}</span>
                             {domikLore[selected.domikType.logicName] != null &&
                                 <p className="domik-lore">{domikLore[selected.domikType.logicName]}</p>
@@ -771,7 +798,10 @@ export const DomikiPage = () => {
                                                     title={hurryTitle}
                                                     onClick={() => hurryDomikAction(selected.domik.id)}>
                                                     <ZapIcon className="btn-ico" aria-hidden="true" />
-                                                    Поторопить ({Math.max(1, hurryCost)} золота)
+                                                    Поторопить – {Math.max(1, hurryCost)}
+                                                    {goldIconSrc != null &&
+                                                        <img className="hurry-cost-ico" src={goldIconSrc} alt="золота" />
+                                                    }
                                                 </button>
                                             </>
                                         );
@@ -917,7 +947,7 @@ export const DomikiPage = () => {
                                         return (
                                             <ManufactureBox key={manufacture.id} manufacture={manufacture} receipt={receipt}
                                                 now={now} remainingText={formatDuration(remainingSeconds(manufacture.finishDate, now))}
-                                                goldValue={goldValue} onHurry={hurryManufactureAction}
+                                                goldValue={goldValue} goldIconSrc={goldIconSrc} onHurry={hurryManufactureAction}
                                                 onToggleAutoRepeat={toggleManufactureAutoRepeat} />
                                         );
                                     })}
