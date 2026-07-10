@@ -437,10 +437,23 @@ export const DomikiPage = () => {
                             {weather.forecast.map(period => {
                                 const ForecastIcon = WEATHER_ICONS[period.logicName] ?? CloudSunIcon;
                                 const hoursAhead = Math.max(1, Math.round(remainingSeconds(period.startDate, now) / 3600));
+                                const hint = period.effects
+                                    .filter(effect => effect.outputPercent !== 100)
+                                    .flatMap(effect => {
+                                        const domikType = domikTypes.find(type => type.id === effect.domikTypeId);
+                                        return domikType != null ? [{ delta: effect.outputPercent - 100, domikType }] : [];
+                                    })
+                                    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0];
                                 return (
                                     <span key={period.startDate} className="weather-chip" title={period.weatherName}>
                                         <ForecastIcon className="weather-chip-ico" aria-hidden="true" />
                                         через {hoursAhead}ч
+                                        {hint != null &&
+                                            <span className={'weather-effect' + (hint.delta > 0 ? ' weather-effect-buff' : ' weather-effect-nerf')}
+                                                title={`${hint.domikType.name}: ${hint.delta > 0 ? '+' : ''}${hint.delta}% выход`}>
+                                                <DomikSprite className="weather-effect-ico" logicName={hint.domikType.logicName} />
+                                                {hint.delta > 0 ? '+' : ''}{hint.delta}%
+                                            </span>}
                                     </span>
                                 );
                             })}

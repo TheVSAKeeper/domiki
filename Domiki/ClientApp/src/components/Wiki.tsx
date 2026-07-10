@@ -365,10 +365,23 @@ export const Wiki = () => {
                                                         <div className="weather-effects">
                                                             {weather.forecast.map(period => {
                                                                 const ForecastIcon = WEATHER_ICONS[period.logicName] ?? CloudSunIcon;
+                                                                const hint = period.effects
+                                                                    .filter(e => e.outputPercent !== 100)
+                                                                    .flatMap(e => {
+                                                                        const domikType = domikTypes.find(t => t.id === e.domikTypeId);
+                                                                        return domikType != null ? [{ delta: e.outputPercent - 100, domikType }] : [];
+                                                                    })
+                                                                    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0];
                                                                 return (
                                                                     <span key={period.startDate} className="weather-chip" title={period.weatherName}>
                                                                         <ForecastIcon className="weather-chip-ico" aria-hidden="true" />
                                                                         {period.weatherName}
+                                                                        {hint != null && (
+                                                                            <span className={'weather-effect' + (hint.delta > 0 ? ' weather-effect-buff' : ' weather-effect-nerf')} title={`${hint.domikType.name}: ${hint.delta > 0 ? '+' : ''}${hint.delta}% выход`}>
+                                                                                <DomikSprite className="weather-effect-ico" logicName={hint.domikType.logicName} />
+                                                                                {hint.delta > 0 ? '+' : ''}{hint.delta}%
+                                                                            </span>
+                                                                        )}
                                                                     </span>
                                                                 );
                                                             })}
