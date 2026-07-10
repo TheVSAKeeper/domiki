@@ -10,9 +10,9 @@ namespace Domiki.Web.Business.Core
     {
         private const int CrestIconCount = 8;
         private const int CrestColorCount = 8;
-        private const int FatigueThresholdSeconds = 8 * 3600;
-        private const int RestSeconds = 2 * 3600;
-        private const int RestComfortMaxPercent = 50;
+        public const int FatigueThresholdSeconds = 8 * 3600;
+        public const int RestSeconds = 2 * 3600;
+        public const int RestComfortMaxPercent = 50;
         private const int InstaFinishSecondsPerGold = 3600;
         private const int InstaFinishMaxGold = 6;
         private const int GoldResourceTypeId = 5;

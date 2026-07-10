@@ -33,10 +33,7 @@ namespace Domiki.Web.Business.Core
             var comfort = DecorCalculator.GetComfort(
                 _context.PlayerDecors.Where(x => x.PlayerId == playerId).Select(x => new PlayerDecor { DecorTypeId = x.DecorTypeId, Count = x.Count }).ToArray(),
                 _resourceManager.GetDecorTypes());
-            var level = buildings * BuildingWeight
-                + residents * ResidentWeight
-                + reputation * ReputationWeight
-                + comfort * ComfortWeight;
+            var level = ComputeLevel(buildings, residents, reputation, comfort);
 
             return new VillageLevel
             {
@@ -47,6 +44,14 @@ namespace Domiki.Web.Business.Core
                 Comfort = comfort,
                 UpcomingUnlocks = GetUpcomingUnlocks(level),
             };
+        }
+
+        public static int ComputeLevel(int buildings, int residents, int reputationMilestones, int comfort)
+        {
+            return buildings * BuildingWeight
+                + residents * ResidentWeight
+                + reputationMilestones * ReputationWeight
+                + comfort * ComfortWeight;
         }
 
         public bool CanBuyDomik(int playerId, DomikType domikType)

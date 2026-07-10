@@ -5,7 +5,7 @@ namespace Domiki.Web.Business.Core
 {
     public class OrderManager
     {
-        private const int BoardSize = 3;
+        public const int BoardSize = 3;
         private const int CoinResourceTypeId = 1;
         private const int GoldResourceTypeId = 5;
 
@@ -17,7 +17,7 @@ namespace Domiki.Web.Business.Core
         private VillageLevelCalculator _villageLevelCalculator;
         private SeasonManager _seasonManager;
 
-        private readonly OrderTier[] _tiers =
+        public static readonly OrderTier[] Tiers =
         {
             new OrderTier(5, 4 * 60 * 60, 1.5, 0, 1),
             new OrderTier(15, 8 * 60 * 60, 2.0, 1, 2),
@@ -147,7 +147,7 @@ namespace Domiki.Web.Business.Core
         {
             var neighbors = _villageLevelCalculator.GetOpenNeighbors(villageLevel);
             var neighbor = neighbors[Random.Shared.Next(neighbors.Length)];
-            var tier = _tiers[Random.Shared.Next(_tiers.Length)];
+            var tier = Tiers[Random.Shared.Next(Tiers.Length)];
             var now = DateTimeHelper.GetNowDate();
             var expireDate = now.AddSeconds(tier.DurationSeconds);
             var rewardCoins = (int)Math.Round(tier.Quantity * ResourceManager.GetMarketValue(neighbor.PrimaryResourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero);
@@ -208,7 +208,7 @@ namespace Domiki.Web.Business.Core
                 }).ToArray();
         }
 
-        private class OrderTier
+        public class OrderTier
         {
             public OrderTier(int quantity, int durationSeconds, double demandMultiplier, int rewardGold, int rewardReputation)
             {
