@@ -19,7 +19,7 @@
         "noUncheckedIndexedAccess": true,
         "noImplicitOverride": true,
         "exactOptionalPropertyTypes": true,
-        "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom", "vite-plugin-svgr/client"]
+        "types": ["node", "vite/client", "vitest/globals", "@testing-library/jest-dom", "vite-plugin-svgr/client"]
     },
     "include": ["src"]
 }

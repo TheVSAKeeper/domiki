@@ -239,6 +239,12 @@ export const expeditionLootSchema = z.object({
 });
 export type ExpeditionLootDto = z.infer<typeof expeditionLootSchema>;
 
+export const expeditionEquipmentSchema = z.object({
+    resourceTypeId: z.number(),
+    value: z.number(),
+});
+export type ExpeditionEquipmentDto = z.infer<typeof expeditionEquipmentSchema>;
+
 export const expeditionTypeSchema = z.object({
     id: z.number(),
     name: z.string(),
@@ -248,7 +254,7 @@ export const expeditionTypeSchema = z.object({
     goldCost: z.number(),
     rollCount: z.number(),
     loot: z.array(expeditionLootSchema),
-    equipment: z.array(z.object({ resourceTypeId: z.number(), value: z.number() })),
+    equipment: z.array(expeditionEquipmentSchema),
 });
 export type ExpeditionTypeDto = z.infer<typeof expeditionTypeSchema>;
 
