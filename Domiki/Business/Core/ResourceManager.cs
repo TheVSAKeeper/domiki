@@ -275,14 +275,14 @@ namespace Domiki.Web.Business.Core
                 var modificators = _context.DomikTypeLevelModificators.ToArray();
                 var recepts = _context.DomikTypeLevelRecepts.ToArray();
                 var resources = _context.DomikTypeLevelResources.ToArray();
-                _domikTypes = _context.DomikTypes.Include(x => x.Levels).ToArray().Select(domikType => new DomikType
+                _domikTypes = _context.DomikTypes.Include(x => x.Levels).ToArray().OrderBy(x => x.Id).Select(domikType => new DomikType
                 {
                     Id = domikType.Id,
                     LogicName = domikType.LogicName,
                     Name = domikType.Name,
                     MaxCount = domikType.MaxCount,
                     UnlockLevel = domikType.UnlockLevel,
-                    Levels = domikType.Levels.Select(level => new UpgradeLevel
+                    Levels = domikType.Levels.OrderBy(level => level.Value).Select(level => new UpgradeLevel
                     {
                         Value = level.Value,
                         UpgradeSeconds = level.UpgradeSeconds,
@@ -290,14 +290,17 @@ namespace Domiki.Web.Business.Core
                         Modificators = modificators
                             .Where(m => m.DomikTypeLevelDomikTypeId == domikType.Id
                                 && m.DomikTypeLevelValue == level.Value)
+                            .OrderBy(m => m.ModificatorTypeId)
                             .Select(x => new Modificator { Type = new ModificatorType { Id = x.ModificatorTypeId }, Value = x.Value }).ToArray(),
                         Receipts = recepts
                             .Where(m => m.DomikTypeLevelDomikTypeId == domikType.Id
                                 && m.DomikTypeLevelValue == level.Value)
+                            .OrderBy(m => m.ReceiptId)
                             .Select(x => new Receipt { Id = x.ReceiptId }).ToArray(),
                         Resources = resources
                             .Where(m => m.DomikTypeLevelDomikTypeId == domikType.Id
                                 && m.DomikTypeLevelValue == level.Value)
+                            .OrderBy(m => m.ResourceTypeId)
                             .Select(x => new Resource { Type = new ResourceType { Id = x.ResourceTypeId }, Value = x.Value }).ToArray(),
                     }).ToArray(),
                 }).ToArray();
