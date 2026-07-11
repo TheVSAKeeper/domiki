@@ -117,9 +117,7 @@ export function computeReceiptView(
     const inputs = mergeResources(
         withOptional ? [...receipt.inputResources, ...receipt.optionalInputResources] : receipt.inputResources,
     );
-    const durationSeconds = withOptional
-        ? Math.floor((receipt.durationSeconds * (100 - receipt.speedupPercent)) / 100)
-        : receipt.durationSeconds;
+    const durationSeconds = receipt.durationSeconds;
     const hasResources = hasResourcesFor(inputs, resources);
     const hasPlodders = freePlodders >= receipt.plodderCount;
 

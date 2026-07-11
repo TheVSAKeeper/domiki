@@ -149,7 +149,7 @@ const RecipeCard = ({ receipt, resourceTypes }: RecipeCardProps) => (
         {receipt.optionalInputResources.length > 0 && (
             <div className="wiki-recipe-opt">
                 ускорение: <ResChips items={receipt.optionalInputResources} resourceTypes={resourceTypes} />
-                {receipt.speedupPercent > 0 && <span> (−{receipt.speedupPercent}% времени)</span>}
+                {receipt.outputBonusPercent > 0 && <span> (+{receipt.outputBonusPercent}% выхода)</span>}
             </div>
         )}
         <div className="wiki-recipe-meta">

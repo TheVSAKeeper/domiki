@@ -27,6 +27,10 @@ namespace Domiki.Web.Data
 
         public DateTime? NextOrderRefillAt { get; set; }
 
+        public int GoldMinedToday { get; set; }
+
+        public DateTime? GoldMinedDate { get; set; }
+
         [MaxLength(450)]
         [Required(AllowEmptyStrings = false)]
         public string AspNetUserId { get; set; }

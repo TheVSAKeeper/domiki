@@ -14,7 +14,7 @@ namespace Domiki.Web.Models
                 InputResources = res.InputResources.Select(x=> x.ToDto()).ToArray(),
                 OptionalInputResources = (res.OptionalInputResources ?? []).Select(x => x.ToDto()).ToArray(),
                 DurationSeconds = res.DurationSeconds,
-                SpeedupPercent = res.SpeedupPercent,
+                OutputBonusPercent = res.OutputBonusPercent,
                 OutputResources = res.OutputResources.Select(x => x.ToDto()).ToArray(),
                 PlodderCount = res.PlodderCount,
             };

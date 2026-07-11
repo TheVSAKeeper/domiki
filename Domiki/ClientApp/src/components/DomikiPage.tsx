@@ -968,7 +968,7 @@ export const DomikiPage = () => {
                                                                 <label className="receipt-optional">
                                                                     <input type="checkbox" checked={useOptional}
                                                                         onChange={() => toggleOptional(receipt.id)} />
-                                                                    с инструментом (−{receipt.speedupPercent}%)
+                                                                    с инструментом (+{receipt.outputBonusPercent}% выхода)
                                                                 </label>
                                                             }
                                                             <label className="receipt-optional">

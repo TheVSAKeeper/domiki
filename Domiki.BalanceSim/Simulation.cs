@@ -738,7 +738,8 @@ internal sealed class SimulationRun
             UseOptional = useOptional && receipt.OptionalInputResources.Length > 0,
             AutoRepeat = true,
             FinishAt = _now + duration,
-            OutputPercent = GetWeatherOutputPercent(domik.Type.Id),
+            DurationSeconds = duration,
+            OutputPercent = GetWeatherOutputPercent(domik.Type.Id) + (useOptional && receipt.OptionalInputResources.Length > 0 ? receipt.OutputBonusPercent : 0),
         };
         domik.Manufactures.Add(manufacture);
         foreach (var worker in workers)
@@ -768,10 +769,6 @@ internal sealed class SimulationRun
     private int CalculateDuration(int domikTypeId, Receipt receipt, bool useOptional, IReadOnlyList<SimWorker> workers)
     {
         var duration = receipt.DurationSeconds;
-        if (useOptional && receipt.OptionalInputResources.Length > 0)
-        {
-            duration = receipt.DurationSeconds * (100 - receipt.SpeedupPercent) / 100;
-        }
 
         var averageTraitSpeedup = workers.Average(x => -x.Trait.DurationPercent);
         duration = (int)Math.Ceiling(duration * (100 - averageTraitSpeedup) / 100);
@@ -789,7 +786,20 @@ internal sealed class SimulationRun
 
         foreach (var output in manufacture.Receipt.OutputResources)
         {
-            AddResource(output.Type.Id, Math.Max(1, (int)Math.Round(output.Value * manufacture.OutputPercent / 100.0)));
+            var granted = Math.Max(1, (int)Math.Round(output.Value * manufacture.OutputPercent / 100.0));
+            if (output.Type.Id == 5)
+            {
+                var day = _now / 86400;
+                if (_state.GoldMinedDay != day)
+                {
+                    _state.GoldMinedDay = day;
+                    _state.GoldMinedToday = 0;
+                }
+                var allowed = Math.Max(0, manufacture.Domik.Level - _state.GoldMinedToday);
+                granted = Math.Min(granted, allowed);
+                _state.GoldMinedToday += granted;
+            }
+            AddResource(output.Type.Id, granted);
         }
 
         foreach (var worker in manufacture.Workers)
@@ -797,7 +807,7 @@ internal sealed class SimulationRun
             worker.Skills[manufacture.Domik.Type.Id] = worker.Skills.GetValueOrDefault(manufacture.Domik.Type.Id) + 1;
             if (!worker.Trait.NoFatigue)
             {
-                worker.WorkedSeconds += manufacture.Receipt.DurationSeconds;
+                worker.WorkedSeconds += manufacture.DurationSeconds;
                 if (worker.WorkedSeconds >= DomikManager.FatigueThresholdSeconds)
                 {
                     worker.RestUntil = _now + DomikManager.RestSeconds * (100 - Math.Min(DomikManager.RestComfortMaxPercent, 0)) / 100;
@@ -1046,11 +1056,10 @@ internal sealed class SimulationRun
             useOptional = false;
         }
 
-        var output = receipt.OutputResources.Sum(x => Math.Max(1, (int)Math.Round(x.Value * outputPercent / 100.0)) * ResourceManager.GetMarketValue(x.Type.Id));
+        var effectiveOutputPercent = useOptional && receipt.OptionalInputResources.Length > 0 ? outputPercent + receipt.OutputBonusPercent : outputPercent;
+        var output = receipt.OutputResources.Sum(x => Math.Max(1, (int)Math.Round(x.Value * effectiveOutputPercent / 100.0)) * ResourceManager.GetMarketValue(x.Type.Id));
         var input = GetInputs(receipt, useOptional).Sum(x => x.Value * ResourceManager.GetMarketValue(x.Type.Id));
-        var duration = useOptional
-            ? receipt.DurationSeconds * (100 - receipt.SpeedupPercent) / 100
-            : receipt.DurationSeconds;
+        var duration = receipt.DurationSeconds;
         return (output - input) / (duration / 3600.0);
     }
 
@@ -1226,6 +1235,8 @@ internal sealed class SimulationRun
         public int NextWorkerId { get; set; }
         public int NextOrderId { get; set; }
         public int NextExpeditionId { get; set; }
+        public int GoldMinedToday { get; set; }
+        public int GoldMinedDay { get; set; } = -1;
         public long TotalWorkerSeconds { get; set; }
         public long FreeWorkerSeconds { get; set; }
         public long RestWorkerSeconds { get; set; }
@@ -1260,6 +1271,7 @@ internal sealed class SimulationRun
         public required bool UseOptional { get; init; }
         public required bool AutoRepeat { get; init; }
         public required int FinishAt { get; init; }
+        public required int DurationSeconds { get; init; }
         public required int OutputPercent { get; init; }
     }
 

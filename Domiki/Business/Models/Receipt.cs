@@ -9,7 +9,7 @@
         public Resource[] InputResources { get; set; }
         public Resource[] OptionalInputResources { get; set; }
         public int DurationSeconds { get; set; }
-        public int SpeedupPercent { get; set; }
+        public int OutputBonusPercent { get; set; }
         public Resource[] OutputResources { get; set; }
         public int PlodderCount { get; set; }
     }

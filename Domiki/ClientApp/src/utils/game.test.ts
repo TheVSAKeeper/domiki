@@ -79,7 +79,7 @@ describe('computeReceiptView', () => {
         optionalInputResources: [{ typeId: 2, value: 5 }],
         outputResources: [{ typeId: 3, value: 1 }],
         durationSeconds: 100,
-        speedupPercent: 20,
+        outputBonusPercent: 20,
         plodderCount: 2,
     };
 
@@ -94,10 +94,10 @@ describe('computeReceiptView', () => {
         expect(computeReceiptView(receipt, [{ typeId: 2, value: 10 }], 1, false)).toMatchObject({ hasPlodders: false, canRun: false });
     });
 
-    it('with optional tool merges inputs by type and shortens duration', () => {
+    it('with optional tool merges inputs by type and preserves duration', () => {
         const view = computeReceiptView(receipt, [{ typeId: 2, value: 15 }], 2, true);
         expect(view.inputs).toEqual([{ typeId: 2, value: 15 }]);
-        expect(view.durationSeconds).toBe(80);
+        expect(view.durationSeconds).toBe(100);
         expect(view.canRun).toBe(true);
     });
 });
@@ -111,7 +111,7 @@ describe('manufactureProgressPercent', () => {
         optionalInputResources: [],
         outputResources: [],
         durationSeconds: 100,
-        speedupPercent: 0,
+        outputBonusPercent: 0,
         plodderCount: 1,
     };
 

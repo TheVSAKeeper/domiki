@@ -356,10 +356,10 @@ namespace Domiki.Web.Business.Core
 
             var writeOffResources = receipt.InputResources;
             var duration = receipt.DurationSeconds;
-            if (useOptional && receipt.OptionalInputResources is not null && receipt.OptionalInputResources.Length > 0)
+            var useOptionalApplied = useOptional && receipt.OptionalInputResources is not null && receipt.OptionalInputResources.Length > 0;
+            if (useOptionalApplied)
             {
                 writeOffResources = writeOffResources.Concat(receipt.OptionalInputResources).ToArray();
-                duration = receipt.DurationSeconds * (100 - receipt.SpeedupPercent) / 100;
             }
 
             Data.Worker[] selectedWorkers;
@@ -406,6 +406,10 @@ namespace Domiki.Web.Business.Core
             var weatherPercent = _weatherManager.GetOutputPercent(date, domikType.Id);
             var tolokaPercent = _tolokaManager.HasActiveBuff(playerId, date) ? 100 + TolokaManager.TolokaBuffPercent : 100;
             var outputPercent = (int)Math.Round(weatherPercent * tolokaPercent / 100.0);
+            if (useOptionalApplied)
+            {
+                outputPercent += receipt.OutputBonusPercent;
+            }
 
             _playerResourceManager.WriteOffResources(playerId, writeOffResources);
 
@@ -415,10 +419,11 @@ namespace Domiki.Web.Business.Core
                 DomikPlayerId = playerId,
                 ReceiptId = receiptId,
                 FinishDate = date.AddSeconds(duration),
+                DurationSeconds = duration,
                 PlodderCount = needPlodderCount,
                 OutputPercent = outputPercent,
                 AutoRepeat = autoRepeat,
-                UseOptional = useOptional && receipt.OptionalInputResources is not null && receipt.OptionalInputResources.Length > 0,
+                UseOptional = useOptionalApplied,
             };
             _context.Manufactures.Add(manufacture);
             _context.SaveChanges();
@@ -452,10 +457,28 @@ namespace Domiki.Web.Business.Core
                 var autoRepeat = dbManufacture.AutoRepeat;
                 var domikId = dbManufacture.DomikId;
                 var playerId = calcInfo.PlayerId;
+                var dbDomik = _context.Domiks.Single(x => x.PlayerId == calcInfo.PlayerId && x.Id == dbManufacture.DomikId);
+                var dbPlayer = _context.Players.First(x => x.Id == calcInfo.PlayerId);
                 var produced = new Dictionary<int, int>();
                 foreach (var resource in recept.OutputResources)
                 {
                     var granted = Math.Max(1, (int)Math.Round(resource.Value * dbManufacture.OutputPercent / 100.0));
+                    if (resource.Type.Id == GoldResourceTypeId)
+                    {
+                        var today = date.Date;
+                        if (dbPlayer.GoldMinedDate != today)
+                        {
+                            dbPlayer.GoldMinedDate = today;
+                            dbPlayer.GoldMinedToday = 0;
+                        }
+                        var allowed = Math.Max(0, dbDomik.Level - dbPlayer.GoldMinedToday);
+                        granted = Math.Min(granted, allowed);
+                        dbPlayer.GoldMinedToday += granted;
+                        if (granted == 0)
+                        {
+                            continue;
+                        }
+                    }
                     _playerResourceManager.GrantResource(calcInfo.PlayerId, resource.Type.Id, granted);
                     if (produced.TryGetValue(resource.Type.Id, out var value))
                     {
@@ -466,7 +489,6 @@ namespace Domiki.Web.Business.Core
                         produced[resource.Type.Id] = granted;
                     }
                 }
-                var dbDomik = _context.Domiks.Single(x => x.PlayerId == calcInfo.PlayerId && x.Id == dbManufacture.DomikId);
                 var comfort = DecorCalculator.GetComfort(
                     _context.PlayerDecors.Where(x => x.PlayerId == dbManufacture.DomikPlayerId).Select(x => new PlayerDecor { DecorTypeId = x.DecorTypeId, Count = x.Count }).ToArray(),
                     _resourceManager.GetDecorTypes());
@@ -478,7 +500,7 @@ namespace Domiki.Web.Business.Core
                     IncrementWorkerSkill(worker.Id, dbDomik.TypeId);
                     if (!traits[worker.TraitId].NoFatigue)
                     {
-                        worker.WorkedSeconds += recept.DurationSeconds;
+                        worker.WorkedSeconds += dbManufacture.DurationSeconds;
                         if (worker.WorkedSeconds >= FatigueThresholdSeconds)
                         {
                             worker.RestUntil = date.AddSeconds(restSeconds);

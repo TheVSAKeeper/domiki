@@ -90,7 +90,7 @@ namespace Domiki.Web.Business.Core
                     Name = x.Name,
                     PlodderCount = x.PlodderCount,
                     DurationSeconds = x.DurationSeconds,
-                    SpeedupPercent = x.SpeedupPercent,
+                    OutputBonusPercent = x.OutputBonusPercent,
                     InputResources = x.Resources.Where(x => x.IsInput && !x.IsOptional)
                         .Select(x => new Resource
                         {

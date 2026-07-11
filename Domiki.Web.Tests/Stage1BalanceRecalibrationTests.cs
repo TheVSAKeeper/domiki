@@ -93,7 +93,7 @@ namespace Domiki.Web.Tests
         }
 
         [Test]
-        public void DurationMultiplierClampUsesBaseReceiptDurationTest()
+        public void DurationMultiplierUsesTraitsAndSkillAfterToolTest()
         {
             var playerId = GetPlayerId();
             BuyDomik(playerId, 2);
@@ -108,8 +108,7 @@ namespace Domiki.Web.Tests
 
             var manufacture = GetManufactures(playerId).Single();
             var durationSeconds = (manufacture.FinishDate - start).TotalSeconds;
-            Assert.That(durationSeconds, Is.GreaterThanOrEqualTo(Math.Ceiling(28800 * 0.6)));
-            Assert.That(durationSeconds, Is.LessThanOrEqualTo(Math.Ceiling(28800 * 0.6) + 1));
+            Assert.That(durationSeconds, Is.EqualTo(19584).Within(1));
         }
 
         [Test]

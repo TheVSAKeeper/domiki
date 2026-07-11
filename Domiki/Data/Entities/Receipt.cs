@@ -16,7 +16,7 @@ namespace Domiki.Web.Data
 
         public int DurationSeconds { get; set; }
 
-        public int SpeedupPercent { get; set; }
+        public int OutputBonusPercent { get; set; }
 
         public int PlodderCount { get; set; }
 

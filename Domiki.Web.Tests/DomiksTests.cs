@@ -371,8 +371,8 @@ namespace Domiki.Web.Tests
         }
 
         [TestCase(false, 28800, 3)]
-        [TestCase(true, 17280, 2)]
-        public void OptionalToolShortensDurationTest(bool useOptional, int expectedDuration, int expectedToolLeft)
+        [TestCase(true, 28800, 2)]
+        public void OptionalToolPreservesDurationAndConsumesToolTest(bool useOptional, int expectedDuration, int expectedToolLeft)
         {
             var playerId = GetPlayerId();
             var barakTypeId = 2;
@@ -390,6 +390,27 @@ namespace Domiki.Web.Tests
             var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
             Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(expectedDuration).Within(2));
             Assert.That(GetResources(playerId).First(x => x.Type.Id == toolResourceTypeId).Value, Is.EqualTo(expectedToolLeft));
+        }
+
+        [TestCase(false, 8)]
+        [TestCase(true, 11)]
+        public void OptionalToolBoostsOutputTest(bool useOptional, int expectedClay)
+        {
+            var playerId = GetPlayerId();
+            var barakTypeId = 2;
+            var clayMineTypeId = 5;
+            var toolResourceTypeId = 8;
+            var clayResourceTypeId = 4;
+            var clayDig8hReceiptId = 14;
+            BuyDomik(playerId, barakTypeId);
+            BuyDomik(playerId, clayMineTypeId);
+            GrantResource(playerId, toolResourceTypeId, 1);
+            ResetWorkerTraits(playerId);
+
+            StartManufacture(playerId, 2, clayDig8hReceiptId, true, useOptional);
+
+            var clay = GetResources(playerId).Single(x => x.Type.Id == clayResourceTypeId);
+            Assert.That(clay.Value, Is.EqualTo(expectedClay));
         }
 
         [Test]

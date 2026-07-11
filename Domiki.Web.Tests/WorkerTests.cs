@@ -223,6 +223,22 @@ namespace Domiki.Web.Tests
             Assert.That(worker.RestUntil, Is.Null);
         }
 
+        [Test]
+        public void FinishManufactureAccumulatesActualWorkerWorkedSecondsTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+            var worker = GetWorkers(playerId).Single();
+            SetWorkerTrait(worker.Id, 3);
+
+            StartManufacture(playerId, 2, 14, true);
+
+            worker = GetWorkers(playerId).Single();
+            Assert.That(worker.WorkedSeconds, Is.EqualTo(23040));
+            Assert.That(worker.RestUntil, Is.Null);
+        }
+
         [TestCase(14)]
         public void FinishManufactureFatigueThresholdSendsWorkerToRestTest(int receiptId)
         {
@@ -283,6 +299,22 @@ namespace Domiki.Web.Tests
             worker = GetWorkers(playerId).Single();
             Assert.That(worker.WorkedSeconds, Is.EqualTo(0));
             Assert.That(worker.RestUntil, Is.Null);
+        }
+
+        [Test]
+        public void SonyaTraitLengthensManufactureDurationByTwentyFivePercentTest()
+        {
+            var playerId = GetPlayerId();
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 5);
+            var worker = GetWorkers(playerId).Single();
+            SetWorkerTrait(worker.Id, 4);
+
+            var start = DateTimeHelper.GetNowDate();
+            StartManufacture(playerId, 2, 14, false);
+
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+            Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(36000).Within(2));
         }
 
         [Test]
