@@ -317,13 +317,6 @@ namespace Domiki.Web.Data
                 .HasForeignKey(e => e.WeatherTypeId);
 
             modelBuilder.Entity<ExpeditionLoot>()
-                .HasKey(p => new
-                {
-                    p.ExpeditionTypeId,
-                    p.ResourceTypeId,
-                });
-
-            modelBuilder.Entity<ExpeditionLoot>()
                 .HasOne(s => s.ExpeditionType)
                 .WithMany()
                 .HasForeignKey(e => e.ExpeditionTypeId);

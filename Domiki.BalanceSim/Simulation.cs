@@ -939,7 +939,10 @@ internal sealed class SimulationRun
 
             var loot = PickLoot(pool, groupLuck);
             gotRare |= loot.IsRare;
-            AddResource(loot.ResourceTypeId, _random.Next(loot.MinValue, loot.MaxValue + 1));
+            if (loot.Kind == Domiki.Web.Data.ExpeditionLootKind.Resource)
+            {
+                AddResource(loot.ResourceTypeId.Value, _random.Next(loot.MinValue, loot.MaxValue + 1));
+            }
         }
 
         _state.ExpeditionsSincePity = gotRare ? 0 : _state.ExpeditionsSincePity + 1;
@@ -987,8 +990,8 @@ internal sealed class SimulationRun
     private static double GetLootEv(ExpeditionLoot[] loot, int luckPercent)
     {
         var totalWeight = loot.Sum(x => ExpeditionManager.ScaleWeight(x.IsRare, x.Weight, luckPercent));
-        return loot.Sum(x => ExpeditionManager.ScaleWeight(x.IsRare, x.Weight, luckPercent) / (double)totalWeight
-            * ((x.MinValue + x.MaxValue) / 2.0) * ResourceManager.GetMarketValue(x.ResourceTypeId));
+        return loot.Where(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.Resource).Sum(x => ExpeditionManager.ScaleWeight(x.IsRare, x.Weight, luckPercent) / (double)totalWeight
+            * ((x.MinValue + x.MaxValue) / 2.0) * ResourceManager.GetMarketValue(x.ResourceTypeId.Value));
     }
 
     private IEnumerable<Resource> GetExpeditionCost(ExpeditionType type)

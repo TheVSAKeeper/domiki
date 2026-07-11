@@ -46,8 +46,29 @@ namespace Domiki.Web.Tests
                     continue;
                 }
 
+                if (type.Id is 4 or 7)
+                {
+                    continue;
+                }
+
                 var coinCost = typeLevel.Resources.Single(x => x.Type.Id == 1).Value;
                 Assert.That(coinCost, Is.EqualTo(expectedCoins), $"domik type {type.Id}");
+            }
+        }
+
+        [TestCase(2, 150)]
+        [TestCase(3, 450)]
+        [TestCase(4, 2200)]
+        [TestCase(5, 13000)]
+        public void GoldMineAndMarketUpgradeCoinCostsAreReshapedTest(int level, int expectedCoins)
+        {
+            var types = GetDomikTypes();
+
+            foreach (var typeId in new[] { 4, 7 })
+            {
+                var typeLevel = types.Single(x => x.Id == typeId).Levels.Single(x => x.Value == level);
+                var coinCost = typeLevel.Resources.Single(x => x.Type.Id == 1).Value;
+                Assert.That(coinCost, Is.EqualTo(expectedCoins), $"domik type {typeId}");
             }
         }
 

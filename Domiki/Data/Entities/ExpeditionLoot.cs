@@ -7,12 +7,16 @@ namespace Domiki.Web.Data
     public class ExpeditionLoot
     {
         [Key]
-        [Column(Order = 1)]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
+
         public int ExpeditionTypeId { get; set; }
 
-        [Key]
-        [Column(Order = 2)]
-        public int ResourceTypeId { get; set; }
+        public ExpeditionLootKind Kind { get; set; }
+
+        public int? ResourceTypeId { get; set; }
+
+        public int? DecorTypeId { get; set; }
 
         public int MinValue { get; set; }
 

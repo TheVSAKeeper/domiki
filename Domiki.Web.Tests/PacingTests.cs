@@ -36,8 +36,9 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             BuyDomik(playerId, 2);
             BuyDomik(playerId, 7);
+            GrantResource(playerId, 1, 20);
             UpgradeDomik(playerId, 2);
-            GrantResource(playerId, 1, 305);
+            GrantResource(playerId, 1, 505);
             GrantResource(playerId, 2, 15);
             GrantResource(playerId, 3, 15);
             UpgradeDomik(playerId, 2);

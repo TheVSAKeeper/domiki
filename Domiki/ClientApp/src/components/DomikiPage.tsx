@@ -29,7 +29,7 @@ import { useToast } from '../services/toast';
 import { disablePush, enablePush, getPushState } from '../services/push';
 import type { PushState } from '../services/push';
 import { useGameData } from '../hooks/useGameData';
-import { COIN_RESOURCE_TYPE_ID, GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, sortDomiks, workerFitness } from '../utils/game';
+import { COIN_RESOURCE_TYPE_ID, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE, GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, sortDomiks, workerFitness } from '../utils/game';
 import type { DomikSortMode } from '../utils/game';
 import { domikThemedName } from '../utils/domikNames';
 import { formatDuration, remainingSeconds } from '../utils/time';
@@ -417,7 +417,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'expeditions', label: 'Экспедиции', Icon: BackpackIcon, visible: expeditions != null,
-            node: <ExpeditionsBox expeditions={expeditions} resourceTypes={resourceTypes} resources={resources} workers={workers} now={now} onStart={startExpeditionAction} />,
+            node: <ExpeditionsBox expeditions={expeditions} resourceTypes={resourceTypes} decorTypes={decor?.types ?? []} resources={resources} workers={workers} now={now} onStart={startExpeditionAction} />,
         },
         {
             key: 'decor', label: 'Декор', Icon: GardenIcon, visible: decor != null,
@@ -438,7 +438,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'journal', label: 'Журнал', Icon: JournalIcon, visible: true,
-            node: <JournalBox events={events} resourceTypes={resourceTypes} domikTypes={domikTypes} now={now} />,
+            node: <JournalBox events={events} resourceTypes={resourceTypes} domikTypes={domikTypes} decorTypes={decor?.types ?? []} now={now} />,
         },
     ];
     const visibleGameTabs = gameTabs.filter(tab => tab.visible);
@@ -647,10 +647,17 @@ export const DomikiPage = () => {
                                             <span className="recap-line">{name}</span>
                                             <div className="recap-chips">
                                                 {event.loot.map((loot, lootIndex) => {
+                                                    if (loot.kind === EXPEDITION_LOOT_KIND_DECOR) {
+                                                        const decorType = decor?.types.find(x => x.id === loot.decorTypeId);
+                                                        return <span key={lootIndex} className="recap-fallback">Нашли {decorType?.name ?? 'декор'}</span>;
+                                                    }
+                                                    if (loot.kind === EXPEDITION_LOOT_KIND_TRAIT_UPGRADE) {
+                                                        return <span key={lootIndex} className="recap-fallback">{loot.workerName} закалился: {loot.newTrait}</span>;
+                                                    }
                                                     const type = resourceTypes.find(resourceType => resourceType.id === loot.typeId);
                                                     return type == null
-                                                        ? <span key={`${loot.typeId}-${lootIndex}`} className="recap-fallback">Ресурс #{loot.typeId} ×{loot.value}</span>
-                                                        : <ResourceChip key={`${loot.typeId}-${lootIndex}`} resourceType={type} value={loot.value} rare={loot.isRare} />;
+                                                        ? <span key={lootIndex} className="recap-fallback">Ресурс #{loot.typeId} ×{loot.value}</span>
+                                                        : <ResourceChip key={lootIndex} resourceType={type} value={loot.value ?? 0} rare={loot.isRare} />;
                                                 })}
                                             </div>
                                         </div>

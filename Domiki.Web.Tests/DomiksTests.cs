@@ -441,8 +441,8 @@ namespace Domiki.Web.Tests
 
         [TestCase(2, 1)]
         [TestCase(3, 3)]
-        [TestCase(4, 4)]
-        [TestCase(5, 5)]
+        [TestCase(4, 5)]
+        [TestCase(5, 8)]
         public void UpgradeCostMaterialsShapeTest(int level, int expectedResourceCount)
         {
             var forge = GetDomikTypes().First(x => x.Id == 1);

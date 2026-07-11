@@ -22,6 +22,7 @@ namespace Domiki.Web.Models
                 Name = type.Name,
                 LogicName = type.LogicName,
                 ComfortPoints = type.ComfortPoints,
+                IsPurchasable = type.IsPurchasable,
                 Cost = type.Cost.Select(x => x.ToDto()).ToArray(),
             };
         }

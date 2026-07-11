@@ -197,7 +197,9 @@ namespace Domiki.Web.Business.Core
                         .Where(x => x.ExpeditionTypeId == expeditionType.Id)
                         .Select(x => new ExpeditionLoot
                         {
+                            Kind = x.Kind,
                             ResourceTypeId = x.ResourceTypeId,
+                            DecorTypeId = x.DecorTypeId,
                             MinValue = x.MinValue,
                             MaxValue = x.MaxValue,
                             Weight = x.Weight,
@@ -247,6 +249,7 @@ namespace Domiki.Web.Business.Core
                     Name = x.Name,
                     LogicName = x.LogicName,
                     ComfortPoints = x.ComfortPoints,
+                    IsPurchasable = x.IsPurchasable,
                 }).ToArray();
 
                 foreach (var decorType in _decorTypes)

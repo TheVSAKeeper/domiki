@@ -14,11 +14,14 @@ namespace Domiki.Web.Tests
         private const int GoldResourceTypeId = 5;
         private const int PlankResourceTypeId = 7;
         private const int OrdinaryTraitId = 1;
+        private const int NimbleTraitId = 2;
         private const int StoneResourceTypeId = 2;
         private const int WoodResourceTypeId = 3;
         private const int ClayResourceTypeId = 4;
         private const int ToolResourceTypeId = 8;
         private const int FurnitureResourceTypeId = 9;
+        private const int TrailIdolDecorTypeId = 6;
+        private const int WandererBannerDecorTypeId = 7;
 
         [Test]
         public void GetExpeditionsNewPlayerReturnsNullTest()
@@ -284,11 +287,11 @@ namespace Domiki.Web.Tests
             var furnitureDelta = ResourceValue(after, FurnitureResourceTypeId) - ResourceValue(before, FurnitureResourceTypeId);
 
             Assert.That(woodDelta + stoneDelta + clayDelta + toolDelta + furnitureDelta, Is.GreaterThan(0));
-            Assert.That(woodDelta, Is.InRange(0, 25 * 3));
-            Assert.That(stoneDelta, Is.InRange(0, 25 * 3));
-            Assert.That(clayDelta, Is.InRange(0, 25 * 3));
-            Assert.That(toolDelta, Is.InRange(0, 4 * 3));
-            Assert.That(furnitureDelta, Is.InRange(0, 3 * 3));
+            Assert.That(woodDelta, Is.InRange(0, 70 * 3));
+            Assert.That(stoneDelta, Is.InRange(0, 70 * 3));
+            Assert.That(clayDelta, Is.InRange(0, 70 * 3));
+            Assert.That(toolDelta, Is.InRange(0, 5 * 3));
+            Assert.That(furnitureDelta, Is.InRange(0, 4 * 3));
         }
 
         [Test]
@@ -307,20 +310,20 @@ namespace Domiki.Web.Tests
 
             var after = GetResources(playerId);
             var toolGranted = ResourceValue(after, ToolResourceTypeId) - ResourceValue(before, ToolResourceTypeId) > 0;
+            var decorGranted = GetDecor(playerId).Owned.Any(x => x.DecorTypeId == TrailIdolDecorTypeId);
             var pity = GetPityCounter(playerId);
-            Assert.That(pity, Is.EqualTo(toolGranted ? 0 : 1));
+            Assert.That(pity, Is.EqualTo(toolGranted || decorGranted ? 0 : 1));
         }
 
-        [TestCase(ShortScoutId, 2, 1, ToolResourceTypeId, 1, 2)]
-        [TestCase(LongJourneyId, 5, 2, FurnitureResourceTypeId, 1, 9)]
-        public void PityThresholdForcesRareLootAndResetsCounterTest(int expeditionTypeId, int workerCount, int goldCost, int rareResourceTypeId, int minGranted, int maxGranted)
+        [Test]
+        public void PityThresholdForcesRareLootOnShortScoutAndResetsCounterTest()
         {
             var playerId = GetPlayerId();
-            BuyBarracks(playerId, workerCount);
-            GrantResource(playerId, GoldResourceTypeId, goldCost);
-            GrantResource(playerId, PlankResourceTypeId, EquipmentCost(expeditionTypeId));
+            BuyBarracks(playerId, 2);
+            GrantResource(playerId, GoldResourceTypeId, 1);
+            GrantResource(playerId, PlankResourceTypeId, EquipmentCost(ShortScoutId));
             SetPityCounter(playerId, ExpeditionManager.ExpeditionPityThreshold);
-            StartExpedition(playerId, expeditionTypeId);
+            StartExpedition(playerId, ShortScoutId);
             var expedition = GetExpeditions(playerId).Active.Single();
             var before = GetResources(playerId);
 
@@ -328,8 +331,109 @@ namespace Domiki.Web.Tests
             FinishExpedition(playerId, expedition.Id, DateTimeHelper.GetNowDate());
 
             var after = GetResources(playerId);
-            Assert.That(ResourceValue(after, rareResourceTypeId) - ResourceValue(before, rareResourceTypeId), Is.InRange(minGranted, maxGranted));
+            var toolGranted = ResourceValue(after, ToolResourceTypeId) - ResourceValue(before, ToolResourceTypeId) is >= 2 and <= 3;
+            var decorGranted = GetDecor(playerId).Owned.Any(x => x.DecorTypeId == TrailIdolDecorTypeId);
+            Assert.That(toolGranted || decorGranted, Is.True);
             Assert.That(GetPityCounter(playerId), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void PityThresholdForcesRareLootOnLongJourneyAndResetsCounterTest()
+        {
+            var playerId = GetPlayerId();
+            BuyBarracks(playerId, 5);
+            GrantResource(playerId, GoldResourceTypeId, 2);
+            GrantResource(playerId, PlankResourceTypeId, EquipmentCost(LongJourneyId));
+            SetPityCounter(playerId, ExpeditionManager.ExpeditionPityThreshold);
+            StartExpedition(playerId, LongJourneyId);
+            var expedition = GetExpeditions(playerId).Active.Single();
+            var before = GetResources(playerId);
+            var squadBeforeTraits = GetWorkers(playerId).Where(x => x.ExpeditionId == expedition.Id).ToDictionary(x => x.Id, x => x.Trait.LogicName);
+
+            SetExpeditionFinish(expedition.Id, DateTimeHelper.GetNowDate().AddSeconds(-1));
+            FinishExpedition(playerId, expedition.Id, DateTimeHelper.GetNowDate());
+
+            var after = GetResources(playerId);
+            var furnitureGranted = ResourceValue(after, FurnitureResourceTypeId) - ResourceValue(before, FurnitureResourceTypeId) > 0;
+            var decorGranted = GetDecor(playerId).Owned.Any(x => x.DecorTypeId == WandererBannerDecorTypeId);
+            var traitUpgraded = GetWorkers(playerId).Any(x => squadBeforeTraits.TryGetValue(x.Id, out var trait) && trait == "ordinary" && x.Trait.LogicName != "ordinary");
+            Assert.That(furnitureGranted || decorGranted || traitUpgraded, Is.True);
+            Assert.That(GetPityCounter(playerId), Is.EqualTo(0));
+        }
+
+        [Test]
+        public void ApplyLootEntryDecorGrantsPlayerDecorTest()
+        {
+            var playerId = GetPlayerId();
+            using (var uow = GetUow())
+            {
+                var resourceManager = GetResourceManager(uow);
+                var manager = GetExpeditionManager(uow);
+                var type = resourceManager.GetExpeditionTypes().Single(x => x.Id == ShortScoutId);
+                var traits = resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
+                var entry = type.Loot.First(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.Decor);
+
+                manager.ApplyLootEntry(playerId, type, entry, Array.Empty<Domiki.Web.Data.Worker>(), traits, 0);
+                uow.Commit();
+            }
+
+            var decor = GetDecor(playerId);
+            Assert.That(decor.Owned.Single(x => x.DecorTypeId == TrailIdolDecorTypeId).Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ApplyLootEntryTraitUpgradeChangesOrdinaryWorkerTraitTest()
+        {
+            var playerId = GetPlayerId();
+            BuyBarracks(playerId, 2);
+            GetWorkers(playerId);
+            SetAllWorkerTraits(playerId, OrdinaryTraitId);
+            var workerIds = GetWorkers(playerId).Select(x => x.Id).ToArray();
+
+            using (var uow = GetUow())
+            {
+                var resourceManager = GetResourceManager(uow);
+                var manager = GetExpeditionManager(uow);
+                var type = resourceManager.GetExpeditionTypes().Single(x => x.Id == LongJourneyId);
+                var traits = resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
+                var entry = type.Loot.First(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.TraitUpgrade);
+                var squad = uow.Context.Workers.Where(x => workerIds.Contains(x.Id)).ToArray();
+
+                manager.ApplyLootEntry(playerId, type, entry, squad, traits, 0);
+                uow.Commit();
+            }
+
+            Assert.That(GetWorkers(playerId).Count(x => x.Trait.LogicName != "ordinary"), Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ApplyLootEntryTraitUpgradeFallsBackWithoutOrdinaryWorkerTest()
+        {
+            var playerId = GetPlayerId();
+            BuyBarracks(playerId, 2);
+            GetWorkers(playerId);
+            SetAllWorkerTraits(playerId, NimbleTraitId);
+            var workerIds = GetWorkers(playerId).Select(x => x.Id).ToArray();
+            var before = GetResources(playerId);
+
+            using (var uow = GetUow())
+            {
+                var resourceManager = GetResourceManager(uow);
+                var manager = GetExpeditionManager(uow);
+                var type = resourceManager.GetExpeditionTypes().Single(x => x.Id == LongJourneyId);
+                var traits = resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
+                var entry = type.Loot.First(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.TraitUpgrade);
+                var squad = uow.Context.Workers.Where(x => workerIds.Contains(x.Id)).ToArray();
+
+                manager.ApplyLootEntry(playerId, type, entry, squad, traits, 0);
+                uow.Commit();
+            }
+
+            var after = GetResources(playerId);
+            var furnitureGranted = ResourceValue(after, FurnitureResourceTypeId) - ResourceValue(before, FurnitureResourceTypeId) > 0;
+            var decorGranted = GetDecor(playerId).Owned.Any(x => x.DecorTypeId == WandererBannerDecorTypeId);
+            Assert.That(furnitureGranted || decorGranted, Is.True);
+            Assert.That(GetWorkers(playerId).All(x => x.Trait.LogicName == "nimble"), Is.True);
         }
 
         [Test]
@@ -365,7 +469,7 @@ namespace Domiki.Web.Tests
             {
                 var type = GetResourceManager(uow).GetExpeditionTypes().Single(x => x.Id == expeditionTypeId);
 
-                Assert.That(type.Equipment.Select(x => x.ResourceTypeId).Intersect(type.Loot.Select(x => x.ResourceTypeId)), Is.Empty);
+                Assert.That(type.Equipment.Select(x => x.ResourceTypeId).Intersect(type.Loot.Where(x => x.ResourceTypeId.HasValue).Select(x => x.ResourceTypeId!.Value)), Is.Empty);
                 uow.Commit();
             }
         }
@@ -507,6 +611,17 @@ namespace Domiki.Web.Tests
                 resource.Value += value;
                 uow.Context.SaveChanges();
                 uow.Commit();
+            }
+        }
+
+        private DecorState GetDecor(int playerId)
+        {
+            using (var uow = GetUow())
+            {
+                var manager = GetDecorManager(uow);
+                var decor = manager.GetDecor(playerId);
+                uow.Commit();
+                return decor;
             }
         }
 

@@ -6,6 +6,10 @@ export const INSTA_FINISH_MAX_GOLD = 6;
 export const GOLD_RESOURCE_TYPE_ID = 5;
 export const COIN_RESOURCE_TYPE_ID = 1;
 
+export const EXPEDITION_LOOT_KIND_RESOURCE = 1;
+export const EXPEDITION_LOOT_KIND_DECOR = 2;
+export const EXPEDITION_LOOT_KIND_TRAIT_UPGRADE = 3;
+
 const plodderTypeId = 1;
 
 export function hasResourcesFor(cost: ResourceDto[], owned: ResourceDto[]): boolean {

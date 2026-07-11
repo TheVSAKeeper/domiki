@@ -10,6 +10,7 @@ namespace Domiki.Web.Tests
         private const int FlowerbedDecorTypeId = 2;
         private const int GardenDecorTypeId = 3;
         private const int FountainDecorTypeId = 4;
+        private const int TrailIdolDecorTypeId = 6;
         private const int WoodResourceTypeId = 3;
         private const int StoneResourceTypeId = 2;
         private const int ClayResourceTypeId = 4;
@@ -29,7 +30,9 @@ namespace Domiki.Web.Tests
 
             var decor = GetDecor(playerId);
 
-            Assert.That(decor.Types.Select(x => x.LogicName), Is.EquivalentTo(new[] { "fence", "flowerbed", "garden", "fountain", "bench" }));
+            Assert.That(decor.Types.Select(x => x.LogicName), Is.EquivalentTo(new[] { "fence", "flowerbed", "garden", "fountain", "bench", "trail_idol", "wanderer_banner" }));
+            Assert.That(decor.Types.Where(x => x.LogicName is "trail_idol" or "wanderer_banner").All(x => !x.IsPurchasable), Is.True);
+            Assert.That(decor.Types.Where(x => x.LogicName is not ("trail_idol" or "wanderer_banner")).All(x => x.IsPurchasable), Is.True);
             Assert.That(decor.Owned, Is.Empty);
             Assert.That(decor.Comfort, Is.EqualTo(0));
         }
@@ -80,6 +83,29 @@ namespace Domiki.Web.Tests
             var ex = Assert.Throws<BusinessException>(() => BuyDecor(playerId, 999));
 
             Assert.That(ex.Message, Is.EqualTo("Декор не найден"));
+        }
+
+        [Test]
+        public void BuyNonPurchasableDecorThrowsAndDoesNotChangeOwnedTest()
+        {
+            var playerId = GetPlayerId();
+
+            var ex = Assert.Throws<BusinessException>(() => BuyDecor(playerId, TrailIdolDecorTypeId));
+
+            Assert.That(ex.Message, Is.EqualTo("Этот декор нельзя купить"));
+            Assert.That(GetDecor(playerId).Owned, Is.Empty);
+        }
+
+        [Test]
+        public void GrantDecorViaManagerIncrementsPlayerDecorTest()
+        {
+            var playerId = GetPlayerId();
+
+            GrantDecorViaManager(playerId, TrailIdolDecorTypeId, 1);
+            GrantDecorViaManager(playerId, TrailIdolDecorTypeId, 2);
+
+            var decor = GetDecor(playerId);
+            Assert.That(decor.Owned.Single(x => x.DecorTypeId == TrailIdolDecorTypeId).Count, Is.EqualTo(3));
         }
 
         [Test]
@@ -290,6 +316,16 @@ namespace Domiki.Web.Tests
 
                 resource.Value += value;
                 uow.Context.SaveChanges();
+                uow.Commit();
+            }
+        }
+
+        private void GrantDecorViaManager(int playerId, int decorTypeId, int count)
+        {
+            using (var uow = GetUow())
+            {
+                var manager = GetDecorManager(uow);
+                manager.GrantDecor(playerId, decorTypeId, count);
                 uow.Commit();
             }
         }

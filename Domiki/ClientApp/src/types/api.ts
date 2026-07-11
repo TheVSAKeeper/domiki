@@ -235,7 +235,9 @@ export const weatherStateSchema = z.object({
 export type WeatherStateDto = z.infer<typeof weatherStateSchema>;
 
 export const expeditionLootSchema = z.object({
-    resourceTypeId: z.number(),
+    kind: z.number(),
+    resourceTypeId: z.number().nullable(),
+    decorTypeId: z.number().nullable(),
     minValue: z.number(),
     maxValue: z.number(),
     isRare: z.boolean(),
@@ -284,6 +286,7 @@ export const decorTypeSchema = z.object({
     name: z.string(),
     logicName: z.string(),
     comfortPoints: z.number(),
+    isPurchasable: z.boolean(),
     cost: z.array(resourceSchema),
 });
 export type DecorTypeDto = z.infer<typeof decorTypeSchema>;

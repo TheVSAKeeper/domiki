@@ -8,6 +8,16 @@ const events: RecapEventDto[] = [
     { type: 'LotSold', date: '2026-07-10T00:02:00Z', data: { giveResourceTypeId: 4, giveValue: 20, wantResourceTypeId: 5, wantValue: 3 } },
     { type: 'LotExpired', date: '2026-07-10T00:03:00Z', data: { giveResourceTypeId: 6, giveValue: 8 } },
     { type: 'ManufactureFinished', date: '2026-07-10T00:04:00Z', data: { resources: [{ resourceTypeId: 'bad', value: 10 }] } },
+    {
+        type: 'ExpeditionReturned', date: '2026-07-10T00:05:00Z', data: {
+            expeditionTypeId: 1,
+            loot: [
+                { resourceTypeId: 3, value: 20, isRare: false },
+                { kind: 2, decorTypeId: 6, isRare: true },
+                { kind: 3, workerName: 'Аким', newTrait: 'Везучий', isRare: true },
+            ],
+        },
+    },
 ];
 
 describe('buildRecapView', () => {
@@ -24,5 +34,20 @@ describe('buildRecapView', () => {
         const recap = buildRecapView(events);
 
         expect(recap.market).toContainEqual(expected);
+    });
+
+    it('parses legacy resource loot without a kind field as resource loot', () => {
+        const recap = buildRecapView(events);
+        const loot = recap.expeditions[0]?.loot ?? [];
+
+        expect(loot[0]).toEqual({ kind: 1, isRare: false, typeId: 3, value: 20 });
+    });
+
+    it('parses decor and trait-upgrade loot kinds', () => {
+        const recap = buildRecapView(events);
+        const loot = recap.expeditions[0]?.loot ?? [];
+
+        expect(loot[1]).toEqual({ kind: 2, isRare: true, decorTypeId: 6 });
+        expect(loot[2]).toEqual({ kind: 3, isRare: true, workerName: 'Аким', newTrait: 'Везучий' });
     });
 });

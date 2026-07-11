@@ -16,6 +16,7 @@ namespace Domiki.Web.Business.Core
         private WorkerManager _workerManager;
         private SeasonManager _seasonManager;
         private PlayerEventManager _playerEventManager;
+        private DecorManager _decorManager;
 
         public ExpeditionManager(
             Data.UnitOfWork uow,
@@ -25,7 +26,8 @@ namespace Domiki.Web.Business.Core
             PlayerResourceManager playerResourceManager,
             WorkerManager workerManager,
             SeasonManager seasonManager,
-            PlayerEventManager playerEventManager)
+            PlayerEventManager playerEventManager,
+            DecorManager decorManager)
         {
             _uow = uow;
             _context = context;
@@ -35,6 +37,7 @@ namespace Domiki.Web.Business.Core
             _workerManager = workerManager;
             _seasonManager = seasonManager;
             _playerEventManager = playerEventManager;
+            _decorManager = decorManager;
         }
 
         public ExpeditionState GetExpeditions(int playerId)
@@ -197,9 +200,7 @@ namespace Domiki.Web.Business.Core
                     gotRare = true;
                 }
 
-                var value = Random.Shared.Next(entry.MinValue, entry.MaxValue + 1);
-                _playerResourceManager.GrantResource(calcInfo.PlayerId, entry.ResourceTypeId, value);
-                loot.Add(new { resourceTypeId = entry.ResourceTypeId, value, isRare = entry.IsRare });
+                loot.Add(ApplyLootEntry(calcInfo.PlayerId, type, entry, assignedWorkers, traits, groupLuck));
             }
 
             dbPlayer.ExpeditionsSincePity = gotRare ? 0 : dbPlayer.ExpeditionsSincePity + 1;
@@ -218,6 +219,42 @@ namespace Domiki.Web.Business.Core
 
             _context.Expeditions.Remove(dbExpedition);
             return true;
+        }
+
+        public object ApplyLootEntry(int playerId, ExpeditionType type, ExpeditionLoot entry, Data.Worker[] squadWorkers, Dictionary<int, Trait> traits, int groupLuck)
+        {
+            switch (entry.Kind)
+            {
+                case Data.ExpeditionLootKind.Decor:
+                    _decorManager.GrantDecor(playerId, entry.DecorTypeId.Value, 1);
+                    return new { kind = (int)Data.ExpeditionLootKind.Decor, decorTypeId = entry.DecorTypeId, isRare = entry.IsRare };
+
+                case Data.ExpeditionLootKind.TraitUpgrade:
+                    return ApplyTraitUpgrade(playerId, type, squadWorkers, traits, groupLuck, entry.IsRare);
+
+                default:
+                    var value = Random.Shared.Next(entry.MinValue, entry.MaxValue + 1);
+                    _playerResourceManager.GrantResource(playerId, entry.ResourceTypeId.Value, value);
+                    return new { kind = (int)Data.ExpeditionLootKind.Resource, resourceTypeId = entry.ResourceTypeId, value, isRare = entry.IsRare };
+            }
+        }
+
+        private object ApplyTraitUpgrade(int playerId, ExpeditionType type, Data.Worker[] squadWorkers, Dictionary<int, Trait> traits, int groupLuck, bool isRare)
+        {
+            var ordinaryTrait = traits.Values.First(x => x.LogicName == "ordinary");
+            var candidates = squadWorkers.Where(x => x.TraitId == ordinaryTrait.Id).ToArray();
+            if (candidates.Length == 0)
+            {
+                var fallbackPool = type.Loot.Where(x => x.IsRare && x.Kind != Data.ExpeditionLootKind.TraitUpgrade).ToArray();
+                var fallbackEntry = PickLoot(fallbackPool, groupLuck);
+                return ApplyLootEntry(playerId, type, fallbackEntry, squadWorkers, traits, groupLuck);
+            }
+
+            var worker = candidates[Random.Shared.Next(candidates.Length)];
+            var nonOrdinaryTraits = traits.Values.Where(x => x.LogicName != "ordinary").ToArray();
+            var newTrait = nonOrdinaryTraits[Random.Shared.Next(nonOrdinaryTraits.Length)];
+            worker.TraitId = newTrait.Id;
+            return new { kind = (int)Data.ExpeditionLootKind.TraitUpgrade, workerName = worker.Name, newTrait = newTrait.Name, isRare };
         }
 
         private static ExpeditionLoot PickLoot(ExpeditionLoot[] loot, int luckPercent)

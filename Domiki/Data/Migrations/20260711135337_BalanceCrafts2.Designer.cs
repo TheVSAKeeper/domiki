@@ -3,6 +3,7 @@ using System;
 using Domiki.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domiki.Web.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260711135337_BalanceCrafts2")]
+    partial class BalanceCrafts2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -148,9 +151,6 @@ namespace Domiki.Web.Data.Migrations
 
                     b.Property<int>("ComfortPoints")
                         .HasColumnType("integer");
-
-                    b.Property<bool>("IsPurchasable")
-                        .HasColumnType("boolean");
 
                     b.Property<string>("LogicName")
                         .HasColumnType("text");
@@ -355,23 +355,16 @@ namespace Domiki.Web.Data.Migrations
 
             modelBuilder.Entity("Domiki.Web.Data.ExpeditionLoot", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("DecorTypeId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("ExpeditionTypeId")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasColumnOrder(1);
+
+                    b.Property<int>("ResourceTypeId")
+                        .HasColumnType("integer")
+                        .HasColumnOrder(2);
 
                     b.Property<bool>("IsRare")
                         .HasColumnType("boolean");
-
-                    b.Property<int>("Kind")
-                        .HasColumnType("integer");
 
                     b.Property<int>("MaxValue")
                         .HasColumnType("integer");
@@ -379,15 +372,10 @@ namespace Domiki.Web.Data.Migrations
                     b.Property<int>("MinValue")
                         .HasColumnType("integer");
 
-                    b.Property<int?>("ResourceTypeId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("Weight")
                         .HasColumnType("integer");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("ExpeditionTypeId");
+                    b.HasKey("ExpeditionTypeId", "ResourceTypeId");
 
                     b.ToTable("ExpeditionLoot");
                 });

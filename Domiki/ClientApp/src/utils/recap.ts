@@ -1,8 +1,19 @@
 import type { RecapEventDto } from '../types/api';
+import { EXPEDITION_LOOT_KIND_RESOURCE } from './game';
+
+export interface RecapLootEntry {
+    kind: number;
+    isRare: boolean;
+    typeId?: number;
+    value?: number;
+    decorTypeId?: number;
+    workerName?: string;
+    newTrait?: string;
+}
 
 export interface RecapView {
     produced: { typeId: number; value: number }[];
-    expeditions: { expeditionTypeId: number; loot: { typeId: number; value: number; isRare: boolean }[] }[];
+    expeditions: { expeditionTypeId: number; loot: RecapLootEntry[] }[];
     market: { kind: 'sold' | 'expired'; give: { typeId: number; value: number }; want?: { typeId: number; value: number } }[];
     upgrades: { domikTypeId: number; level: number }[];
     toloka: { tolokaTypeId: number }[];
@@ -17,6 +28,27 @@ export const readResource = (value: unknown): { typeId: number; value: number } 
     }
 
     return { typeId: value.resourceTypeId, value: value.value };
+};
+
+export const readLootEntry = (value: unknown): RecapLootEntry[] => {
+    if (!isRecord(value) || typeof value.isRare !== 'boolean') {
+        return [];
+    }
+
+    const kind = isNumber(value.kind) ? value.kind : (isNumber(value.resourceTypeId) ? EXPEDITION_LOOT_KIND_RESOURCE : null);
+    if (kind == null) {
+        return [];
+    }
+
+    return [{
+        kind,
+        isRare: value.isRare,
+        ...(isNumber(value.resourceTypeId) ? { typeId: value.resourceTypeId } : {}),
+        ...(isNumber(value.value) ? { value: value.value } : {}),
+        ...(isNumber(value.decorTypeId) ? { decorTypeId: value.decorTypeId } : {}),
+        ...(typeof value.workerName === 'string' ? { workerName: value.workerName } : {}),
+        ...(typeof value.newTrait === 'string' ? { newTrait: value.newTrait } : {}),
+    }];
 };
 
 export function buildRecapView(events: RecapEventDto[]): RecapView {
@@ -41,12 +73,7 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
         }
 
         if (event.type === 'ExpeditionReturned' && isNumber(event.data.expeditionTypeId) && Array.isArray(event.data.loot)) {
-            const loot = event.data.loot.flatMap(entry => {
-                if (!isRecord(entry) || !isNumber(entry.resourceTypeId) || !isNumber(entry.value) || typeof entry.isRare !== 'boolean') {
-                    return [];
-                }
-                return [{ typeId: entry.resourceTypeId, value: entry.value, isRare: entry.isRare }];
-            });
+            const loot = event.data.loot.flatMap(entry => readLootEntry(entry));
             expeditions.push({ expeditionTypeId: event.data.expeditionTypeId, loot });
         }
 

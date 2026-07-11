@@ -80,6 +80,26 @@
     margin-top: auto;
 }
 
+.decor-exclusive {
+    margin-top: 16px;
+}
+
+.decor-card-exclusive {
+    background: #fdf0c4;
+    border-color: #b8860b;
+}
+
+.decor-exclusive-badge {
+    align-self: flex-start;
+    font-family: var(--pixel);
+    font-size: 10px;
+    padding: 2px 7px 1px;
+    color: #7a5c00;
+    background: #fdf0c4;
+    border: 2px solid #b8860b;
+    clip-path: var(--cut);
+}
+
 @media (max-width: 900px) {
     .decor-grid {
         grid-template-columns: 1fr;

@@ -41,7 +41,17 @@ namespace Domiki.Web.Business.Core
                 throw new BusinessException("Декор не найден");
             }
 
+            if (!type.IsPurchasable)
+            {
+                throw new BusinessException("Этот декор нельзя купить");
+            }
+
             _playerResourceManager.WriteOffResources(playerId, type.Cost);
+            GrantDecor(playerId, decorTypeId, 1);
+        }
+
+        public void GrantDecor(int playerId, int decorTypeId, int count)
+        {
             var decor = _context.PlayerDecors.Local.FirstOrDefault(x => x.PlayerId == playerId && x.DecorTypeId == decorTypeId)
                 ?? _context.PlayerDecors.FirstOrDefault(x => x.PlayerId == playerId && x.DecorTypeId == decorTypeId);
             if (decor == null)
@@ -50,7 +60,7 @@ namespace Domiki.Web.Business.Core
                 _context.PlayerDecors.Add(decor);
             }
 
-            decor.Count++;
+            decor.Count += count;
         }
     }
 }

@@ -7,8 +7,8 @@ import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import CoinsIcon from 'pixelarticons/svg/coins.svg?react';
 import UserIcon from 'pixelarticons/svg/user.svg?react';
 import UsersIcon from 'pixelarticons/svg/users.svg?react';
-import type { ExpeditionStateDto, ResourceDto, ResourceTypeDto, WorkerDto } from '../types/api';
-import { GOLD_RESOURCE_TYPE_ID, hasResourcesFor, isWorkerFree } from '../utils/game';
+import type { DecorTypeDto, ExpeditionStateDto, ResourceDto, ResourceTypeDto, WorkerDto } from '../types/api';
+import { EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE, GOLD_RESOURCE_TYPE_ID, hasResourcesFor, isWorkerFree } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ResourceChip } from './ResourceChip';
 import { StatChip } from './StatChip';
@@ -21,6 +21,7 @@ const durationBetween = (startDate: string, finishDate: string) =>
 interface ExpeditionsBoxProps {
     expeditions: ExpeditionStateDto | null;
     resourceTypes: ResourceTypeDto[];
+    decorTypes: DecorTypeDto[];
     resources: ResourceDto[];
     workers: WorkerDto[];
     now: number;
@@ -32,7 +33,7 @@ const EXPEDITION_ICONS: Record<string, typeof MapPinIcon> = {
     long_journey: FlagIcon,
 };
 
-export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers, now, onStart }: ExpeditionsBoxProps) => {
+export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resources, workers, now, onStart }: ExpeditionsBoxProps) => {
     const [manualMode, setManualMode] = useState<Record<number, boolean>>({});
     const [picks, setPicks] = useState<Record<number, number[]>>({});
 
@@ -123,6 +124,22 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, resources, workers,
                                 <span className="panel-label">добыча</span>
                                 <div className="expedition-loot">
                                     {type.loot.map(entry => {
+                                        if (entry.kind === EXPEDITION_LOOT_KIND_DECOR) {
+                                            const decorType = decorTypes.find(x => x.id === entry.decorTypeId);
+                                            return (
+                                                <span key={`decor-${entry.decorTypeId}`} className="resource-chip resource-chip-rare" title={decorType?.name}>
+                                                    {decorType?.name ?? 'Декор'}
+                                                </span>
+                                            );
+                                        }
+                                        if (entry.kind === EXPEDITION_LOOT_KIND_TRAIT_UPGRADE) {
+                                            return (
+                                                <span key="trait-upgrade" className="resource-chip resource-chip-rare" title="Закалка похода">
+                                                    Закалка похода
+                                                </span>
+                                            );
+                                        }
+
                                         const resourceType = resourceTypes.find(x => x.id === entry.resourceTypeId);
                                         if (resourceType == null) {
                                             return null;
