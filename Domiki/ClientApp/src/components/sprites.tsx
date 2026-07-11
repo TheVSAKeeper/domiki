@@ -1,4 +1,6 @@
 import type { FC, SVGProps } from 'react';
+import CloudMoonIcon from 'pixelarticons/svg/cloud-moon.svg?react';
+import WindIcon from 'pixelarticons/svg/wind.svg?react';
 import BarracksSprite from '../assets/domikTypes/barracks.svg?react';
 import ClayMineSprite from '../assets/domikTypes/clay_mine.svg?react';
 import FairSprite from '../assets/domikTypes/fair.svg?react';
@@ -71,6 +73,8 @@ const weatherSprites: Record<string, SpriteComponent> = {
     clear: WeatherClearSprite,
     rain: WeatherRainSprite,
     drought: WeatherDroughtSprite,
+    frost: CloudMoonIcon,
+    wind: WindIcon,
     fair_day: WeatherFairDaySprite,
 };
 

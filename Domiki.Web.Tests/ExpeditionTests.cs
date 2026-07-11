@@ -8,6 +8,7 @@ namespace Domiki.Web.Tests
     {
         private const int ShortScoutId = 1;
         private const int LongJourneyId = 2;
+        private const int FootScoutId = 3;
         private const int BarracksTypeId = 2;
         private const int ScoutHutDomikTypeId = 11;
         private const int ProducerDomikTypeId = 5;
@@ -42,7 +43,7 @@ namespace Domiki.Web.Tests
 
             var state = GetExpeditions(playerId);
 
-            Assert.That(state.Types.Select(x => x.Id), Is.EquivalentTo(new[] { ShortScoutId, LongJourneyId }));
+            Assert.That(state.Types.Select(x => x.Id), Is.EquivalentTo(new[] { ShortScoutId, LongJourneyId, FootScoutId }));
             Assert.That(state.Active, Is.Empty);
             Assert.That(state.ExpeditionsSincePity, Is.EqualTo(0));
             Assert.That(state.PityThreshold, Is.EqualTo(ExpeditionManager.ExpeditionPityThreshold));
@@ -60,6 +61,25 @@ namespace Domiki.Web.Tests
 
             var ex = Assert.Throws<BusinessException>(() => StartExpedition(playerId, ShortScoutId));
             Assert.That(ex!.Message, Is.EqualTo("Все отряды в походе – улучшите Сторожку"));
+        }
+
+        [Test]
+        public void FootScoutStartsWithoutGoldRowTest()
+        {
+            var playerId = GetPlayerId();
+            GrantResource(playerId, 1, 500);
+            BuyBarracks(playerId, 1);
+            BuyDomik(playerId, ScoutHutDomikTypeId);
+            var start = DateTimeHelper.GetNowDate();
+
+            StartExpedition(playerId, FootScoutId);
+
+            var state = GetExpeditions(playerId);
+            var expedition = state.Active.Single();
+            Assert.That(expedition.ExpeditionType.Id, Is.EqualTo(FootScoutId));
+            Assert.That((expedition.FinishDate - start).TotalSeconds, Is.EqualTo(7200).Within(2));
+            Assert.That(GetWorkers(playerId).Count(x => x.ExpeditionId == expedition.Id), Is.EqualTo(1));
+            Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(0));
         }
 
         [Test]

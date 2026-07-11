@@ -10,7 +10,9 @@ import { PixelLoader } from './PixelLoader';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import CloudSunIcon from 'pixelarticons/svg/cloud-sun.svg?react';
 import CloudIcon from 'pixelarticons/svg/cloud.svg?react';
+import CloudMoonIcon from 'pixelarticons/svg/cloud-moon.svg?react';
 import FireIcon from 'pixelarticons/svg/fire.svg?react';
+import WindIcon from 'pixelarticons/svg/wind.svg?react';
 import GardenIcon from 'pixelarticons/svg/tree.svg?react';
 import FenceIcon from 'pixelarticons/svg/grid-3x2.svg?react';
 import FlowerIcon from 'pixelarticons/svg/heart.svg?react';
@@ -28,6 +30,8 @@ const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
     clear: CloudSunIcon,
     rain: CloudIcon,
     drought: FireIcon,
+    frost: CloudMoonIcon,
+    wind: WindIcon,
 };
 
 const DECOR_ICONS: Record<string, typeof FenceIcon> = {
@@ -100,7 +104,7 @@ const MECHANICS: Mechanic[] = [
         logic: 'toloka',
         name: 'Толока',
         teaser: 'общий проект деревни',
-        description: 'Толока – общий проект всех игроков: «на мост нужно 5000 камня со всех». Каждый вкладывает в общий счётчик, и при достижении цели все участники получают временный бафф и отметку. Кооперация без риска. Открывается зданием «Сходня».',
+        description: 'Толока – общий проект всех игроков: «на мост нужно 5000 камня со всех». Каждый вкладывает в общий счётчик, и при достижении цели все участники получают временный бафф и отметку. Кооперация без риска. Открывается зданием «Сборня».',
     },
     {
         key: 'decor',
