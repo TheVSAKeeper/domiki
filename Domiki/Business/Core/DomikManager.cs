@@ -404,7 +404,7 @@ namespace Domiki.Web.Business.Core
             duration = Math.Max(duration, (int)Math.Ceiling(receipt.DurationSeconds * 0.6));
 
             var weatherPercent = _weatherManager.GetOutputPercent(date, domikType.Id);
-            var tolokaPercent = _tolokaManager.HasActiveBuff(playerId, date) ? 100 + TolokaManager.TolokaBuffPercent : 100;
+            var tolokaPercent = _tolokaManager.GetTolokaOutputPercent(playerId, domikType.Id, date);
             var outputPercent = (int)Math.Round(weatherPercent * tolokaPercent / 100.0);
             if (useOptionalApplied)
             {
@@ -494,11 +494,12 @@ namespace Domiki.Web.Business.Core
                     _resourceManager.GetDecorTypes());
                 var restSeconds = RestSeconds * (100 - Math.Min(RestComfortMaxPercent, comfort)) / 100;
                 var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
+                var isTradeDomik = _resourceManager.GetDomikTypes().First(x => x.LogicName == "market").Id == dbDomik.TypeId;
                 var freedWorkerIds = new List<int>();
                 foreach (var worker in _context.Workers.Where(x => x.ManufactureId == dbManufacture.Id).ToArray())
                 {
                     IncrementWorkerSkill(worker.Id, dbDomik.TypeId);
-                    if (!traits[worker.TraitId].NoFatigue)
+                    if (!traits[worker.TraitId].NoFatigue && !isTradeDomik)
                     {
                         worker.WorkedSeconds += dbManufacture.DurationSeconds;
                         if (worker.WorkedSeconds >= FatigueThresholdSeconds)

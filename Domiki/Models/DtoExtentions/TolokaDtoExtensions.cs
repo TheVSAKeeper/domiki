@@ -10,9 +10,13 @@ namespace Domiki.Web.Models
             {
                 Active = state.Active.ToDto(),
                 MyContribution = state.MyContribution,
-                BuffActive = state.BuffActive,
-                BuffUntil = state.BuffUntil == null ? null : DateTime.SpecifyKind(state.BuffUntil.Value, DateTimeKind.Utc),
-                BuffPercent = state.BuffPercent,
+                ActiveBuffs = state.ActiveBuffs.Select(b => new TolokaActiveBuffDto
+                {
+                    LogicName = b.LogicName,
+                    Label = b.Label,
+                    Percent = b.Percent,
+                    BuffUntil = DateTime.SpecifyKind(b.BuffUntil, DateTimeKind.Utc),
+                }).ToArray(),
                 BuffHours = state.BuffHours,
                 NextBuffHours = state.NextBuffHours,
             };
@@ -27,7 +31,7 @@ namespace Domiki.Web.Models
                 Name = toloka.TolokaType.Name,
                 LogicName = toloka.TolokaType.LogicName,
                 ResourceTypeId = toloka.TolokaType.ResourceTypeId,
-                Goal = toloka.TolokaType.Goal,
+                Goal = toloka.Goal,
                 Collected = toloka.Collected,
                 StartDate = DateTime.SpecifyKind(toloka.StartDate, DateTimeKind.Utc),
             };

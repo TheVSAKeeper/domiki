@@ -360,17 +360,17 @@ export function useGameData(): GameData {
             expiredWorkerRest = true;
         }
 
-        const buffUntil = tolokaRef.current?.buffUntil;
-        const expiredTolokaBuff = buffUntil != null
-            && remainingSeconds(buffUntil, now) <= 0
-            && !reloadedTolokaBuffDeadlinesRef.current.has(`toloka:${buffUntil}`);
+        const expiredTolokaBuffs = tolokaRef.current?.activeBuffs.filter(buff => {
+            const key = `toloka:${buff.logicName}:${buff.buffUntil}`;
+            return remainingSeconds(buff.buffUntil, now) <= 0 && !reloadedTolokaBuffDeadlinesRef.current.has(key);
+        }) ?? [];
 
-        if (!expiredWorkerRest && !expiredTolokaBuff) {
+        if (!expiredWorkerRest && expiredTolokaBuffs.length === 0) {
             return;
         }
 
-        if (expiredTolokaBuff) {
-            reloadedTolokaBuffDeadlinesRef.current.add(`toloka:${buffUntil}`);
+        for (const buff of expiredTolokaBuffs) {
+            reloadedTolokaBuffDeadlinesRef.current.add(`toloka:${buff.logicName}:${buff.buffUntil}`);
         }
 
         scheduleReload();

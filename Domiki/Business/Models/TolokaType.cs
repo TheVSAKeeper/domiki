@@ -8,5 +8,6 @@
         public int ResourceTypeId { get; set; }
         public int Goal { get; set; }
         public int RotationWeight { get; set; }
+        public Data.TolokaTypeEffect[] Effects { get; set; }
     }
 }

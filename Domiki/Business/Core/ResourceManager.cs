@@ -224,7 +224,8 @@ namespace Domiki.Web.Business.Core
         {
             if (_tolokaTypes == null)
             {
-                _tolokaTypes = _context.TolokaTypes.Select(x => new TolokaType
+                var effects = _context.TolokaTypeEffects.ToArray();
+                var tolokaTypes = _context.TolokaTypes.Select(x => new TolokaType
                 {
                     Id = x.Id,
                     Name = x.Name,
@@ -233,6 +234,16 @@ namespace Domiki.Web.Business.Core
                     Goal = x.Goal,
                     RotationWeight = x.RotationWeight,
                 }).ToArray();
+
+                foreach (var tolokaType in tolokaTypes)
+                {
+                    tolokaType.Effects = effects
+                        .Where(x => x.TolokaTypeId == tolokaType.Id)
+                        .Select(x => new Data.TolokaTypeEffect { DomikTypeId = x.DomikTypeId, OutputPercent = x.OutputPercent })
+                        .ToArray();
+                }
+
+                _tolokaTypes = tolokaTypes;
             }
 
             return _tolokaTypes;

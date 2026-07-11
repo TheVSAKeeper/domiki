@@ -51,6 +51,7 @@ namespace Domiki.Web.Data
         public DbSet<PlayerDecor> PlayerDecors { get; set; }
 
         public DbSet<TolokaType> TolokaTypes { get; set; }
+        public DbSet<TolokaTypeEffect> TolokaTypeEffects { get; set; }
         public DbSet<Toloka> Tolokas { get; set; }
         public DbSet<TolokaContribution> TolokaContributions { get; set; }
         public DbSet<TradeLot> TradeLots { get; set; }
@@ -381,6 +382,18 @@ namespace Domiki.Web.Data
                 .HasOne(s => s.ResourceType)
                 .WithMany()
                 .HasForeignKey(e => e.ResourceTypeId);
+
+            modelBuilder.Entity<TolokaTypeEffect>()
+                .HasKey(p => new
+                {
+                    p.TolokaTypeId,
+                    p.DomikTypeId,
+                });
+
+            modelBuilder.Entity<TolokaTypeEffect>()
+                .HasOne(s => s.TolokaType)
+                .WithMany()
+                .HasForeignKey(e => e.TolokaTypeId);
 
             modelBuilder.Entity<Toloka>()
                 .HasOne(s => s.TolokaType)

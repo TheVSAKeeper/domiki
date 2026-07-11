@@ -12,7 +12,8 @@
 
     public class VillageLevelUnlock
     {
-        public int Level { get; set; }
+        public int? Level { get; set; }
         public string Label { get; set; }
+        public string Requirement { get; set; }
     }
 }

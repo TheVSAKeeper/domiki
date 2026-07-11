@@ -131,8 +131,9 @@ export const villageSchema = z.object({
 export type VillageDto = z.infer<typeof villageSchema>;
 
 export const villageLevelUnlockSchema = z.object({
-    level: z.number(),
+    level: z.number().nullable(),
     label: z.string(),
+    requirement: z.string().nullable(),
 });
 export type VillageLevelUnlockDto = z.infer<typeof villageLevelUnlockSchema>;
 
@@ -316,12 +317,18 @@ export const tolokaSchema = z.object({
 });
 export type TolokaDto = z.infer<typeof tolokaSchema>;
 
+export const tolokaActiveBuffSchema = z.object({
+    logicName: z.string(),
+    label: z.string(),
+    percent: z.number(),
+    buffUntil: z.string(),
+});
+export type TolokaActiveBuffDto = z.infer<typeof tolokaActiveBuffSchema>;
+
 export const tolokaStateSchema = z.object({
     active: tolokaSchema,
     myContribution: z.number(),
-    buffActive: z.boolean(),
-    buffUntil: z.string().nullable(),
-    buffPercent: z.number(),
+    activeBuffs: z.array(tolokaActiveBuffSchema),
     buffHours: z.number(),
     nextBuffHours: z.number().nullable(),
 });

@@ -92,7 +92,8 @@ namespace Domiki.Web.Tests
             var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
             var workerManager = new WorkerManager(uow.Context, resourceManager, playerResourceManager);
             var villageLevelCalculator = new VillageLevelCalculator(uow.Context, resourceManager, workerManager);
-            var orderManager = new OrderManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, villageLevelCalculator, GetSeasonManager(uow));
+            var tolokaManager = new TolokaManager(uow, uow.Context, resourceManager, playerResourceManager, GetSeasonManager(uow), GetPlayerEventManager(uow), _broker);
+            var orderManager = new OrderManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, villageLevelCalculator, GetSeasonManager(uow), tolokaManager);
             return orderManager;
         }
 

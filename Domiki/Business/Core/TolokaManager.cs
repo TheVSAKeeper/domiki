@@ -5,7 +5,8 @@ namespace Domiki.Web.Business.Core
 {
     public class TolokaManager
     {
-        public const int TolokaBuffPercent = 25;
+        public const int BridgeOrderBonusPercent = 40;
+        private const string BridgeLogicName = "bridge";
         public static int GetBuffSeconds(int level) => (6 + 2 * level) * 3600;
 
         private readonly Data.UnitOfWork _uow;
@@ -40,7 +41,7 @@ namespace Domiki.Web.Business.Core
                 .Where(x => x.TolokaId == dbToloka.Id && x.PlayerId == playerId)
                 .Select(x => x.Value)
                 .SingleOrDefault();
-            var buffUntil = GetBuffUntil(playerId, date);
+            var activeBuffs = GetActiveBuffs(playerId, date);
             var level = Math.Max(1, GetGatheringLevel(playerId));
             var maxLevel = _resourceManager.GetDomikTypes().First(x => x.LogicName == "gathering").MaxLevel;
 
@@ -48,9 +49,17 @@ namespace Domiki.Web.Business.Core
             {
                 Active = ToModel(dbToloka, tolokaTypes),
                 MyContribution = contribution,
-                BuffActive = buffUntil != null,
-                BuffUntil = buffUntil,
-                BuffPercent = TolokaBuffPercent,
+                ActiveBuffs = activeBuffs.Select(buff =>
+                {
+                    var tolokaType = tolokaTypes.First(x => x.Id == buff.TolokaTypeId);
+                    return new TolokaActiveBuff
+                    {
+                        LogicName = tolokaType.LogicName,
+                        Label = GetBuffLabel(tolokaType),
+                        Percent = tolokaType.Effects.Length > 0 ? tolokaType.Effects[0].OutputPercent - 100 : BridgeOrderBonusPercent,
+                        BuffUntil = buff.BuffUntil,
+                    };
+                }).ToArray(),
                 BuffHours = GetBuffSeconds(level) / 3600,
                 NextBuffHours = level < maxLevel ? GetBuffSeconds(level + 1) / 3600 : (int?)null,
             };
@@ -91,18 +100,21 @@ namespace Domiki.Web.Business.Core
             dbToloka.Collected += amount;
             _seasonManager.IncrementCounter(playerId, SeasonMetric.Toloka, amount, date);
 
-            if (dbToloka.Collected >= tolokaType.Goal)
+            if (dbToloka.Collected >= dbToloka.Goal)
             {
                 dbToloka.CompletedDate = date;
+                _context.SaveChanges();
                 foreach (var contributor in _context.TolokaContributions.Where(x => x.TolokaId == dbToloka.Id).Select(x => x.PlayerId).ToArray())
                 {
                     _playerEventManager.Record(contributor, Data.PlayerEventType.TolokaCompleted, new { tolokaTypeId = dbToloka.TolokaTypeId });
                 }
-                _context.SaveChanges();
+                var prevContributors = _context.TolokaContributions.Count(x => x.TolokaId == dbToloka.Id);
+                var picked = PickTolokaType(tolokaTypes);
                 _context.Tolokas.Add(new Data.Toloka
                 {
-                    TolokaTypeId = PickTolokaType(tolokaTypes).Id,
+                    TolokaTypeId = picked.Id,
                     Collected = 0,
+                    Goal = picked.Goal * Math.Max(1, prevContributors),
                     StartDate = date,
                     CompletedDate = null,
                 });
@@ -120,7 +132,28 @@ namespace Domiki.Web.Business.Core
 
         public bool HasActiveBuff(int playerId, DateTime date)
         {
-            return GetBuffUntil(playerId, date) != null;
+            return GetActiveBuffs(playerId, date).Length > 0;
+        }
+
+        public int GetTolokaOutputPercent(int playerId, int domikTypeId, DateTime date)
+        {
+            var tolokaTypes = _resourceManager.GetTolokaTypes();
+            foreach (var buff in GetActiveBuffs(playerId, date))
+            {
+                var effect = tolokaTypes.First(x => x.Id == buff.TolokaTypeId).Effects.FirstOrDefault(x => x.DomikTypeId == domikTypeId);
+                if (effect != null)
+                {
+                    return effect.OutputPercent;
+                }
+            }
+
+            return 100;
+        }
+
+        public int GetOrderRewardBonusPercent(int playerId, DateTime date)
+        {
+            var bridgeTypeId = _resourceManager.GetTolokaTypes().First(x => x.LogicName == BridgeLogicName).Id;
+            return GetActiveBuffs(playerId, date).Any(x => x.TolokaTypeId == bridgeTypeId) ? BridgeOrderBonusPercent : 0;
         }
 
         private Data.Toloka LockActiveToloka()
@@ -139,16 +172,27 @@ namespace Domiki.Web.Business.Core
             throw new BusinessException("Толока обновляется, повторите");
         }
 
-        private DateTime? GetBuffUntil(int playerId, DateTime date)
+        private (int TolokaTypeId, DateTime BuffUntil)[] GetActiveBuffs(int playerId, DateTime date)
         {
             var buffSeconds = GetBuffSeconds(Math.Max(1, GetGatheringLevel(playerId)));
             return _context.TolokaContributions
-                .Where(x => x.PlayerId == playerId
-                    && x.Toloka.CompletedDate != null
-                    && x.Toloka.CompletedDate > date.AddSeconds(-buffSeconds))
-                .Select(x => (DateTime?)x.Toloka.CompletedDate.Value.AddSeconds(buffSeconds))
-                .OrderByDescending(x => x)
-                .FirstOrDefault();
+                .Where(x => x.PlayerId == playerId && x.Toloka.CompletedDate != null && x.Toloka.CompletedDate > date.AddSeconds(-buffSeconds))
+                .Select(x => new { x.Toloka.TolokaTypeId, Completed = x.Toloka.CompletedDate.Value })
+                .ToArray()
+                .GroupBy(x => x.TolokaTypeId)
+                .Select(g => (g.Key, g.Max(x => x.Completed).AddSeconds(buffSeconds)))
+                .ToArray();
+        }
+
+        private static string GetBuffLabel(TolokaType tolokaType)
+        {
+            return tolokaType.LogicName switch
+            {
+                "bridge" => "заказы",
+                "granary" => "добыча дерева и глины",
+                "kiln" => "переделы",
+                _ => tolokaType.Name,
+            };
         }
 
         private bool HasBuilding(int playerId, string logicName)
@@ -188,6 +232,7 @@ namespace Domiki.Web.Business.Core
                 Id = dbToloka.Id,
                 TolokaType = tolokaTypes.First(x => x.Id == dbToloka.TolokaTypeId),
                 Collected = dbToloka.Collected,
+                Goal = dbToloka.Goal,
                 StartDate = dbToloka.StartDate,
             };
         }

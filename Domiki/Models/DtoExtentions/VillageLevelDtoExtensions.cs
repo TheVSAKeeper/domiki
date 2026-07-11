@@ -23,6 +23,7 @@ namespace Domiki.Web.Models
             {
                 Level = unlock.Level,
                 Label = unlock.Label,
+                Requirement = unlock.Requirement,
             };
         }
     }

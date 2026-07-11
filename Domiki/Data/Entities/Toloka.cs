@@ -14,6 +14,8 @@ namespace Domiki.Web.Data
 
         public int Collected { get; set; }
 
+        public int Goal { get; set; }
+
         public DateTime StartDate { get; set; }
 
         public DateTime? CompletedDate { get; set; }

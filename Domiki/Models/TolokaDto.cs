@@ -16,10 +16,16 @@
     {
         public TolokaDto Active { get; set; }
         public int MyContribution { get; set; }
-        public bool BuffActive { get; set; }
-        public DateTime? BuffUntil { get; set; }
-        public int BuffPercent { get; set; }
+        public TolokaActiveBuffDto[] ActiveBuffs { get; set; }
         public int BuffHours { get; set; }
         public int? NextBuffHours { get; set; }
+    }
+
+    public class TolokaActiveBuffDto
+    {
+        public string LogicName { get; set; }
+        public string Label { get; set; }
+        public int Percent { get; set; }
+        public DateTime BuffUntil { get; set; }
     }
 }

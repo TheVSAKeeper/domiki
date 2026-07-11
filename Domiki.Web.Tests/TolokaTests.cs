@@ -9,6 +9,7 @@ namespace Domiki.Web.Tests
     {
         private const int BridgeTolokaTypeId = 1;
         private const int GranaryTolokaTypeId = 2;
+        private const int KilnTolokaTypeId = 3;
         private const int StoneResourceTypeId = 2;
         private const int ClayMineDomikTypeId = 5;
         private const int ClayDig8hReceiptId = 14;
@@ -150,7 +151,7 @@ namespace Domiki.Web.Tests
             StartManufacture(playerId, 2, ClayDig8hReceiptId);
 
             var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
-            Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(100 + TolokaManager.TolokaBuffPercent));
+            Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(140));
         }
 
         [Test]
@@ -180,7 +181,7 @@ namespace Domiki.Web.Tests
             StartManufacture(playerId, 2, ClayDig8hReceiptId);
 
             var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
-            Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(188));
+            Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(210));
         }
 
         [Test]
@@ -217,6 +218,74 @@ namespace Domiki.Web.Tests
                 Task.Run(() => Contribute(secondPlayerId, 80)));
 
             Assert.That(GetActiveToloka().Collected, Is.EqualTo(150));
+        }
+
+        [Test]
+        public void NextTolokaGoalScalesWithPreviousContributorsTest()
+        {
+            var firstPlayerId = GetUnlockedPlayerId();
+            var secondPlayerId = GetUnlockedPlayerId();
+            var thirdPlayerId = GetUnlockedPlayerId();
+            GrantResource(firstPlayerId, StoneResourceTypeId, 40);
+            GrantResource(secondPlayerId, StoneResourceTypeId, 40);
+            GrantResource(thirdPlayerId, StoneResourceTypeId, 40);
+            SetActiveTolokaGoal(100);
+
+            Contribute(firstPlayerId, 40);
+            Contribute(secondPlayerId, 40);
+            Contribute(thirdPlayerId, 40);
+
+            using (var uow = GetUow())
+            {
+                Assert.That(uow.Context.Tolokas.Single(x => x.CompletedDate == null).Goal, Is.EqualTo(2400));
+            }
+        }
+
+        [Test]
+        public void GranaryBuffDoesNotBoostForgeTest()
+        {
+            var playerId = GetPlayerId();
+            CompleteTolokaWithContribution(playerId, DateTimeHelper.GetNowDate());
+            GrantDecor(playerId, FountainDecorTypeId, 1);
+            GrantResource(playerId, 1, 800);
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 1);
+            SetWeather(ClearWeatherTypeId);
+            GrantResource(playerId, 4, 2);
+
+            StartManufacture(playerId, 2, GetReceiptId("make_brick"));
+
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+            Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(100));
+        }
+
+        [Test]
+        public void KilnBuffBoostsForgeTest()
+        {
+            var playerId = GetPlayerId();
+            CompleteTolokaWithContribution(playerId, DateTimeHelper.GetNowDate(), KilnTolokaTypeId);
+            GrantDecor(playerId, FountainDecorTypeId, 1);
+            GrantResource(playerId, 1, 800);
+            BuyDomik(playerId, 2);
+            BuyDomik(playerId, 1);
+            SetWeather(ClearWeatherTypeId);
+            GrantResource(playerId, 4, 2);
+
+            StartManufacture(playerId, 2, GetReceiptId("make_brick"));
+
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+            Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(140));
+        }
+
+        [Test]
+        public void BridgeBuffAddsOrderRewardBonusPercentTest()
+        {
+            var playerId = GetPlayerId();
+            var playerWithoutBuffId = GetPlayerId();
+            CompleteTolokaWithContribution(playerId, DateTimeHelper.GetNowDate(), BridgeTolokaTypeId);
+
+            Assert.That(GetOrderRewardBonusPercent(playerId), Is.EqualTo(40));
+            Assert.That(GetOrderRewardBonusPercent(playerWithoutBuffId), Is.EqualTo(0));
         }
 
         private int GetPlayerId()
@@ -266,6 +335,17 @@ namespace Domiki.Web.Tests
             {
                 var manager = GetTolokaManager(uow);
                 var result = manager.HasActiveBuff(playerId, DateTimeHelper.GetNowDate());
+                uow.Commit();
+                return result;
+            }
+        }
+
+        private int GetOrderRewardBonusPercent(int playerId)
+        {
+            using (var uow = GetUow())
+            {
+                var manager = GetTolokaManager(uow);
+                var result = manager.GetOrderRewardBonusPercent(playerId, DateTimeHelper.GetNowDate());
                 uow.Commit();
                 return result;
             }
@@ -382,12 +462,24 @@ namespace Domiki.Web.Tests
             }
         }
 
-        private void CompleteTolokaWithContribution(int playerId, DateTime completedDate)
+        private void SetActiveTolokaGoal(int goal)
+        {
+            using (var uow = GetUow())
+            {
+                var toloka = uow.Context.Tolokas.Single(x => x.CompletedDate == null);
+                toloka.Goal = goal;
+                uow.Commit();
+            }
+        }
+
+        private void CompleteTolokaWithContribution(int playerId, DateTime completedDate, int completedTolokaTypeId = GranaryTolokaTypeId)
         {
             using (var uow = GetUow())
             {
                 var active = uow.Context.Tolokas.Single(x => x.CompletedDate == null);
+                active.TolokaTypeId = completedTolokaTypeId;
                 active.Collected = 2000;
+                active.Goal = 2000;
                 active.CompletedDate = completedDate;
                 uow.Context.TolokaContributions.Add(new Domiki.Web.Data.TolokaContribution
                 {
@@ -397,8 +489,9 @@ namespace Domiki.Web.Tests
                 });
                 uow.Context.Tolokas.Add(new Domiki.Web.Data.Toloka
                 {
-                    TolokaTypeId = GranaryTolokaTypeId,
+                    TolokaTypeId = BridgeTolokaTypeId,
                     Collected = 0,
+                    Goal = 2000,
                     StartDate = completedDate,
                     CompletedDate = null,
                 });
@@ -418,11 +511,20 @@ namespace Domiki.Web.Tests
                 {
                     TolokaTypeId = BridgeTolokaTypeId,
                     Collected = 0,
+                    Goal = 2000,
                     StartDate = DateTimeHelper.GetNowDate(),
                     CompletedDate = null,
                 });
                 uow.Context.SaveChanges();
                 uow.Commit();
+            }
+        }
+
+        private int GetReceiptId(string logicName)
+        {
+            using (var uow = GetUow())
+            {
+                return uow.Context.Receipts.Single(x => x.LogicName == logicName).Id;
             }
         }
 

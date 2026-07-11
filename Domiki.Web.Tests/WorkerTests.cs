@@ -206,8 +206,8 @@ namespace Domiki.Web.Tests
         }
 
 
-        [TestCase(25, 60)]
-        public void FinishManufactureAccumulatesWorkerWorkedSecondsTest(int receiptId, int expectedWorkedSeconds)
+        [Test]
+        public void TradeManufactureDoesNotAccumulateFatigueTest()
         {
             var playerId = GetPlayerId();
             BuyDomik(playerId, 2);
@@ -216,10 +216,10 @@ namespace Domiki.Web.Tests
             var worker = GetWorkers(playerId).Single();
             SetWorkerTrait(worker.Id, 1);
 
-            StartManufacture(playerId, 2, receiptId, true);
+            StartManufacture(playerId, 2, 25, true);
 
             worker = GetWorkers(playerId).Single();
-            Assert.That(worker.WorkedSeconds, Is.EqualTo(expectedWorkedSeconds));
+            Assert.That(worker.WorkedSeconds, Is.EqualTo(0));
             Assert.That(worker.RestUntil, Is.Null);
         }
 

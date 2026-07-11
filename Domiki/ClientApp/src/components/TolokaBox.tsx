@@ -27,7 +27,6 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute 
     const cost = [{ typeId: active.resourceTypeId, value: amount }];
     const progress = Math.min(100, Math.floor(active.collected * 100 / active.goal));
     const canAfford = amount > 0 && hasResourcesFor(cost, resources);
-    const buffLeft = toloka.buffUntil == null ? 0 : remainingSeconds(toloka.buffUntil, now);
     const buildStage = 1 + Math.floor(active.collected * 4 / active.goal);
 
     const submit = async () => {
@@ -41,9 +40,12 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute 
                 <span className="reputation-chip" title="Длительность баффа Сходни">
                     бафф: {toloka.buffHours}ч{toloka.nextBuffHours != null ? ` → ${toloka.nextBuffHours}ч` : ''}
                 </span>
-                {toloka.buffActive && toloka.buffUntil != null && buffLeft > 0 &&
-                    <span className="reputation-chip">+{toloka.buffPercent} % выход: {formatDuration(buffLeft)}</span>
-                }
+                {toloka.activeBuffs.map(buff => {
+                    const left = remainingSeconds(buff.buffUntil, now);
+                    return left > 0 ? (
+                        <span key={buff.logicName} className="reputation-chip">+{buff.percent} % {buff.label}: {formatDuration(left)}</span>
+                    ) : null;
+                })}
             </div>
             <div className="toloka-card">
                 <TolokaSprite className="toloka-sprite" logicName={active.logicName} level={buildStage} aria-hidden="true" />

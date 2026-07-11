@@ -443,6 +443,7 @@ export const DomikiPage = () => {
     ];
     const visibleGameTabs = gameTabs.filter(tab => tab.visible);
     const activeGameTab = visibleGameTabs.find(tab => tab.key === activeTab) ?? visibleGameTabs[0];
+    const nextGoal = villageLevel?.upcomingUnlocks.find((unlock): unlock is typeof unlock & { level: number } => unlock.level != null);
 
     return (
         <div className="game">
@@ -498,20 +499,23 @@ export const DomikiPage = () => {
                                 <span>Жители: {villageLevel.residents}</span>
                                 <span>Репутация: {villageLevel.reputation}</span>
                                 <span>Уют: {villageLevel.comfort}</span>
-                                {villageLevel.upcomingUnlocks.slice(0, 3).map(unlock => (
-                                    <span key={`${unlock.level}-${unlock.label}`} className="village-level-next">
-                                        {unlock.label}: {unlock.level}
+                                {[
+                                    ...villageLevel.upcomingUnlocks.filter(unlock => unlock.level != null).slice(0, 3),
+                                    ...villageLevel.upcomingUnlocks.filter(unlock => unlock.level == null),
+                                ].map(unlock => (
+                                    <span key={`${unlock.label}-${unlock.level ?? unlock.requirement}`} className="village-level-next">
+                                        {unlock.label}: {unlock.level != null ? unlock.level : unlock.requirement}
                                     </span>
                                 ))}
                             </div>,
                             document.body)}
-                        {villageLevel.upcomingUnlocks[0] != null &&
+                        {nextGoal != null &&
                             <div className="hud-goal"
-                                title={`Откроется при обжитости ${villageLevel.upcomingUnlocks[0].level}: ${villageLevel.upcomingUnlocks[0].label}`}>
+                                title={`Откроется при обжитости ${nextGoal.level}: ${nextGoal.label}`}>
                                 <LockIcon className="hud-goal-ico" aria-hidden="true" />
-                                <span className="hud-goal-label">{villageLevel.upcomingUnlocks[0].label}</span>
-                                <ProgressBar value={villageLevel.level} max={villageLevel.upcomingUnlocks[0].level}
-                                    label={`${villageLevel.level}/${villageLevel.upcomingUnlocks[0].level}`} />
+                                <span className="hud-goal-label">{nextGoal.label}</span>
+                                <ProgressBar value={villageLevel.level} max={nextGoal.level}
+                                    label={`${villageLevel.level}/${nextGoal.level}`} />
                             </div>}
                     </>
                 }

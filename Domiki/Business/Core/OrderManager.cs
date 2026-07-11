@@ -17,6 +17,7 @@ namespace Domiki.Web.Business.Core
         private PlayerResourceManager _playerResourceManager;
         private VillageLevelCalculator _villageLevelCalculator;
         private SeasonManager _seasonManager;
+        private TolokaManager _tolokaManager;
 
         public static readonly OrderTier[] Tiers =
         {
@@ -37,7 +38,8 @@ namespace Domiki.Web.Business.Core
             ResourceManager resourceManager,
             PlayerResourceManager playerResourceManager,
             VillageLevelCalculator villageLevelCalculator,
-            SeasonManager seasonManager)
+            SeasonManager seasonManager,
+            TolokaManager tolokaManager)
         {
             _context = context;
             _calculator = calculator;
@@ -46,6 +48,7 @@ namespace Domiki.Web.Business.Core
             _playerResourceManager = playerResourceManager;
             _villageLevelCalculator = villageLevelCalculator;
             _seasonManager = seasonManager;
+            _tolokaManager = tolokaManager;
         }
 
         public void EnsureOrderBoard(int playerId)
@@ -122,10 +125,12 @@ namespace Domiki.Web.Business.Core
             }).ToArray();
 
             _playerResourceManager.WriteOffResources(playerId, resources);
-            _playerResourceManager.GrantResource(playerId, CoinResourceTypeId, dbOrder.RewardCoins);
+            var orderBonus = _tolokaManager.GetOrderRewardBonusPercent(playerId, DateTimeHelper.GetNowDate());
+            var rewardCoins = (int)Math.Round(dbOrder.RewardCoins * (100 + orderBonus) / 100.0, MidpointRounding.AwayFromZero);
+            _playerResourceManager.GrantResource(playerId, CoinResourceTypeId, rewardCoins);
             _playerResourceManager.GrantResource(playerId, GoldResourceTypeId, dbOrder.RewardGold);
             _playerResourceManager.GrantReputation(playerId, dbOrder.NeighborId, dbOrder.RewardReputation);
-            _seasonManager.IncrementCounter(playerId, SeasonMetric.Orders, dbOrder.RewardCoins, DateTimeHelper.GetNowDate());
+            _seasonManager.IncrementCounter(playerId, SeasonMetric.Orders, rewardCoins, DateTimeHelper.GetNowDate());
 
             _context.Orders.Remove(dbOrder);
             _context.SaveChanges();

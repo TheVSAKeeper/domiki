@@ -434,6 +434,7 @@ namespace Domiki.Web.Tests
                 {
                     TolokaTypeId = BridgeTolokaTypeId,
                     Collected = 0,
+                    Goal = 2000,
                     StartDate = DateTimeHelper.GetNowDate(),
                     CompletedDate = null,
                 });
