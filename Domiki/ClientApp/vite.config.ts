@@ -5,6 +5,7 @@ import svgr from 'vite-plugin-svgr';
 import fs from 'node:fs';
 import path from 'node:path';
 import child_process from 'node:child_process';
+import { brotliCompressSync, constants, gzipSync } from 'node:zlib';
 import { env } from 'node:process';
 
 const baseFolder =
@@ -52,6 +53,28 @@ const backendPaths = [
 
 const proxy = Object.fromEntries(backendPaths.map((p) => [p, { target, secure: false }]));
 
+const precompress = () => ({
+    name: 'precompress-static-assets',
+    apply: 'build' as const,
+    closeBundle() {
+        const visit = (directory: string) => {
+            for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+                const fileName = path.join(directory, entry.name);
+                if (entry.isDirectory()) {
+                    visit(fileName);
+                    continue;
+                }
+                if (!/\.(?:css|html|js|json|svg|txt|xml)$/.test(entry.name)) continue;
+                const contents = fs.readFileSync(fileName);
+                if (contents.length < 1024) continue;
+                fs.writeFileSync(`${fileName}.br`, brotliCompressSync(contents, { params: { [constants.BROTLI_PARAM_QUALITY]: 9 } }));
+                fs.writeFileSync(`${fileName}.gz`, gzipSync(contents, { level: 9 }));
+            }
+        };
+        visit(path.resolve('build'));
+    },
+});
+
 export default defineConfig(({ command, mode }) => {
     const useDevServer = command === 'serve' && mode !== 'test';
 
@@ -61,10 +84,15 @@ export default defineConfig(({ command, mode }) => {
 
     return {
         base: '/',
-        plugins: [react(), svgr()],
+        plugins: [react(), svgr(), precompress()],
         build: {
             outDir: 'build',
             emptyOutDir: true,
+            rollupOptions: {
+                output: {
+                    manualChunks: (id) => id.includes('/node_modules/react') ? 'react' : undefined,
+                },
+            },
         },
         server: useDevServer
             ? {

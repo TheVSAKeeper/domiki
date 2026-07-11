@@ -11,6 +11,7 @@ using NLog;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.StaticFiles;
 using System.IO.Compression;
 using System.Security.Claims;
 
@@ -124,8 +125,8 @@ builder.Services.AddResponseCompression(options =>
         "application/manifest+json",
     });
 });
-builder.Services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Optimal);
-builder.Services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Optimal);
+builder.Services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
+builder.Services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
 
 builder.Services.AddHealthChecks();
 
@@ -183,8 +184,52 @@ app.Use(async (context, next) =>
 
 app.UseResponseCompression();
 
+app.Use(async (context, next) =>
+{
+    var originalPath = context.Request.Path;
+    var acceptEncoding = context.Request.GetTypedHeaders().AcceptEncoding;
+    var extension = acceptEncoding?.Any(x => x.Value.Equals("br", StringComparison.OrdinalIgnoreCase) && x.Quality.GetValueOrDefault(1) > 0) == true
+        ? ".br"
+        : acceptEncoding?.Any(x => x.Value.Equals("gzip", StringComparison.OrdinalIgnoreCase) && x.Quality.GetValueOrDefault(1) > 0) == true
+            ? ".gz"
+            : null;
+
+    if (extension != null && originalPath.HasValue)
+    {
+        var compressedPath = app.Environment.WebRootFileProvider.GetFileInfo(originalPath.Value.TrimStart('/') + extension);
+        if (compressedPath.Exists)
+        {
+            context.Request.Path = originalPath + extension;
+            context.Response.Headers.ContentEncoding = extension == ".br" ? "br" : "gzip";
+            context.Response.Headers.Append("Vary", "Accept-Encoding");
+            context.Response.OnStarting(() =>
+            {
+                context.Response.ContentType = Path.GetExtension(originalPath.Value) switch
+                {
+                    ".css" => "text/css",
+                    ".html" => "text/html; charset=utf-8",
+                    ".js" => "text/javascript",
+                    ".json" => "application/json",
+                    ".svg" => "image/svg+xml",
+                    ".xml" => "text/xml",
+                    _ => context.Response.ContentType,
+                };
+                return Task.CompletedTask;
+            });
+        }
+    }
+
+    await next();
+    context.Request.Path = originalPath;
+});
+
+var staticContentTypes = new FileExtensionContentTypeProvider();
+staticContentTypes.Mappings[".br"] = "application/octet-stream";
+staticContentTypes.Mappings[".gz"] = "application/octet-stream";
+
 app.UseStaticFiles(new StaticFileOptions
 {
+    ContentTypeProvider = staticContentTypes,
     OnPrepareResponse = context =>
     {
         var path = context.Context.Request.Path.Value;
