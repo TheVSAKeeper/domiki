@@ -29,7 +29,7 @@ import { useToast } from '../services/toast';
 import { disablePush, enablePush, getPushState } from '../services/push';
 import type { PushState } from '../services/push';
 import { useGameData } from '../hooks/useGameData';
-import { GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, sortDomiks, workerFitness } from '../utils/game';
+import { COIN_RESOURCE_TYPE_ID, GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, sortDomiks, workerFitness } from '../utils/game';
 import type { DomikSortMode } from '../utils/game';
 import { domikThemedName } from '../utils/domikNames';
 import { formatDuration, remainingSeconds } from '../utils/time';
@@ -100,8 +100,12 @@ export const DomikiPage = () => {
     };
     const closeLevelFlyout = () => setLevelFlyout(null);
     const gameTabsRef = useRef<HTMLDivElement>(null);
+    const gameTabPanelRef = useRef<HTMLDivElement>(null);
     const tabAnchorReady = useRef(false);
     const scrollTabsPending = useRef(false);
+    const hudSentinelRef = useRef<HTMLDivElement>(null);
+    const [hudAway, setHudAway] = useState(false);
+    const [hudPinnedOpen, setHudPinnedOpen] = useState(false);
     const [identityDismissed, setIdentityDismissed] = useState(false);
     const [draftVillageName, setDraftVillageName] = useState('');
     const [draftCrestIcon, setDraftCrestIcon] = useState(0);
@@ -175,6 +179,28 @@ export const DomikiPage = () => {
         scrollTabsPending.current = false;
         gameTabsRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
     }, [activeTab]);
+
+    useEffect(() => {
+        const sentinel = hudSentinelRef.current;
+        if (sentinel == null) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(entries => {
+            const entry = entries[0];
+            if (entry == null) {
+                return;
+            }
+
+            setHudAway(!entry.isIntersecting);
+            if (entry.isIntersecting) {
+                setHudPinnedOpen(false);
+            }
+        });
+
+        observer.observe(sentinel);
+        return () => { observer.disconnect(); };
+    }, []);
 
     const toggleExpand = (receiptId: number) =>
         setExpandedReceiptId(prev => (prev === receiptId ? null : receiptId));
@@ -262,6 +288,9 @@ export const DomikiPage = () => {
             ? domikThemedName(name, typeId, domikOrdinals.ordinalById.get(id) ?? 1)
             : name;
     const currentWeather = weather?.current ?? null;
+    const hudCollapsed = hudAway && !hudPinnedOpen;
+    const coinType = resourceTypes.find(t => t.id === COIN_RESOURCE_TYPE_ID);
+    const coinValue = resources.find(r => r.typeId === COIN_RESOURCE_TYPE_ID)?.value;
     const weatherEffect = selected == null
         ? null
         : currentWeather?.effects.find(effect => effect.domikTypeId === selected.domikType.id) ?? null;
@@ -417,7 +446,22 @@ export const DomikiPage = () => {
 
     return (
         <div className="game">
-            <header className="hud pixel-panel">
+            <div className="hud-sentinel" ref={hudSentinelRef} aria-hidden="true" />
+            <header className={'hud pixel-panel' + (hudCollapsed ? ' hud-collapsed' : '')}>
+                <button type="button" className="hud-compact" onClick={() => { setHudPinnedOpen(true); }} title="Развернуть панель">
+                    {coinType != null && coinValue != null && <HudResource resourceType={coinType} value={coinValue} />}
+                    <div className="resource-box">
+                        <img src="/images/modificatorTypes/plodder.png" alt="Трудяги" />
+                        <span className="resource-value">{plodder.free}/{plodder.max}</span>
+                    </div>
+                    {villageLevel != null &&
+                        <span className="resource-box">
+                            <MechanicSprite logicName="obzhitost" size={24} className="village-level-ico" aria-hidden="true" />
+                            <span className="resource-value">{villageLevel.level}</span>
+                        </span>}
+                    {currentWeather != null && <WeatherSprite logicName={currentWeather.logicName} className="weather-ico" aria-hidden="true" />}
+                    <ChevronDownIcon className="btn-ico hud-compact-caret" aria-hidden="true" />
+                </button>
                 <div className="resources">
                     {resourceTypes.length > 0 &&
                         resources.map(resource => {
@@ -525,6 +569,10 @@ export const DomikiPage = () => {
                         }
                     </div>
                 }
+                {hudAway && hudPinnedOpen &&
+                    <button type="button" className="hud-fold" onClick={() => { setHudPinnedOpen(false); }} title="Свернуть панель">
+                        <ChevronUpIcon className="btn-ico" aria-hidden="true" />
+                    </button>}
             </header>
             {identityVisible &&
                 <div className="modal-backdrop" role="presentation">
@@ -796,6 +844,7 @@ export const DomikiPage = () => {
                         }
                     </div>
                 </section>
+                {selected != null && <div className="actions-scrim" role="presentation" onClick={() => { setSelectedDomikId(null); }} />}
                 <aside className={'actions pixel-panel' + (selected == null ? ' actions--empty' : '')}>
                     <button type="button" className="actions-close" title="Закрыть" onClick={() => setSelectedDomikId(null)}>
                         <CloseIcon className="btn-ico" aria-hidden="true" />
@@ -1001,16 +1050,25 @@ export const DomikiPage = () => {
                 </aside>
             </div>
             <div className="game-tabs" ref={gameTabsRef}>
+                <button type="button" className="game-tab game-tab-home" onClick={() => { window.scrollTo({ top: 0 }); }}>
+                    <BuildingIcon className="game-tab-ico" aria-hidden="true" />
+                    Домики
+                </button>
                 {visibleGameTabs.map(tab => (
                     <button type="button" key={tab.key}
                         className={'game-tab' + (tab.key === activeGameTab?.key ? ' game-tab-active' : '')}
-                        onClick={() => { setActiveTab(tab.key); }}>
+                        onClick={() => {
+                            setActiveTab(tab.key);
+                            if (window.matchMedia('(max-width: 900px)').matches) {
+                                gameTabPanelRef.current?.scrollIntoView({ block: 'start' });
+                            }
+                        }}>
                         <tab.Icon className="game-tab-ico" aria-hidden="true" />
                         {tab.label}
                     </button>
                 ))}
             </div>
-            <div className="game-tab-panel">
+            <div className="game-tab-panel" ref={gameTabPanelRef}>
                 {activeGameTab?.node}
             </div>
         </div>

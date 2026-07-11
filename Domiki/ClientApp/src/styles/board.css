@@ -41,6 +41,10 @@
     background: var(--pine);
 }
 
+.game-tab-home {
+    display: none;
+}
+
 .game-tab-ico {
     width: 20px;
     height: 20px;
@@ -431,4 +435,31 @@
     width: 24px;
     height: 24px;
     flex: none;
+}
+
+@media (max-width: 900px) {
+    .game-tabs {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 850;
+        margin: 0;
+        padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+        background: var(--plank);
+        border-top: 3px solid var(--ink);
+    }
+
+    .game-tab-home {
+        display: inline-flex;
+    }
+
+    .game-tab-panel {
+        min-height: 45vh;
+        scroll-margin-top: 68px;
+    }
+
+    .game {
+        padding-bottom: calc(76px + env(safe-area-inset-bottom));
+    }
 }

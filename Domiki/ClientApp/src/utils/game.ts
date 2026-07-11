@@ -4,6 +4,7 @@ import { formatDuration, remainingSeconds } from './time';
 export const INSTA_FINISH_SECONDS_PER_GOLD = 3600;
 export const INSTA_FINISH_MAX_GOLD = 6;
 export const GOLD_RESOURCE_TYPE_ID = 5;
+export const COIN_RESOURCE_TYPE_ID = 1;
 
 const plodderTypeId = 1;
 

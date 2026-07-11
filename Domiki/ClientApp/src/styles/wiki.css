@@ -107,7 +107,7 @@
     font-weight: 700;
     color: var(--ink);
     margin: 0;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
 
 .wiki-building-meta {
@@ -273,5 +273,25 @@
     width: 32px;
     height: 32px;
     flex-shrink: 0;
+}
+
+@media (max-width: 575px) {
+    .wiki-building-head {
+        flex-wrap: wrap;
+    }
+
+        .wiki-building-head .receipt-caret {
+            margin-left: auto;
+        }
+
+    .wiki-building-titles {
+        flex: 1 1 0;
+    }
+
+    .wiki-building-aside {
+        flex-basis: 100%;
+        order: 4;
+        margin-left: 0;
+    }
 }
 

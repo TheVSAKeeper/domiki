@@ -273,23 +273,39 @@ progress {
     display: none;
 }
 
+.actions-scrim {
+    display: none;
+}
+
 @media (max-width: 900px) {
     .workspace {
         flex-direction: column;
+        align-items: stretch;
+    }
+
+    .actions-scrim {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 880;
+        background: rgba(51, 41, 26, .45);
     }
 
     .actions {
         position: fixed;
+        top: auto;
         left: 0;
         right: 0;
         bottom: 0;
         width: 100%;
         max-height: 65vh;
         overflow-y: auto;
+        overscroll-behavior: contain;
         z-index: 900;
         border-top: 3px solid var(--ink);
         box-shadow: 0 -6px 0 var(--plank-dark);
         animation: sheet-up .2s steps(3, end);
+        padding-bottom: calc(18px + env(safe-area-inset-bottom));
     }
 
     .actions--empty {
