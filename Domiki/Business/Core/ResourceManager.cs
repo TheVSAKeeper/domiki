@@ -26,10 +26,14 @@ namespace Domiki.Web.Business.Core
             _context = context;
         }
 
-        public static int GetMarketValue(int resourceTypeId)
+        public static int GetMarketValue(int resourceTypeId) => resourceTypeId switch
         {
-            return resourceTypeId == 6 || resourceTypeId == 7 ? 35 : BaseMarketValue;
-        }
+            5 => 100,
+            6 or 7 => 35,
+            8 => 55,
+            9 => 95,
+            _ => BaseMarketValue,
+        };
 
         public ModificatorType[] GetModificatorTypes()
         {

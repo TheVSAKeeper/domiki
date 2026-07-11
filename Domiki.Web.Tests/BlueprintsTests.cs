@@ -105,7 +105,7 @@ namespace Domiki.Web.Tests
             StartManufacture(playerId, market.Id, SellFurnitureReceiptId);
             var afterSell = GetResources(playerId);
             Assert.That(ResourceValue(afterSell, FurnitureResourceTypeId), Is.EqualTo(0));
-            Assert.That(ResourceValue(afterSell, CoinResourceTypeId) - ResourceValue(afterMake, CoinResourceTypeId), Is.EqualTo(70));
+            Assert.That(ResourceValue(afterSell, CoinResourceTypeId) - ResourceValue(afterMake, CoinResourceTypeId), Is.EqualTo(95));
         }
 
         private int GetPlayerId()

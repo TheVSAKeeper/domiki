@@ -214,8 +214,8 @@ namespace Domiki.Web.Data
                 .HasForeignKey(e => e.BlueprintId);
 
             modelBuilder.Entity<Neighbor>().HasData(
-                new Neighbor { Id = 1, Name = "Заречье", LogicName = "zarechye", PrimaryResourceTypeId = 6, UnlockLevel = 8 },
-                new Neighbor { Id = 2, Name = "Боровое", LogicName = "borovoe", PrimaryResourceTypeId = 7, UnlockLevel = 8 },
+                new Neighbor { Id = 1, Name = "Заречье", LogicName = "zarechye", PrimaryResourceTypeId = 6, UnlockLevel = 10 },
+                new Neighbor { Id = 2, Name = "Боровое", LogicName = "borovoe", PrimaryResourceTypeId = 7, UnlockLevel = 10 },
                 new Neighbor { Id = 3, Name = "Каменка", LogicName = "kamenka", PrimaryResourceTypeId = 2, UnlockLevel = 3 },
                 new Neighbor { Id = 4, Name = "Глинищи", LogicName = "glinischi", PrimaryResourceTypeId = 4, UnlockLevel = 0 },
                 new Neighbor { Id = 5, Name = "Дубрава", LogicName = "dubrava", PrimaryResourceTypeId = 3, UnlockLevel = 0 });

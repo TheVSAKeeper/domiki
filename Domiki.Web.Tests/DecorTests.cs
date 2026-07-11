@@ -29,7 +29,7 @@ namespace Domiki.Web.Tests
 
             var decor = GetDecor(playerId);
 
-            Assert.That(decor.Types.Select(x => x.LogicName), Is.EquivalentTo(new[] { "fence", "flowerbed", "garden", "fountain" }));
+            Assert.That(decor.Types.Select(x => x.LogicName), Is.EquivalentTo(new[] { "fence", "flowerbed", "garden", "fountain", "bench" }));
             Assert.That(decor.Owned, Is.Empty);
             Assert.That(decor.Comfort, Is.EqualTo(0));
         }

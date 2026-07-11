@@ -2,6 +2,7 @@ import FlowerIcon from 'pixelarticons/svg/heart.svg?react';
 import FenceIcon from 'pixelarticons/svg/grid-3x2.svg?react';
 import FountainIcon from 'pixelarticons/svg/home.svg?react';
 import GardenIcon from 'pixelarticons/svg/tree.svg?react';
+import BenchIcon from 'pixelarticons/svg/sofa.svg?react';
 import PlusIcon from 'pixelarticons/svg/plus-box.svg?react';
 import type { DecorStateDto, ResourceDto, ResourceTypeDto } from '../types/api';
 import { hasResourcesFor } from '../utils/game';
@@ -20,6 +21,7 @@ const DECOR_ICONS: Record<string, typeof FenceIcon> = {
     flowerbed: FlowerIcon,
     garden: GardenIcon,
     fountain: FountainIcon,
+    bench: BenchIcon,
 };
 
 export const DecorBox = ({ decor, resourceTypes, resources, onBuy }: DecorBoxProps) => {
