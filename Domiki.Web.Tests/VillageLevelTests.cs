@@ -28,6 +28,14 @@ namespace Domiki.Web.Tests
             Assert.That(withReputation.Level, Is.EqualTo(8));
         }
 
+        [TestCase(49, 49)]
+        [TestCase(50, 50)]
+        [TestCase(80, 50)]
+        public void ComfortContributionToLevelIsCappedTest(int comfort, int expectedContribution)
+        {
+            Assert.That(VillageLevelCalculator.ComputeLevel(0, 0, 0, comfort), Is.EqualTo(expectedContribution));
+        }
+
         [Test]
         public void BuyDomikGateBlocksBeforeThresholdAndAllowsAfterTest()
         {

@@ -6,6 +6,7 @@ namespace Domiki.Web.Business.Core
     public class OrderManager
     {
         public const int BoardSize = 3;
+        public const int OrderRefillDelaySeconds = 30 * 60;
         private const int CoinResourceTypeId = 1;
         private const int GoldResourceTypeId = 5;
 
@@ -50,6 +51,23 @@ namespace Domiki.Web.Business.Core
         public void EnsureOrderBoard(int playerId)
         {
             var count = _context.Orders.Count(x => x.PlayerId == playerId);
+            var player = _context.Players.First(x => x.Id == playerId);
+            if (count >= BoardSize)
+            {
+                if (player.NextOrderRefillAt != null)
+                {
+                    player.NextOrderRefillAt = null;
+                    _context.SaveChanges();
+                }
+
+                return;
+            }
+
+            if (player.NextOrderRefillAt != null && DateTimeHelper.GetNowDate() < player.NextOrderRefillAt)
+            {
+                return;
+            }
+
             var villageLevel = _villageLevelCalculator.GetLevel(playerId).Level;
             var created = new List<CalculateInfo>();
 
@@ -60,10 +78,8 @@ namespace Domiki.Web.Business.Core
                 count++;
             }
 
-            if (created.Count == 0)
-            {
-                return;
-            }
+            player.NextOrderRefillAt = null;
+            _context.SaveChanges();
 
             var afterEventAction = _uow.AfterEventAction;
             _uow.AfterEventAction = () =>
@@ -114,6 +130,13 @@ namespace Domiki.Web.Business.Core
             _context.Orders.Remove(dbOrder);
             _context.SaveChanges();
 
+            var player = _context.Players.First(x => x.Id == playerId);
+            if (player.NextOrderRefillAt == null)
+            {
+                player.NextOrderRefillAt = DateTimeHelper.GetNowDate().AddSeconds(OrderRefillDelaySeconds);
+                _context.SaveChanges();
+            }
+
             EnsureOrderBoard(playerId);
         }
 
@@ -131,6 +154,14 @@ namespace Domiki.Web.Business.Core
             {
                 _context.Orders.Remove(dbOrder);
                 _context.SaveChanges();
+
+                var player = _context.Players.First(x => x.Id == calcInfo.PlayerId);
+                if (player.NextOrderRefillAt == null)
+                {
+                    player.NextOrderRefillAt = DateTimeHelper.GetNowDate().AddSeconds(OrderRefillDelaySeconds);
+                    _context.SaveChanges();
+                }
+
                 EnsureOrderBoard(calcInfo.PlayerId);
                 return true;
             }

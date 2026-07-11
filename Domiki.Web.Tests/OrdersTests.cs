@@ -18,7 +18,7 @@ namespace Domiki.Web.Tests
         }
 
         [Test]
-        public void CompleteOrderWithEnoughResourcesWritesOffRewardsAndRefillsTest()
+        public void CompleteOrderWithEnoughResourcesWritesOffRewardsAndHoldsSlotTest()
         {
             var playerId = GetPlayerId();
             var order = GetOrders(playerId).First();
@@ -37,8 +37,38 @@ namespace Domiki.Web.Tests
             Assert.That(afterReputation - beforeReputation, Is.EqualTo(order.RewardReputation));
 
             var orders = GetOrders(playerId);
-            Assert.That(orders.Length, Is.EqualTo(3));
+            Assert.That(orders.Length, Is.EqualTo(2));
             Assert.That(orders.Any(x => x.Id == order.Id), Is.False);
+        }
+
+        [Test]
+        public void CompleteOrderHoldsSlotOnRepeatedFetchTest()
+        {
+            var playerId = GetPlayerId();
+            var order = GetOrders(playerId).First();
+            var need = order.Resources.Single();
+            GrantResource(playerId, need.Type.Id, need.Value);
+
+            CompleteOrder(playerId, order.Id);
+
+            var orders = GetOrders(playerId);
+            Assert.That(orders.Length, Is.EqualTo(2));
+            Assert.That(orders.Any(x => x.Id == order.Id), Is.False);
+        }
+
+        [Test]
+        public void OrderBoardRefillsAfterDelayElapsesTest()
+        {
+            var playerId = GetPlayerId();
+            var order = GetOrders(playerId).First();
+            var need = order.Resources.Single();
+            GrantResource(playerId, need.Type.Id, need.Value);
+
+            CompleteOrder(playerId, order.Id);
+            SetOrderRefillAt(playerId, DateTimeHelper.GetNowDate().AddSeconds(-1));
+
+            var orders = GetOrders(playerId);
+            Assert.That(orders.Length, Is.EqualTo(3));
         }
 
         [Test]
@@ -83,7 +113,7 @@ namespace Domiki.Web.Tests
         }
 
         [Test]
-        public void FinishOrderRemovesExpiredOrderAndRefillsTest()
+        public void FinishOrderRemovesExpiredOrderAndHoldsSlotTest()
         {
             var playerId = GetPlayerId();
             var order = GetOrders(playerId).First();
@@ -91,7 +121,7 @@ namespace Domiki.Web.Tests
             FinishOrder(playerId, order.Id, order.ExpireDate.AddSeconds(1));
 
             var orders = GetOrders(playerId);
-            Assert.That(orders.Length, Is.EqualTo(3));
+            Assert.That(orders.Length, Is.EqualTo(2));
             Assert.That(orders.Any(x => x.Id == order.Id), Is.False);
         }
 
@@ -193,6 +223,17 @@ namespace Domiki.Web.Tests
                     Type = CalculateTypes.OrderExpire,
                 });
                 Assert.That(result, Is.True);
+                uow.Commit();
+            }
+        }
+
+        private void SetOrderRefillAt(int playerId, DateTime value)
+        {
+            using (var uow = GetUow())
+            {
+                var player = uow.Context.Players.Single(x => x.Id == playerId);
+                player.NextOrderRefillAt = value;
+                uow.Context.SaveChanges();
                 uow.Commit();
             }
         }

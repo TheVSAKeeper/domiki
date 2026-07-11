@@ -25,6 +25,8 @@ namespace Domiki.Web.Data
 
         public DateTime? LastSeen { get; set; }
 
+        public DateTime? NextOrderRefillAt { get; set; }
+
         [MaxLength(450)]
         [Required(AllowEmptyStrings = false)]
         public string AspNetUserId { get; set; }

@@ -8,6 +8,7 @@ namespace Domiki.Web.Business.Core
         public const int ResidentWeight = 2;
         public const int ReputationWeight = 5;
         public const int ComfortWeight = 1;
+        public const int ComfortHabitabilityCap = 50;
         public const int ReputationPointsPerMilestone = 10;
         public const int SmartAutoUnlockLevel = 8;
 
@@ -51,7 +52,7 @@ namespace Domiki.Web.Business.Core
             return buildings * BuildingWeight
                 + residents * ResidentWeight
                 + reputationMilestones * ReputationWeight
-                + comfort * ComfortWeight;
+                + Math.Min(comfort, ComfortHabitabilityCap) * ComfortWeight;
         }
 
         public bool CanBuyDomik(int playerId, DomikType domikType)
