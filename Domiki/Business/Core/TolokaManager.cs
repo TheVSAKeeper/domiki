@@ -8,19 +8,23 @@ namespace Domiki.Web.Business.Core
         public const int TolokaBuffPercent = 25;
         public static int GetBuffSeconds(int level) => (6 + 2 * level) * 3600;
 
+        private readonly Data.UnitOfWork _uow;
         private readonly Data.ApplicationDbContext _context;
         private readonly ResourceManager _resourceManager;
         private readonly PlayerResourceManager _playerResourceManager;
         private readonly SeasonManager _seasonManager;
         private readonly PlayerEventManager _playerEventManager;
+        private readonly GameStateBroker _broker;
 
-        public TolokaManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, SeasonManager seasonManager, PlayerEventManager playerEventManager)
+        public TolokaManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, SeasonManager seasonManager, PlayerEventManager playerEventManager, GameStateBroker broker)
         {
+            _uow = uow;
             _context = context;
             _resourceManager = resourceManager;
             _playerResourceManager = playerResourceManager;
             _seasonManager = seasonManager;
             _playerEventManager = playerEventManager;
+            _broker = broker;
         }
 
         public TolokaState GetToloka(DateTime date, int playerId)
@@ -105,6 +109,13 @@ namespace Domiki.Web.Business.Core
             }
 
             _context.SaveChanges();
+
+            var afterEventAction = _uow.AfterEventAction;
+            _uow.AfterEventAction = () =>
+            {
+                afterEventAction?.Invoke();
+                _broker.Broadcast(GameStateScopes.Toloka);
+            };
         }
 
         public bool HasActiveBuff(int playerId, DateTime date)

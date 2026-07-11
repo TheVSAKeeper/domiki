@@ -87,30 +87,16 @@ export function useGameData(): GameData {
     const [now, setNow] = useState(() => Date.now());
 
     const refetching = useRef(false);
-    const domiksRef = useRef(domiks);
-    const ordersRef = useRef(orders);
+    const pendingReload = useRef(false);
     const workersRef = useRef(workers);
-    const weatherRef = useRef(weather);
     const expeditionsRef = useRef(expeditions);
     const tolokaRef = useRef(toloka);
-    const marketRef = useRef(market);
     const reloadedRestDeadlinesRef = useRef<Set<string>>(new Set());
-
-    useEffect(() => {
-        domiksRef.current = domiks;
-    }, [domiks]);
-
-    useEffect(() => {
-        ordersRef.current = orders;
-    }, [orders]);
+    const reloadedTolokaBuffDeadlinesRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
         workersRef.current = workers;
     }, [workers]);
-
-    useEffect(() => {
-        weatherRef.current = weather;
-    }, [weather]);
 
     useEffect(() => {
         expeditionsRef.current = expeditions;
@@ -119,10 +105,6 @@ export function useGameData(): GameData {
     useEffect(() => {
         tolokaRef.current = toloka;
     }, [toloka]);
-
-    useEffect(() => {
-        marketRef.current = market;
-    }, [market]);
 
     const reload = useCallback(async () => {
         const state = await getGameState();
@@ -151,6 +133,36 @@ export function useGameData(): GameData {
             setRecap(state.recap);
         }
     }, [toast]);
+
+    const scheduleReload = useCallback(() => {
+        if (refetching.current) {
+            pendingReload.current = true;
+            return;
+        }
+
+        refetching.current = true;
+
+        const run = async (): Promise<void> => {
+            try {
+                await reload();
+            } catch (err) {
+                if (err instanceof ApiError) {
+                    toast.error(err.message);
+                } else {
+                    throw err;
+                }
+            } finally {
+                if (pendingReload.current) {
+                    pendingReload.current = false;
+                    void run();
+                } else {
+                    refetching.current = false;
+                }
+            }
+        };
+
+        void run();
+    }, [reload, toast]);
 
     const refreshPurchaseTypes = useCallback(async () => {
         setPurchaseDomikTypes(await apiGet('Domiki/GetPurchaseAvaialableDomiks', domikTypeSchema.array()));
@@ -276,75 +288,93 @@ export function useGameData(): GameData {
     }, [toast]);
 
     useEffect(() => {
-        const id = setInterval(() => {
-            void Promise.all([getToloka(), getMarket()])
-                .then(([nextToloka, nextMarket]) => {
-                    setToloka(nextToloka);
-                    setMarket(nextMarket);
-                })
-                .catch((err: unknown) => {
-                    if (err instanceof ApiError) {
-                        toast.error(err.message);
-                        return;
-                    }
-                    throw err;
-                });
-        }, 15000);
-        return () => clearInterval(id);
-    }, [toast]);
+        const source = new EventSource('Domiki/Stream');
+        let opened = false;
+
+        source.onmessage = event => {
+            if (event.data === 'state') {
+                scheduleReload();
+                return;
+            }
+
+            if (event.data === 'market') {
+                void getMarket()
+                    .then(setMarket)
+                    .catch((err: unknown) => {
+                        if (err instanceof ApiError) {
+                            toast.error(err.message);
+                            return;
+                        }
+                        throw err;
+                    });
+                return;
+            }
+
+            if (event.data === 'toloka') {
+                void getToloka()
+                    .then(setToloka)
+                    .catch((err: unknown) => {
+                        if (err instanceof ApiError) {
+                            toast.error(err.message);
+                            return;
+                        }
+                        throw err;
+                    });
+            }
+        };
+
+        source.onopen = () => {
+            if (opened) {
+                scheduleReload();
+            }
+            opened = true;
+        };
+
+        return () => source.close();
+    }, [scheduleReload, toast]);
 
     useEffect(() => {
-        if (refetching.current) {
-            return;
-        }
-
-        const expired = domiksRef.current.some(domik => {
-            if (domik.finishDate != null && remainingSeconds(domik.finishDate, now) <= 0) {
-                return true;
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                scheduleReload();
             }
-            return domik.manufactures?.some(manufacture => remainingSeconds(manufacture.finishDate, now) <= 0) ?? false;
-        }) || ordersRef.current.some(order => remainingSeconds(order.expireDate, now) <= 0)
-            || (weatherRef.current?.current != null && remainingSeconds(weatherRef.current.current.endDate, now) <= 0)
-            || (expeditionsRef.current?.active.some(expedition => remainingSeconds(expedition.finishDate, now) <= 0) ?? false)
-            || (tolokaRef.current?.buffUntil != null && remainingSeconds(tolokaRef.current.buffUntil, now) <= 0)
-            || (marketRef.current?.lots.some(lot => remainingSeconds(lot.expireDate, now) <= 0) ?? false)
-            || (marketRef.current?.myLots.some(lot => remainingSeconds(lot.expireDate, now) <= 0) ?? false)
-            || workersRef.current.some(worker => {
-                if (worker.restUntil == null) {
-                    return false;
-                }
+        };
 
-                const key = `${worker.id}:${worker.restUntil}`;
-                if (reloadedRestDeadlinesRef.current.has(key)) {
-                    return false;
-                }
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [scheduleReload]);
 
-                if (remainingSeconds(worker.restUntil, now) > 0) {
-                    return false;
-                }
+    useEffect(() => {
+        let expiredWorkerRest = false;
+        for (const worker of workersRef.current) {
+            if (worker.restUntil == null) {
+                continue;
+            }
 
-                reloadedRestDeadlinesRef.current.add(key);
-                return true;
-            });
+            const key = `${worker.id}:${worker.restUntil}`;
+            if (reloadedRestDeadlinesRef.current.has(key) || remainingSeconds(worker.restUntil, now) > 0) {
+                continue;
+            }
 
-        if (!expired) {
+            reloadedRestDeadlinesRef.current.add(key);
+            expiredWorkerRest = true;
+        }
+
+        const buffUntil = tolokaRef.current?.buffUntil;
+        const expiredTolokaBuff = buffUntil != null
+            && remainingSeconds(buffUntil, now) <= 0
+            && !reloadedTolokaBuffDeadlinesRef.current.has(`toloka:${buffUntil}`);
+
+        if (!expiredWorkerRest && !expiredTolokaBuff) {
             return;
         }
 
-        refetching.current = true;
+        if (expiredTolokaBuff) {
+            reloadedTolokaBuffDeadlinesRef.current.add(`toloka:${buffUntil}`);
+        }
 
-        void reload()
-            .catch((err: unknown) => {
-                if (err instanceof ApiError) {
-                    toast.error(err.message);
-                    return;
-                }
-                throw err;
-            })
-            .finally(() => {
-                refetching.current = false;
-            });
-    }, [now, toast, reload]);
+        scheduleReload();
+    }, [now, scheduleReload]);
 
     return {
         domiks,

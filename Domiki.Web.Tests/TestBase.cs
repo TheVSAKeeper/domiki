@@ -10,6 +10,7 @@ namespace Domiki.Web.Tests
     public class TestBase
     {
         protected Settings _options;
+        private readonly GameStateBroker _broker = new();
 
         private static bool _migrated;
         private static readonly object _migrateLock = new object();
@@ -73,7 +74,7 @@ namespace Domiki.Web.Tests
             var villageLevelCalculator = new VillageLevelCalculator(uow.Context, resourceManager, workerManager);
             var blueprintManager = new BlueprintManager(uow.Context, resourceManager, playerResourceManager);
             var playerEventManager = GetPlayerEventManager(uow);
-            var tolokaManager = new TolokaManager(uow, uow.Context, resourceManager, playerResourceManager, GetSeasonManager(uow), playerEventManager);
+            var tolokaManager = new TolokaManager(uow, uow.Context, resourceManager, playerResourceManager, GetSeasonManager(uow), playerEventManager, _broker);
             var domikManager = new DomikManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager, weatherManager, villageLevelCalculator, blueprintManager, tolokaManager, playerEventManager);
             return domikManager;
         }
@@ -128,7 +129,7 @@ namespace Domiki.Web.Tests
         {
             var resourceManager = new ResourceManager(uow.Context);
             var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
-            return new TolokaManager(uow, uow.Context, resourceManager, playerResourceManager, GetSeasonManager(uow), GetPlayerEventManager(uow));
+            return new TolokaManager(uow, uow.Context, resourceManager, playerResourceManager, GetSeasonManager(uow), GetPlayerEventManager(uow), _broker);
         }
 
         public SeasonManager GetSeasonManager(UnitOfWork uow)
@@ -150,7 +151,7 @@ namespace Domiki.Web.Tests
         {
             var resourceManager = new ResourceManager(uow.Context);
             var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
-            return new MarketManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, GetPlayerEventManager(uow));
+            return new MarketManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, GetPlayerEventManager(uow), _broker);
         }
 
         public DecorManager GetDecorManager(UnitOfWork uow)
@@ -169,7 +170,7 @@ namespace Domiki.Web.Tests
             var weatherManager = GetWeatherManager(uow);
             var blueprintManager = new BlueprintManager(uow.Context, resourceManager, playerResourceManager);
             var playerEventManager = GetPlayerEventManager(uow);
-            var tolokaManager = new TolokaManager(uow, uow.Context, resourceManager, playerResourceManager, GetSeasonManager(uow), playerEventManager);
+            var tolokaManager = new TolokaManager(uow, uow.Context, resourceManager, playerResourceManager, GetSeasonManager(uow), playerEventManager, _broker);
             var domikManager = new DomikManager(uow, uow.Context, GetCalculator(true), resourceManager, playerResourceManager, workerManager, weatherManager, villageLevelCalculator, blueprintManager, tolokaManager, playerEventManager);
             return new WorldManager(uow.Context, villageLevelCalculator, domikManager, resourceManager, GetSeasonManager(uow));
         }

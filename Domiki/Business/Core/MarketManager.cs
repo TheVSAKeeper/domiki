@@ -18,8 +18,9 @@ namespace Domiki.Web.Business.Core
         private readonly ResourceManager _resourceManager;
         private readonly PlayerResourceManager _playerResourceManager;
         private readonly PlayerEventManager _playerEventManager;
+        private readonly GameStateBroker _broker;
 
-        public MarketManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, PlayerEventManager playerEventManager)
+        public MarketManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, PlayerEventManager playerEventManager, GameStateBroker broker)
         {
             _uow = uow;
             _context = context;
@@ -27,6 +28,7 @@ namespace Domiki.Web.Business.Core
             _resourceManager = resourceManager;
             _playerResourceManager = playerResourceManager;
             _playerEventManager = playerEventManager;
+            _broker = broker;
         }
 
         public MarketState GetMarket(int playerId)
@@ -106,6 +108,7 @@ namespace Domiki.Web.Business.Core
             {
                 afterEventAction?.Invoke();
                 _calculator.Insert(calcInfo);
+                _broker.Broadcast(GameStateScopes.Market);
             };
         }
 
@@ -162,6 +165,8 @@ namespace Domiki.Web.Business.Core
             {
                 afterEventAction?.Invoke();
                 _calculator.Remove(sellerId.Value, lotId, CalculateTypes.TradeLotExpire);
+                _broker.Broadcast(GameStateScopes.Market);
+                _broker.Publish(sellerId.Value, GameStateScopes.State);
             };
         }
 
@@ -183,6 +188,7 @@ namespace Domiki.Web.Business.Core
             {
                 afterEventAction?.Invoke();
                 _calculator.Remove(playerId, lotId, CalculateTypes.TradeLotExpire);
+                _broker.Broadcast(GameStateScopes.Market);
             };
         }
 

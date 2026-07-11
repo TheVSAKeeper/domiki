@@ -107,6 +107,7 @@ builder.Services.AddScoped<VillageLevelCalculator>();
 builder.Services.AddScoped<PlayerEventManager>();
 builder.Services.AddScoped<PushManager>();
 builder.Services.AddSingleton<PushSender>();
+builder.Services.AddSingleton<GameStateBroker>();
 builder.Services.AddSingleton<ICalculator, Calculator>();
 builder.Services.AddScoped<CalculatorTick>();
 builder.Services.AddHostedService<CalculatorBackgroundService>();
@@ -262,8 +263,63 @@ app.MapPost("/authentication/demo", async (HttpContext http, SignInManager<Appli
         : Results.Unauthorized();
 });
 
+app.MapGet("/Domiki/Stream", async (HttpContext http, GameStateBroker broker) =>
+{
+    int playerId;
+    using (var scope = http.RequestServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
+    {
+        var domikManager = scope.ServiceProvider.GetRequiredService<DomikManager>();
+        playerId = domikManager.GetPlayerId(http.User.FindFirstValue(ClaimTypes.NameIdentifier));
+        scope.ServiceProvider.GetRequiredService<UnitOfWork>().Commit();
+    }
+
+    http.Response.ContentType = "text/event-stream";
+    http.Response.Headers.CacheControl = "no-cache";
+    http.Response.Headers["X-Accel-Buffering"] = "no";
+
+    await http.Response.WriteAsync(": connected\n\n");
+    await http.Response.Body.FlushAsync(http.RequestAborted);
+
+    using var subscription = broker.Subscribe(playerId);
+    try
+    {
+        while (!http.RequestAborted.IsCancellationRequested)
+        {
+            bool canRead;
+            try
+            {
+                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(http.RequestAborted);
+                timeout.CancelAfter(TimeSpan.FromSeconds(15));
+                canRead = await subscription.Reader.WaitToReadAsync(timeout.Token);
+            }
+            catch (OperationCanceledException) when (!http.RequestAborted.IsCancellationRequested)
+            {
+                await http.Response.WriteAsync(": ping\n\n");
+                await http.Response.Body.FlushAsync(http.RequestAborted);
+                continue;
+            }
+
+            if (!canRead)
+            {
+                break;
+            }
+
+            while (subscription.Reader.TryRead(out var changedScope))
+            {
+                await http.Response.WriteAsync($"data: {changedScope}\n\n");
+                await http.Response.Body.FlushAsync(http.RequestAborted);
+            }
+        }
+    }
+    catch (OperationCanceledException) when (http.RequestAborted.IsCancellationRequested)
+    {
+    }
+}).RequireAuthorization();
+
 app.MapFallbackToFile("index.html");
 
 app.UseMiddleware<ExceptionMiddleware>();
-app.UseMiddleware<UnitOfWorkMiddleware>();
+app.UseWhen(
+    context => !context.Request.Path.StartsWithSegments("/Domiki/Stream"),
+    branch => branch.UseMiddleware<UnitOfWorkMiddleware>());
 app.Run();

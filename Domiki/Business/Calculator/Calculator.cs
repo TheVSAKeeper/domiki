@@ -113,6 +113,7 @@ namespace Domiki.Web.Business
                             if (result)
                             {
                                 var pushSender = scope.ServiceProvider.GetRequiredService<PushSender>();
+                                var broker = scope.ServiceProvider.GetRequiredService<GameStateBroker>();
                                 switch (calcDate.Type)
                                 {
                                     case CalculateTypes.Domiks:
@@ -120,6 +121,23 @@ namespace Domiki.Web.Business
                                         break;
                                     case CalculateTypes.Manufacture:
                                         pushSender.Notify(calcDate.PlayerId, "Домики", "Производство завершено – товары готовы", "/domiki-page");
+                                        break;
+                                }
+
+                                switch (calcDate.Type)
+                                {
+                                    case CalculateTypes.Domiks:
+                                    case CalculateTypes.Manufacture:
+                                    case CalculateTypes.OrderExpire:
+                                    case CalculateTypes.Expedition:
+                                        broker.Publish(calcDate.PlayerId, GameStateScopes.State);
+                                        break;
+                                    case CalculateTypes.TradeLotExpire:
+                                        broker.Publish(calcDate.PlayerId, GameStateScopes.State);
+                                        broker.Broadcast(GameStateScopes.Market);
+                                        break;
+                                    case CalculateTypes.WeatherRotation:
+                                        broker.Broadcast(GameStateScopes.State);
                                         break;
                                 }
                             }
