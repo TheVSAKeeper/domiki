@@ -313,6 +313,14 @@ export const Wiki = () => {
             </section>
 
             <section className="wiki-section">
+                <h2 className="section-head">Переделы</h2>
+                <div className="wiki-mechanic-body">
+                    <p>Металлическая цепочка: руда → железо → инструмент. Руду добывают в Руднике, железо выплавляют в Кузнице, а железо с досками куют в инструмент.</p>
+                    <p>До обжитости 20 инструмент добывается только в походах.</p>
+                </div>
+            </section>
+
+            <section className="wiki-section">
                 <h2 className="section-head">Механики</h2>
                 <div className="wiki-buildings">
                     {MECHANICS.map(m => {

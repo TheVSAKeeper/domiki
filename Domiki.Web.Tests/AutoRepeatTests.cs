@@ -72,14 +72,14 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             BuyForgeWithWorker(playerId);
-            GrantResource(playerId, 6, 2);
+            GrantResource(playerId, 17, 2);
             GrantResource(playerId, 7, 1);
 
             StartManufacture(playerId, 4, 24, true);
 
             Assert.That(GetManufactureCount(playerId, 4), Is.Zero);
             Assert.That(GetWorkers(playerId).All(x => x.ManufactureId == null), Is.True);
-            Assert.That(GetResourceValue(playerId, 6), Is.EqualTo(1));
+            Assert.That(GetResourceValue(playerId, 17), Is.EqualTo(1));
             Assert.That(GetResourceValue(playerId, 7), Is.Zero);
             Assert.That(GetResourceValue(playerId, 8), Is.EqualTo(1));
         }

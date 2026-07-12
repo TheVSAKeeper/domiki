@@ -165,6 +165,8 @@ const resourceSprites: Record<string, SpriteComponent> = {
     grain: GrainResSprite,
     flour: FlourResSprite,
     bread: BreadResSprite,
+    ore: StoneResSprite,
+    iron: ToolResSprite,
 };
 
 interface IconSpriteProps extends SVGProps<SVGSVGElement> {

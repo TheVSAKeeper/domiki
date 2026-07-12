@@ -244,7 +244,7 @@ namespace Domiki.Web.Tests
             GrantDomik(playerId, 3, 2);
             GrantDomik(playerId, 4, 1);
             SetWeather(ClearWeatherTypeId);
-            GrantResource(playerId, 6, 1);
+            GrantResource(playerId, 17, 1);
             GrantResource(playerId, 7, 1);
 
             StartManufacture(playerId, 4, GetReceiptId("make_tool"));
@@ -263,7 +263,7 @@ namespace Domiki.Web.Tests
             GrantDomik(playerId, 3, 2);
             GrantDomik(playerId, 4, 1);
             SetWeather(ClearWeatherTypeId);
-            GrantResource(playerId, 6, 1);
+            GrantResource(playerId, 17, 1);
             GrantResource(playerId, 7, 1);
 
             StartManufacture(playerId, 4, GetReceiptId("make_tool"));
