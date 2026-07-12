@@ -10,11 +10,14 @@ import GoldMineSprite from '../assets/domikTypes/gold_mine.svg?react';
 import LumberMillSprite from '../assets/domikTypes/lumber_mill.svg?react';
 import MarketSprite from '../assets/domikTypes/market.svg?react';
 import MarketYardSprite from '../assets/domikTypes/market_yard.svg?react';
+import PotterySprite from '../assets/domikTypes/pottery.svg?react';
 import ScoutHutSprite from '../assets/domikTypes/scout_hut.svg?react';
 import StoneMineSprite from '../assets/domikTypes/stone_mine.svg?react';
+import StonecutterSprite from '../assets/domikTypes/stonecutter.svg?react';
 import WorkshopSprite from '../assets/domikTypes/workshop.svg?react';
 import BridgeSprite from '../assets/tolokaTypes/bridge.svg?react';
 import GranarySprite from '../assets/tolokaTypes/granary.svg?react';
+import KilnSprite from '../assets/tolokaTypes/kiln.svg?react';
 import WorkerPortrait from '../assets/workers/portrait.svg?react';
 import WeatherClearSprite from '../assets/weather/clear.svg?react';
 import WeatherRainSprite from '../assets/weather/rain.svg?react';
@@ -59,14 +62,17 @@ const domikSprites: Record<string, SpriteComponent> = {
     lumber_mill: LumberMillSprite,
     market: MarketSprite,
     market_yard: MarketYardSprite,
+    pottery: PotterySprite,
     scout_hut: ScoutHutSprite,
     stone_mine: StoneMineSprite,
+    stonecutter: StonecutterSprite,
     workshop: WorkshopSprite,
 };
 
 const tolokaSprites: Record<string, SpriteComponent> = {
     bridge: BridgeSprite,
     granary: GranarySprite,
+    kiln: KilnSprite,
 };
 
 const weatherSprites: Record<string, SpriteComponent> = {

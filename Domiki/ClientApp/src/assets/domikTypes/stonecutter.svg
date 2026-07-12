@@ -1,0 +1,230 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges" data-level="1" data-resolution="128" data-size="128" data-working="false" data-motion="on" data-animation-logic="semantic" data-process="молот бьёт по зубилу на каменном блоке, крошка осыпается после удара">
+  <title>Каменотёс</title>
+  <desc>Пиксельный SVG «Каменотёс»: варианты 128/64/32, уровни 1–5 и предметный рабочий процесс data-working/data-motion.</desc>
+  <style>
+    svg[data-level="1"] .lvl2, svg[data-level="1"] .lvl3, svg[data-level="1"] .lvl4, svg[data-level="1"] .lvl5,
+    svg[data-level="2"] .lvl3, svg[data-level="2"] .lvl4, svg[data-level="2"] .lvl5,
+    svg[data-level="3"] .lvl4, svg[data-level="3"] .lvl5,
+    svg[data-level="4"] .lvl5 { display: none; }
+
+    .variant-medium, .variant-small { display: none; }
+    svg[data-size="64"] .variant-full, svg[data-size="medium"] .variant-full,
+    svg[data-size="32"] .variant-full, svg[data-size="small"] .variant-full { display: none; }
+    svg[data-size="64"] .variant-medium, svg[data-size="medium"] .variant-medium { display: inline; }
+    svg[data-size="32"] .variant-small, svg[data-size="small"] .variant-small { display: inline; }
+
+    svg {
+      --domiki-work-speed: 3.2s;
+      --domiki-long-speed: 4.4s;
+      --domiki-mech-speed: .64s;
+    }
+    svg[data-motion="slow"] {
+      --domiki-work-speed: 4.8s;
+      --domiki-long-speed: 6.6s;
+      --domiki-mech-speed: .96s;
+    }
+    svg[data-motion="fast"] {
+      --domiki-work-speed: 1.9s;
+      --domiki-long-speed: 2.65s;
+      --domiki-mech-speed: .4s;
+    }
+
+    .work-state { display: none; }
+    svg[data-working="true"] .work-state,
+    svg[data-working="1"] .work-state {
+      display: inline;
+      animation: domiki-work-reveal 180ms steps(2, end) both;
+    }
+
+    .work-animated {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation-duration: var(--domiki-work-speed);
+      animation-timing-function: steps(1, end);
+      animation-iteration-count: infinite;
+      animation-fill-mode: both;
+    }
+    svg[data-working="true"] .work-animated,
+    svg[data-working="1"] .work-animated { will-change: transform, opacity; }
+
+    .work-state .work-animated.logic-stonecutter-mallet { animation-name: domiki-stonecutter-mallet; animation-duration: var(--domiki-work-speed); animation-delay: 0s; transform-origin: 50% 100%; }
+    .work-state .work-animated.logic-stonecutter-chips { animation-name: domiki-stonecutter-chips; animation-duration: var(--domiki-work-speed); animation-delay: 0s; }
+
+    svg[data-motion="paused"] .work-animated,
+    svg[data-motion="paused"] .work-state { animation-play-state: paused !important; }
+    svg[data-motion="off"] .work-animated,
+    svg[data-motion="off"] .work-state { animation: none !important; }
+
+    @keyframes domiki-work-reveal {
+      0% { opacity: 0; }
+      50%, 100% { opacity: 1; }
+    }
+    @keyframes domiki-stonecutter-mallet {
+      0%, 16% { transform: translate(0, 0); }
+      22% { transform: translate(0, -4px); }
+      28% { transform: translate(0, 8px); }
+      34% { transform: translate(0, 8px); }
+      40% { transform: translate(0, 4px); }
+      48%, 66% { transform: translate(0, 0); }
+      72% { transform: translate(0, -4px); }
+      78% { transform: translate(0, 8px); }
+      84% { transform: translate(0, 8px); }
+      90% { transform: translate(0, 4px); }
+      96%, 100% { transform: translate(0, 0); }
+    }
+    @keyframes domiki-stonecutter-chips {
+      0%, 27% { opacity: 0; transform: translate(0, 0); }
+      28%, 31% { opacity: 1; transform: translate(0, 0); }
+      34% { opacity: .7; transform: translate(-2px, 4px); }
+      38%, 77% { opacity: 0; transform: translate(-4px, 8px); }
+      78%, 81% { opacity: 1; transform: translate(0, 0); }
+      84% { opacity: .7; transform: translate(-2px, 4px); }
+      88%, 100% { opacity: 0; transform: translate(-4px, 8px); }
+    }
+
+    svg:not([data-working="true"]):not([data-working="1"]) .work-animated,
+    svg[data-size="128"] .variant-medium .work-animated,
+    svg[data-size="128"] .variant-small .work-animated,
+    svg[data-size="64"] .variant-full .work-animated,
+    svg[data-size="64"] .variant-small .work-animated,
+    svg[data-size="medium"] .variant-full .work-animated,
+    svg[data-size="medium"] .variant-small .work-animated,
+    svg[data-size="32"] .variant-full .work-animated,
+    svg[data-size="32"] .variant-medium .work-animated,
+    svg[data-size="small"] .variant-full .work-animated,
+    svg[data-size="small"] .variant-medium .work-animated {
+      animation-name: none !important;
+      will-change: auto;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .work-animated, .work-state { animation: none !important; }
+      .work-animated { opacity: 1; transform: none; }
+    }
+  </style>
+  <g class="variant-full">
+    <rect x="8" y="104" width="112" height="4" fill="#4b5156"/>
+    <rect x="0" y="108" width="128" height="4" fill="#5d6469"/>
+    <rect x="0" y="112" width="128" height="12" fill="#92999e"/>
+    <rect x="20" y="116" width="4" height="4" fill="#737b80"/>
+    <rect x="64" y="116" width="4" height="4" fill="#737b80"/>
+    <rect x="100" y="116" width="4" height="4" fill="#737b80"/>
+    <rect x="8" y="24" width="112" height="20" fill="#24282d"/>
+    <rect x="12" y="28" width="104" height="12" fill="#986638"/>
+    <rect x="12" y="28" width="104" height="4" fill="#b98246"/>
+    <rect x="16" y="44" width="96" height="4" fill="#80532a"/>
+    <rect x="16" y="48" width="8" height="60" fill="#704925"/>
+    <rect x="104" y="48" width="8" height="60" fill="#704925"/>
+    <rect x="36" y="84" width="56" height="12" fill="#24282d"/>
+    <rect x="40" y="88" width="48" height="4" fill="#b98246"/>
+    <rect x="44" y="96" width="8" height="12" fill="#704925"/>
+    <rect x="76" y="96" width="8" height="12" fill="#704925"/>
+    <rect x="44" y="56" width="40" height="28" fill="#24282d"/>
+    <rect x="48" y="60" width="32" height="20" fill="#8f8f8f"/>
+    <rect x="72" y="60" width="8" height="20" fill="#565656"/>
+    <rect x="48" y="76" width="24" height="4" fill="#565656"/>
+    <rect x="52" y="64" width="4" height="4" fill="#c9c2b4"/>
+    <rect x="48" y="48" width="4" height="8" fill="#5d6469"/>
+    <g class="lvl2">
+      <rect x="4" y="84" width="24" height="24" fill="#24282d"/>
+      <rect x="8" y="88" width="16" height="16" fill="#8f8f8f"/>
+      <rect x="8" y="96" width="16" height="8" fill="#565656"/>
+      <rect x="20" y="72" width="16" height="4" fill="#c9c2b4"/>
+      <rect x="28" y="76" width="4" height="32" fill="#704925"/>
+    </g>
+    <g class="lvl3">
+      <rect x="56" y="48" width="16" height="4" fill="#5d6469"/>
+      <rect x="64" y="52" width="4" height="4" fill="#24282d"/>
+      <rect x="72" y="48" width="4" height="8" fill="#704925"/>
+    </g>
+    <g class="lvl4">
+      <rect x="84" y="80" width="28" height="28" fill="#24282d"/>
+      <rect x="88" y="84" width="20" height="20" fill="#8f8f8f"/>
+      <rect x="96" y="92" width="4" height="4" fill="#24282d"/>
+      <rect x="108" y="88" width="12" height="20" fill="#24282d"/>
+      <rect x="112" y="92" width="4" height="12" fill="#737b80"/>
+    </g>
+    <g class="lvl5">
+      <rect x="8" y="40" width="112" height="4" fill="#e8b83a"/>
+      <rect x="40" y="16" width="8" height="8" fill="#e7ad35"/>
+      <rect x="48" y="16" width="24" height="8" fill="#e8b83a"/>
+      <rect x="72" y="20" width="8" height="4" fill="#e7ad35"/>
+    </g>
+    <g class="work-state">
+      <g class="work-animated logic-stonecutter-mallet">
+        <rect x="44" y="36" width="16" height="8" fill="#c9c2b4"/>
+        <rect x="48" y="44" width="4" height="8" fill="#704925"/>
+      </g>
+      <g class="work-animated logic-stonecutter-chips">
+        <rect x="40" y="52" width="4" height="4" fill="#c9c2b4"/>
+        <rect x="36" y="60" width="4" height="4" fill="#92999e"/>
+      </g>
+    </g>
+  </g>
+  <g class="variant-medium">
+    <rect x="8" y="104" width="112" height="4" fill="#4b5156"/>
+    <rect x="8" y="108" width="112" height="4" fill="#5d6469"/>
+    <rect x="8" y="112" width="112" height="8" fill="#92999e"/>
+    <rect x="20" y="116" width="4" height="4" fill="#737b80"/>
+    <rect x="100" y="116" width="4" height="4" fill="#737b80"/>
+    <rect x="12" y="28" width="104" height="20" fill="#24282d"/>
+    <rect x="16" y="32" width="96" height="12" fill="#986638"/>
+    <rect x="16" y="32" width="96" height="4" fill="#b98246"/>
+    <rect x="20" y="48" width="8" height="60" fill="#704925"/>
+    <rect x="100" y="48" width="8" height="60" fill="#704925"/>
+    <rect x="32" y="84" width="64" height="12" fill="#24282d"/>
+    <rect x="36" y="88" width="56" height="4" fill="#b98246"/>
+    <rect x="40" y="96" width="8" height="12" fill="#704925"/>
+    <rect x="80" y="96" width="8" height="12" fill="#704925"/>
+    <rect x="40" y="52" width="48" height="32" fill="#24282d"/>
+    <rect x="44" y="56" width="40" height="24" fill="#8f8f8f"/>
+    <rect x="72" y="56" width="12" height="24" fill="#565656"/>
+    <g class="lvl2">
+      <rect x="8" y="88" width="20" height="20" fill="#24282d"/>
+      <rect x="12" y="92" width="12" height="12" fill="#8f8f8f"/>
+    </g>
+    <g class="lvl3">
+      <rect x="52" y="44" width="24" height="8" fill="#5d6469"/>
+    </g>
+    <g class="lvl4">
+      <rect x="92" y="84" width="24" height="24" fill="#24282d"/>
+      <rect x="96" y="88" width="16" height="16" fill="#8f8f8f"/>
+      <rect x="100" y="92" width="8" height="8" fill="#24282d"/>
+    </g>
+    <g class="lvl5">
+      <rect x="12" y="44" width="104" height="4" fill="#e8b83a"/>
+      <rect x="52" y="16" width="24" height="8" fill="#e8b83a"/>
+    </g>
+    <g class="work-state">
+      <g class="work-animated logic-stonecutter-mallet">
+        <rect x="48" y="36" width="16" height="8" fill="#c9c2b4"/>
+        <rect x="52" y="44" width="4" height="8" fill="#704925"/>
+      </g>
+      <g class="work-animated logic-stonecutter-chips">
+        <rect x="40" y="56" width="4" height="4" fill="#c9c2b4"/>
+      </g>
+    </g>
+  </g>
+  <g class="variant-small">
+    <rect x="8" y="104" width="112" height="4" fill="#4b5156"/>
+    <rect x="8" y="108" width="112" height="4" fill="#5d6469"/>
+    <rect x="8" y="112" width="112" height="8" fill="#92999e"/>
+    <rect x="12" y="28" width="104" height="20" fill="#24282d"/>
+    <rect x="16" y="32" width="96" height="12" fill="#986638"/>
+    <rect x="20" y="48" width="8" height="60" fill="#704925"/>
+    <rect x="100" y="48" width="8" height="60" fill="#704925"/>
+    <rect x="32" y="84" width="64" height="12" fill="#24282d"/>
+    <rect x="36" y="88" width="56" height="4" fill="#b98246"/>
+    <rect x="40" y="96" width="8" height="12" fill="#704925"/>
+    <rect x="80" y="96" width="8" height="12" fill="#704925"/>
+    <rect x="40" y="52" width="48" height="32" fill="#24282d"/>
+    <rect x="44" y="56" width="40" height="24" fill="#8f8f8f"/>
+    <rect x="72" y="56" width="12" height="24" fill="#565656"/>
+    <g class="work-state">
+      <g class="work-animated logic-stonecutter-mallet">
+        <rect x="48" y="36" width="16" height="8" fill="#c9c2b4"/>
+        <rect x="52" y="44" width="4" height="8" fill="#704925"/>
+      </g>
+    </g>
+  </g>
+</svg>
