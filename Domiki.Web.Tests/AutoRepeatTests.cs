@@ -12,25 +12,25 @@ namespace Domiki.Web.Tests
         public void AutoRepeatRerunsUntilResourcesRunOutTest()
         {
             var playerId = GetPlayerId();
-            BuyForgeWithWorker(playerId);
+            BuyPotteryWithWorker(playerId);
             GrantResource(playerId, 4, 4);
 
-            StartManufacture(playerId, 2, 22, true);
+            StartManufacture(playerId, 2, 43, true);
 
             Assert.That(GetManufactureCount(playerId, 2), Is.Zero);
             Assert.That(GetWorkers(playerId).All(x => x.ManufactureId == null), Is.True);
             Assert.That(GetResourceValue(playerId, 4), Is.Zero);
-            Assert.That(GetResourceValue(playerId, 6), Is.EqualTo(2));
+            Assert.That(GetResourceValue(playerId, 12), Is.EqualTo(2));
         }
 
         [Test]
         public void AutoRepeatMergesManufactureFinishedEventsTest()
         {
             var playerId = GetPlayerId();
-            BuyForgeWithWorker(playerId);
+            BuyPotteryWithWorker(playerId);
             GrantResource(playerId, 4, 4);
 
-            StartManufacture(playerId, 2, 22, true);
+            StartManufacture(playerId, 2, 43, true);
 
             using (var uow = GetUow())
             {
@@ -39,7 +39,7 @@ namespace Domiki.Web.Tests
 
                 using var data = JsonDocument.Parse(events[0].Data);
                 Assert.That(data.RootElement.GetProperty("cycles").GetInt32(), Is.EqualTo(2));
-                var resource = data.RootElement.GetProperty("resources").EnumerateArray().Single(x => x.GetProperty("resourceTypeId").GetInt32() == 6);
+                var resource = data.RootElement.GetProperty("resources").EnumerateArray().Single(x => x.GetProperty("resourceTypeId").GetInt32() == 12);
                 Assert.That(resource.GetProperty("value").GetInt32(), Is.EqualTo(2));
                 uow.Commit();
             }
@@ -104,6 +104,22 @@ namespace Domiki.Web.Tests
                     PlayerId = playerId,
                     Id = 2,
                     TypeId = 1,
+                    Level = 3,
+                });
+                uow.Commit();
+            }
+        }
+
+        private void BuyPotteryWithWorker(int playerId)
+        {
+            BuyDomik(playerId, 2);
+            using (var uow = GetUow())
+            {
+                uow.Context.Domiks.Add(new Domiki.Web.Data.Domik
+                {
+                    PlayerId = playerId,
+                    Id = 2,
+                    TypeId = 13,
                     Level = 3,
                 });
                 uow.Commit();

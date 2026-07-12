@@ -18,6 +18,8 @@ namespace Domiki.Web.Data
 
         public int? DecorTypeId { get; set; }
 
+        public int? BlueprintId { get; set; }
+
         public int MinValue { get; set; }
 
         public int MaxValue { get; set; }

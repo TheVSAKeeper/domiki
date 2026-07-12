@@ -338,36 +338,38 @@ namespace Domiki.Web.Tests
         }
 
         [Test]
-        public void ForgeBrickAndSellTest()
+        public void PotteryDishesAndSellTest()
         {
             var playerId = GetPlayerId();
-            GrantResource(playerId, 1, 400);
+            GrantResource(playerId, 1, 700);
+            var potteryBlueprintId = 3;
+            GrantBlueprint(playerId, potteryBlueprintId);
             var barakTypeId = 2;
             var clayMineTypeId = 5;
-            var forgeTypeId = 1;
+            var potteryTypeId = 13;
             var marketTypeId = 7;
             var coinResourceTypeId = 1;
             var clayResourceTypeId = 4;
-            var brickResourceTypeId = 6;
+            var dishesResourceTypeId = 12;
             var clayDig8hReceiptId = 14;
-            var makeBrickReceiptId = 22;
-            var sellBrickReceiptId = 25;
+            var makeDishesReceiptId = 43;
+            var sellDishesReceiptId = 45;
             BuyDomik(playerId, barakTypeId);
             BuyDomik(playerId, clayMineTypeId);
             BuyDomik(playerId, barakTypeId);
             BuyDomik(playerId, barakTypeId);
-            BuyDomik(playerId, forgeTypeId);
+            BuyDomik(playerId, potteryTypeId);
             BuyDomik(playerId, marketTypeId);
             StartManufacture(playerId, 2, clayDig8hReceiptId);
-            StartManufacture(playerId, 5, makeBrickReceiptId);
-            var afterBrick = GetResources(playerId);
-            Assert.That(afterBrick.First(x => x.Type.Id == brickResourceTypeId).Value, Is.EqualTo(1));
-            Assert.That(afterBrick.First(x => x.Type.Id == clayResourceTypeId).Value, Is.EqualTo(6));
-            var beforeSellCoin = afterBrick.First(x => x.Type.Id == coinResourceTypeId).Value;
-            StartManufacture(playerId, 6, sellBrickReceiptId);
+            StartManufacture(playerId, 5, makeDishesReceiptId);
+            var afterDishes = GetResources(playerId);
+            Assert.That(afterDishes.First(x => x.Type.Id == dishesResourceTypeId).Value, Is.EqualTo(1));
+            Assert.That(afterDishes.First(x => x.Type.Id == clayResourceTypeId).Value, Is.EqualTo(6));
+            var beforeSellCoin = afterDishes.First(x => x.Type.Id == coinResourceTypeId).Value;
+            StartManufacture(playerId, 6, sellDishesReceiptId);
             var afterSell = GetResources(playerId);
-            Assert.That(afterSell.First(x => x.Type.Id == brickResourceTypeId).Value, Is.EqualTo(0));
-            Assert.That(afterSell.First(x => x.Type.Id == coinResourceTypeId).Value - beforeSellCoin, Is.EqualTo(35));
+            Assert.That(afterSell.First(x => x.Type.Id == dishesResourceTypeId).Value, Is.EqualTo(0));
+            Assert.That(afterSell.First(x => x.Type.Id == coinResourceTypeId).Value - beforeSellCoin, Is.EqualTo(45));
         }
 
         [TestCase(false, 28800, 3)]
@@ -544,6 +546,16 @@ namespace Domiki.Web.Tests
                 }
 
                 resource.Value += value;
+                uow.Context.SaveChanges();
+                uow.Commit();
+            }
+        }
+
+        private void GrantBlueprint(int playerId, int blueprintId)
+        {
+            using (var uow = GetUow())
+            {
+                uow.Context.PlayerBlueprints.Add(new Domiki.Web.Data.PlayerBlueprint { PlayerId = playerId, BlueprintId = blueprintId });
                 uow.Context.SaveChanges();
                 uow.Commit();
             }

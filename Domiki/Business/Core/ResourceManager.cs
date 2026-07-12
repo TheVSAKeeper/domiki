@@ -124,6 +124,7 @@ namespace Domiki.Web.Business.Core
                     Name = x.Name,
                     LogicName = x.LogicName,
                     PrimaryResourceTypeId = x.PrimaryResourceTypeId,
+                    SecondaryResourceTypeId = x.SecondaryResourceTypeId,
                     UnlockLevel = x.UnlockLevel,
                 }).ToArray();
             }
@@ -200,6 +201,7 @@ namespace Domiki.Web.Business.Core
                             Kind = x.Kind,
                             ResourceTypeId = x.ResourceTypeId,
                             DecorTypeId = x.DecorTypeId,
+                            BlueprintId = x.BlueprintId,
                             MinValue = x.MinValue,
                             MaxValue = x.MaxValue,
                             Weight = x.Weight,
@@ -261,6 +263,8 @@ namespace Domiki.Web.Business.Core
                     LogicName = x.LogicName,
                     ComfortPoints = x.ComfortPoints,
                     IsPurchasable = x.IsPurchasable,
+                    NeighborId = x.NeighborId,
+                    ReputationThreshold = x.ReputationThreshold,
                 }).ToArray();
 
                 foreach (var decorType in _decorTypes)

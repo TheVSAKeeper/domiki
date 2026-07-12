@@ -251,9 +251,10 @@ namespace Domiki.Web.Tests
             BuyDomik(playerId, 2);
             BuyDomik(playerId, 1);
             SetWeather(ClearWeatherTypeId);
-            GrantResource(playerId, 4, 2);
+            GrantResource(playerId, 6, 1);
+            GrantResource(playerId, 7, 1);
 
-            StartManufacture(playerId, 2, GetReceiptId("make_brick"));
+            StartManufacture(playerId, 2, GetReceiptId("make_tool"));
 
             var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(100));
@@ -269,9 +270,10 @@ namespace Domiki.Web.Tests
             BuyDomik(playerId, 2);
             BuyDomik(playerId, 1);
             SetWeather(ClearWeatherTypeId);
-            GrantResource(playerId, 4, 2);
+            GrantResource(playerId, 6, 1);
+            GrantResource(playerId, 7, 1);
 
-            StartManufacture(playerId, 2, GetReceiptId("make_brick"));
+            StartManufacture(playerId, 2, GetReceiptId("make_tool"));
 
             var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(140));

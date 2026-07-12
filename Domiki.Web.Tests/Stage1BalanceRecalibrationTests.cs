@@ -73,15 +73,16 @@ namespace Domiki.Web.Tests
         }
 
         [Test]
-        public void ForgeBrickShiftConsumesClayAndProducesBricksTest()
+        public void PotteryBrickShiftConsumesClayAndProducesBricksTest()
         {
             var playerId = GetPlayerId();
-            GrantResource(playerId, 1, 400);
+            GrantResource(playerId, 1, 700);
+            GrantBlueprint(playerId, 3);
             BuyDomik(playerId, 2);
             BuyDomik(playerId, 2);
             BuyDomik(playerId, 2);
-            UpgradeDomik(playerId, 1);
-            BuyDomik(playerId, 1);
+            BuyDomik(playerId, 13);
+            UpgradeDomik(playerId, 4);
             GrantResource(playerId, 4, 16);
             var before = GetResources(playerId);
 
@@ -225,6 +226,16 @@ namespace Domiki.Web.Tests
                 }
 
                 resource.Value += value;
+                uow.Context.SaveChanges();
+                uow.Commit();
+            }
+        }
+
+        private void GrantBlueprint(int playerId, int blueprintId)
+        {
+            using (var uow = GetUow())
+            {
+                uow.Context.PlayerBlueprints.Add(new Domiki.Web.Data.PlayerBlueprint { PlayerId = playerId, BlueprintId = blueprintId });
                 uow.Context.SaveChanges();
                 uow.Commit();
             }

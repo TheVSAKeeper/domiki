@@ -30,7 +30,7 @@ namespace Domiki.Web.Tests
 
             var decor = GetDecor(playerId);
 
-            Assert.That(decor.Types.Select(x => x.LogicName), Is.EquivalentTo(new[] { "fence", "flowerbed", "garden", "fountain", "bench", "trail_idol", "wanderer_banner" }));
+            Assert.That(decor.Types.Select(x => x.LogicName), Is.EquivalentTo(new[] { "fence", "flowerbed", "garden", "fountain", "bench", "trail_idol", "wanderer_banner", "brick_arch" }));
             Assert.That(decor.Types.Where(x => x.LogicName is "trail_idol" or "wanderer_banner").All(x => !x.IsPurchasable), Is.True);
             Assert.That(decor.Types.Where(x => x.LogicName is not ("trail_idol" or "wanderer_banner")).All(x => x.IsPurchasable), Is.True);
             Assert.That(decor.Owned, Is.Empty);

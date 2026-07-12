@@ -16,6 +16,8 @@ namespace Domiki.Web.Data
 
         public int PrimaryResourceTypeId { get; set; }
 
+        public int? SecondaryResourceTypeId { get; set; }
+
         public int UnlockLevel { get; set; }
     }
 }

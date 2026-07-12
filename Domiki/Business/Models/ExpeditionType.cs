@@ -26,6 +26,7 @@ namespace Domiki.Web.Business.Models
         public ExpeditionLootKind Kind { get; set; }
         public int? ResourceTypeId { get; set; }
         public int? DecorTypeId { get; set; }
+        public int? BlueprintId { get; set; }
         public int MinValue { get; set; }
         public int MaxValue { get; set; }
         public int Weight { get; set; }
