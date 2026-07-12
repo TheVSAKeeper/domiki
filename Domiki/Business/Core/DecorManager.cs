@@ -46,6 +46,17 @@ namespace Domiki.Web.Business.Core
                 throw new BusinessException("Этот декор нельзя купить");
             }
 
+            if (type.NeighborId != null)
+            {
+                var points = _context.NeighborReputations
+                    .FirstOrDefault(x => x.PlayerId == playerId && x.NeighborId == type.NeighborId)?.Points ?? 0;
+                if (points < type.ReputationThreshold)
+                {
+                    var neighbor = _resourceManager.GetNeighbors().First(x => x.Id == type.NeighborId);
+                    throw new BusinessException($"Откроется за репутацию: {neighbor.Name}, {points}/{type.ReputationThreshold}");
+                }
+            }
+
             _playerResourceManager.WriteOffResources(playerId, type.Cost);
             GrantDecor(playerId, decorTypeId, 1);
         }

@@ -70,7 +70,7 @@ namespace Domiki.Controllers
                 PurchaseAvailableDomiks = _domikManager.GetPurchaseAvailableDomiks(playerId).Select(x => x.Type.ToDto(x.AvailableCount, blueprints.FirstOrDefault(b => b.DomikTypeId == x.Type.Id)?.Id)).ToArray(),
                 Weather = _weatherManager.GetWeather(DateTimeHelper.GetNowDate()).ToDto(),
                 Expeditions = _expeditionManager.GetExpeditions(playerId)?.ToDto(),
-                Decor = _decorManager.GetDecor(playerId).ToDto(),
+                Decor = _decorManager.GetDecor(playerId).ToDto(_resourceManager.GetNeighbors()),
                 Toloka = _tolokaManager.GetToloka(DateTimeHelper.GetNowDate(), playerId)?.ToDto(),
                 Market = _marketManager.GetMarket(playerId)?.ToDto(),
                 Recap = _playerEventManager.TakeRecap(playerId, DateTimeHelper.GetNowDate()).ToDto(),
@@ -314,7 +314,7 @@ namespace Domiki.Controllers
         {
             int playerId = GetPlayerId();
 
-            var content = _decorManager.GetDecor(playerId).ToDto();
+            var content = _decorManager.GetDecor(playerId).ToDto(_resourceManager.GetNeighbors());
             return new Response<DecorStateDto>(content);
         }
 

@@ -11,12 +11,15 @@ namespace Domiki.Web.Tests
         private const int GardenDecorTypeId = 3;
         private const int FountainDecorTypeId = 4;
         private const int TrailIdolDecorTypeId = 6;
+        private const int BrickArchDecorTypeId = 8;
         private const int WoodResourceTypeId = 3;
         private const int StoneResourceTypeId = 2;
         private const int ClayResourceTypeId = 4;
         private const int BrickResourceTypeId = 6;
         private const int BoardResourceTypeId = 7;
         private const int ToolResourceTypeId = 8;
+        private const int BlockResourceTypeId = 10;
+        private const int ZarechieNeighborId = 1;
         private const int BarracksDomikTypeId = 2;
         private const int LumberMillDomikTypeId = 6;
         private const int WoodDig8hReceiptId = 16;
@@ -94,6 +97,31 @@ namespace Domiki.Web.Tests
 
             Assert.That(ex.Message, Is.EqualTo("Этот декор нельзя купить"));
             Assert.That(GetDecor(playerId).Owned, Is.Empty);
+        }
+
+        [Test]
+        public void BuyGatedDecorWithoutReputationThrowsTest()
+        {
+            var playerId = GetPlayerId();
+            GrantResource(playerId, BrickResourceTypeId, 20);
+            GrantResource(playerId, BlockResourceTypeId, 10);
+
+            var ex = Assert.Throws<BusinessException>(() => BuyDecor(playerId, BrickArchDecorTypeId));
+
+            Assert.That(ex.Message, Does.Contain("репутац"));
+        }
+
+        [Test]
+        public void BuyGatedDecorWithReputationSucceedsTest()
+        {
+            var playerId = GetPlayerId();
+            GrantResource(playerId, BrickResourceTypeId, 20);
+            GrantResource(playerId, BlockResourceTypeId, 10);
+            GrantReputation(playerId, ZarechieNeighborId, 30);
+
+            BuyDecor(playerId, BrickArchDecorTypeId);
+
+            Assert.That(GetDecor(playerId).Owned.Single(x => x.DecorTypeId == BrickArchDecorTypeId).Count, Is.EqualTo(1));
         }
 
         [Test]
@@ -300,6 +328,18 @@ namespace Domiki.Web.Tests
             foreach (var cost in type.Cost)
             {
                 GrantResource(playerId, cost.Type.Id, cost.Value * multiplier);
+            }
+        }
+
+        private void GrantReputation(int playerId, int neighborId, int points)
+        {
+            using (var uow = GetUow())
+            {
+                var resourceManager = GetResourceManager(uow);
+                var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
+                playerResourceManager.GrantReputation(playerId, neighborId, points);
+                uow.Context.SaveChanges();
+                uow.Commit();
             }
         }
 

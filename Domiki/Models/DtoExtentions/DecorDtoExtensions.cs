@@ -4,17 +4,17 @@ namespace Domiki.Web.Models
 {
     public static class DecorDtoExtensions
     {
-        public static DecorStateDto ToDto(this DecorState state)
+        public static DecorStateDto ToDto(this DecorState state, Neighbor[] neighbors)
         {
             return new DecorStateDto
             {
-                Types = state.Types.Select(x => x.ToDto()).ToArray(),
+                Types = state.Types.Select(x => x.ToDto(neighbors)).ToArray(),
                 Owned = state.Owned.Select(x => x.ToDto()).ToArray(),
                 Comfort = state.Comfort,
             };
         }
 
-        public static DecorTypeDto ToDto(this DecorType type)
+        public static DecorTypeDto ToDto(this DecorType type, Neighbor[] neighbors)
         {
             return new DecorTypeDto
             {
@@ -23,6 +23,9 @@ namespace Domiki.Web.Models
                 LogicName = type.LogicName,
                 ComfortPoints = type.ComfortPoints,
                 IsPurchasable = type.IsPurchasable,
+                NeighborId = type.NeighborId,
+                NeighborName = type.NeighborId == null ? null : neighbors.First(x => x.Id == type.NeighborId).Name,
+                ReputationThreshold = type.ReputationThreshold,
                 Cost = type.Cost.Select(x => x.ToDto()).ToArray(),
             };
         }

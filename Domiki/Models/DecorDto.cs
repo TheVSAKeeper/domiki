@@ -14,6 +14,9 @@
         public string LogicName { get; set; }
         public int ComfortPoints { get; set; }
         public bool IsPurchasable { get; set; }
+        public int? NeighborId { get; set; }
+        public string NeighborName { get; set; }
+        public int ReputationThreshold { get; set; }
         public ResourceDto[] Cost { get; set; }
     }
 
