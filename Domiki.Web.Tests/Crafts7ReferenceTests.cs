@@ -1,4 +1,6 @@
-﻿namespace Domiki.Web.Tests
+﻿using Domiki.Web.Business.Core;
+
+namespace Domiki.Web.Tests
 {
     public class Crafts7ReferenceTests : TestBase
     {
@@ -60,6 +62,14 @@
             Assert.That(neighbors.Single(x => x.LogicName == "zarechye").SecondaryResourceTypeId, Is.EqualTo(2));
             Assert.That(neighbors.Single(x => x.LogicName == "borovoe").SecondaryResourceTypeId, Is.EqualTo(9));
             Assert.That(neighbors.Single(x => x.LogicName == "dubrava").SecondaryResourceTypeId, Is.Null);
+        }
+
+        [TestCase(10, 35)]
+        [TestCase(11, 150)]
+        [TestCase(12, 45)]
+        public void MarketValueTest(int resourceTypeId, int expected)
+        {
+            Assert.That(ResourceManager.GetMarketValue(resourceTypeId), Is.EqualTo(expected));
         }
     }
 }

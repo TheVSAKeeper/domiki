@@ -29,9 +29,11 @@ namespace Domiki.Web.Business.Core
         public static int GetMarketValue(int resourceTypeId) => resourceTypeId switch
         {
             5 => 100,
-            6 or 7 => 35,
+            6 or 7 or 10 => 35,
             8 => 55,
             9 => 95,
+            11 => 150,
+            12 => 45,
             _ => BaseMarketValue,
         };
 
