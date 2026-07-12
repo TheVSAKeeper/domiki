@@ -6,7 +6,7 @@ import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import TrashIcon from 'pixelarticons/svg/trash.svg?react';
 import type { MarketStateDto, ResourceDto, ResourceTypeDto, TradeLotDto } from '../types/api';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
-import { MechanicSprite } from './sprites';
+import { MechanicSprite, ResourceSprite } from './sprites';
 import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { NumberStepper } from './NumberStepper';
@@ -66,7 +66,7 @@ const ResourcePicker = ({ resourceTypes, selectedId, onSelect, label }: { resour
             <button key={type.id} type="button" role="radio" aria-checked={type.id === selectedId}
                 className={'resource-option' + (type.id === selectedId ? ' resource-option-selected' : '')}
                 title={type.name} onClick={() => onSelect(type.id)}>
-                <img src={'/images/resourceTypes/' + type.logicName + '.png'} alt={type.name} />
+                <ResourceSprite logicName={type.logicName} aria-hidden="true" />
             </button>
         ))}
     </div>

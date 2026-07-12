@@ -1,12 +1,113 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges" data-level="1" data-size="128">
-  <title>Поле</title>
-  <style>svg[data-level="1"] .lvl2,svg[data-level="1"] .lvl3,svg[data-level="1"] .lvl4,svg[data-level="1"] .lvl5,svg[data-level="2"] .lvl3,svg[data-level="2"] .lvl4,svg[data-level="2"] .lvl5,svg[data-level="3"] .lvl4,svg[data-level="3"] .lvl5,svg[data-level="4"] .lvl5{display:none}</style>
-  <rect x="4" y="100" width="120" height="8" fill="#4b5156"/><rect x="0" y="108" width="128" height="16" fill="#92999e"/>
-  <rect x="8" y="72" width="112" height="28" fill="#80532a"/><rect x="12" y="76" width="104" height="20" fill="#986638"/>
-  <path d="M20 92V62m12 30V54m12 38V62m12 30V54m12 38V62m12 30V54m12 38V62m12 30V54" stroke="#5d9991" stroke-width="4"/>
-  <path d="M20 66l8-8m4 4l8-8m4 12l8-8m4 4l8-8m4 12l8-8m4 4l8-8m4 12l8-8m4 4l8-8" stroke="#e8b83a" stroke-width="4"/>
-  <g class="lvl2"><rect x="8" y="48" width="112" height="4" fill="#704925"/><rect x="16" y="44" width="16" height="8" fill="#b98246"/></g>
-  <g class="lvl3"><rect x="88" y="36" width="8" height="64" fill="#704925"/><rect x="80" y="28" width="24" height="12" fill="#cf3c3c"/></g>
-  <g class="lvl4"><path d="M12 70h104" stroke="#e7ad35" stroke-width="4" stroke-dasharray="8 4"/></g>
-  <g class="lvl5"><rect x="4" y="68" width="120" height="4" fill="#e8b83a"/></g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges" data-level="1" data-size="128" data-working="false" data-motion="on" role="img" aria-labelledby="field-title field-desc" focusable="false" preserveAspectRatio="xMidYMid meet" color-interpolation="sRGB" data-active="true" data-state="idle" data-animation-profile="structure" style="--asset-phase:-2.03s">
+  <title id="field-title">Поле</title>
+  <desc id="field-desc">Пиксельный SVG «Поле»: варианты 128/64/32, уровни 1–5 и предметный рабочий процесс data-working/data-motion. Поддерживаются состояния idle, selected, attention, pressed, disabled и режимы motion on/slow/fast/paused/off.</desc>
+  <style>svg[data-level="1"] .lvl2,svg[data-level="1"] .lvl3,svg[data-level="1"] .lvl4,svg[data-level="1"] .lvl5,svg[data-level="2"] .lvl3,svg[data-level="2"] .lvl4,svg[data-level="2"] .lvl5,svg[data-level="3"] .lvl4,svg[data-level="3"] .lvl5,svg[data-level="4"] .lvl5{display:none}.variant-medium,.variant-small{display:none}svg[data-size="64"] .variant-full,svg[data-size="medium"] .variant-full,svg[data-size="32"] .variant-full,svg[data-size="small"] .variant-full{display:none}svg[data-size="64"] .variant-medium,svg[data-size="medium"] .variant-medium{display:inline}svg[data-size="32"] .variant-small,svg[data-size="small"] .variant-small{display:inline}svg{--domiki-work-speed:3.2s;--domiki-long-speed:4.4s;--domiki-mech-speed:.64s}svg[data-motion="slow"]{--domiki-work-speed:4.8s;--domiki-long-speed:6.6s;--domiki-mech-speed:.96s}svg[data-motion="fast"]{--domiki-work-speed:1.9s;--domiki-long-speed:2.65s;--domiki-mech-speed:.4s}.work-state{display:none}svg[data-working="true"] .work-state,svg[data-working="1"] .work-state{display:inline;animation:domiki-work-reveal 180ms steps(2,end) both}.work-animated{transform-box:fill-box;transform-origin:center;animation-timing-function:steps(1,end);animation-iteration-count:infinite;animation-fill-mode:both}svg[data-working="true"] .work-animated,svg[data-working="1"] .work-animated{will-change:transform,opacity}svg[data-motion="paused"] .work-animated,svg[data-motion="paused"] .work-state{animation-play-state:paused !important}svg[data-motion="off"] .work-animated,svg[data-motion="off"] .work-state{animation:none !important}.work-state .logic-field-sickle{animation-name:domiki-field-sickle;animation-duration:var(--domiki-long-speed);transform-origin:0 100%}.work-state .logic-field-chaff{animation-name:domiki-field-chaff;animation-duration:var(--domiki-long-speed)}svg:not([data-working="true"]):not([data-working="1"]) .work-animated,svg[data-size="128"] .variant-medium .work-animated,svg[data-size="128"] .variant-small .work-animated,svg[data-size="64"] .variant-full .work-animated,svg[data-size="64"] .variant-small .work-animated,svg[data-size="medium"] .variant-full .work-animated,svg[data-size="medium"] .variant-small .work-animated,svg[data-size="32"] .variant-full .work-animated,svg[data-size="32"] .variant-medium .work-animated,svg[data-size="small"] .variant-full .work-animated,svg[data-size="small"] .variant-medium .work-animated{animation-name:none !important;will-change:auto}@media (prefers-reduced-motion:reduce){.work-animated,.work-state{animation:none !important}.work-animated{opacity:1;transform:none}}@keyframes domiki-work-reveal{0%{opacity:0}50%,100%{opacity:1}}@keyframes domiki-field-sickle{0%,12%{transform:translate(0,0)}22%{transform:translate(16px,-4px)}34%{transform:translate(36px,0)}46%{transform:translate(56px,-4px)}58%{transform:translate(76px,0)}66%,100%{transform:translate(76px,0)}}@keyframes domiki-field-chaff{0%,32%{opacity:0;transform:translate(0,0)}36%,44%{opacity:1;transform:translate(0,0)}52%{opacity:.7;transform:translate(4px,4px)}60%,100%{opacity:0;transform:translate(8px,8px)}}</style>
+  <style>svg{--asset-loop:4.8s;--asset-accent-loop:3.6s;--asset-fx-loop:3.2s;--asset-phase:-.6s;--asset-step:1px;--asset-neg-step:-1px;--asset-double-step:2px;--asset-neg-double-step:-2px;overflow:hidden}
+.asset-stage,.asset-fx,.asset-fx *{transform-box:fill-box;transform-origin:center}.asset-fx,.asset-fx *{pointer-events:none}
+svg[data-motion="on"][data-active="true"] .profile-bob{animation:asset-enter .32s steps(4,end) both,asset-bob var(--asset-loop) steps(1,end) var(--asset-phase) infinite}
+svg[data-motion="on"][data-active="true"] .profile-nudge{animation:asset-enter .32s steps(4,end) both,asset-nudge var(--asset-loop) steps(1,end) var(--asset-phase) infinite}
+svg[data-motion="on"][data-active="true"] .profile-press{animation:asset-enter .24s steps(3,end) both,asset-press var(--asset-loop) steps(1,end) var(--asset-phase) infinite}
+svg[data-motion="on"][data-active="true"] .profile-grounded{animation:asset-enter .32s steps(4,end) both,asset-grounded var(--asset-loop) steps(1,end) var(--asset-phase) infinite}
+@keyframes asset-enter{0%{opacity:0;transform:translateY(2px)}66%{opacity:1;transform:translateY(-1px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes asset-bob{0%,70%,100%{transform:translateY(0)}74%,82%{transform:translateY(var(--asset-neg-step))}86%{transform:translateY(0)}}
+@keyframes asset-nudge{0%,68%,100%{transform:translate(0,0)}72%,80%{transform:translate(var(--asset-step),var(--asset-step))}84%{transform:translate(0,0)}}
+@keyframes asset-press{0%,70%,100%{transform:translateY(0)}74%,82%{transform:translateY(var(--asset-step))}86%{transform:translateY(0)}}
+@keyframes asset-grounded{0%,78%,100%{opacity:1}82%{opacity:.97}86%{opacity:1}}</style><style>.asset-accent{transform-box:fill-box;transform-origin:center}
+svg[data-motion="on"][data-active="true"] .asset-accent{animation:asset-accent var(--asset-accent-loop) steps(1,end) var(--asset-local-phase,-.4s) infinite}
+.asset-phase-1{--asset-local-phase:-.45s}.asset-phase-2{--asset-local-phase:-1.15s}.asset-phase-3{--asset-local-phase:-2.05s}.asset-phase-4{--asset-local-phase:-2.8s}
+@keyframes asset-accent{0%,42%,58%,100%{opacity:1}46%{opacity:.7}50%{opacity:1}54%{opacity:.84}}</style><style>.fx-semantic{opacity:1}.fx-glint,.fx-rise,.fx-flow,.fx-trail,.fx-scan,.fx-fire,.fx-progress{opacity:0}
+svg[data-motion="on"][data-active="true"] .fx-glint{animation:fx-glint var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.5s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-rise{animation:fx-rise var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.8s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-flow{animation:fx-flow var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.3s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-trail{animation:fx-trail var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.9s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-scan{animation:fx-scan var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.1s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-fire{animation:fx-fire var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.2s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-progress{animation:fx-progress var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.6s) infinite}
+@keyframes fx-glint{0%,52%,100%{opacity:0}56%,64%{opacity:1}68%{opacity:0}}
+@keyframes fx-rise{0%,44%{opacity:0;transform:translateY(var(--asset-step))}48%{opacity:1}58%{opacity:.8;transform:translateY(var(--asset-neg-step))}66%,100%{opacity:0;transform:translateY(var(--asset-neg-double-step))}}
+@keyframes fx-flow{0%,34%{opacity:0;transform:translateY(var(--asset-neg-step))}40%{opacity:1}56%{opacity:1;transform:translateY(var(--asset-step))}64%,100%{opacity:0;transform:translateY(var(--asset-double-step))}}
+@keyframes fx-trail{0%,36%{opacity:0;transform:translateX(var(--asset-neg-step))}42%,56%{opacity:1}62%{opacity:0;transform:translateX(var(--asset-double-step))}100%{opacity:0}}
+@keyframes fx-scan{0%,34%{opacity:0;transform:translateY(var(--asset-neg-double-step))}40%,48%{opacity:.9}58%{opacity:.65;transform:translateY(var(--asset-double-step))}64%,100%{opacity:0}}
+@keyframes fx-fire{0%,100%{opacity:.76;transform:translateY(0)}25%{opacity:1;transform:translateY(var(--asset-neg-step))}50%{opacity:.72;transform:translateY(0)}75%{opacity:1;transform:translateY(var(--asset-neg-step))}}
+@keyframes fx-progress{0%,38%,100%{opacity:0}42%,58%{opacity:1}62%{opacity:.55}68%{opacity:0}}</style><style>.fx-selection,.fx-attention{display:none}
+svg[data-state="selected"] .fx-selection{display:inline;animation:asset-selected 1.2s steps(1,end) infinite}
+svg[data-state="attention"] .fx-attention{display:inline;animation:asset-attention 1s steps(1,end) infinite}
+@keyframes asset-selected{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes asset-attention{0%,32%,100%{opacity:0}36%,68%{opacity:1}72%{opacity:0}}</style><style>svg[data-state="pressed"] .asset-stage{animation:none!important;transform:translateY(var(--asset-step))}
+svg[data-state="disabled"] .asset-stage,svg[data-state="disabled"] .asset-fx{animation:none!important;filter:saturate(.25);opacity:.58}
+svg[data-state="hidden"] .asset-stage,svg[data-state="hidden"] .asset-fx{visibility:hidden}
+svg:hover:not([data-state="disabled"]) .asset-stage{animation:asset-hover .26s steps(3,end) both}
+@keyframes asset-hover{0%{transform:translateY(0)}60%{transform:translateY(var(--asset-neg-step))}100%{transform:translateY(0)}}</style><style>svg[data-motion="slow"]{--asset-loop:6.8s;--asset-accent-loop:5.2s;--asset-fx-loop:4.8s}
+svg[data-motion="fast"]{--asset-loop:3.1s;--asset-accent-loop:2.4s;--asset-fx-loop:2s}
+svg[data-motion="paused"] *,svg[data-motion="paused"] .asset-stage{animation-play-state:paused!important}
+svg[data-motion="off"] *,svg[data-motion="off"] .asset-stage{animation:none!important}</style><style>svg[data-size="32"]{--asset-step:1px}svg[data-size="24"]{--asset-step:1px}
+svg[data-size="32"] .fx-minor,svg[data-size="24"] .fx-minor,svg[data-size="small"] .fx-minor{display:none}
+svg[data-size="24"] .fx-selection{opacity:.9}</style><style>svg[data-motion="on"][data-active="false"] .asset-stage,svg[data-motion="on"][data-active="false"] .asset-fx *{animation:none!important}
+@media (prefers-reduced-motion:reduce){.asset-stage,.asset-fx *,.asset-accent{animation:none!important;transform:none!important}.fx-semantic,.fx-attention{display:none!important}}</style><style>.fx-phase-1{--asset-fx-phase:-.35s}.fx-phase-2{--asset-fx-phase:-1.05s}.fx-phase-3{--asset-fx-phase:-1.75s}.fx-phase-4{--asset-fx-phase:-2.45s}
+svg[data-animation-profile="structure"] .asset-accent{--asset-accent-loop:4.4s}
+svg[data-animation-profile="wealth"] .fx-glint,svg[data-animation-profile="badge"] .fx-glint{--asset-fx-loop:2.8s}</style><g class="asset-stage profile-grounded"><g class="variant-full">
+    
+    <rect x="8" y="104" width="112" height="4" fill="#4b5156"/>
+    <rect x="0" y="108" width="128" height="4" fill="#5d6469"/>
+    <rect x="0" y="112" width="128" height="12" fill="#92999e"/>
+    <rect x="20" y="116" width="4" height="4" fill="#737b80"/>
+    <rect x="64" y="116" width="4" height="4" fill="#737b80"/>
+    <rect x="100" y="116" width="4" height="4" fill="#737b80"/>
+    <rect x="8" y="68" width="112" height="36" fill="#262626"/>
+    <rect x="12" y="72" width="104" height="28" fill="#80532a"/>
+    <rect x="12" y="88" width="104" height="4" fill="#704925"/>
+    <rect x="12" y="96" width="104" height="4" fill="#986638"/>
+    <rect x="20" y="56" width="4" height="32" fill="#5d9991"/><rect x="16" y="56" width="12" height="4" fill="#e8b83a"/><rect x="20" y="48" width="4" height="8" fill="#E8B83A" class="asset-accent asset-phase-1"/>
+    <rect x="36" y="48" width="4" height="40" fill="#5d9991"/><rect x="32" y="52" width="12" height="4" fill="#e8b83a"/><rect x="36" y="44" width="4" height="8" fill="#E8B83A" class="asset-accent asset-phase-2"/>
+    <rect x="52" y="56" width="4" height="32" fill="#5d9991"/><rect x="48" y="56" width="12" height="4" fill="#e8b83a"/><rect x="52" y="48" width="4" height="8" fill="#E8B83A" class="asset-accent asset-phase-3"/>
+    <rect x="68" y="48" width="4" height="40" fill="#5d9991"/><rect x="64" y="52" width="12" height="4" fill="#e8b83a"/><rect x="68" y="44" width="4" height="8" fill="#E8B83A" class="asset-accent asset-phase-4"/>
+    <rect x="84" y="56" width="4" height="32" fill="#5d9991"/><rect x="80" y="56" width="12" height="4" fill="#e8b83a"/><rect x="84" y="48" width="4" height="8" fill="#E8B83A" class="asset-accent asset-phase-1"/>
+    <rect x="100" y="48" width="4" height="40" fill="#5d9991"/><rect x="96" y="52" width="12" height="4" fill="#e8b83a"/><rect x="100" y="44" width="4" height="8" fill="#E8B83A" class="asset-accent asset-phase-2"/>
+    <g class="lvl2">
+      <rect x="8" y="60" width="112" height="4" fill="#704925"/><rect x="12" y="64" width="4" height="40" fill="#704925"/><rect x="112" y="64" width="4" height="40" fill="#704925"/>
+      <rect x="24" y="56" width="8" height="8" fill="#b98246"/><rect x="92" y="56" width="8" height="8" fill="#b98246"/>
+    </g>
+    <g class="lvl3">
+      <rect x="88" y="32" width="8" height="72" fill="#704925"/><rect x="76" y="36" width="32" height="8" fill="#262626"/><rect x="80" y="40" width="24" height="8" fill="#C84444"/>
+      <rect x="80" y="48" width="8" height="16" fill="#c9c2b4"/><rect x="96" y="48" width="8" height="16" fill="#c9c2b4"/>
+    </g>
+    <g class="lvl4">
+      <rect x="8" y="80" width="108" height="4" fill="#E8B83A"/><rect x="16" y="84" width="8" height="4" fill="#e8b83a"/><rect x="36" y="84" width="8" height="4" fill="#e8b83a"/><rect x="56" y="84" width="8" height="4" fill="#e8b83a"/><rect x="76" y="84" width="8" height="4" fill="#e8b83a"/><rect x="96" y="84" width="8" height="4" fill="#e8b83a"/>
+    </g>
+    <g class="lvl5">
+      <rect x="4" y="68" width="120" height="4" fill="#e8b83a"/><rect x="12" y="64" width="16" height="4" fill="#E8B83A"/><rect x="100" y="64" width="16" height="4" fill="#E8B83A"/>
+      <rect x="28" y="96" width="8" height="8" fill="#e8b83a"/><rect x="64" y="96" width="8" height="8" fill="#e8b83a"/><rect x="96" y="96" width="8" height="8" fill="#e8b83a"/>
+    </g>
+    <g class="work-state"><g class="work-animated logic-field-sickle"><rect x="16" y="84" width="20" height="4" fill="#c9c2b4"/><rect x="12" y="80" width="8" height="4" fill="#c9c2b4"/><rect x="32" y="76" width="4" height="12" fill="#704925"/></g><g class="work-animated logic-field-chaff"><rect x="56" y="76" width="4" height="4" fill="#e8b83a"/><rect x="64" y="72" width="4" height="4" fill="#E8B83A"/></g></g>
+  </g>
+  <g class="variant-medium">
+    
+    <rect x="8" y="104" width="112" height="4" fill="#4b5156"/>
+    <rect x="8" y="108" width="112" height="4" fill="#5d6469"/>
+    <rect x="8" y="112" width="112" height="8" fill="#92999e"/>
+    <rect x="20" y="116" width="4" height="4" fill="#737b80"/>
+    <rect x="100" y="116" width="4" height="4" fill="#737b80"/>
+    <rect x="8" y="68" width="112" height="36" fill="#262626"/><rect x="12" y="72" width="104" height="28" fill="#80532a"/><rect x="12" y="92" width="104" height="8" fill="#986638"/>
+    <rect x="24" y="52" width="8" height="36" fill="#5d9991"/><rect x="20" y="52" width="16" height="8" fill="#e8b83a"/>
+    <rect x="48" y="44" width="8" height="44" fill="#5d9991"/><rect x="44" y="48" width="16" height="8" fill="#e8b83a"/>
+    <rect x="72" y="52" width="8" height="36" fill="#5d9991"/><rect x="68" y="52" width="16" height="8" fill="#e8b83a"/>
+    <rect x="96" y="44" width="8" height="44" fill="#5d9991"/><rect x="92" y="48" width="16" height="8" fill="#e8b83a"/>
+    <g class="lvl2"><rect x="8" y="60" width="112" height="4" fill="#704925"/><rect x="12" y="64" width="4" height="40" fill="#704925"/><rect x="112" y="64" width="4" height="40" fill="#704925"/></g>
+    <g class="lvl3"><rect x="88" y="32" width="8" height="72" fill="#704925"/><rect x="76" y="36" width="32" height="12" fill="#C84444"/></g>
+    <g class="lvl4"><rect x="8" y="80" width="108" height="4" fill="#E8B83A"/></g>
+    <g class="lvl5"><rect x="4" y="68" width="120" height="4" fill="#e8b83a"/></g>
+    <g class="work-state"><g class="work-animated logic-field-sickle"><rect x="16" y="84" width="20" height="4" fill="#c9c2b4"/><rect x="32" y="76" width="4" height="12" fill="#704925"/></g></g>
+  </g>
+  <g class="variant-small">
+    
+    <rect x="8" y="104" width="112" height="4" fill="#4b5156"/>
+    <rect x="8" y="108" width="112" height="4" fill="#5d6469"/>
+    <rect x="8" y="112" width="112" height="8" fill="#92999e"/>
+    <rect x="8" y="68" width="112" height="36" fill="#262626"/><rect x="12" y="72" width="104" height="28" fill="#80532a"/><rect x="12" y="92" width="104" height="8" fill="#986638"/>
+    <rect x="24" y="48" width="8" height="40" fill="#5d9991"/><rect x="20" y="52" width="16" height="8" fill="#e8b83a"/>
+    <rect x="48" y="48" width="8" height="40" fill="#5d9991"/><rect x="44" y="52" width="16" height="8" fill="#e8b83a"/>
+    <rect x="72" y="48" width="8" height="40" fill="#5d9991"/><rect x="68" y="52" width="16" height="8" fill="#e8b83a"/>
+    <rect x="96" y="48" width="8" height="40" fill="#5d9991"/><rect x="92" y="52" width="16" height="8" fill="#e8b83a"/>
+    <g class="work-state"><g class="work-animated logic-field-sickle"><rect x="16" y="84" width="20" height="4" fill="#c9c2b4"/><rect x="32" y="76" width="4" height="12" fill="#704925"/></g></g>
+  <g class="small-tier-pips"><g class="lvl2"><rect x="80" y="112" width="8" height="8" fill="#5d9991"/></g><g class="lvl3"><rect x="88" y="112" width="8" height="8" fill="#4A7AB5"/></g><g class="lvl4"><rect x="96" y="112" width="8" height="8" fill="#c84444"/></g><g class="lvl5"><rect x="104" y="112" width="8" height="8" fill="#e8b83a"/></g></g></g>
+</g><g class="asset-fx fx-semantic" aria-hidden="true"/><g class="asset-fx fx-selection" aria-hidden="true"><rect x="4" y="4" width="12" height="4" fill="#e8b83a"/><rect x="4" y="4" width="4" height="12" fill="#e8b83a"/><rect x="112" y="4" width="12" height="4" fill="#e8b83a"/><rect x="124" y="4" width="4" height="12" fill="#e8b83a"/><rect x="4" y="124" width="12" height="4" fill="#e8b83a"/><rect x="4" y="112" width="4" height="12" fill="#e8b83a"/><rect x="112" y="124" width="12" height="4" fill="#e8b83a"/><rect x="124" y="112" width="4" height="12" fill="#e8b83a"/></g><g class="asset-fx fx-attention" aria-hidden="true"><rect x="112" y="8" width="4" height="8" fill="#c84444"/><rect x="108" y="4" width="12" height="4" fill="#e8b83a"/><rect x="112" y="16" width="4" height="4" fill="#efe6d4"/></g></svg>

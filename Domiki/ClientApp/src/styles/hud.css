@@ -434,7 +434,7 @@
     gap: 7px;
 }
 
-    .resource-box img {
+    .resource-box img, .resource-box svg {
         width: 26px;
         height: 26px;
         image-rendering: pixelated;

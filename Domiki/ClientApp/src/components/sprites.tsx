@@ -1,6 +1,5 @@
 import type { FC, SVGProps } from 'react';
-import CloudMoonIcon from 'pixelarticons/svg/cloud-moon.svg?react';
-import WindIcon from 'pixelarticons/svg/wind.svg?react';
+import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import BarracksSprite from '../assets/domikTypes/barracks.svg?react';
 import ClayMineSprite from '../assets/domikTypes/clay_mine.svg?react';
 import FieldSprite from '../assets/domikTypes/field.svg?react';
@@ -26,6 +25,15 @@ import WeatherClearSprite from '../assets/weather/clear.svg?react';
 import WeatherRainSprite from '../assets/weather/rain.svg?react';
 import WeatherDroughtSprite from '../assets/weather/drought.svg?react';
 import WeatherFairDaySprite from '../assets/weather/fair_day.svg?react';
+import WeatherFrostSprite from '../assets/weather/frost.svg?react';
+import WeatherWindSprite from '../assets/weather/wind.svg?react';
+import DecorBenchSprite from '../assets/decorTypes/bench.svg?react';
+import DecorFenceSprite from '../assets/decorTypes/fence.svg?react';
+import DecorFlagSprite from '../assets/decorTypes/flag.svg?react';
+import DecorFlowersSprite from '../assets/decorTypes/flowers.svg?react';
+import DecorFountainSprite from '../assets/decorTypes/fountain.svg?react';
+import DecorGardenSprite from '../assets/decorTypes/garden.svg?react';
+import DecorTrophySprite from '../assets/decorTypes/trophy.svg?react';
 import TraitOrdinarySprite from '../assets/traits/ordinary.svg?react';
 import TraitNimbleSprite from '../assets/traits/nimble.svg?react';
 import TraitDiligentSprite from '../assets/traits/diligent.svg?react';
@@ -52,6 +60,21 @@ import MechExpeditionsSprite from '../assets/mechanics/expeditions.svg?react';
 import MechMarketSprite from '../assets/mechanics/market.svg?react';
 import MechTolokaSprite from '../assets/mechanics/toloka.svg?react';
 import MechDecorSprite from '../assets/mechanics/decor.svg?react';
+import ClayResSprite from '../assets/resourceTypes/clay.svg?react';
+import CoinResSprite from '../assets/resourceTypes/coin.svg?react';
+import GoldResSprite from '../assets/resourceTypes/gold.svg?react';
+import StoneResSprite from '../assets/resourceTypes/stone.svg?react';
+import WoodResSprite from '../assets/resourceTypes/wood.svg?react';
+import BrickResSprite from '../assets/resourceTypes/brick.svg?react';
+import BoardResSprite from '../assets/resourceTypes/board.svg?react';
+import ToolResSprite from '../assets/resourceTypes/tool.svg?react';
+import FurnitureResSprite from '../assets/resourceTypes/furniture.svg?react';
+import BlockResSprite from '../assets/resourceTypes/block.svg?react';
+import MillstoneResSprite from '../assets/resourceTypes/millstone.svg?react';
+import DishesResSprite from '../assets/resourceTypes/dishes.svg?react';
+import GrainResSprite from '../assets/resourceTypes/grain.svg?react';
+import FlourResSprite from '../assets/resourceTypes/flour.svg?react';
+import BreadResSprite from '../assets/resourceTypes/bread.svg?react';
 
 type SpriteComponent = FC<SVGProps<SVGSVGElement>>;
 
@@ -85,9 +108,19 @@ const weatherSprites: Record<string, SpriteComponent> = {
     clear: WeatherClearSprite,
     rain: WeatherRainSprite,
     drought: WeatherDroughtSprite,
-    frost: CloudMoonIcon,
-    wind: WindIcon,
+    frost: WeatherFrostSprite,
+    wind: WeatherWindSprite,
     fair_day: WeatherFairDaySprite,
+};
+
+const decorSprites: Record<string, SpriteComponent> = {
+    fence: DecorFenceSprite,
+    flowerbed: DecorFlowersSprite,
+    garden: DecorGardenSprite,
+    fountain: DecorFountainSprite,
+    bench: DecorBenchSprite,
+    trail_idol: DecorTrophySprite,
+    wanderer_banner: DecorFlagSprite,
 };
 
 const traitSprites: Record<string, SpriteComponent> = {
@@ -116,6 +149,24 @@ const abstractSprites: Record<string, SpriteComponent> = {
     production_recipe: ProductionRecipeSprite,
 };
 
+const resourceSprites: Record<string, SpriteComponent> = {
+    clay: ClayResSprite,
+    coin: CoinResSprite,
+    gold: GoldResSprite,
+    stone: StoneResSprite,
+    wood: WoodResSprite,
+    brick: BrickResSprite,
+    board: BoardResSprite,
+    tool: ToolResSprite,
+    furniture: FurnitureResSprite,
+    block: BlockResSprite,
+    millstone: MillstoneResSprite,
+    dishes: DishesResSprite,
+    grain: GrainResSprite,
+    flour: FlourResSprite,
+    bread: BreadResSprite,
+};
+
 interface IconSpriteProps extends SVGProps<SVGSVGElement> {
     logicName: string;
     size?: 24 | 32 | 64;
@@ -141,9 +192,11 @@ const mechanicSprites: Record<string, SpriteComponent> = {
 
 export const MechanicSprite = makeIconSprite(mechanicSprites);
 export const WeatherSprite = makeIconSprite(weatherSprites);
+export const DecorSprite = makeIconSprite(decorSprites, BuildingIcon);
 export const TraitSprite = makeIconSprite(traitSprites, TraitOrdinarySprite);
 export const NeighborSprite = makeIconSprite(neighborSprites, NeighborGenericSprite);
 export const AbstractSprite = makeIconSprite(abstractSprites);
+export const ResourceSprite = makeIconSprite(resourceSprites);
 
 interface SpriteProps extends SVGProps<SVGSVGElement> {
     logicName: string;

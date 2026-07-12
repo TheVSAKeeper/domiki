@@ -179,7 +179,7 @@
     font-variant-numeric: tabular-nums;
 }
 
-    .treasury-item img {
+    .treasury-item img, .treasury-item svg {
         width: 22px;
         height: 22px;
         image-rendering: pixelated;

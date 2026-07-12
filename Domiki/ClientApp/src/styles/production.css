@@ -63,7 +63,7 @@
     clip-path: var(--cut);
 }
 
-    .receipt-cost img {
+    .receipt-cost img, .receipt-cost svg {
         width: 18px;
         height: 18px;
         image-rendering: pixelated;
@@ -223,7 +223,7 @@
     margin-top: 8px;
 }
 
-    .manufacture-info img {
+    .manufacture-info img, .manufacture-info svg {
         width: 20px;
         height: 20px;
         image-rendering: pixelated;

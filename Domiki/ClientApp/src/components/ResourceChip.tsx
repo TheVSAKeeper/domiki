@@ -1,4 +1,5 @@
 import type { ResourceTypeDto } from '../types/api';
+import { ResourceSprite } from './sprites';
 
 interface ResourceChipProps {
     resourceType: ResourceTypeDto;
@@ -10,7 +11,7 @@ interface ResourceChipProps {
 
 export const ResourceChip = ({ resourceType, value, min, max, rare }: ResourceChipProps) => (
     <span className={'resource-chip' + (rare ? ' resource-chip-rare' : '')} title={resourceType.name}>
-        <img src={'/images/resourceTypes/' + resourceType.logicName + '.png'} alt={resourceType.name} />
+        <ResourceSprite logicName={resourceType.logicName} aria-hidden="true" />
         {min != null && max != null ? `${min}–${max}` : value}
     </span>
 );

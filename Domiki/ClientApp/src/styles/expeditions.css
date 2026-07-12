@@ -113,7 +113,7 @@
     font-variant-numeric: tabular-nums;
 }
 
-.resource-chip img {
+.resource-chip img, .resource-chip svg {
     width: 16px;
     height: 16px;
     image-rendering: pixelated;

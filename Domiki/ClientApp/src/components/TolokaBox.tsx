@@ -5,7 +5,7 @@ import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { NumberStepper } from './NumberStepper';
 import { ResourcesBox } from './ResourcesBox';
-import { MechanicSprite, TolokaSprite } from './sprites';
+import { MechanicSprite, ResourceSprite, TolokaSprite } from './sprites';
 
 interface TolokaBoxProps {
     toloka: TolokaStateDto | null;
@@ -53,7 +53,7 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute 
                     <span className="toloka-name">{active.name}</span>
                     {resourceType != null &&
                         <span className="resource-box" title={resourceType.name}>
-                            <img src={'/images/resourceTypes/' + resourceType.logicName + '.png'} alt={resourceType.name} />
+                            <ResourceSprite logicName={resourceType.logicName} aria-hidden="true" />
                             <span className="resource-value">{active.collected}/{active.goal}</span>
                         </span>
                     }

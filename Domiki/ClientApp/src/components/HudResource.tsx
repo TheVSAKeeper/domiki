@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ResourceTypeDto } from '../types/api';
+import { ResourceSprite } from './sprites';
 
 const GAIN_DURATION = 500;
 
@@ -24,10 +25,9 @@ export const HudResource = ({ resourceType, value }: HudResourceProps) => {
         return () => clearTimeout(timer);
     }, [value, reduce]);
 
-    const image = '/images/resourceTypes/' + resourceType.logicName + '.png';
     return (
         <div className="resource-box" title={resourceType.name}>
-            <img src={image} alt={resourceType.name} />
+            <ResourceSprite logicName={resourceType.logicName} aria-hidden="true" />
             <span className={'resource-value' + (isGain ? ' res-gain' : '')}>{value}</span>
         </div>
     );

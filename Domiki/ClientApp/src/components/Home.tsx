@@ -10,7 +10,7 @@ import CloudSunIcon from 'pixelarticons/svg/cloud-sun.svg?react';
 import ClipboardIcon from 'pixelarticons/svg/clipboard-note.svg?react';
 import HomeIcon from 'pixelarticons/svg/home.svg?react';
 import { authService } from '../services/auth';
-import { DomikSprite } from './sprites';
+import { DomikSprite, ResourceSprite } from './sprites';
 
 const buildings = ['market', 'lumber_mill', 'clay_mine', 'stone_mine', 'gold_mine', 'forge', 'workshop', 'barracks'];
 
@@ -81,9 +81,9 @@ const LiveTreasury = () => {
     return (
         <div className="treasury">
             <span className="treasury-label">живая казна</span>
-            <span className="treasury-item"><img src="/images/resourceTypes/coin.png" alt="" />{num(ledger.coins)}</span>
-            <span className="treasury-item"><img src="/images/resourceTypes/wood.png" alt="" />{num(ledger.wood)}</span>
-            <span className="treasury-item"><img src="/images/resourceTypes/stone.png" alt="" />{num(ledger.stone)}</span>
+            <span className="treasury-item"><ResourceSprite logicName="coin" aria-hidden="true" />{num(ledger.coins)}</span>
+            <span className="treasury-item"><ResourceSprite logicName="wood" aria-hidden="true" />{num(ledger.wood)}</span>
+            <span className="treasury-item"><ResourceSprite logicName="stone" aria-hidden="true" />{num(ledger.stone)}</span>
             {ledger.tick > 0 && <span key={ledger.tick} className="coin-pop" aria-hidden="true">{`+${COIN_PER_TICK}`}</span>}
         </div>
     );

@@ -1,509 +1,57 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges" data-level="1" data-resolution="128" data-size="128" data-working="false" data-motion="on" data-refined="true" data-visual-rounds="11" data-animation-rounds="10" data-animation-logic="semantic" data-process="тяжёлая вагонетка идёт рывками, каменная крошка осыпается после загрузки">
-  <title>Каменоломня</title>
-  <desc>Доработанный пиксельный SVG «Каменоломня»: варианты 128/64/32, уровни 1–5 и предметный многофазный рабочий процесс data-working/data-motion.</desc>
-  <style>
-    /* Level visibility. */
-    svg[data-level="1"] .lvl2, svg[data-level="1"] .lvl3, svg[data-level="1"] .lvl4, svg[data-level="1"] .lvl5,
-    svg[data-level="2"] .lvl3, svg[data-level="2"] .lvl4, svg[data-level="2"] .lvl5,
-    svg[data-level="3"] .lvl4, svg[data-level="3"] .lvl5,
-    svg[data-level="4"] .lvl5 { display: none; }
-
-    /* Resolution variants. */
-    .variant-medium, .variant-small { display: none; }
-    svg[data-size="64"] .variant-full, svg[data-size="medium"] .variant-full,
-    svg[data-size="32"] .variant-full, svg[data-size="small"] .variant-full { display: none; }
-    svg[data-size="64"] .variant-medium, svg[data-size="medium"] .variant-medium { display: inline; }
-    svg[data-size="32"] .variant-small, svg[data-size="small"] .variant-small { display: inline; }
-
-    /*
-      Multi-round activity animation system.
-      Controls (inline SVG/SVGR):
-      data-working="true|false"
-      data-motion="on|slow|fast|paused|off"
-      --domiki-work-speed: custom cycle duration
-    */
-    svg {
-      --domiki-work-speed: 1.2s;
-      --domiki-work-step: 4px;
-    }
-    svg[data-motion="slow"] { --domiki-work-speed: 1.8s; }
-    svg[data-motion="fast"] { --domiki-work-speed: .72s; }
-
-    .work-state { display: none; }
-    svg[data-working="true"] .work-state,
-    svg[data-working="1"] .work-state {
-      display: inline;
-      animation: domiki-work-reveal 180ms steps(2, end) both;
-    }
-
-    .work-animated {
-      transform-box: fill-box;
-      transform-origin: center;
-      animation-duration: var(--domiki-work-speed);
-      animation-timing-function: steps(1, end);
-      animation-iteration-count: infinite;
-      animation-fill-mode: both;
-    }
-    svg[data-working="true"] .work-animated,
-    svg[data-working="1"] .work-animated { will-change: transform, opacity; }
-
-    /* Round 1: replace two-frame jumps with five held pixel frames. */
-    .work-bob-y { animation-name: domiki-work-bob-y; }
-    .work-bob-y-alt { animation-name: domiki-work-bob-y-alt; }
-    .work-bob-x { animation-name: domiki-work-bob-x; }
-    .work-slide-x { animation-name: domiki-work-slide-x; }
-    .work-blink { animation-name: domiki-work-blink; }
-    .work-blink-alt { animation-name: domiki-work-blink-alt; }
-    .work-flicker { animation-name: domiki-work-flicker; }
-
-    /* Round 2: phase separation prevents all mechanisms flashing at once. */
-    .work-state .work-animated:nth-child(3n + 1) { animation-delay: -.12s; }
-    .work-state .work-animated:nth-child(3n + 2) { animation-delay: -.28s; }
-    .work-state .work-animated:nth-child(3n) { animation-delay: -.44s; }
-
-    /* Only the active resolution variant receives an animation timeline. */
-    svg:not([data-working="true"]):not([data-working="1"]) .work-animated,
-    svg[data-size="128"] .variant-medium .work-animated,
-    svg[data-size="128"] .variant-small .work-animated,
-    svg[data-size="64"] .variant-full .work-animated,
-    svg[data-size="64"] .variant-small .work-animated,
-    svg[data-size="medium"] .variant-full .work-animated,
-    svg[data-size="medium"] .variant-small .work-animated,
-    svg[data-size="32"] .variant-full .work-animated,
-    svg[data-size="32"] .variant-medium .work-animated,
-    svg[data-size="small"] .variant-full .work-animated,
-    svg[data-size="small"] .variant-medium .work-animated {
-      animation-name: none;
-      will-change: auto;
-    }
-
-    /* Round 3: per-motion origins make tools, flags and lights feel anchored. */
-    .work-bob-y, .work-bob-y-alt, .work-flicker { transform-origin: 50% 100%; }
-    .work-bob-x, .work-slide-x { transform-origin: 0 50%; }
-
-    /* Round 4: explicit runtime states. */
-    svg[data-motion="paused"] .work-animated,
-    svg[data-motion="paused"] .work-state { animation-play-state: paused !important; }
-    svg[data-motion="off"] .work-animated,
-    svg[data-motion="off"] .work-state { animation: none !important; }
-
-    @keyframes domiki-work-reveal {
-      0% { opacity: 0; }
-      50%, 100% { opacity: 1; }
-    }
-    @keyframes domiki-work-bob-y {
-      0%, 12.49% { transform: translate(0, 0); }
-      12.5%, 37.49% { transform: translate(0, -2px); }
-      37.5%, 62.49% { transform: translate(0, calc(0px - var(--domiki-work-step))); }
-      62.5%, 87.49% { transform: translate(0, -2px); }
-      87.5%, 100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-work-bob-y-alt {
-      0%, 12.49% { transform: translate(0, calc(0px - var(--domiki-work-step))); }
-      12.5%, 37.49% { transform: translate(0, -2px); }
-      37.5%, 62.49% { transform: translate(0, 0); }
-      62.5%, 87.49% { transform: translate(0, -2px); }
-      87.5%, 100% { transform: translate(0, calc(0px - var(--domiki-work-step))); }
-    }
-    @keyframes domiki-work-bob-x {
-      0%, 12.49% { transform: translate(0, 0); }
-      12.5%, 37.49% { transform: translate(2px, 0); }
-      37.5%, 62.49% { transform: translate(var(--domiki-work-step), 0); }
-      62.5%, 87.49% { transform: translate(2px, 0); }
-      87.5%, 100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-work-slide-x {
-      0%, 12.49% { transform: translate(0, 0); }
-      12.5%, 37.49% { transform: translate(var(--domiki-work-step), 0); }
-      37.5%, 62.49% { transform: translate(calc(var(--domiki-work-step) + var(--domiki-work-step)), 0); }
-      62.5%, 87.49% { transform: translate(var(--domiki-work-step), 0); }
-      87.5%, 100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-work-blink {
-      0%, 12.49% { opacity: 1; }
-      12.5%, 37.49% { opacity: .65; }
-      37.5%, 62.49% { opacity: .2; }
-      62.5%, 87.49% { opacity: .65; }
-      87.5%, 100% { opacity: 1; }
-    }
-    @keyframes domiki-work-blink-alt {
-      0%, 12.49% { opacity: .2; }
-      12.5%, 37.49% { opacity: .65; }
-      37.5%, 62.49% { opacity: 1; }
-      62.5%, 87.49% { opacity: .65; }
-      87.5%, 100% { opacity: .2; }
-    }
-    @keyframes domiki-work-flicker {
-      0%, 12.49% { transform: translate(0, 0); opacity: .95; }
-      12.5%, 37.49% { transform: translate(0, -2px); opacity: .75; }
-      37.5%, 62.49% { transform: translate(0, calc(0px - var(--domiki-work-step))); opacity: 1; }
-      62.5%, 87.49% { transform: translate(0, -2px); opacity: .6; }
-      87.5%, 100% { transform: translate(0, 0); opacity: .95; }
-    }
-
-    /* Round 5: accessibility and cleanup on constrained devices. */
-    @media (prefers-reduced-motion: reduce) {
-      .work-animated, .work-state { animation: none !important; }
-    }
-  
-
-    /*
-      Semantic animation pass (rounds 6–10).
-      Each building now follows a recognisable work process instead of a
-      shared decorative bob/blink loop. All transforms stay on whole pixels.
-    */
-    svg {
-      --domiki-work-speed: 3.2s;
-      --domiki-long-speed: 4.4s;
-      --domiki-mech-speed: .64s;
-    }
-    svg[data-motion="slow"] {
-      --domiki-work-speed: 4.8s;
-      --domiki-long-speed: 6.6s;
-      --domiki-mech-speed: .96s;
-    }
-    svg[data-motion="fast"] {
-      --domiki-work-speed: 1.9s;
-      --domiki-long-speed: 2.65s;
-      --domiki-mech-speed: .4s;
-    }
-
-    /* Round 6: object-specific primary mechanisms. */
-    .work-state .work-animated.logic-barracks-flag { animation-name: domiki-barracks-flag; animation-duration: var(--domiki-long-speed); animation-delay: 0s; transform-origin: 0 50%; }
-    .work-state .work-animated.logic-barracks-drill { animation-name: domiki-barracks-drill; animation-duration: var(--domiki-work-speed); animation-delay: 0s; transform-origin: 0 100%; }
-    .work-state .work-animated.logic-barracks-glint { animation-name: domiki-barracks-glint; animation-duration: var(--domiki-work-speed); animation-delay: 0s; }
-
-    .work-state .work-animated.logic-mine-cart-clay { animation-name: domiki-cart-clay; animation-duration: var(--domiki-long-speed); animation-delay: 0s; transform-origin: 0 100%; }
-    .work-state .work-animated.logic-mine-cart-gold { animation-name: domiki-cart-gold; animation-duration: var(--domiki-long-speed); animation-delay: 0s; transform-origin: 0 100%; }
-    .work-state .work-animated.logic-mine-cart-stone { animation-name: domiki-cart-stone; animation-duration: var(--domiki-long-speed); animation-delay: 0s; transform-origin: 0 100%; }
-    .work-state .work-animated.logic-mine-cargo { animation-name: domiki-mine-cargo; animation-duration: var(--domiki-long-speed); animation-delay: 0s; }
-    .work-state .work-animated.logic-clay-drops { animation-name: domiki-clay-drops; animation-duration: var(--domiki-long-speed); animation-delay: 0s; }
-    .work-state .work-animated.logic-gold-glint { animation-name: domiki-gold-glint; animation-duration: var(--domiki-long-speed); animation-delay: 0s; }
-    .work-state .work-animated.logic-stone-chips { animation-name: domiki-stone-chips; animation-duration: var(--domiki-long-speed); animation-delay: 0s; }
-
-    .work-state .work-animated.logic-fair-left { animation-name: domiki-fair-left; animation-duration: var(--domiki-work-speed); animation-delay: 0s; transform-origin: 50% 0; }
-    .work-state .work-animated.logic-fair-right { animation-name: domiki-fair-right; animation-duration: var(--domiki-work-speed); animation-delay: 0s; transform-origin: 50% 0; }
-    .work-state .work-animated.logic-fair-lights-a { animation-name: domiki-fair-lights-a; animation-duration: var(--domiki-long-speed); animation-delay: 0s; }
-    .work-state .work-animated.logic-fair-lights-b { animation-name: domiki-fair-lights-b; animation-duration: var(--domiki-long-speed); animation-delay: 0s; }
-
-    .work-state .work-animated.logic-forge-fire { animation-name: domiki-forge-fire; animation-duration: var(--domiki-mech-speed); animation-delay: 0s; transform-origin: 50% 100%; }
-    .work-state .work-animated.logic-forge-hammer { animation-name: domiki-forge-hammer; animation-duration: var(--domiki-work-speed); animation-delay: 0s; transform-origin: 50% 100%; }
-    .work-state .work-animated.logic-forge-sparks { animation-name: domiki-forge-sparks; animation-duration: var(--domiki-work-speed); animation-delay: 0s; }
-
-    .work-state .work-animated.logic-gathering-pennant { animation-name: domiki-gathering-pennant; animation-duration: var(--domiki-long-speed); animation-delay: 0s; transform-origin: 50% 0; }
-    .work-state .work-animated.logic-gathering-lamps { animation-name: domiki-gathering-lamps; animation-duration: var(--domiki-long-speed); animation-delay: 0s; }
-
-    .work-state .work-animated.logic-saw-reciprocate { animation-name: domiki-saw-reciprocate; animation-duration: var(--domiki-mech-speed); animation-delay: 0s; transform-origin: 50% 50%; }
-    .work-state .work-animated.logic-log-feed { animation-name: domiki-log-feed; animation-duration: var(--domiki-long-speed); animation-delay: 0s; transform-origin: 0 50%; }
-    .work-state .work-animated.logic-sawdust { animation-name: domiki-sawdust; animation-duration: var(--domiki-long-speed); animation-delay: 0s; }
-
-    .work-state .work-animated.logic-market-sign { animation-name: domiki-market-sign; animation-duration: var(--domiki-long-speed); animation-delay: 0s; transform-origin: 50% 0; }
-    .work-state .work-animated.logic-market-trade { animation-name: domiki-market-trade; animation-duration: var(--domiki-long-speed); animation-delay: 0s; }
-
-    .work-state .work-animated.logic-hoist-crate { animation-name: domiki-hoist-crate; animation-duration: var(--domiki-long-speed); animation-delay: 0s; transform-origin: 50% 0; }
-    .work-state .work-animated.logic-hoist-pulley { animation-name: domiki-hoist-pulley; animation-duration: var(--domiki-long-speed); animation-delay: 0s; transform-origin: 50% 100%; }
-
-    .work-state .work-animated.logic-beacon-pulse { animation-name: domiki-beacon-pulse; animation-duration: var(--domiki-long-speed); animation-delay: 0s; }
-    .work-state .work-animated.logic-scout-flag { animation-name: domiki-scout-flag; animation-duration: var(--domiki-long-speed); animation-delay: 0s; transform-origin: 0 50%; }
-
-    .work-state .work-animated.logic-workshop-press { animation-name: domiki-workshop-press; animation-duration: var(--domiki-work-speed); animation-delay: 0s; transform-origin: 0 50%; }
-    .work-state .work-animated.logic-workshop-sparks { animation-name: domiki-workshop-sparks; animation-duration: var(--domiki-work-speed); animation-delay: 0s; }
-
-    /* Round 7: causal timing — secondary effects happen after their cause. */
-    @keyframes domiki-barracks-flag {
-      0%, 10% { transform: translate(0, 0); }
-      16% { transform: translate(2px, 0); }
-      22% { transform: translate(4px, 0); }
-      30% { transform: translate(2px, 0); }
-      42%, 55% { transform: translate(0, 0); }
-      64% { transform: translate(2px, 0); }
-      72% { transform: translate(4px, 0); }
-      82% { transform: translate(2px, 0); }
-      90%, 100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-barracks-drill {
-      0%, 8% { transform: translate(-8px, 0); opacity: 0; }
-      12% { transform: translate(-8px, 0); opacity: 1; }
-      20% { transform: translate(-4px, -2px); opacity: 1; }
-      28%, 38% { transform: translate(0, 0); opacity: 1; }
-      44% { transform: translate(0, -2px); opacity: 1; }
-      52%, 64% { transform: translate(4px, 0); opacity: 1; }
-      70% { transform: translate(8px, -2px); opacity: 1; }
-      76% { transform: translate(8px, 0); opacity: 0; }
-      76.1%, 100% { transform: translate(-8px, 0); opacity: 0; }
-    }
-    @keyframes domiki-barracks-glint {
-      0%, 26% { opacity: 0; transform: translate(0, 0); }
-      28%, 31% { opacity: 1; transform: translate(0, 0); }
-      34% { opacity: 0; transform: translate(2px, -2px); }
-      35%, 48% { opacity: 0; transform: translate(0, 0); }
-      50%, 53% { opacity: .9; transform: translate(0, 0); }
-      56%, 100% { opacity: 0; transform: translate(2px, -2px); }
-    }
-
-    @keyframes domiki-cart-clay {
-      0%, 16% { transform: translate(0, 0); }
-      24% { transform: translate(4px, 0); }
-      32% { transform: translate(8px, 0); }
-      40%, 54% { transform: translate(12px, 0); }
-      62% { transform: translate(8px, 2px); }
-      72% { transform: translate(4px, 0); }
-      82%, 100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-cart-gold {
-      0%, 14% { transform: translate(0, 0); }
-      22% { transform: translate(4px, 0); }
-      30% { transform: translate(8px, -2px); }
-      38%, 56% { transform: translate(12px, 0); }
-      64% { transform: translate(8px, -2px); }
-      72% { transform: translate(4px, 0); }
-      80%, 100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-cart-stone {
-      0%, 12% { transform: translate(0, 0); }
-      18% { transform: translate(2px, -2px); }
-      24% { transform: translate(4px, 0); }
-      30% { transform: translate(6px, -2px); }
-      36%, 52% { transform: translate(10px, 0); }
-      58% { transform: translate(8px, -2px); }
-      64% { transform: translate(6px, 0); }
-      70% { transform: translate(4px, -2px); }
-      78%, 100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-mine-cargo {
-      0%, 39% { opacity: .2; }
-      40%, 47% { opacity: .55; }
-      48%, 92% { opacity: 1; }
-      94%, 100% { opacity: .2; }
-    }
-    @keyframes domiki-clay-drops {
-      0%, 55% { opacity: 0; transform: translate(0, 0); }
-      58% { opacity: 1; transform: translate(0, 0); }
-      64% { opacity: .8; transform: translate(-2px, 2px); }
-      70% { opacity: 0; transform: translate(-2px, 4px); }
-      70.1%, 100% { opacity: 0; transform: translate(0, 0); }
-    }
-    @keyframes domiki-gold-glint {
-      0%, 77% { opacity: 0; transform: translate(0, 0); }
-      80%, 83% { opacity: 1; transform: translate(0, 0); }
-      86% { opacity: 0; transform: translate(2px, -2px); }
-      88%, 91% { opacity: .85; transform: translate(0, 0); }
-      94%, 100% { opacity: 0; transform: translate(2px, -2px); }
-    }
-    @keyframes domiki-stone-chips {
-      0%, 53% { opacity: 0; transform: translate(0, 0); }
-      56% { opacity: 1; transform: translate(0, 0); }
-      62% { opacity: .9; transform: translate(-2px, 2px); }
-      68% { opacity: .5; transform: translate(-4px, 4px); }
-      72%, 100% { opacity: 0; transform: translate(-4px, 6px); }
-    }
-
-    @keyframes domiki-fair-left {
-      0%, 10% { transform: translate(0, 0); }
-      25% { transform: translate(2px, 2px); }
-      50% { transform: translate(4px, 0); }
-      75% { transform: translate(2px, 2px); }
-      90%, 100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-fair-right {
-      0%, 10% { transform: translate(0, 0); }
-      25% { transform: translate(-2px, 2px); }
-      50% { transform: translate(-4px, 0); }
-      75% { transform: translate(-2px, 2px); }
-      90%, 100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-fair-lights-a {
-      0%, 14% { opacity: .35; }
-      16%, 25% { opacity: 1; }
-      28%, 56% { opacity: .45; }
-      58%, 65% { opacity: .9; }
-      68%, 100% { opacity: .35; }
-    }
-    @keyframes domiki-fair-lights-b {
-      0%, 34% { opacity: .35; }
-      36%, 45% { opacity: 1; }
-      48%, 76% { opacity: .45; }
-      78%, 87% { opacity: .9; }
-      90%, 100% { opacity: .35; }
-    }
-
-    @keyframes domiki-forge-fire {
-      0% { transform: translate(0, 0); opacity: .9; }
-      25% { transform: translate(0, -2px); opacity: .75; }
-      50% { transform: translate(0, -4px); opacity: 1; }
-      75% { transform: translate(0, -2px); opacity: .8; }
-      100% { transform: translate(0, 0); opacity: .9; }
-    }
-    @keyframes domiki-forge-hammer {
-      0%, 16% { transform: translate(0, 0); }
-      22% { transform: translate(0, -4px); }
-      28% { transform: translate(0, 8px); }
-      32% { transform: translate(0, 8px); }
-      38% { transform: translate(0, 4px); }
-      46%, 66% { transform: translate(0, 0); }
-      72% { transform: translate(0, -4px); }
-      78% { transform: translate(0, 8px); }
-      82% { transform: translate(0, 8px); }
-      88% { transform: translate(0, 4px); }
-      96%, 100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-forge-sparks {
-      0%, 27% { opacity: 0; transform: translate(0, 0); }
-      28%, 31% { opacity: 1; transform: translate(0, 0); }
-      34% { opacity: .7; transform: translate(-2px, -4px); }
-      38%, 77% { opacity: 0; transform: translate(-4px, -8px); }
-      78%, 81% { opacity: 1; transform: translate(0, 0); }
-      84% { opacity: .7; transform: translate(-2px, -4px); }
-      88%, 100% { opacity: 0; transform: translate(-4px, -8px); }
-    }
-
-    @keyframes domiki-gathering-pennant {
-      0%, 18% { transform: translate(0, 0); }
-      28% { transform: translate(2px, -2px); }
-      40% { transform: translate(4px, 0); }
-      54% { transform: translate(2px, 0); }
-      68% { transform: translate(0, 0); }
-      78% { transform: translate(-2px, -2px); }
-      90%, 100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-gathering-lamps {
-      0%, 18% { opacity: .55; }
-      20%, 38% { opacity: 1; }
-      40%, 58% { opacity: .65; }
-      60%, 78% { opacity: .95; }
-      80%, 100% { opacity: .55; }
-    }
-
-    @keyframes domiki-saw-reciprocate {
-      0% { transform: translate(0, -2px); }
-      25% { transform: translate(0, 0); }
-      50% { transform: translate(0, 2px); }
-      75% { transform: translate(0, 0); }
-      100% { transform: translate(0, -2px); }
-    }
-    @keyframes domiki-log-feed {
-      0%, 12% { transform: translate(-8px, 0); opacity: 1; }
-      28% { transform: translate(-4px, 0); opacity: 1; }
-      46% { transform: translate(0, 0); opacity: 1; }
-      60%, 68% { transform: translate(8px, 0); opacity: 1; }
-      72% { transform: translate(12px, 0); opacity: 0; }
-      72.1%, 82% { transform: translate(-8px, 0); opacity: 0; }
-      86%, 100% { transform: translate(-8px, 0); opacity: 1; }
-    }
-    @keyframes domiki-sawdust {
-      0%, 43% { opacity: 0; transform: translate(0, 0); }
-      46% { opacity: 1; transform: translate(0, 0); }
-      54% { opacity: .8; transform: translate(2px, 2px); }
-      62% { opacity: .45; transform: translate(4px, 4px); }
-      68%, 100% { opacity: 0; transform: translate(6px, 6px); }
-    }
-
-    @keyframes domiki-market-sign {
-      0%, 14% { transform: translate(0, 0); }
-      28% { transform: translate(2px, 2px); }
-      42% { transform: translate(4px, 0); }
-      56% { transform: translate(2px, 2px); }
-      70% { transform: translate(0, 0); }
-      82% { transform: translate(-2px, 2px); }
-      92%, 100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-market-trade {
-      0%, 18% { opacity: .25; }
-      20%, 26% { opacity: 1; }
-      28%, 48% { opacity: .35; }
-      50%, 56% { opacity: .9; }
-      58%, 78% { opacity: .3; }
-      80%, 86% { opacity: 1; }
-      88%, 100% { opacity: .25; }
-    }
-
-    @keyframes domiki-hoist-crate {
-      0%, 16% { transform: translate(0, 0); }
-      28% { transform: translate(0, -4px); }
-      40% { transform: translate(0, -8px); }
-      52%, 66% { transform: translate(0, -12px); }
-      76% { transform: translate(0, -8px); }
-      86% { transform: translate(0, -4px); }
-      94%, 100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-hoist-pulley {
-      0%, 14% { transform: translate(0, 0); opacity: .65; }
-      18%, 68% { transform: translate(0, -2px); opacity: 1; }
-      72%, 90% { transform: translate(0, 0); opacity: .8; }
-      94%, 100% { transform: translate(0, 0); opacity: .65; }
-    }
-
-    @keyframes domiki-beacon-pulse {
-      0%, 12% { opacity: .15; transform: translate(0, 0); }
-      14%, 20% { opacity: 1; transform: translate(0, 0); }
-      22%, 28% { opacity: .25; transform: translate(0, 0); }
-      30%, 38% { opacity: 1; transform: translate(0, 0); }
-      42%, 76% { opacity: .15; transform: translate(0, 0); }
-      78%, 84% { opacity: .85; transform: translate(0, -2px); }
-      88%, 100% { opacity: .15; transform: translate(0, 0); }
-    }
-    @keyframes domiki-scout-flag {
-      0%, 24% { transform: translate(0, 0); }
-      30% { transform: translate(2px, 0); }
-      36% { transform: translate(6px, 0); }
-      42% { transform: translate(4px, -2px); }
-      50% { transform: translate(6px, 0); }
-      58% { transform: translate(2px, 0); }
-      66%, 88% { transform: translate(0, 0); }
-      94% { transform: translate(4px, 0); }
-      100% { transform: translate(0, 0); }
-    }
-
-    @keyframes domiki-workshop-press {
-      0%, 20% { transform: translate(0, 0); }
-      28% { transform: translate(-4px, 0); }
-      34%, 42% { transform: translate(-8px, 0); }
-      50% { transform: translate(-4px, 0); }
-      58%, 72% { transform: translate(0, 0); }
-      80% { transform: translate(-4px, 0); }
-      86%, 92% { transform: translate(-8px, 0); }
-      100% { transform: translate(0, 0); }
-    }
-    @keyframes domiki-workshop-sparks {
-      0%, 33% { opacity: 0; transform: translate(0, 0); }
-      34%, 38% { opacity: 1; transform: translate(0, 0); }
-      42% { opacity: .6; transform: translate(-2px, -4px); }
-      46%, 85% { opacity: 0; transform: translate(-4px, -6px); }
-      86%, 90% { opacity: 1; transform: translate(0, 0); }
-      94% { opacity: .6; transform: translate(-2px, -4px); }
-      98%, 100% { opacity: 0; transform: translate(-4px, -6px); }
-    }
-
-    /* Round 8: scale-aware simplification remains in the SVG markup. */
-    /* Round 9: final inactive-state guard prevents hidden variants ticking. */
-    svg:not([data-working="true"]):not([data-working="1"]) .work-animated,
-    svg[data-size="128"] .variant-medium .work-animated,
-    svg[data-size="128"] .variant-small .work-animated,
-    svg[data-size="64"] .variant-full .work-animated,
-    svg[data-size="64"] .variant-small .work-animated,
-    svg[data-size="medium"] .variant-full .work-animated,
-    svg[data-size="medium"] .variant-small .work-animated,
-    svg[data-size="32"] .variant-full .work-animated,
-    svg[data-size="32"] .variant-medium .work-animated,
-    svg[data-size="small"] .variant-full .work-animated,
-    svg[data-size="small"] .variant-medium .work-animated {
-      animation-name: none !important;
-      will-change: auto;
-    }
-
-    /* Round 10: reduced motion shows the meaningful working pose, without loops. */
-    @media (prefers-reduced-motion: reduce) {
-      .work-animated { animation: none !important; opacity: 1; transform: none; }
-    }
-
-  </style>
-  <g class="variant-full"><rect x="0" y="108" width="128" height="4" fill="#686f74"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges" data-level="1" data-size="128" data-working="false" data-motion="on" role="img" aria-labelledby="stone_mine-title stone_mine-desc" focusable="false" preserveAspectRatio="xMidYMid meet" color-interpolation="sRGB" data-active="true" data-state="idle" data-animation-profile="structure" style="--asset-phase:-1.85s">
+  <title id="stone_mine-title">Каменоломня</title>
+  <desc id="stone_mine-desc">Доработанный пиксельный SVG «Каменоломня»: варианты 128/64/32, уровни 1–5 и предметный многофазный рабочий процесс data-working/data-motion. Поддерживаются состояния idle, selected, attention, pressed, disabled и режимы motion on/slow/fast/paused/off.</desc>
+  <style>svg[data-level="1"] .lvl2,svg[data-level="1"] .lvl3,svg[data-level="1"] .lvl4,svg[data-level="1"] .lvl5,svg[data-level="2"] .lvl3,svg[data-level="2"] .lvl4,svg[data-level="2"] .lvl5,svg[data-level="3"] .lvl4,svg[data-level="3"] .lvl5,svg[data-level="4"] .lvl5{display:none}.variant-medium,.variant-small{display:none}svg[data-size="64"] .variant-full,svg[data-size="medium"] .variant-full,svg[data-size="32"] .variant-full,svg[data-size="small"] .variant-full{display:none}svg[data-size="64"] .variant-medium,svg[data-size="medium"] .variant-medium{display:inline}svg[data-size="32"] .variant-small,svg[data-size="small"] .variant-small{display:inline}svg{--domiki-work-speed:1.2s;--domiki-work-step:4px}svg[data-motion="slow"]{--domiki-work-speed:1.8s}svg[data-motion="fast"]{--domiki-work-speed:.72s}.work-state{display:none}svg[data-working="true"] .work-state,svg[data-working="1"] .work-state{display:inline;animation:domiki-work-reveal 180ms steps(2,end) both}.work-animated{transform-box:fill-box;transform-origin:center;animation-duration:var(--domiki-work-speed);animation-timing-function:steps(1,end);animation-iteration-count:infinite;animation-fill-mode:both}svg[data-working="true"] .work-animated,svg[data-working="1"] .work-animated{will-change:transform,opacity}.work-state .work-animated:nth-child(3n + 1){animation-delay:-.12s}.work-state .work-animated:nth-child(3n + 2){animation-delay:-.28s}.work-state .work-animated:nth-child(3n){animation-delay:-.44s}svg:not([data-working="true"]):not([data-working="1"]) .work-animated,svg[data-size="128"] .variant-medium .work-animated,svg[data-size="128"] .variant-small .work-animated,svg[data-size="64"] .variant-full .work-animated,svg[data-size="64"] .variant-small .work-animated,svg[data-size="medium"] .variant-full .work-animated,svg[data-size="medium"] .variant-small .work-animated,svg[data-size="32"] .variant-full .work-animated,svg[data-size="32"] .variant-medium .work-animated,svg[data-size="small"] .variant-full .work-animated,svg[data-size="small"] .variant-medium .work-animated{animation-name:none;will-change:auto}svg[data-motion="paused"] .work-animated,svg[data-motion="paused"] .work-state{animation-play-state:paused !important}svg[data-motion="off"] .work-animated,svg[data-motion="off"] .work-state{animation:none !important}@media (prefers-reduced-motion:reduce){.work-animated,.work-state{animation:none !important}}svg{--domiki-work-speed:3.2s;--domiki-long-speed:4.4s;--domiki-mech-speed:.64s}svg[data-motion="slow"]{--domiki-work-speed:4.8s;--domiki-long-speed:6.6s;--domiki-mech-speed:.96s}svg[data-motion="fast"]{--domiki-work-speed:1.9s;--domiki-long-speed:2.65s;--domiki-mech-speed:.4s}.work-state .work-animated.logic-mine-cart-stone{animation-name:domiki-cart-stone;animation-duration:var(--domiki-long-speed);animation-delay:0s;transform-origin:0 100%}.work-state .work-animated.logic-mine-cargo{animation-name:domiki-mine-cargo;animation-duration:var(--domiki-long-speed);animation-delay:0s}.work-state .work-animated.logic-stone-chips{animation-name:domiki-stone-chips;animation-duration:var(--domiki-long-speed);animation-delay:0s}svg:not([data-working="true"]):not([data-working="1"]) .work-animated,svg[data-size="128"] .variant-medium .work-animated,svg[data-size="128"] .variant-small .work-animated,svg[data-size="64"] .variant-full .work-animated,svg[data-size="64"] .variant-small .work-animated,svg[data-size="medium"] .variant-full .work-animated,svg[data-size="medium"] .variant-small .work-animated,svg[data-size="32"] .variant-full .work-animated,svg[data-size="32"] .variant-medium .work-animated,svg[data-size="small"] .variant-full .work-animated,svg[data-size="small"] .variant-medium .work-animated{animation-name:none !important;will-change:auto}@media (prefers-reduced-motion:reduce){.work-animated{animation:none !important;opacity:1;transform:none}}@keyframes domiki-work-reveal{0%{opacity:0}50%,100%{opacity:1}}@keyframes domiki-cart-stone{0%,12%{transform:translate(0,0)}18%{transform:translate(2px,-2px)}24%{transform:translate(4px,0)}30%{transform:translate(6px,-2px)}36%,52%{transform:translate(10px,0)}58%{transform:translate(8px,-2px)}64%{transform:translate(6px,0)}70%{transform:translate(4px,-2px)}78%,100%{transform:translate(0,0)}}@keyframes domiki-mine-cargo{0%,39%{opacity:.2}40%,47%{opacity:.55}48%,92%{opacity:1}94%,100%{opacity:.2}}@keyframes domiki-stone-chips{0%,53%{opacity:0;transform:translate(0,0)}56%{opacity:1;transform:translate(0,0)}62%{opacity:.9;transform:translate(-2px,2px)}68%{opacity:.5;transform:translate(-4px,4px)}72%,100%{opacity:0;transform:translate(-4px,6px)}}</style>
+  <style>svg{--asset-loop:4.8s;--asset-accent-loop:3.6s;--asset-fx-loop:3.2s;--asset-phase:-.6s;--asset-step:1px;--asset-neg-step:-1px;--asset-double-step:2px;--asset-neg-double-step:-2px;overflow:hidden}
+.asset-stage,.asset-fx,.asset-fx *{transform-box:fill-box;transform-origin:center}.asset-fx,.asset-fx *{pointer-events:none}
+svg[data-motion="on"][data-active="true"] .profile-bob{animation:asset-enter .32s steps(4,end) both,asset-bob var(--asset-loop) steps(1,end) var(--asset-phase) infinite}
+svg[data-motion="on"][data-active="true"] .profile-nudge{animation:asset-enter .32s steps(4,end) both,asset-nudge var(--asset-loop) steps(1,end) var(--asset-phase) infinite}
+svg[data-motion="on"][data-active="true"] .profile-press{animation:asset-enter .24s steps(3,end) both,asset-press var(--asset-loop) steps(1,end) var(--asset-phase) infinite}
+svg[data-motion="on"][data-active="true"] .profile-grounded{animation:asset-enter .32s steps(4,end) both,asset-grounded var(--asset-loop) steps(1,end) var(--asset-phase) infinite}
+@keyframes asset-enter{0%{opacity:0;transform:translateY(2px)}66%{opacity:1;transform:translateY(-1px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes asset-bob{0%,70%,100%{transform:translateY(0)}74%,82%{transform:translateY(var(--asset-neg-step))}86%{transform:translateY(0)}}
+@keyframes asset-nudge{0%,68%,100%{transform:translate(0,0)}72%,80%{transform:translate(var(--asset-step),var(--asset-step))}84%{transform:translate(0,0)}}
+@keyframes asset-press{0%,70%,100%{transform:translateY(0)}74%,82%{transform:translateY(var(--asset-step))}86%{transform:translateY(0)}}
+@keyframes asset-grounded{0%,78%,100%{opacity:1}82%{opacity:.97}86%{opacity:1}}</style><style>.asset-accent{transform-box:fill-box;transform-origin:center}
+svg[data-motion="on"][data-active="true"] .asset-accent{animation:asset-accent var(--asset-accent-loop) steps(1,end) var(--asset-local-phase,-.4s) infinite}
+.asset-phase-1{--asset-local-phase:-.45s}.asset-phase-2{--asset-local-phase:-1.15s}.asset-phase-3{--asset-local-phase:-2.05s}.asset-phase-4{--asset-local-phase:-2.8s}
+@keyframes asset-accent{0%,42%,58%,100%{opacity:1}46%{opacity:.7}50%{opacity:1}54%{opacity:.84}}</style><style>.fx-semantic{opacity:1}.fx-glint,.fx-rise,.fx-flow,.fx-trail,.fx-scan,.fx-fire,.fx-progress{opacity:0}
+svg[data-motion="on"][data-active="true"] .fx-glint{animation:fx-glint var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.5s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-rise{animation:fx-rise var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.8s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-flow{animation:fx-flow var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.3s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-trail{animation:fx-trail var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.9s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-scan{animation:fx-scan var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.1s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-fire{animation:fx-fire var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.2s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-progress{animation:fx-progress var(--asset-fx-loop) steps(1,end) var(--asset-fx-phase,-.6s) infinite}
+@keyframes fx-glint{0%,52%,100%{opacity:0}56%,64%{opacity:1}68%{opacity:0}}
+@keyframes fx-rise{0%,44%{opacity:0;transform:translateY(var(--asset-step))}48%{opacity:1}58%{opacity:.8;transform:translateY(var(--asset-neg-step))}66%,100%{opacity:0;transform:translateY(var(--asset-neg-double-step))}}
+@keyframes fx-flow{0%,34%{opacity:0;transform:translateY(var(--asset-neg-step))}40%{opacity:1}56%{opacity:1;transform:translateY(var(--asset-step))}64%,100%{opacity:0;transform:translateY(var(--asset-double-step))}}
+@keyframes fx-trail{0%,36%{opacity:0;transform:translateX(var(--asset-neg-step))}42%,56%{opacity:1}62%{opacity:0;transform:translateX(var(--asset-double-step))}100%{opacity:0}}
+@keyframes fx-scan{0%,34%{opacity:0;transform:translateY(var(--asset-neg-double-step))}40%,48%{opacity:.9}58%{opacity:.65;transform:translateY(var(--asset-double-step))}64%,100%{opacity:0}}
+@keyframes fx-fire{0%,100%{opacity:.76;transform:translateY(0)}25%{opacity:1;transform:translateY(var(--asset-neg-step))}50%{opacity:.72;transform:translateY(0)}75%{opacity:1;transform:translateY(var(--asset-neg-step))}}
+@keyframes fx-progress{0%,38%,100%{opacity:0}42%,58%{opacity:1}62%{opacity:.55}68%{opacity:0}}</style><style>.fx-selection,.fx-attention{display:none}
+svg[data-state="selected"] .fx-selection{display:inline;animation:asset-selected 1.2s steps(1,end) infinite}
+svg[data-state="attention"] .fx-attention{display:inline;animation:asset-attention 1s steps(1,end) infinite}
+@keyframes asset-selected{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes asset-attention{0%,32%,100%{opacity:0}36%,68%{opacity:1}72%{opacity:0}}</style><style>svg[data-state="pressed"] .asset-stage{animation:none!important;transform:translateY(var(--asset-step))}
+svg[data-state="disabled"] .asset-stage,svg[data-state="disabled"] .asset-fx{animation:none!important;filter:saturate(.25);opacity:.58}
+svg[data-state="hidden"] .asset-stage,svg[data-state="hidden"] .asset-fx{visibility:hidden}
+svg:hover:not([data-state="disabled"]) .asset-stage{animation:asset-hover .26s steps(3,end) both}
+@keyframes asset-hover{0%{transform:translateY(0)}60%{transform:translateY(var(--asset-neg-step))}100%{transform:translateY(0)}}</style><style>svg[data-motion="slow"]{--asset-loop:6.8s;--asset-accent-loop:5.2s;--asset-fx-loop:4.8s}
+svg[data-motion="fast"]{--asset-loop:3.1s;--asset-accent-loop:2.4s;--asset-fx-loop:2s}
+svg[data-motion="paused"] *,svg[data-motion="paused"] .asset-stage{animation-play-state:paused!important}
+svg[data-motion="off"] *,svg[data-motion="off"] .asset-stage{animation:none!important}</style><style>svg[data-size="32"]{--asset-step:1px}svg[data-size="24"]{--asset-step:1px}
+svg[data-size="32"] .fx-minor,svg[data-size="24"] .fx-minor,svg[data-size="small"] .fx-minor{display:none}
+svg[data-size="24"] .fx-selection{opacity:.9}</style><style>svg[data-motion="on"][data-active="false"] .asset-stage,svg[data-motion="on"][data-active="false"] .asset-fx *{animation:none!important}
+@media (prefers-reduced-motion:reduce){.asset-stage,.asset-fx *,.asset-accent{animation:none!important;transform:none!important}.fx-semantic,.fx-attention{display:none!important}}</style><style>.fx-phase-1{--asset-fx-phase:-.35s}.fx-phase-2{--asset-fx-phase:-1.05s}.fx-phase-3{--asset-fx-phase:-1.75s}.fx-phase-4{--asset-fx-phase:-2.45s}
+svg[data-animation-profile="structure"] .asset-accent{--asset-accent-loop:4.4s}
+svg[data-animation-profile="wealth"] .fx-glint,svg[data-animation-profile="badge"] .fx-glint{--asset-fx-loop:2.8s}</style><g class="asset-stage profile-grounded"><g class="variant-full"><rect x="0" y="108" width="128" height="4" fill="#686f74"/>
   <rect x="0" y="112" width="128" height="12" fill="#92999e"/>
   <rect x="8" y="116" width="4" height="4" fill="#737b80"/>
   <rect x="56" y="116" width="4" height="4" fill="#737b80"/>
   <rect x="104" y="116" width="4" height="4" fill="#737b80"/>
-  <g data-refinement-round="2"><rect x="8" y="104" width="116" height="4" fill="#4b5156"/></g><rect x="24" y="32" width="52" height="12" fill="#24282d"/>
-  <rect x="12" y="40" width="76" height="68" fill="#24282d"/>
+  <g><rect x="8" y="104" width="116" height="4" fill="#4b5156"/></g><rect x="24" y="32" width="52" height="12" fill="#262626"/>
+  <rect x="12" y="40" width="76" height="68" fill="#262626"/>
   <rect x="28" y="36" width="44" height="12" fill="#92999e"/>
   <rect x="16" y="44" width="68" height="60" fill="#92999e"/>
   <rect x="20" y="52" width="4" height="4" fill="#737b80"/>
@@ -512,17 +60,17 @@
   <rect x="28" y="52" width="44" height="8" fill="#986638"/>
   <rect x="32" y="60" width="8" height="48" fill="#704925"/>
   <rect x="60" y="60" width="8" height="48" fill="#704925"/>
-  <rect x="40" y="60" width="20" height="48" fill="#24282d"/>
-  <rect x="92" y="92" width="32" height="16" fill="#24282d"/>
-  <rect x="96" y="84" width="24" height="12" fill="#24282d"/>
-  <rect x="100" y="80" width="16" height="8" fill="#24282d"/>
+  <rect x="40" y="60" width="20" height="48" fill="#262626"/>
+  <rect x="92" y="92" width="32" height="16" fill="#262626"/>
+  <rect x="96" y="84" width="24" height="12" fill="#262626"/>
+  <rect x="100" y="80" width="16" height="8" fill="#262626"/>
   <rect x="96" y="96" width="24" height="8" fill="#686f74"/>
   <rect x="100" y="88" width="16" height="8" fill="#686f74"/>
   <rect x="104" y="84" width="8" height="4" fill="#686f74"/>
   <rect x="100" y="96" width="4" height="4" fill="#92999e"/>
   <rect x="108" y="88" width="4" height="4" fill="#92999e"/>
   <g class="lvl2">
-    <rect x="72" y="88" width="20" height="20" fill="#24282d"/>
+    <rect x="72" y="88" width="20" height="20" fill="#262626"/>
     <rect x="76" y="92" width="12" height="4" fill="#92999e"/>
     <rect x="76" y="96" width="12" height="8" fill="#737b80"/>
     <rect x="80" y="96" width="4" height="4" fill="#686f74"/>
@@ -531,20 +79,20 @@
     <rect x="4" y="84" width="24" height="4" fill="#737b80"/>
     <rect x="4" y="88" width="24" height="8" fill="#986638"/>
     <rect x="24" y="84" width="8" height="4" fill="#704925"/>
-    <rect x="8" y="96" width="12" height="12" fill="#24282d"/>
+    <rect x="8" y="96" width="12" height="12" fill="#262626"/>
     <rect x="12" y="100" width="4" height="4" fill="#686f74"/>
     <rect x="24" y="96" width="4" height="12" fill="#704925"/>
     </g>
   <g class="lvl4">
-    <rect x="12" y="64" width="12" height="8" fill="#24282d"/>
+    <rect x="12" y="64" width="12" height="8" fill="#262626"/>
     <rect x="16" y="72" width="4" height="36" fill="#704925"/>
-    <rect x="24" y="92" width="4" height="16" fill="#24282d"/>
+    <rect x="24" y="92" width="4" height="16" fill="#262626"/>
     </g>
   <g class="lvl5">
-    <rect x="28" y="56" width="44" height="4" fill="#e8b83a"/>
-    <rect x="40" y="28" width="20" height="16" fill="#24282d"/>
-    <rect x="44" y="32" width="12" height="8" fill="#e8b83a"/>
-    <rect x="44" y="40" width="12" height="4" fill="#e7ad35"/>
-    <rect x="76" y="92" width="12" height="4" fill="#e8b83a"/>
+    <rect x="28" y="56" width="44" height="4" fill="#e8b83a" class="asset-accent asset-phase-2"/>
+    <rect x="40" y="28" width="20" height="16" fill="#262626"/>
+    <rect x="44" y="32" width="12" height="8" fill="#e8b83a" class="asset-accent asset-phase-1"/>
+    <rect x="44" y="40" width="12" height="4" fill="#E8B83A" class="asset-accent asset-phase-3"/>
+    <rect x="76" y="92" width="12" height="4" fill="#e8b83a" class="asset-accent asset-phase-4"/>
     </g>
-<g data-refinement-round="3"><rect x="28" y="36" width="44" height="4" fill="#b4b9bc"/><rect x="16" y="44" width="68" height="4" fill="#a4aaae"/></g><g data-refinement-round="4"><rect x="20" y="52" width="4" height="4" fill="#c6cbce"/><rect x="76" y="72" width="4" height="4" fill="#c6cbce"/></g><g data-refinement-round="5"><rect x="96" y="84" width="12" height="8" fill="#7b8388"/><rect x="108" y="88" width="12" height="8" fill="#596066"/><rect x="100" y="96" width="16" height="4" fill="#9aa1a5"/><rect x="44" y="36" width="8" height="4" fill="#737b80"/><rect x="48" y="40" width="12" height="4" fill="#b4b9bc"/><rect x="20" y="84" width="8" height="4" fill="#7f8386"/></g><g data-refinement-round="11"><rect x="112" y="96" width="4" height="4" fill="#c6cbce"/></g><g class="work-state"><g class="work-animated logic-mine-cart-stone"><rect x="4" y="92" width="24" height="12" fill="#24282d"/><rect class="work-animated logic-mine-cargo" x="8" y="88" width="16" height="12" fill="#737b80"/><rect x="8" y="104" width="4" height="4" fill="#686f74"/><rect x="20" y="104" width="4" height="4" fill="#686f74"/></g><g class="work-animated logic-stone-chips"><rect x="12" y="84" width="4" height="4" fill="#c9c2b4"/><rect x="20" y="80" width="4" height="4" fill="#c9c2b4"/></g></g></g><g class="variant-medium"><rect x="8" y="108" width="112" height="4" fill="#686f74"/><rect x="8" y="112" width="112" height="8" fill="#92999e"/><rect x="20" y="116" width="4" height="4" fill="#737b80"/><rect x="100" y="116" width="4" height="4" fill="#737b80"/><rect x="36" y="32" width="48" height="8" fill="#24282d"/><g data-refinement-round="2"><rect x="8" y="104" width="112" height="4" fill="#4b5156"/></g><rect x="24" y="40" width="72" height="68" fill="#24282d"/><rect x="28" y="44" width="64" height="64" fill="#92999e"/><rect x="44" y="64" width="32" height="44" fill="#24282d"/><rect x="52" y="68" width="16" height="40" fill="#704925"/><rect x="92" y="92" width="24" height="16" fill="#24282d"/><rect x="96" y="84" width="16" height="8" fill="#24282d"/><rect x="100" y="80" width="8" height="4" fill="#24282d"/><rect x="96" y="96" width="16" height="8" fill="#737b80"/><g class="lvl2"><rect x="36" y="56" width="48" height="8" fill="#986638"/><rect x="40" y="64" width="4" height="44" fill="#704925"/><rect x="80" y="64" width="4" height="44" fill="#704925"/></g><g class="lvl3"><rect x="16" y="72" width="8" height="36" fill="#704925"/><rect x="8" y="72" width="16" height="8" fill="#686f74"/></g><g class="lvl4"><rect x="96" y="72" width="16" height="12" fill="#24282d"/><rect x="100" y="76" width="8" height="4" fill="#c9c2b4"/></g><g class="lvl5"><rect x="36" y="44" width="48" height="8" fill="#e8b83a"/><rect x="104" y="84" width="8" height="4" fill="#c9c2b4"/></g><g data-refinement-round="9"><rect x="96" y="92" width="24" height="12" fill="#686f74"/><rect x="100" y="92" width="12" height="4" fill="#9aa1a5"/></g><g class="work-state"><g class="work-animated logic-mine-cart-stone"><rect x="4" y="92" width="24" height="12" fill="#24282d"/><rect class="work-animated logic-mine-cargo" x="8" y="88" width="16" height="12" fill="#737b80"/><rect x="8" y="104" width="4" height="4" fill="#686f74"/><rect x="20" y="104" width="4" height="4" fill="#686f74"/></g><g class="work-animated logic-stone-chips"><rect x="12" y="84" width="4" height="4" fill="#c9c2b4"/><rect x="20" y="80" width="4" height="4" fill="#c9c2b4"/></g></g></g><g class="variant-small"><rect x="8" y="108" width="112" height="4" fill="#686f74"/><rect x="8" y="112" width="112" height="8" fill="#92999e"/><rect x="20" y="116" width="4" height="4" fill="#737b80"/><rect x="100" y="116" width="4" height="4" fill="#737b80"/><rect x="36" y="32" width="48" height="8" fill="#24282d"/><g data-refinement-round="2"><rect x="8" y="104" width="112" height="4" fill="#4b5156"/></g><rect x="24" y="40" width="72" height="68" fill="#24282d"/><rect x="28" y="44" width="64" height="64" fill="#92999e"/><rect x="44" y="64" width="32" height="44" fill="#24282d"/><rect x="52" y="68" width="16" height="40" fill="#704925"/><rect x="92" y="92" width="24" height="16" fill="#24282d"/><rect x="96" y="84" width="16" height="8" fill="#24282d"/><rect x="100" y="80" width="8" height="4" fill="#24282d"/><rect x="96" y="96" width="16" height="8" fill="#737b80"/><g data-refinement-round="10"><rect x="96" y="92" width="24" height="12" fill="#686f74"/></g><g class="work-state"><g class="work-animated logic-mine-cart-stone"><rect x="4" y="92" width="24" height="12" fill="#24282d"/><rect class="work-animated logic-mine-cargo" x="8" y="88" width="16" height="12" fill="#737b80"/><rect x="8" y="104" width="4" height="4" fill="#686f74"/><rect x="20" y="104" width="4" height="4" fill="#686f74"/></g></g></g></svg>
+<g><rect x="28" y="36" width="44" height="4" fill="#b4b9bc"/><rect x="16" y="44" width="68" height="4" fill="#a4aaae"/></g><g><rect x="20" y="52" width="4" height="4" fill="#c6cbce"/><rect x="76" y="72" width="4" height="4" fill="#c6cbce"/></g><g><rect x="96" y="84" width="12" height="8" fill="#7b8388"/><rect x="108" y="88" width="12" height="8" fill="#596066"/><rect x="100" y="96" width="16" height="4" fill="#9aa1a5"/><rect x="44" y="36" width="8" height="4" fill="#737b80"/><rect x="48" y="40" width="12" height="4" fill="#b4b9bc"/><rect x="20" y="84" width="8" height="4" fill="#7f8386"/></g><g><rect x="112" y="96" width="4" height="4" fill="#c6cbce"/></g><g class="work-state"><g class="work-animated logic-mine-cart-stone"><rect x="4" y="92" width="24" height="12" fill="#262626"/><rect class="work-animated logic-mine-cargo" x="8" y="88" width="16" height="12" fill="#737b80"/><rect x="8" y="104" width="4" height="4" fill="#686f74"/><rect x="20" y="104" width="4" height="4" fill="#686f74"/></g><g class="work-animated logic-stone-chips"><rect x="12" y="84" width="4" height="4" fill="#c9c2b4"/><rect x="20" y="80" width="4" height="4" fill="#c9c2b4"/></g></g></g><g class="variant-medium"><rect x="8" y="108" width="112" height="4" fill="#686f74"/><rect x="8" y="112" width="112" height="8" fill="#92999e"/><rect x="20" y="116" width="4" height="4" fill="#737b80"/><rect x="100" y="116" width="4" height="4" fill="#737b80"/><rect x="36" y="32" width="48" height="8" fill="#262626"/><g><rect x="8" y="104" width="112" height="4" fill="#4b5156"/></g><rect x="24" y="40" width="72" height="68" fill="#262626"/><rect x="28" y="44" width="64" height="64" fill="#92999e"/><rect x="44" y="64" width="32" height="44" fill="#262626"/><rect x="52" y="68" width="16" height="40" fill="#704925"/><rect x="92" y="92" width="24" height="16" fill="#262626"/><rect x="96" y="84" width="16" height="8" fill="#262626"/><rect x="100" y="80" width="8" height="4" fill="#262626"/><rect x="96" y="96" width="16" height="8" fill="#737b80"/><g class="lvl2"><rect x="36" y="56" width="48" height="8" fill="#986638"/><rect x="40" y="64" width="4" height="44" fill="#704925"/><rect x="80" y="64" width="4" height="44" fill="#704925"/></g><g class="lvl3"><rect x="16" y="72" width="8" height="36" fill="#704925"/><rect x="8" y="72" width="16" height="8" fill="#686f74"/></g><g class="lvl4"><rect x="96" y="72" width="16" height="12" fill="#262626"/><rect x="100" y="76" width="8" height="4" fill="#c9c2b4" class="asset-accent asset-phase-1"/></g><g class="lvl5"><rect x="36" y="44" width="48" height="8" fill="#e8b83a"/><rect x="104" y="84" width="8" height="4" fill="#c9c2b4" class="asset-accent asset-phase-2"/></g><g><rect x="96" y="92" width="24" height="12" fill="#686f74"/><rect x="100" y="92" width="12" height="4" fill="#9aa1a5"/></g><g class="work-state"><g class="work-animated logic-mine-cart-stone"><rect x="4" y="92" width="24" height="12" fill="#262626"/><rect class="work-animated logic-mine-cargo" x="8" y="88" width="16" height="12" fill="#737b80"/><rect x="8" y="104" width="4" height="4" fill="#686f74"/><rect x="20" y="104" width="4" height="4" fill="#686f74"/></g><g class="work-animated logic-stone-chips"><rect x="12" y="84" width="4" height="4" fill="#c9c2b4"/><rect x="20" y="80" width="4" height="4" fill="#c9c2b4"/></g></g></g><g class="variant-small"><g class="small-signature small-signature-stone_mine"><rect x="96" y="64" width="24" height="44" fill="#262626"/><rect x="104" y="56" width="16" height="8" fill="#262626"/><rect x="112" y="48" width="8" height="8" fill="#262626"/><rect x="100" y="72" width="20" height="32" fill="#737b80"/><rect x="108" y="64" width="12" height="8" fill="#92999e"/><rect x="116" y="56" width="4" height="8" fill="#686f74"/></g><rect x="8" y="108" width="112" height="4" fill="#686f74"/><rect x="8" y="112" width="112" height="8" fill="#92999e"/><rect x="20" y="116" width="4" height="4" fill="#737b80"/><rect x="100" y="116" width="4" height="4" fill="#737b80"/><rect x="36" y="32" width="48" height="8" fill="#262626"/><g><rect x="8" y="104" width="112" height="4" fill="#4b5156"/></g><rect x="24" y="40" width="72" height="68" fill="#262626"/><rect x="28" y="44" width="64" height="64" fill="#92999e"/><rect x="44" y="64" width="32" height="44" fill="#262626"/><rect x="52" y="68" width="16" height="40" fill="#704925"/><rect x="92" y="92" width="24" height="16" fill="#262626"/><rect x="96" y="84" width="16" height="8" fill="#262626"/><rect x="100" y="80" width="8" height="4" fill="#262626"/><rect x="96" y="96" width="16" height="8" fill="#737b80"/><g><rect x="96" y="92" width="24" height="12" fill="#686f74"/></g><g class="work-state"><g class="work-animated logic-mine-cart-stone"><rect x="4" y="92" width="24" height="12" fill="#262626"/><rect class="work-animated logic-mine-cargo" x="8" y="88" width="16" height="12" fill="#737b80"/><rect x="8" y="104" width="4" height="4" fill="#686f74"/><rect x="20" y="104" width="4" height="4" fill="#686f74"/></g></g><g class="small-tier-pips"><g class="lvl2"><rect x="80" y="112" width="8" height="8" fill="#5d9991"/></g><g class="lvl3"><rect x="88" y="112" width="8" height="8" fill="#4A7AB5"/></g><g class="lvl4"><rect x="96" y="112" width="8" height="8" fill="#c84444"/></g><g class="lvl5"><rect x="104" y="112" width="8" height="8" fill="#e8b83a"/></g></g></g></g><g class="asset-fx fx-semantic" aria-hidden="true"/><g class="asset-fx fx-selection" aria-hidden="true"><rect x="4" y="4" width="12" height="4" fill="#e8b83a"/><rect x="4" y="4" width="4" height="12" fill="#e8b83a"/><rect x="112" y="4" width="12" height="4" fill="#e8b83a"/><rect x="124" y="4" width="4" height="12" fill="#e8b83a"/><rect x="4" y="124" width="12" height="4" fill="#e8b83a"/><rect x="4" y="112" width="4" height="12" fill="#e8b83a"/><rect x="112" y="124" width="12" height="4" fill="#e8b83a"/><rect x="124" y="112" width="4" height="12" fill="#e8b83a"/></g><g class="asset-fx fx-attention" aria-hidden="true"><rect x="112" y="8" width="4" height="8" fill="#c84444"/><rect x="108" y="4" width="12" height="4" fill="#e8b83a"/><rect x="112" y="16" width="4" height="4" fill="#efe6d4"/></g></svg>

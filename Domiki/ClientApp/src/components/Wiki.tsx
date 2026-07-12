@@ -4,7 +4,7 @@ import { useToast } from '../services/toast';
 import { formatDuration } from '../utils/time';
 import { domikLore } from '../utils/domikLore';
 import type { DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, WeatherStateDto } from '../types/api';
-import { DomikSprite, MechanicSprite } from './sprites';
+import { DomikSprite, MechanicSprite, ResourceSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import { PixelLoader } from './PixelLoader';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
@@ -131,7 +131,7 @@ const ResChips = ({ items, resourceTypes }: ResChipsProps) => (
             }
             return (
                 <span key={res.typeId} className="wiki-chip" title={type.name}>
-                    <img src={'/images/resourceTypes/' + type.logicName + '.png'} alt={type.name} />
+                    <ResourceSprite logicName={type.logicName} aria-hidden="true" />
                     {res.value}
                 </span>
             );
@@ -236,7 +236,7 @@ export const Wiki = () => {
                 <div className="wiki-res-grid">
                     {resourceTypes.map(type => (
                         <div key={type.id} className="wiki-res-cell pixel-panel" title={type.name}>
-                            <img src={'/images/resourceTypes/' + type.logicName + '.png'} alt={type.name} />
+                            <ResourceSprite logicName={type.logicName} aria-hidden="true" />
                             <span>{type.name}</span>
                         </div>
                     ))}
@@ -275,7 +275,7 @@ export const Wiki = () => {
                                                     if (rt == null) {
                                                         return null;
                                                     }
-                                                    return <img key={tid} src={'/images/resourceTypes/' + rt.logicName + '.png'} alt={rt.name} title={rt.name} />;
+                                                    return <ResourceSprite key={tid} logicName={rt.logicName} aria-label={rt.name} />;
                                                 })}
                                             </span>
                                         )}

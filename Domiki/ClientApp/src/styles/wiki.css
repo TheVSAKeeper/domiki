@@ -43,7 +43,7 @@
     font-weight: 600;
 }
 
-    .wiki-res-cell img {
+    .wiki-res-cell img, .wiki-res-cell svg {
         width: 32px;
         height: 32px;
         image-rendering: pixelated;
@@ -131,7 +131,7 @@
     gap: 6px;
 }
 
-    .wiki-building-teaser img {
+    .wiki-building-teaser img, .wiki-building-teaser svg {
         width: 28px;
         height: 28px;
         image-rendering: pixelated;
@@ -238,7 +238,7 @@
     font-weight: 600;
 }
 
-    .wiki-chip img {
+    .wiki-chip img, .wiki-chip svg {
         width: 22px;
         height: 22px;
         image-rendering: pixelated;

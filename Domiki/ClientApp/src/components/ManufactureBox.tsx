@@ -1,7 +1,8 @@
 import ZapIcon from 'pixelarticons/svg/zap.svg?react';
-import type { ManufactureDto, ReceiptDto } from '../types/api';
+import type { ManufactureDto, ReceiptDto, ResourceTypeDto } from '../types/api';
 import { canInstaFinish, instaFinishCost, manufactureProgressPercent } from '../utils/game';
 import { ProgressBar } from './ProgressBar';
+import { ResourceSprite } from './sprites';
 
 interface ManufactureBoxProps {
     manufacture: ManufactureDto;
@@ -9,12 +10,12 @@ interface ManufactureBoxProps {
     now: number;
     remainingText: string;
     goldValue: number;
-    goldIconSrc?: string | undefined;
+    goldType?: ResourceTypeDto | undefined;
     onHurry: (manufactureId: number) => void;
     onToggleAutoRepeat: (manufactureId: number, next: boolean) => void;
 }
 
-export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldValue, goldIconSrc, onHurry, onToggleAutoRepeat }: ManufactureBoxProps) => {
+export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldValue, goldType, onHurry, onToggleAutoRepeat }: ManufactureBoxProps) => {
     const percent = manufactureProgressPercent(manufacture, receipt, now);
     const hurryCost = instaFinishCost(manufacture.finishDate, now);
     const tooFar = !canInstaFinish(manufacture.finishDate, now);
@@ -37,8 +38,8 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
                 onClick={() => onHurry(manufacture.id)}>
                 <ZapIcon className="btn-ico" aria-hidden="true" />
                 Поторопить – {Math.max(1, hurryCost)}
-                {goldIconSrc != null &&
-                    <img className="hurry-cost-ico" src={goldIconSrc} alt="золота" />
+                {goldType != null &&
+                    <ResourceSprite logicName={goldType.logicName} className="hurry-cost-ico" aria-hidden="true" />
                 }
             </button>
             <label className="receipt-optional">

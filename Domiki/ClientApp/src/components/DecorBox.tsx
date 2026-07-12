@@ -1,16 +1,8 @@
-import FlowerIcon from 'pixelarticons/svg/heart.svg?react';
-import FenceIcon from 'pixelarticons/svg/grid-3x2.svg?react';
-import FountainIcon from 'pixelarticons/svg/home.svg?react';
-import GardenIcon from 'pixelarticons/svg/tree.svg?react';
-import BenchIcon from 'pixelarticons/svg/sofa.svg?react';
-import TrophyIcon from 'pixelarticons/svg/trophy.svg?react';
-import FlagIcon from 'pixelarticons/svg/flag.svg?react';
 import PlusIcon from 'pixelarticons/svg/plus-box.svg?react';
-import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import type { DecorStateDto, DecorTypeDto, NeighborReputationDto, PlayerDecorDto, ResourceDto, ResourceTypeDto } from '../types/api';
 import { hasResourcesFor } from '../utils/game';
 import { ResourcesBox } from './ResourcesBox';
-import { MechanicSprite } from './sprites';
+import { DecorSprite, MechanicSprite } from './sprites';
 
 interface DecorBoxProps {
     decor: DecorStateDto | null;
@@ -20,18 +12,7 @@ interface DecorBoxProps {
     onBuy: (decorTypeId: number) => void;
 }
 
-const DECOR_ICONS: Record<string, typeof FenceIcon> = {
-    fence: FenceIcon,
-    flowerbed: FlowerIcon,
-    garden: GardenIcon,
-    fountain: FountainIcon,
-    bench: BenchIcon,
-    trail_idol: TrophyIcon,
-    wanderer_banner: FlagIcon,
-    brick_arch: BuildingIcon,
-};
-
-export const DecorBox = ({ decor, resourceTypes, resources, reputations, onBuy }: DecorBoxProps) => {
+export const DecorBox =({ decor, resourceTypes, resources, reputations, onBuy }: DecorBoxProps) => {
     if (decor == null) {
         return null;
     }
@@ -49,7 +30,6 @@ export const DecorBox = ({ decor, resourceTypes, resources, reputations, onBuy }
             </div>
             <div className="decor-grid">
                 {purchasable.map(type => {
-                    const TypeIcon = DECOR_ICONS[type.logicName] ?? PlusIcon;
                     const owned = decor.owned.find(x => x.decorTypeId === type.id)?.count ?? 0;
                     const points = type.neighborId == null ? null : (reputations.find(x => x.neighborId === type.neighborId)?.points ?? 0);
                     const locked = type.neighborId != null && points != null && points < type.reputationThreshold;
@@ -57,7 +37,7 @@ export const DecorBox = ({ decor, resourceTypes, resources, reputations, onBuy }
                     return (
                         <div key={type.id} className="decor-card">
                             <div className="decor-topline">
-                                <TypeIcon className="decor-card-ico" aria-hidden="true" />
+                                <DecorSprite logicName={type.logicName} className="decor-card-ico" aria-hidden="true" />
                                 <span className="decor-name">{type.name}</span>
                             </div>
                             <div className="decor-row">
@@ -80,11 +60,10 @@ export const DecorBox = ({ decor, resourceTypes, resources, reputations, onBuy }
                     <span className="panel-label">Трофеи экспедиций</span>
                     <div className="decor-grid">
                         {exclusiveOwned.map(({ owned, type }) => {
-                            const TypeIcon = DECOR_ICONS[type.logicName] ?? PlusIcon;
                             return (
                                 <div key={type.id} className="decor-card decor-card-exclusive">
                                     <div className="decor-topline">
-                                        <TypeIcon className="decor-card-ico" aria-hidden="true" />
+                                        <DecorSprite logicName={type.logicName} className="decor-card-ico" aria-hidden="true" />
                                         <span className="decor-name">{type.name}</span>
                                     </div>
                                     <div className="decor-row">

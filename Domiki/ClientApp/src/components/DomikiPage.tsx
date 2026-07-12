@@ -48,7 +48,7 @@ import { TolokaBox } from './TolokaBox';
 import { MarketBox } from './MarketBox';
 import { ResourceChip } from './ResourceChip';
 import { JournalBox } from './JournalBox';
-import { AbstractSprite, DomikSprite, MechanicSprite, WeatherSprite, WorkerSprite } from './sprites';
+import { AbstractSprite, DomikSprite, MechanicSprite, ResourceSprite, WeatherSprite, WorkerSprite } from './sprites';
 import { isSkilledWorker } from '../utils/worker';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import { HudResource } from './HudResource';
@@ -298,7 +298,6 @@ export const DomikiPage = () => {
         : currentWeather?.effects.find(effect => effect.domikTypeId === selected.domikType.id) ?? null;
     const goldValue = resources.find(x => x.typeId === GOLD_RESOURCE_TYPE_ID)?.value ?? 0;
     const goldType = resourceTypes.find(x => x.id === GOLD_RESOURCE_TYPE_ID);
-    const goldIconSrc = goldType == null ? undefined : '/images/resourceTypes/' + goldType.logicName + '.png';
     const recapView = useMemo(() => buildRecapView(recap?.events ?? []), [recap]);
     const recapVisible = recap != null && recap.events.length > 0 && recap.awaySeconds >= 1800;
 
@@ -909,8 +908,8 @@ export const DomikiPage = () => {
                                                     onClick={() => hurryDomikAction(selected.domik.id)}>
                                                     <ZapIcon className="btn-ico" aria-hidden="true" />
                                                     Поторопить – {Math.max(1, hurryCost)}
-                                                    {goldIconSrc != null &&
-                                                        <img className="hurry-cost-ico" src={goldIconSrc} alt="золота" />
+                                                    {goldType != null &&
+                                                        <ResourceSprite logicName={goldType.logicName} className="hurry-cost-ico" aria-hidden="true" />
                                                     }
                                                 </button>
                                             </>
@@ -1058,7 +1057,7 @@ export const DomikiPage = () => {
                                         return (
                                             <ManufactureBox key={manufacture.id} manufacture={manufacture} receipt={receipt}
                                                 now={now} remainingText={formatDuration(remainingSeconds(manufacture.finishDate, now))}
-                                                goldValue={goldValue} goldIconSrc={goldIconSrc} onHurry={hurryManufactureAction}
+                                                goldValue={goldValue} goldType={goldType} onHurry={hurryManufactureAction}
                                                 onToggleAutoRepeat={toggleManufactureAutoRepeat} />
                                         );
                                     })}

@@ -118,7 +118,7 @@
     cursor: pointer;
 }
 
-    .resource-option img {
+    .resource-option img, .resource-option svg {
         width: 24px;
         height: 24px;
         image-rendering: pixelated;
