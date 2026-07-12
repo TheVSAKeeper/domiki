@@ -132,6 +132,8 @@ internal sealed class SimulationRun
     private const int HorizonSeconds = 45 * 24 * 60 * 60;
     private const int StallWarningSeconds = 24 * 60 * 60;
     private const int BuyResourceCoinReserveMultiplier = 20;
+    private const int StartingBarracksTypeId = 2;
+    private const int StartingClayMineTypeId = 5;
 
     private readonly SimulationData _data;
     private readonly ScenarioKind _scenario;
@@ -164,6 +166,9 @@ internal sealed class SimulationRun
     public SimulationRunResult Run()
     {
         AddResource(1, DomikManager.StartingCoins);
+        AddStartingDomik(StartingBarracksTypeId);
+        AddStartingDomik(StartingClayMineTypeId);
+        EnsureWorkers();
         _state.CurrentWeatherTypeId = PickWeatherType().Id;
         ObserveVillageLevel();
         Schedule(SimulationEventKind.WeatherBoundary, WeatherManager.WeatherPeriodSeconds, null);
@@ -1061,6 +1066,13 @@ internal sealed class SimulationRun
         var input = GetInputs(receipt, useOptional).Sum(x => x.Value * ResourceManager.GetMarketValue(x.Type.Id));
         var duration = receipt.DurationSeconds;
         return (output - input) / (duration / 3600.0);
+    }
+
+    private void AddStartingDomik(int typeId)
+    {
+        var domik = new SimDomik { Id = ++_state.NextDomikId, Type = _data.DomikTypeById[typeId], Level = 1 };
+        _state.Domiks.Add(domik);
+        _result.FirstDomikTimes.TryAdd(domik.Type.Id, _now);
     }
 
     private void EnsureWorkers()
