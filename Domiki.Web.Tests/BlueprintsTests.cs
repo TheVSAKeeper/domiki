@@ -16,6 +16,8 @@ namespace Domiki.Web.Tests
         private const int FurnitureResourceTypeId = 9;
         private const int MakeFurnitureReceiptId = 29;
         private const int SellFurnitureReceiptId = 31;
+        private const int StonecutterDomikTypeId = 12;
+        private const int StonecutterBlueprintId = 2;
 
         [Test]
         public void GetBlueprintsNewPlayerReturnsWorkshopBlueprintLockedTest()
@@ -108,6 +110,29 @@ namespace Domiki.Web.Tests
             Assert.That(ResourceValue(afterSell, CoinResourceTypeId) - ResourceValue(afterMake, CoinResourceTypeId), Is.EqualTo(95));
         }
 
+        [Test]
+        public void GrantBlueprintIsIdempotentTest()
+        {
+            var playerId = GetPlayerId();
+
+            var first = GrantBlueprint(playerId, StonecutterBlueprintId);
+            var second = GrantBlueprint(playerId, StonecutterBlueprintId);
+
+            Assert.That(first, Is.True);
+            Assert.That(second, Is.False);
+            Assert.That(IsOwned(playerId, StonecutterBlueprintId), Is.True);
+        }
+
+        [Test]
+        public void BuyStonecutterWithoutBlueprintThrowsTest()
+        {
+            var playerId = GetPlayerId();
+
+            var ex = Assert.Throws<BusinessException>(() => BuyDomik(playerId, StonecutterDomikTypeId));
+
+            Assert.That(ex!.Message, Does.Contain("чертёж"));
+        }
+
         private int GetPlayerId()
         {
             using (var uow = GetUow())
@@ -194,6 +219,28 @@ namespace Domiki.Web.Tests
                 playerResourceManager.GrantResource(playerId, typeId, value);
                 uow.Context.SaveChanges();
                 uow.Commit();
+            }
+        }
+
+        private bool GrantBlueprint(int playerId, int blueprintId)
+        {
+            using (var uow = GetUow())
+            {
+                var manager = GetBlueprintManager(uow);
+                var granted = manager.GrantBlueprint(playerId, blueprintId);
+                uow.Commit();
+                return granted;
+            }
+        }
+
+        private bool IsOwned(int playerId, int blueprintId)
+        {
+            using (var uow = GetUow())
+            {
+                var manager = GetBlueprintManager(uow);
+                var owned = manager.IsOwned(playerId, blueprintId);
+                uow.Commit();
+                return owned;
             }
         }
 

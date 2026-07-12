@@ -60,5 +60,17 @@ namespace Domiki.Web.Business.Core
         {
             return _context.PlayerBlueprints.Any(x => x.PlayerId == playerId && x.BlueprintId == blueprintId);
         }
+
+        public bool GrantBlueprint(int playerId, int blueprintId)
+        {
+            if (IsOwned(playerId, blueprintId))
+            {
+                return false;
+            }
+
+            _context.PlayerBlueprints.Add(new Data.PlayerBlueprint { PlayerId = playerId, BlueprintId = blueprintId });
+            _context.SaveChanges();
+            return true;
+        }
     }
 }
