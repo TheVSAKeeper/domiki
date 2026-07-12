@@ -15,6 +15,7 @@ const events: RecapEventDto[] = [
                 { resourceTypeId: 3, value: 20, isRare: false },
                 { kind: 2, decorTypeId: 6, isRare: true },
                 { kind: 3, workerName: 'Аким', newTrait: 'Везучий', isRare: true },
+                { kind: 4, isRare: true, blueprintId: 2, blueprintName: 'Чертёж каменотёса' },
             ],
         },
     },
@@ -49,5 +50,12 @@ describe('buildRecapView', () => {
 
         expect(loot[1]).toEqual({ kind: 2, isRare: true, decorTypeId: 6 });
         expect(loot[2]).toEqual({ kind: 3, isRare: true, workerName: 'Аким', newTrait: 'Везучий' });
+    });
+
+    it('parses blueprint loot kind', () => {
+        const recap = buildRecapView(events);
+        const loot = recap.expeditions[0]?.loot ?? [];
+
+        expect(loot[3]).toEqual({ kind: 4, isRare: true, blueprintId: 2, blueprintName: 'Чертёж каменотёса' });
     });
 });

@@ -6,7 +6,8 @@ import BenchIcon from 'pixelarticons/svg/sofa.svg?react';
 import TrophyIcon from 'pixelarticons/svg/trophy.svg?react';
 import FlagIcon from 'pixelarticons/svg/flag.svg?react';
 import PlusIcon from 'pixelarticons/svg/plus-box.svg?react';
-import type { DecorStateDto, DecorTypeDto, PlayerDecorDto, ResourceDto, ResourceTypeDto } from '../types/api';
+import BuildingIcon from 'pixelarticons/svg/building.svg?react';
+import type { DecorStateDto, DecorTypeDto, NeighborReputationDto, PlayerDecorDto, ResourceDto, ResourceTypeDto } from '../types/api';
 import { hasResourcesFor } from '../utils/game';
 import { ResourcesBox } from './ResourcesBox';
 import { MechanicSprite } from './sprites';
@@ -15,6 +16,7 @@ interface DecorBoxProps {
     decor: DecorStateDto | null;
     resourceTypes: ResourceTypeDto[];
     resources: ResourceDto[];
+    reputations: NeighborReputationDto[];
     onBuy: (decorTypeId: number) => void;
 }
 
@@ -26,9 +28,10 @@ const DECOR_ICONS: Record<string, typeof FenceIcon> = {
     bench: BenchIcon,
     trail_idol: TrophyIcon,
     wanderer_banner: FlagIcon,
+    brick_arch: BuildingIcon,
 };
 
-export const DecorBox = ({ decor, resourceTypes, resources, onBuy }: DecorBoxProps) => {
+export const DecorBox = ({ decor, resourceTypes, resources, reputations, onBuy }: DecorBoxProps) => {
     if (decor == null) {
         return null;
     }
@@ -48,7 +51,9 @@ export const DecorBox = ({ decor, resourceTypes, resources, onBuy }: DecorBoxPro
                 {purchasable.map(type => {
                     const TypeIcon = DECOR_ICONS[type.logicName] ?? PlusIcon;
                     const owned = decor.owned.find(x => x.decorTypeId === type.id)?.count ?? 0;
-                    const canBuy = hasResourcesFor(type.cost, resources);
+                    const points = type.neighborId == null ? null : (reputations.find(x => x.neighborId === type.neighborId)?.points ?? 0);
+                    const locked = type.neighborId != null && points != null && points < type.reputationThreshold;
+                    const canBuy = !locked && hasResourcesFor(type.cost, resources);
                     return (
                         <div key={type.id} className="decor-card">
                             <div className="decor-topline">
@@ -60,7 +65,9 @@ export const DecorBox = ({ decor, resourceTypes, resources, onBuy }: DecorBoxPro
                                 <span className="decor-owned">в наличии: {owned}</span>
                             </div>
                             <ResourcesBox resources={type.cost} resourceTypes={resourceTypes} have={resources} />
-                            <button className="btn-game" disabled={!canBuy} title={canBuy ? undefined : 'Не хватает ресурсов'} onClick={() => onBuy(type.id)}>
+                            <button className="btn-game" disabled={!canBuy}
+                                title={locked ? `Откроется за репутацию: ${type.neighborName ?? ''} ${points}/${type.reputationThreshold}` : canBuy ? undefined : 'Не хватает ресурсов'}
+                                onClick={() => onBuy(type.id)}>
                                 <PlusIcon className="btn-ico" aria-hidden="true" />
                                 Поставить
                             </button>

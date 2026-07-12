@@ -9,6 +9,7 @@ export const COIN_RESOURCE_TYPE_ID = 1;
 export const EXPEDITION_LOOT_KIND_RESOURCE = 1;
 export const EXPEDITION_LOOT_KIND_DECOR = 2;
 export const EXPEDITION_LOOT_KIND_TRAIT_UPGRADE = 3;
+export const EXPEDITION_LOOT_KIND_BLUEPRINT = 4;
 
 const plodderTypeId = 1;
 

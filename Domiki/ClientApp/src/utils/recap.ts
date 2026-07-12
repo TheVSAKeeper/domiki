@@ -9,6 +9,8 @@ export interface RecapLootEntry {
     decorTypeId?: number;
     workerName?: string;
     newTrait?: string;
+    blueprintId?: number;
+    blueprintName?: string;
 }
 
 export interface RecapView {
@@ -48,6 +50,8 @@ export const readLootEntry = (value: unknown): RecapLootEntry[] => {
         ...(isNumber(value.decorTypeId) ? { decorTypeId: value.decorTypeId } : {}),
         ...(typeof value.workerName === 'string' ? { workerName: value.workerName } : {}),
         ...(typeof value.newTrait === 'string' ? { newTrait: value.newTrait } : {}),
+        ...(isNumber(value.blueprintId) ? { blueprintId: value.blueprintId } : {}),
+        ...(typeof value.blueprintName === 'string' ? { blueprintName: value.blueprintName } : {}),
     }];
 };
 

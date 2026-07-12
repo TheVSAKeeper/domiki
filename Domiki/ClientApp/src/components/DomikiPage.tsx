@@ -412,8 +412,8 @@ export const DomikiPage = () => {
             node: <OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes} resources={resources} now={now} onComplete={completeOrder} />,
         },
         {
-            key: 'blueprints', label: 'Чертежи', Icon: NoteIcon, visible: blueprints.length > 0,
-            node: <BlueprintsBox blueprints={blueprints} domikTypes={domikTypes} />,
+            key: 'blueprints', label: 'Вехи соседей', Icon: NoteIcon, visible: blueprints.length > 0 || (decor?.types ?? []).some(x => x.neighborId != null),
+            node: <BlueprintsBox blueprints={blueprints} domikTypes={domikTypes} decorTypes={decor?.types ?? []} reputations={reputation} />,
         },
         {
             key: 'expeditions', label: 'Экспедиции', Icon: BackpackIcon, visible: expeditions != null,
@@ -421,7 +421,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'decor', label: 'Декор', Icon: GardenIcon, visible: decor != null,
-            node: <DecorBox decor={decor} resourceTypes={resourceTypes} resources={resources} onBuy={buyDecorAction} />,
+            node: <DecorBox decor={decor} resourceTypes={resourceTypes} resources={resources} reputations={reputation} onBuy={buyDecorAction} />,
         },
         {
             key: 'toloka', label: 'Толока', Icon: BuildingCommunityIcon, visible: toloka != null,

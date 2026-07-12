@@ -37,6 +37,7 @@ export const OrdersBox = ({ orders, reputation, resourceTypes, resources, now, o
                     ))}
                 </div>
             </div>
+            <p className="orders-hint hint">Соседи просят то, что вы умеете производить.</p>
             <div className="orders-grid">
                 {orders.map(order => {
                     const canComplete = hasResourcesFor(order.required.map(x => ({ typeId: x.resourceTypeId, value: x.value })), resources);

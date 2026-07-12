@@ -239,6 +239,7 @@ export const expeditionLootSchema = z.object({
     kind: z.number(),
     resourceTypeId: z.number().nullable(),
     decorTypeId: z.number().nullable(),
+    blueprintId: z.number().nullable(),
     minValue: z.number(),
     maxValue: z.number(),
     isRare: z.boolean(),
@@ -289,6 +290,9 @@ export const decorTypeSchema = z.object({
     comfortPoints: z.number(),
     isPurchasable: z.boolean(),
     cost: z.array(resourceSchema),
+    neighborId: z.number().nullable(),
+    neighborName: z.string().nullable(),
+    reputationThreshold: z.number(),
 });
 export type DecorTypeDto = z.infer<typeof decorTypeSchema>;
 

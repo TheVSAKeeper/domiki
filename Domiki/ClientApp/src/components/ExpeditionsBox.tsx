@@ -8,7 +8,7 @@ import CoinsIcon from 'pixelarticons/svg/coins.svg?react';
 import UserIcon from 'pixelarticons/svg/user.svg?react';
 import UsersIcon from 'pixelarticons/svg/users.svg?react';
 import type { DecorTypeDto, ExpeditionStateDto, ResourceDto, ResourceTypeDto, WorkerDto } from '../types/api';
-import { EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE, GOLD_RESOURCE_TYPE_ID, hasResourcesFor, isWorkerFree } from '../utils/game';
+import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE, GOLD_RESOURCE_TYPE_ID, hasResourcesFor, isWorkerFree } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ResourceChip } from './ResourceChip';
 import { StatChip } from './StatChip';
@@ -136,6 +136,13 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                             return (
                                                 <span key="trait-upgrade" className="resource-chip resource-chip-rare" title="Закалка похода">
                                                     Закалка похода
+                                                </span>
+                                            );
+                                        }
+                                        if (entry.kind === EXPEDITION_LOOT_KIND_BLUEPRINT) {
+                                            return (
+                                                <span key="blueprint" className="resource-chip resource-chip-rare" title="Случайный чертёж, которого у вас ещё нет">
+                                                    Чертёж
                                                 </span>
                                             );
                                         }

@@ -17,6 +17,7 @@ import GardenIcon from 'pixelarticons/svg/tree.svg?react';
 import FenceIcon from 'pixelarticons/svg/grid-3x2.svg?react';
 import FlowerIcon from 'pixelarticons/svg/heart.svg?react';
 import FountainIcon from 'pixelarticons/svg/home.svg?react';
+import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 
 interface Catalog {
     domikTypes: DomikTypeDto[];
@@ -39,6 +40,7 @@ const DECOR_ICONS: Record<string, typeof FenceIcon> = {
     flowerbed: FlowerIcon,
     garden: GardenIcon,
     fountain: FountainIcon,
+    brick_arch: BuildingIcon,
 };
 
 interface Mechanic {

@@ -5,7 +5,7 @@ import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
 import type { DecorTypeDto, DomikTypeDto, RecapEventDto, ResourceTypeDto } from '../types/api';
 import { isNumber, isRecord, readLootEntry, readResource } from '../utils/recap';
-import { EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
+import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
 import { formatRelativeTime } from '../utils/time';
 import { DomikSprite } from './sprites';
 import { ResourceChip } from './ResourceChip';
@@ -69,6 +69,9 @@ const renderRow = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], domik
                         }
                         if (entry.kind === EXPEDITION_LOOT_KIND_TRAIT_UPGRADE) {
                             return <span key={index} className="journal-loot-rare">{entry.workerName} закалился: {entry.newTrait}</span>;
+                        }
+                        if (entry.kind === EXPEDITION_LOOT_KIND_BLUEPRINT) {
+                            return <span key={index} className="journal-loot-rare">Нашли {entry.blueprintName ?? 'чертёж'}</span>;
                         }
                         const resourceType = entry.typeId == null ? null : findResourceType(resourceTypes, entry.typeId);
                         return resourceType == null || entry.value == null ? null : (
