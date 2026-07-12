@@ -184,15 +184,46 @@ namespace Domiki.Web.Business.Core
             }).ToArray();
         }
 
+        private int[] GetProducibleResourceTypeIds(int playerId)
+        {
+            var domikTypes = _resourceManager.GetDomikTypes().ToDictionary(x => x.Id);
+            var receipts = _resourceManager.GetReceipts().ToDictionary(x => x.Id);
+            return _context.Domiks
+                .Where(x => x.PlayerId == playerId && x.Level >= 1)
+                .Select(x => new { x.TypeId, x.Level })
+                .ToArray()
+                .SelectMany(d => domikTypes[d.TypeId].Levels.First(l => l.Value == d.Level).Receipts)
+                .SelectMany(r => receipts[r.Id].OutputResources)
+                .Select(r => r.Type.Id)
+                .Distinct()
+                .ToArray();
+        }
+
         private CalculateInfo CreateOrder(int playerId, int villageLevel)
         {
             var neighbors = _villageLevelCalculator.GetOpenNeighbors(villageLevel);
-            var neighbor = neighbors[Random.Shared.Next(neighbors.Length)];
+            var producible = GetProducibleResourceTypeIds(playerId);
+            var pairs = neighbors
+                .SelectMany(n => new[] { (Neighbor: n, ResourceTypeId: n.PrimaryResourceTypeId), (Neighbor: n, ResourceTypeId: n.SecondaryResourceTypeId ?? 0) })
+                .Where(x => x.ResourceTypeId != 0 && producible.Contains(x.ResourceTypeId))
+                .ToArray();
+            Neighbor neighbor;
+            int resourceTypeId;
+            if (pairs.Length > 0)
+            {
+                (neighbor, resourceTypeId) = pairs[Random.Shared.Next(pairs.Length)];
+            }
+            else
+            {
+                neighbor = neighbors[Random.Shared.Next(neighbors.Length)];
+                resourceTypeId = neighbor.PrimaryResourceTypeId;
+            }
+
             var tier = Tiers[Random.Shared.Next(Tiers.Length)];
             var now = DateTimeHelper.GetNowDate();
             var expireDate = now.AddSeconds(tier.DurationSeconds);
-            var quantity = GetOrderQuantity(tier, neighbor.PrimaryResourceTypeId);
-            var rewardCoins = (int)Math.Round(quantity * ResourceManager.GetMarketValue(neighbor.PrimaryResourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero);
+            var quantity = GetOrderQuantity(tier, resourceTypeId);
+            var rewardCoins = (int)Math.Round(quantity * ResourceManager.GetMarketValue(resourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero);
 
             var order = new Data.Order
             {
@@ -210,7 +241,7 @@ namespace Domiki.Web.Business.Core
             _context.OrderResources.Add(new Data.OrderResource
             {
                 OrderId = order.Id,
-                ResourceTypeId = neighbor.PrimaryResourceTypeId,
+                ResourceTypeId = resourceTypeId,
                 Value = quantity,
             });
             _context.SaveChanges();

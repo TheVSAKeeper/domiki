@@ -143,6 +143,34 @@ namespace Domiki.Web.Tests
         }
 
         [Test]
+        public void OrdersOnlyAskProducibleResourcesTest()
+        {
+            var playerId = GetPlayerId();
+            GrantResource(playerId, 1, 10000);
+            BuyDomik(playerId, 5);
+            BuyDomik(playerId, 6);
+            RaiseVillageLevelTo(playerId, 10);
+
+            for (var i = 0; i < 15; i++)
+            {
+                var orders = GetOrders(playerId).ToArray();
+                var resourceTypeIds = orders.SelectMany(x => x.Resources).Select(x => x.Type.Id).Distinct().ToArray();
+                Assert.That(resourceTypeIds, Is.SubsetOf(new[] { 3, 4 }));
+                DeleteAllOrders(playerId);
+            }
+        }
+
+        [Test]
+        public void NewPlayerWithoutBuildingsStillGetsOrdersTest()
+        {
+            var playerId = GetPlayerId();
+
+            var orders = GetOrders(playerId).ToArray();
+
+            Assert.That(orders.Length, Is.EqualTo(3));
+        }
+
+        [Test]
         public void ConcurrentGetOrdersSerializesWithoutConcurrencyExceptionTest()
         {
             for (var i = 1; i <= 30; i++)
@@ -223,6 +251,67 @@ namespace Domiki.Web.Tests
                     Type = CalculateTypes.OrderExpire,
                 });
                 Assert.That(result, Is.True);
+                uow.Commit();
+            }
+        }
+
+        private void BuyDomik(int playerId, int domikTypeId)
+        {
+            using (var uow = GetUow())
+            {
+                var domikManager = GetDomikManager(uow);
+                domikManager.BuyDomik(playerId, domikTypeId);
+                uow.Commit();
+            }
+        }
+
+        private VillageLevel GetVillageLevel(int playerId)
+        {
+            using (var uow = GetUow())
+            {
+                var calculator = GetVillageLevelCalculator(uow);
+                var level = calculator.GetLevel(playerId);
+                uow.Commit();
+                return level;
+            }
+        }
+
+        private void RaiseVillageLevelTo(int playerId, int targetLevel)
+        {
+            var current = GetVillageLevel(playerId).Level;
+            if (current >= targetLevel)
+            {
+                return;
+            }
+
+            var milestones = (int)Math.Ceiling((targetLevel - current) / (double)VillageLevelCalculator.ReputationWeight);
+            GrantReputation(playerId, 1, milestones * VillageLevelCalculator.ReputationPointsPerMilestone);
+        }
+
+        private void GrantReputation(int playerId, int neighborId, int points)
+        {
+            using (var uow = GetUow())
+            {
+                var reputation = uow.Context.NeighborReputations.SingleOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId);
+                if (reputation == null)
+                {
+                    reputation = new Domiki.Web.Data.NeighborReputation { PlayerId = playerId, NeighborId = neighborId };
+                    uow.Context.NeighborReputations.Add(reputation);
+                }
+
+                reputation.Points += points;
+                uow.Context.SaveChanges();
+                uow.Commit();
+            }
+        }
+
+        private void DeleteAllOrders(int playerId)
+        {
+            using (var uow = GetUow())
+            {
+                var dbOrders = uow.Context.Orders.Where(x => x.PlayerId == playerId).ToArray();
+                uow.Context.Orders.RemoveRange(dbOrders);
+                uow.Context.SaveChanges();
                 uow.Commit();
             }
         }
