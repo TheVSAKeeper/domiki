@@ -188,7 +188,25 @@ namespace Domiki.Web.Tests
             var afterCointResourceValue = afterResources.First(x => x.Type.Id == coinResourceTypeId).Value;
             var coinDiff = afterCointResourceValue - beforeCointResourceValue;
             Assert.That(afterClayResourceValue, Is.EqualTo(1));
-            Assert.That(coinDiff, Is.EqualTo(-1));
+            Assert.That(coinDiff, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void StartManufactureWithZeroCoinsDoesNotThrowTest()
+        {
+            var playerId = GetPlayerId();
+            var clayMineTypeId = 5;
+            var barakTypeId = 2;
+            var coinResourceTypeId = 1;
+            var clayDigReceiptId = 1;
+            BuyDomik(playerId, clayMineTypeId);
+            BuyDomik(playerId, barakTypeId);
+
+            var coins = GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value;
+            GrantResource(playerId, coinResourceTypeId, -coins);
+            Assert.That(GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value, Is.EqualTo(0));
+
+            Assert.DoesNotThrow(() => StartManufacture(playerId, 1, clayDigReceiptId));
         }
 
         /// <summary>
@@ -218,14 +236,15 @@ namespace Domiki.Web.Tests
             var barakTypeId = 2;
             var coinResourceTypeId = 1;
             BuyDomik(playerId, barakTypeId);
+            BuyDomik(playerId, barakTypeId);
             BuyDomik(playerId, mineTypeId);
             var beforeCoin = GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value;
-            StartManufacture(playerId, 2, receiptId);
+            StartManufacture(playerId, 3, receiptId);
             var after = GetResources(playerId);
             var outValue = after.First(x => x.Type.Id == outResourceTypeId).Value;
             var coinDiff = after.First(x => x.Type.Id == coinResourceTypeId).Value - beforeCoin;
             Assert.That(outValue, Is.EqualTo(1));
-            Assert.That(coinDiff, Is.EqualTo(-1));
+            Assert.That(coinDiff, Is.EqualTo(0));
         }
 
         [TestCase(5, false)]
@@ -315,9 +334,10 @@ namespace Domiki.Web.Tests
             var barakTypeId = 2;
             var coinResourceTypeId = 1;
             BuyDomik(playerId, barakTypeId);
+            BuyDomik(playerId, barakTypeId);
             BuyDomik(playerId, mineTypeId);
             var beforeCoin = GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value;
-            StartManufacture(playerId, 2, receiptId);
+            StartManufacture(playerId, 3, receiptId);
             var after = GetResources(playerId);
             var outValue = after.First(x => x.Type.Id == outResourceTypeId).Value;
             var coinDiff = after.First(x => x.Type.Id == coinResourceTypeId).Value - beforeCoin;
@@ -329,12 +349,13 @@ namespace Domiki.Web.Tests
         public void UpgradeToLevel3RequiresMaterialsTest()
         {
             var playerId = GetPlayerId();
-            GrantResource(playerId, 1, 50);
+            GrantResource(playerId, 1, 70);
             var stoneMineTypeId = 3;
             BuyDomik(playerId, 2);
+            BuyDomik(playerId, 2);
             BuyDomik(playerId, stoneMineTypeId);
-            UpgradeDomik(playerId, 2);
-            Assert.Throws<BusinessException>(() => UpgradeDomik(playerId, 2));
+            UpgradeDomik(playerId, 3);
+            Assert.Throws<BusinessException>(() => UpgradeDomik(playerId, 3));
         }
 
         [Test]

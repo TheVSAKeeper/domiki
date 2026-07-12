@@ -13,6 +13,7 @@ namespace Domiki.Web.Business.Core
         private static ResourceType[] _resourceTypes;
         private static Receipt[] _receipts;
         private static DomikType[] _domikTypes;
+        private static DomikTypeCountGate[] _domikTypeCountGates;
         private static Neighbor[] _neighbors;
         private static Trait[] _traits;
         private static WeatherType[] _weatherTypes;
@@ -323,6 +324,20 @@ namespace Domiki.Web.Business.Core
                 }).ToArray();
             }
             return _domikTypes;
+        }
+
+        public DomikTypeCountGate[] GetDomikTypeCountGates()
+        {
+            if (_domikTypeCountGates == null)
+            {
+                _domikTypeCountGates = _context.DomikTypeCountGates.Select(x => new DomikTypeCountGate
+                {
+                    DomikTypeId = x.DomikTypeId,
+                    Ordinal = x.Ordinal,
+                    UnlockLevel = x.UnlockLevel,
+                }).ToArray();
+            }
+            return _domikTypeCountGates;
         }
     }
 }

@@ -32,6 +32,7 @@ namespace Domiki.Web.Data
         public DbSet<ReceiptResource> ReceiptResources { get; set; }
 
         public DbSet<DomikType> DomikTypes { get; set; }
+        public DbSet<DomikTypeCountGate> DomikTypeCountGates { get; set; }
         public DbSet<DomikTypeLevel> DomikTypeLevels { get; set; }
         public DbSet<DomikTypeLevelResource> DomikTypeLevelResources { get; set; }
         public DbSet<DomikTypeLevelModificator> DomikTypeLevelModificators { get; set; }
@@ -299,6 +300,13 @@ namespace Domiki.Web.Data
             modelBuilder.Entity<ReceiptResource>()
                 .Navigation(e => e.ResourceType)
                 .UsePropertyAccessMode(PropertyAccessMode.Property);
+
+            modelBuilder.Entity<DomikTypeCountGate>()
+                .HasKey(p => new
+                {
+                    p.DomikTypeId,
+                    p.Ordinal,
+                });
 
             modelBuilder.Entity<WeatherTypeEffect>()
                 .HasKey(p => new

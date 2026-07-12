@@ -42,8 +42,9 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
 
             var ex = Assert.Throws<BusinessException>(() => BuyDomik(playerId, 3));
-            Assert.That(ex.Message, Is.EqualTo("Откроется при обжитости 3"));
+            Assert.That(ex.Message, Is.EqualTo("Откроется при обжитости 6"));
 
+            BuyDomik(playerId, 2);
             BuyDomik(playerId, 2);
 
             Assert.DoesNotThrow(() => BuyDomik(playerId, 3));

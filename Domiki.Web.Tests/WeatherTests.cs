@@ -1,4 +1,4 @@
-using Domiki.Web.Business;
+﻿using Domiki.Web.Business;
 using Domiki.Web.Business.Core;
 using Domiki.Web.Business.Models;
 
@@ -50,12 +50,13 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             BuyDomik(playerId, 2);
+            BuyDomik(playerId, 2);
             BuyDomik(playerId, domikTypeId);
             SetWeather(weatherTypeId);
 
-            StartManufacture(playerId, 2, receiptId, false);
+            StartManufacture(playerId, 3, receiptId, false);
 
-            var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 3).Manufactures.Single();
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(100));
         }
 
