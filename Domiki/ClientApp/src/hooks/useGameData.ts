@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, setManufactureAutoRepeat as setManufactureAutoRepeatApi, setVillage as setVillageApi, startExpedition as startExpeditionApi } from '../services/api';
+import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, setFeedWorkers as setFeedWorkersApi, setManufactureAutoRepeat as setManufactureAutoRepeatApi, setVillage as setVillageApi, startExpedition as startExpeditionApi } from '../services/api';
 import { useToast } from '../services/toast';
 import {
     domikTypeSchema,
@@ -48,10 +48,11 @@ export interface GameData {
     reload: () => Promise<void>;
     refreshPurchaseTypes: () => Promise<void>;
     setVillage: (name: string, crestIcon: number, crestColor: number) => Promise<void>;
+    setFeedWorkers: (enabled: boolean) => Promise<void>;
     hurryManufacture: (manufactureId: number) => Promise<void>;
     setManufactureAutoRepeat: (manufactureId: number, autoRepeat: boolean) => Promise<void>;
     hurryDomik: (domikId: number) => Promise<void>;
-    startExpedition: (expeditionTypeId: number, workerIds?: number[]) => Promise<void>;
+    startExpedition: (expeditionTypeId: number, workerIds?: number[], provisions?: boolean) => Promise<void>;
     buyDecor: (decorTypeId: number) => Promise<void>;
     contributeToloka: (amount: number) => Promise<void>;
     postLot: (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => Promise<void>;
@@ -173,6 +174,11 @@ export function useGameData(): GameData {
         setVillageState(await getVillage());
     }, []);
 
+    const setFeedWorkers = useCallback(async (enabled: boolean) => {
+        await setFeedWorkersApi(enabled);
+        setVillageState(await getVillage());
+    }, []);
+
     const hurryManufacture = useCallback(async (manufactureId: number) => {
         await hurryManufactureApi(manufactureId);
         await reload();
@@ -188,8 +194,8 @@ export function useGameData(): GameData {
         await reload();
     }, [reload]);
 
-    const startExpedition = useCallback(async (expeditionTypeId: number, workerIds?: number[]) => {
-        await startExpeditionApi(expeditionTypeId, workerIds);
+    const startExpedition = useCallback(async (expeditionTypeId: number, workerIds?: number[], provisions?: boolean) => {
+        await startExpeditionApi(expeditionTypeId, workerIds, provisions);
         await reload();
     }, [reload]);
 
@@ -398,6 +404,7 @@ export function useGameData(): GameData {
         reload,
         refreshPurchaseTypes,
         setVillage,
+        setFeedWorkers,
         hurryManufacture,
         setManufactureAutoRepeat,
         hurryDomik,

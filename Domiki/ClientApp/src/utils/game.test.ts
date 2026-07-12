@@ -12,6 +12,7 @@ const domikTypes: DomikTypeDto[] = [
         maxLevel: 2,
         unlockLevel: 0,
         blueprintId: null,
+        nextCountGateLevel: null,
         levels: [
             { value: 1, resources: [], modificators: [{ typeId: 1, value: 3 }], receiptIds: [] },
             { value: 2, resources: [], modificators: [{ typeId: 1, value: 5 }], receiptIds: [] },
@@ -49,6 +50,7 @@ describe('canAffordUpgrade', () => {
         maxLevel: 2,
         unlockLevel: 0,
         blueprintId: null,
+        nextCountGateLevel: null,
         levels: [
             { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
             { value: 2, resources: [], modificators: [], receiptIds: [] },
@@ -145,6 +147,7 @@ describe('sortDomiks', () => {
             maxLevel: 2,
             unlockLevel: 0,
             blueprintId: null,
+            nextCountGateLevel: null,
             levels: [
                 { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
                 { value: 2, resources: [], modificators: [], receiptIds: [] },
@@ -159,6 +162,7 @@ describe('sortDomiks', () => {
             maxLevel: 1,
             unlockLevel: 0,
             blueprintId: null,
+            nextCountGateLevel: null,
             levels: [
                 { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
             ],

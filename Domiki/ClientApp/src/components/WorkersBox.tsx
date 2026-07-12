@@ -14,7 +14,9 @@ interface WorkersBoxProps {
     domikTypes: DomikTypeDto[];
     domiks: DomikDto[];
     expeditions: ExpeditionStateDto | null;
+    feedWorkers: boolean;
     now: number;
+    onToggleFeedWorkers: (enabled: boolean) => void;
 }
 
 const WorkerDetails = ({ worker, domikTypes, style }: { worker: WorkerDto; domikTypes: DomikTypeDto[]; style: CSSProperties }) => {
@@ -54,13 +56,20 @@ const WorkerDetails = ({ worker, domikTypes, style }: { worker: WorkerDto; domik
     );
 };
 
-export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, now }: WorkersBoxProps) => {
+export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorkers, now, onToggleFeedWorkers }: WorkersBoxProps) => {
     const [hover, setHover] = useState<{ worker: WorkerDto; rect: DOMRect } | null>(null);
     const clearHover = (id: number) => setHover(prev => (prev?.worker.id === id ? null : prev));
 
     return (
         <section className="workers-panel pixel-panel">
-            <h3 className="panel-title mech-title"><MechanicSprite logicName="workers" size={24} className="panel-title-ico" aria-hidden="true" />Трудяги</h3>
+            <div className="workers-head">
+                <h3 className="panel-title mech-title"><MechanicSprite logicName="workers" size={24} className="panel-title-ico" aria-hidden="true" />Трудяги</h3>
+                <label className="receipt-optional expedition-manual-toggle" title="Хлеб вдвое сокращает отдых">
+                    <input type="checkbox" checked={feedWorkers} onChange={event => onToggleFeedWorkers(event.target.checked)} />
+                    Кормить трудяг хлебом
+                    <span className="workers-feed-effect">хлеб вдвое сокращает отдых</span>
+                </label>
+            </div>
             <div className="workers-list">
                 {workers.length === 0 &&
                     <span className="hint">Постройте барак, чтобы поселить трудяг.</span>

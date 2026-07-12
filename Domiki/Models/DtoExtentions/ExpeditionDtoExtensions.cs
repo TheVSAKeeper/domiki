@@ -53,6 +53,7 @@ namespace Domiki.Web.Models
                 {
                     ResourceTypeId = x.ResourceTypeId,
                     Value = x.Value,
+                    IsOptional = x.IsOptional,
                 }).ToArray(),
             };
         }

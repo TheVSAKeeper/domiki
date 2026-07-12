@@ -61,7 +61,7 @@ namespace Domiki.Web.Tests
             Assert.That(neighbors.Single(x => x.LogicName == "kamenka").SecondaryResourceTypeId, Is.EqualTo(10));
             Assert.That(neighbors.Single(x => x.LogicName == "zarechye").SecondaryResourceTypeId, Is.EqualTo(2));
             Assert.That(neighbors.Single(x => x.LogicName == "borovoe").SecondaryResourceTypeId, Is.EqualTo(9));
-            Assert.That(neighbors.Single(x => x.LogicName == "dubrava").SecondaryResourceTypeId, Is.Null);
+            Assert.That(neighbors.Single(x => x.LogicName == "dubrava").SecondaryResourceTypeId, Is.EqualTo(15));
         }
 
         [TestCase(10, 35)]

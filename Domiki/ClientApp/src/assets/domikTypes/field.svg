@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" shape-rendering="crispEdges" data-level="1" data-size="128">
+  <title>Поле</title>
+  <style>svg[data-level="1"] .lvl2,svg[data-level="1"] .lvl3,svg[data-level="1"] .lvl4,svg[data-level="1"] .lvl5,svg[data-level="2"] .lvl3,svg[data-level="2"] .lvl4,svg[data-level="2"] .lvl5,svg[data-level="3"] .lvl4,svg[data-level="3"] .lvl5,svg[data-level="4"] .lvl5{display:none}</style>
+  <rect x="4" y="100" width="120" height="8" fill="#4b5156"/><rect x="0" y="108" width="128" height="16" fill="#92999e"/>
+  <rect x="8" y="72" width="112" height="28" fill="#80532a"/><rect x="12" y="76" width="104" height="20" fill="#986638"/>
+  <path d="M20 92V62m12 30V54m12 38V62m12 30V54m12 38V62m12 30V54m12 38V62m12 30V54" stroke="#5d9991" stroke-width="4"/>
+  <path d="M20 66l8-8m4 4l8-8m4 12l8-8m4 4l8-8m4 12l8-8m4 4l8-8m4 12l8-8m4 4l8-8" stroke="#e8b83a" stroke-width="4"/>
+  <g class="lvl2"><rect x="8" y="48" width="112" height="4" fill="#704925"/><rect x="16" y="44" width="16" height="8" fill="#b98246"/></g>
+  <g class="lvl3"><rect x="88" y="36" width="8" height="64" fill="#704925"/><rect x="80" y="28" width="24" height="12" fill="#cf3c3c"/></g>
+  <g class="lvl4"><path d="M12 70h104" stroke="#e7ad35" stroke-width="4" stroke-dasharray="8 4"/></g>
+  <g class="lvl5"><rect x="4" y="68" width="120" height="4" fill="#e8b83a"/></g>
+</svg>

@@ -35,6 +35,7 @@
     {
         public int ResourceTypeId { get; set; }
         public int Value { get; set; }
+        public bool IsOptional { get; set; }
     }
 
     public class ExpeditionLootDto

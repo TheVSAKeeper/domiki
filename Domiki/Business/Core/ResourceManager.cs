@@ -30,11 +30,13 @@ namespace Domiki.Web.Business.Core
         public static int GetMarketValue(int resourceTypeId) => resourceTypeId switch
         {
             5 => 100,
-            6 or 7 or 10 => 35,
+            6 or 7 or 10 or 14 => 35,
             8 => 55,
             9 => 95,
             11 => 150,
             12 => 45,
+            13 => 10,
+            15 => 20,
             _ => BaseMarketValue,
         };
 
@@ -217,6 +219,7 @@ namespace Domiki.Web.Business.Core
                         {
                             ResourceTypeId = x.ResourceTypeId,
                             Value = x.Value,
+                            IsOptional = x.IsOptional,
                         })
                         .ToArray();
                 }

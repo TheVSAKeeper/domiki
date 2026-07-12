@@ -8,6 +8,22 @@
     box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
+.workers-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.workers-head .panel-title {
+    margin-top: 0;
+}
+
+.workers-feed-effect {
+    color: var(--ink-muted);
+    font-size: 10px;
+}
+
 .workers-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));

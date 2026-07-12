@@ -95,7 +95,16 @@ namespace Domiki.Web.Business.Core
                 VillageName = dbPlayer.VillageName,
                 CrestIcon = dbPlayer.CrestIcon,
                 CrestColor = dbPlayer.CrestColor,
+                FeedWorkers = dbPlayer.FeedWorkers,
             };
+        }
+
+        public void SetFeedWorkers(int playerId, bool enabled)
+        {
+            _playerResourceManager.LockDbPlayerRow(playerId);
+
+            var dbPlayer = _context.Players.Single(x => x.Id == playerId);
+            dbPlayer.FeedWorkers = enabled;
         }
 
         public void SetVillageIdentity(int playerId, string name, int crestIcon, int crestColor)
@@ -527,6 +536,8 @@ namespace Domiki.Web.Business.Core
                 var restSeconds = RestSeconds * (100 - Math.Min(RestComfortMaxPercent, comfort)) / 100;
                 var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
                 var isTradeDomik = _resourceManager.GetDomikTypes().First(x => x.LogicName == "market").Id == dbDomik.TypeId;
+                var breadRes = _context.Resources.Local.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == 15)
+                    ?? _context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == 15);
                 var freedWorkerIds = new List<int>();
                 foreach (var worker in _context.Workers.Where(x => x.ManufactureId == dbManufacture.Id).ToArray())
                 {
@@ -536,7 +547,12 @@ namespace Domiki.Web.Business.Core
                         worker.WorkedSeconds += dbManufacture.DurationSeconds;
                         if (worker.WorkedSeconds >= FatigueThresholdSeconds)
                         {
-                            worker.RestUntil = date.AddSeconds(restSeconds);
+                            var fed = dbPlayer.FeedWorkers && breadRes?.Value >= 1;
+                            if (fed)
+                            {
+                                breadRes.Value -= 1;
+                            }
+                            worker.RestUntil = date.AddSeconds(fed ? restSeconds / 2 : restSeconds);
                             worker.WorkedSeconds = 0;
                         }
                     }

@@ -16,6 +16,8 @@ namespace Domiki.Web.Data
 
         public int Value { get; set; }
 
+        public bool IsOptional { get; set; }
+
         public ExpeditionType ExpeditionType { get; set; }
     }
 }

@@ -114,6 +114,9 @@ export const getVillage = (signal?: AbortSignal): Promise<VillageDto> =>
 export const setVillage = (name: string, crestIcon: number, crestColor: number, signal?: AbortSignal): Promise<void> =>
     request('POST', 'Domiki/SetVillage', null, signal, { name, crestIcon, crestColor });
 
+export const setFeedWorkers = (enabled: boolean, signal?: AbortSignal): Promise<void> =>
+    request('POST', 'Domiki/SetFeedWorkers', null, signal, { enabled });
+
 export const getWorld = (signal?: AbortSignal): Promise<WorldDto> =>
     apiGet('Domiki/GetWorld', worldSchema, signal);
 
@@ -126,8 +129,11 @@ export const getSeason = (signal?: AbortSignal): Promise<SeasonDto> =>
 export const getExpeditions = (signal?: AbortSignal): Promise<ExpeditionStateDto | null> =>
     apiGet('Domiki/GetExpeditions', expeditionStateSchema.nullable(), signal);
 
-export const startExpedition = (expeditionTypeId: number, workerIds?: number[], signal?: AbortSignal): Promise<void> => {
-    const query = (workerIds ?? []).map(id => `workerIds=${id}`).join('&');
+export const startExpedition = (expeditionTypeId: number, workerIds?: number[], provisions?: boolean, signal?: AbortSignal): Promise<void> => {
+    const query = [
+        ...(workerIds ?? []).map(id => `workerIds=${id}`),
+        ...(provisions ? ['provisions=true'] : []),
+    ].join('&');
     return apiPost(`Domiki/StartExpedition/${expeditionTypeId}${query ? `?${query}` : ''}`, signal);
 };
 

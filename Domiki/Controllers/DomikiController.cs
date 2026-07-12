@@ -152,6 +152,15 @@ namespace Domiki.Controllers
         }
 
         [HttpPost]
+        [Route("/Domiki/SetFeedWorkers")]
+        public Response SetFeedWorkers([FromBody] SetFeedWorkersDto request)
+        {
+            int playerId = GetPlayerId();
+            _domikManager.SetFeedWorkers(playerId, request?.Enabled ?? false);
+            return new Response { Type = ResponseType.Success };
+        }
+
+        [HttpPost]
         [Route("/Domiki/UpgradeDomik/{id}")]
         public Response UpgradeDomik(int id)
         {
@@ -395,10 +404,10 @@ namespace Domiki.Controllers
 
         [HttpPost]
         [Route("/Domiki/StartExpedition/{expeditionTypeId}")]
-        public Response StartExpedition(int expeditionTypeId, [FromQuery] int[] workerIds = null)
+        public Response StartExpedition(int expeditionTypeId, [FromQuery] int[] workerIds = null, [FromQuery] bool provisions = false)
         {
             int playerId = GetPlayerId();
-            _expeditionManager.StartExpedition(playerId, expeditionTypeId, workerIds);
+            _expeditionManager.StartExpedition(playerId, expeditionTypeId, workerIds, provisions);
             return new Response { Type = ResponseType.Success };
         }
 

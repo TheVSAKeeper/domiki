@@ -11,6 +11,7 @@ namespace Domiki.Web.Models
                 VillageName = village.VillageName,
                 CrestIcon = village.CrestIcon,
                 CrestColor = village.CrestColor,
+                FeedWorkers = village.FeedWorkers,
             };
         }
     }

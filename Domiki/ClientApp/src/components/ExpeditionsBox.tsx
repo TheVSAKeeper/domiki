@@ -25,7 +25,7 @@ interface ExpeditionsBoxProps {
     resources: ResourceDto[];
     workers: WorkerDto[];
     now: number;
-    onStart: (expeditionTypeId: number, workerIds?: number[]) => void;
+    onStart: (expeditionTypeId: number, workerIds?: number[], provisions?: boolean) => void;
 }
 
 const EXPEDITION_ICONS: Record<string, typeof MapPinIcon> = {
@@ -36,6 +36,7 @@ const EXPEDITION_ICONS: Record<string, typeof MapPinIcon> = {
 export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resources, workers, now, onStart }: ExpeditionsBoxProps) => {
     const [manualMode, setManualMode] = useState<Record<number, boolean>>({});
     const [picks, setPicks] = useState<Record<number, number[]>>({});
+    const [provisions, setProvisions] = useState<Record<number, boolean>>({});
 
     if (expeditions == null) {
         return null;
@@ -47,6 +48,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
     const allOut = expeditions.active.length >= expeditions.maxActive;
 
     const toggleManual = (typeId: number) => setManualMode(mode => ({ ...mode, [typeId]: !mode[typeId] }));
+    const toggleProvisions = (typeId: number) => setProvisions(current => ({ ...current, [typeId]: !current[typeId] }));
     const toggleWorker = (typeId: number, workerId: number, max: number) => setPicks(prev => {
         const current = prev[typeId] ?? [];
         if (current.includes(workerId)) {
@@ -76,7 +78,10 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                 {expeditions.types.map(type => {
                     const TypeIcon = EXPEDITION_ICONS[type.logicName] ?? BackpackIcon;
                     const canAffordGold = hasResourcesFor([{ typeId: GOLD_RESOURCE_TYPE_ID, value: type.goldCost }], resources);
-                    const equipmentReqs = type.equipment.map(e => ({ typeId: e.resourceTypeId, value: e.value }));
+                    const equipment = type.equipment.filter(entry => !entry.isOptional);
+                    const provisionEquipment = type.equipment.filter(entry => entry.isOptional);
+                    const useProvisions = provisions[type.id] ?? false;
+                    const equipmentReqs = equipment.map(e => ({ typeId: e.resourceTypeId, value: e.value }));
                     const canAffordEquipment = hasResourcesFor(equipmentReqs, resources);
                     const hasWorkers = freeWorkers.length >= type.workerCount;
                     const isManual = manualMode[type.id] ?? false;
@@ -106,11 +111,11 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                     ? <ResourceChip resourceType={goldType} value={type.goldCost} />
                                     : <StatChip icon={<CoinsIcon className="stat-chip-ico" aria-hidden="true" />} tone="gold" title="Золото">{type.goldCost}</StatChip>}
                             </div>
-                            {type.equipment.length > 0 &&
+                            {equipment.length > 0 &&
                                 <div className={'expedition-req' + (canAffordEquipment ? '' : ' expedition-req-short')}>
                                     <span className="panel-label">снаряжение</span>
                                     <div className="expedition-chips">
-                                        {type.equipment.map(entry => {
+                                        {equipment.map(entry => {
                                             const resourceType = resourceTypes.find(x => x.id === entry.resourceTypeId);
                                             if (resourceType == null) {
                                                 return null;
@@ -120,6 +125,23 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                         })}
                                     </div>
                                 </div>}
+                            {provisionEquipment.length > 0 &&
+                                <>
+                                    <label className="receipt-optional expedition-manual-toggle">
+                                        <input type="checkbox" checked={useProvisions} onChange={() => toggleProvisions(type.id)} />
+                                        Провизия в дорогу
+                                    </label>
+                                    {useProvisions &&
+                                        <div className="expedition-req">
+                                            <span className="panel-label">провизия</span>
+                                            <div className="expedition-chips">
+                                                {provisionEquipment.map(entry => {
+                                                    const resourceType = resourceTypes.find(x => x.id === entry.resourceTypeId);
+                                                    return resourceType == null ? null : <ResourceChip key={entry.resourceTypeId} resourceType={resourceType} value={entry.value} />;
+                                                })}
+                                            </div>
+                                        </div>}
+                                </>}
                             <div className="expedition-reward">
                                 <span className="panel-label">добыча</span>
                                 <div className="expedition-loot">
@@ -179,7 +201,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                 </div>
                             }
                             <button className="btn-game" disabled={!canStart} title={blockedTitle}
-                                onClick={() => onStart(type.id, isManual ? picked : undefined)}>
+                                onClick={() => onStart(type.id, isManual ? picked : undefined, useProvisions)}>
                                 <TypeIcon className="btn-ico" aria-hidden="true" />
                                 Отправить
                             </button>

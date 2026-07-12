@@ -18,6 +18,8 @@ namespace Domiki.Web.Data
 
         public DateTime FinishDate { get; set; }
 
+        public bool Provisioned { get; set; }
+
         public Player Player { get; set; }
 
         public ExpeditionType ExpeditionType { get; set; }

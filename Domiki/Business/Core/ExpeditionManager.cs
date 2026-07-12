@@ -74,7 +74,7 @@ namespace Domiki.Web.Business.Core
             };
         }
 
-        public void StartExpedition(int playerId, int expeditionTypeId, int[] workerIds = null)
+        public void StartExpedition(int playerId, int expeditionTypeId, int[] workerIds = null, bool provisions = false)
         {
             var date = DateTimeHelper.GetNowDate();
             _playerResourceManager.LockDbPlayerRow(playerId);
@@ -131,7 +131,7 @@ namespace Domiki.Web.Business.Core
                     Type = resourceTypes[GoldResourceTypeId],
                     Value = type.GoldCost,
                 },
-            }.Concat(type.Equipment.Select(x => new Resource
+            }.Concat(type.Equipment.Where(x => !x.IsOptional || provisions).Select(x => new Resource
             {
                 Type = resourceTypes[x.ResourceTypeId],
                 Value = x.Value,
@@ -144,6 +144,7 @@ namespace Domiki.Web.Business.Core
                 ExpeditionTypeId = type.Id,
                 StartDate = date,
                 FinishDate = date.AddSeconds(type.DurationSeconds),
+                Provisioned = provisions && type.Equipment.Any(x => x.IsOptional),
             };
             _context.Expeditions.Add(expedition);
             _context.SaveChanges();
@@ -212,7 +213,7 @@ namespace Domiki.Web.Business.Core
 
             foreach (var worker in assignedWorkers)
             {
-                if (!traits[worker.TraitId].NoFatigue)
+                if (!traits[worker.TraitId].NoFatigue && !dbExpedition.Provisioned)
                 {
                     worker.RestUntil = dbExpedition.FinishDate.AddSeconds(ExpeditionRestSeconds);
                 }

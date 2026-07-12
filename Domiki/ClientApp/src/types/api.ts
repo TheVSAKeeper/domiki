@@ -128,6 +128,7 @@ export const villageSchema = z.object({
     villageName: z.string().nullable(),
     crestIcon: z.number(),
     crestColor: z.number(),
+    feedWorkers: z.boolean(),
 });
 export type VillageDto = z.infer<typeof villageSchema>;
 
@@ -250,6 +251,7 @@ export type ExpeditionLootDto = z.infer<typeof expeditionLootSchema>;
 export const expeditionEquipmentSchema = z.object({
     resourceTypeId: z.number(),
     value: z.number(),
+    isOptional: z.boolean(),
 });
 export type ExpeditionEquipmentDto = z.infer<typeof expeditionEquipmentSchema>;
 

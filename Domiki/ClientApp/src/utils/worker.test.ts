@@ -3,8 +3,8 @@ import type { DomikTypeDto, WorkerDto } from '../types/api';
 import { describeWorker } from './worker';
 
 const domikTypes: DomikTypeDto[] = [
-    { id: 1, name: 'Рынок', logicName: 'market', maxCount: 1, availableCount: 0, maxLevel: 5, unlockLevel: 0, blueprintId: null, levels: [] },
-    { id: 2, name: 'Кузня', logicName: 'forge', maxCount: 1, availableCount: 0, maxLevel: 5, unlockLevel: 0, blueprintId: null, levels: [] },
+    { id: 1, name: 'Рынок', logicName: 'market', maxCount: 1, availableCount: 0, maxLevel: 5, unlockLevel: 0, blueprintId: null, nextCountGateLevel: null, levels: [] },
+    { id: 2, name: 'Кузня', logicName: 'forge', maxCount: 1, availableCount: 0, maxLevel: 5, unlockLevel: 0, blueprintId: null, nextCountGateLevel: null, levels: [] },
 ];
 
 const baseWorker: WorkerDto = {

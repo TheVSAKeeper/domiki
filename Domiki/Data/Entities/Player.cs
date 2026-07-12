@@ -31,6 +31,8 @@ namespace Domiki.Web.Data
 
         public DateTime? GoldMinedDate { get; set; }
 
+        public bool FeedWorkers { get; set; }
+
         [MaxLength(450)]
         [Required(AllowEmptyStrings = false)]
         public string AspNetUserId { get; set; }
