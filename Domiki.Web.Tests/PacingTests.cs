@@ -88,6 +88,7 @@ namespace Domiki.Web.Tests
             using var uow = GetUow();
             var playerId = GetDomikManager(uow).GetPlayerId("testUser_" + Guid.NewGuid());
             uow.Commit();
+            MuteFtue(playerId);
             return playerId;
         }
 

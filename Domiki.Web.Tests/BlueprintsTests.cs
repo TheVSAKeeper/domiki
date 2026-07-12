@@ -141,6 +141,7 @@ namespace Domiki.Web.Tests
                 var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
                 new PlayerResourceManager(uow.Context, GetResourceManager(uow)).GrantResource(playerId, CoinResourceTypeId, 1000);
                 uow.Commit();
+                MuteFtue(playerId);
                 return playerId;
             }
         }

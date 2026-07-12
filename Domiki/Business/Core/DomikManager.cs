@@ -14,6 +14,9 @@ namespace Domiki.Web.Business.Core
         public const int RestSeconds = 2 * 3600;
         public const int RestComfortMaxPercent = 50;
         public const int StartingCoins = 200;
+        public const int ZealStartCharges = 24;
+        public const int ZealX4Threshold = 16;
+        public const int ZealMaxRecipeSeconds = 3600;
         private const int InstaFinishSecondsPerGold = 3600;
         private const int InstaFinishMaxGold = 6;
         private const int GoldResourceTypeId = 5;
@@ -51,8 +54,9 @@ namespace Domiki.Web.Business.Core
         private BlueprintManager _blueprintManager;
         private TolokaManager _tolokaManager;
         private PlayerEventManager _playerEventManager;
+        private GoalManager _goalManager;
 
-        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, TolokaManager tolokaManager, PlayerEventManager playerEventManager)
+        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, TolokaManager tolokaManager, PlayerEventManager playerEventManager, GoalManager goalManager)
         {
             _context = context;
             _calculator = calculator;
@@ -65,6 +69,7 @@ namespace Domiki.Web.Business.Core
             _blueprintManager = blueprintManager;
             _tolokaManager = tolokaManager;
             _playerEventManager = playerEventManager;
+            _goalManager = goalManager;
         }
 
         public int GetPlayerId(string aspNetUserId)
@@ -444,6 +449,18 @@ namespace Domiki.Web.Business.Core
             duration = (int)Math.Ceiling(duration * (100 - avgSkill) / 100);
             duration = Math.Max(duration, (int)Math.Ceiling(receipt.DurationSeconds * 0.6));
 
+            var marketDomikTypeId = _resourceManager.GetDomikTypes().First(x => x.LogicName == "market").Id;
+            if (receipt.DurationSeconds <= ZealMaxRecipeSeconds && dbDomik.TypeId != marketDomikTypeId)
+            {
+                var dbPlayer = _context.Players.First(x => x.Id == playerId);
+                if (dbPlayer.ZealCharges > 0)
+                {
+                    var mult = dbPlayer.ZealCharges > ZealX4Threshold ? 4 : 2;
+                    duration = Math.Max(1, duration / mult);
+                    dbPlayer.ZealCharges--;
+                }
+            }
+
             var weatherPercent = _weatherManager.GetOutputPercent(date, domikType.Id);
             var tolokaPercent = _tolokaManager.GetTolokaOutputPercent(playerId, domikType.Id, date);
             var outputPercent = (int)Math.Round(weatherPercent * tolokaPercent / 100.0);
@@ -483,6 +500,7 @@ namespace Domiki.Web.Business.Core
                     Date = manufacture.FinishDate,
                 });
             };
+            _goalManager.OnManufactureStarted(playerId, receipt);
         }
 
         public bool FinishManufacture(DateTime date, CalculateInfo calcInfo)

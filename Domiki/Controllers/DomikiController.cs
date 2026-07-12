@@ -27,8 +27,9 @@ namespace Domiki.Controllers
         private readonly WorldManager _worldManager;
         private readonly SeasonManager _seasonManager;
         private readonly PlayerEventManager _playerEventManager;
+        private readonly GoalManager _goalManager;
 
-        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, WorldManager worldManager, SeasonManager seasonManager, PlayerEventManager playerEventManager)
+        public DomikiController(ILogger<DomikiController> logger, DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, WorldManager worldManager, SeasonManager seasonManager, PlayerEventManager playerEventManager, GoalManager goalManager)
         {
             _logger = logger;
             _domikManager = domikManager;
@@ -45,6 +46,7 @@ namespace Domiki.Controllers
             _worldManager = worldManager;
             _seasonManager = seasonManager;
             _playerEventManager = playerEventManager;
+            _goalManager = goalManager;
         }
 
         [HttpGet]
@@ -52,6 +54,7 @@ namespace Domiki.Controllers
         public Response<GameStateDto> GetGameState()
         {
             int playerId = GetPlayerId();
+            var goals = _goalManager.GetGoalsState(playerId);
             var blueprints = _resourceManager.GetBlueprints();
 
             var content = new GameStateDto
@@ -75,6 +78,7 @@ namespace Domiki.Controllers
                 Market = _marketManager.GetMarket(playerId)?.ToDto(),
                 Recap = _playerEventManager.TakeRecap(playerId, DateTimeHelper.GetNowDate()).ToDto(),
                 Events = _playerEventManager.GetRecentEvents(playerId).Select(x => x.ToDto()).ToArray(),
+                Goals = goals.ToDto(),
             };
             return new Response<GameStateDto>(content);
         }

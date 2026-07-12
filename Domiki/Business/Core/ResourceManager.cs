@@ -21,6 +21,7 @@ namespace Domiki.Web.Business.Core
         private static ExpeditionType[] _expeditionTypes;
         private static DecorType[] _decorTypes;
         private static TolokaType[] _tolokaTypes;
+        private static Data.StarterGoal[] _starterGoals;
 
         public ResourceManager(Data.ApplicationDbContext context)
         {
@@ -82,6 +83,16 @@ namespace Domiki.Web.Business.Core
             }
 
             return _resourceTypes;
+        }
+
+        public Data.StarterGoal[] GetStarterGoals()
+        {
+            if (_starterGoals == null)
+            {
+                _starterGoals = _context.StarterGoals.AsNoTracking().OrderBy(x => x.Ordinal).ToArray();
+            }
+
+            return _starterGoals;
         }
 
         public Receipt[] GetReceipts()

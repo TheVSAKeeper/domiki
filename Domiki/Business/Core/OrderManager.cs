@@ -19,6 +19,7 @@ namespace Domiki.Web.Business.Core
         private VillageLevelCalculator _villageLevelCalculator;
         private SeasonManager _seasonManager;
         private TolokaManager _tolokaManager;
+        private GoalManager _goalManager;
 
         public static readonly OrderTier[] Tiers =
         {
@@ -48,7 +49,8 @@ namespace Domiki.Web.Business.Core
             WorkerManager workerManager,
             VillageLevelCalculator villageLevelCalculator,
             SeasonManager seasonManager,
-            TolokaManager tolokaManager)
+            TolokaManager tolokaManager,
+            GoalManager goalManager)
         {
             _context = context;
             _calculator = calculator;
@@ -59,6 +61,7 @@ namespace Domiki.Web.Business.Core
             _villageLevelCalculator = villageLevelCalculator;
             _seasonManager = seasonManager;
             _tolokaManager = tolokaManager;
+            _goalManager = goalManager;
         }
 
         public void EnsureOrderBoard(int playerId)
@@ -153,6 +156,7 @@ namespace Domiki.Web.Business.Core
             }
 
             EnsureOrderBoard(playerId);
+            _goalManager.OnOrderCompleted(playerId);
         }
 
         public bool FinishOrder(DateTime date, CalculateInfo calcInfo)

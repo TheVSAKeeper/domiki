@@ -106,6 +106,7 @@ builder.Services.AddScoped<WorldManager>();
 builder.Services.AddScoped<SeasonManager>();
 builder.Services.AddScoped<VillageLevelCalculator>();
 builder.Services.AddScoped<PlayerEventManager>();
+builder.Services.AddScoped<GoalManager>();
 builder.Services.AddScoped<PushManager>();
 builder.Services.AddSingleton<PushSender>();
 builder.Services.AddSingleton<GameStateBroker>();

@@ -21,5 +21,6 @@
         public MarketStateDto Market { get; set; }
         public RecapDto Recap { get; set; }
         public RecapEventDto[] Events { get; set; }
+        public GoalsStateDto Goals { get; set; }
     }
 }

@@ -480,6 +480,7 @@ namespace Domiki.Web.Tests
                 var domikManager = GetDomikManager(uow);
                 var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
                 uow.Commit();
+                MuteFtue(playerId);
                 return playerId;
             }
         }

@@ -9,5 +9,6 @@
         LotSold = 4,
         LotExpired = 5,
         TolokaCompleted = 6,
+        GoalCompleted = 7,
     }
 }

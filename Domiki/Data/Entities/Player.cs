@@ -33,6 +33,8 @@ namespace Domiki.Web.Data
 
         public bool FeedWorkers { get; set; }
 
+        public int ZealCharges { get; set; } = 24;
+
         [MaxLength(450)]
         [Required(AllowEmptyStrings = false)]
         public string AspNetUserId { get; set; }
