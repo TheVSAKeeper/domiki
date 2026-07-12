@@ -49,6 +49,7 @@ import { MarketBox } from './MarketBox';
 import { ResourceChip } from './ResourceChip';
 import { JournalBox } from './JournalBox';
 import { AbstractSprite, DomikSprite, MechanicSprite, WeatherSprite, WorkerSprite } from './sprites';
+import { isSkilledWorker } from '../utils/worker';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import { HudResource } from './HudResource';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
@@ -1015,7 +1016,7 @@ export const DomikiPage = () => {
                                                                             <button key={worker.id} type="button"
                                                                                 className={'worker-chip worker-chip-pick' + (isSelected ? ' worker-chip-selected' : '')}
                                                                                 onClick={() => toggleSelectedWorker(receipt.id, worker.id, receipt.plodderCount)}>
-                                                                                <WorkerSprite name={worker.name} className="worker-avatar" aria-hidden="true" />
+                                                                                <WorkerSprite name={worker.name} skilled={isSkilledWorker(worker)} className="worker-avatar" aria-hidden="true" />
                                                                                 <span className="worker-name">{worker.name}</span>
                                                                                 <span className="worker-effect">{fitness >= 0 ? '+' : ''}{fitness} %</span>
                                                                             </button>

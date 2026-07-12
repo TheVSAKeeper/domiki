@@ -9,6 +9,7 @@ import UserIcon from 'pixelarticons/svg/user.svg?react';
 import UsersIcon from 'pixelarticons/svg/users.svg?react';
 import type { DecorTypeDto, ExpeditionStateDto, ResourceDto, ResourceTypeDto, WorkerDto } from '../types/api';
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE, GOLD_RESOURCE_TYPE_ID, hasResourcesFor, isWorkerFree } from '../utils/game';
+import { isSkilledWorker } from '../utils/worker';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ResourceChip } from './ResourceChip';
 import { StatChip } from './StatChip';
@@ -194,7 +195,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                         <button key={worker.id} type="button"
                                             className={'worker-chip worker-chip-pick' + (picked.includes(worker.id) ? ' worker-chip-selected' : '')}
                                             onClick={() => toggleWorker(type.id, worker.id, type.workerCount)}>
-                                            <WorkerSprite name={worker.name} className="worker-avatar" aria-hidden="true" />
+                                            <WorkerSprite name={worker.name} skilled={isSkilledWorker(worker)} className="worker-avatar" aria-hidden="true" />
                                             <span className="worker-name">{worker.name}</span>
                                         </button>
                                     ))}

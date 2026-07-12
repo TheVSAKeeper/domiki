@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import type { DomikDto, DomikTypeDto, ExpeditionStateDto, WorkerDto } from '../types/api';
 import { formatDuration, formatDurationShort, remainingSeconds } from '../utils/time';
-import { describeWorker } from '../utils/worker';
+import { describeWorker, isSkilledWorker } from '../utils/worker';
 import { AbstractSprite, DomikSprite, MechanicSprite, TraitSprite, WorkerSprite } from './sprites';
 
 type WorkerState = 'expedition' | 'busy' | 'resting' | 'free';
@@ -116,7 +116,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
                             onFocus={event => setHover({ worker, rect: event.currentTarget.getBoundingClientRect() })}
                             onBlur={() => clearHover(worker.id)}>
                             <div className="worker-card-face">
-                                <WorkerSprite name={worker.name} state={portraitState} className="worker-avatar" aria-hidden="true" />
+                                <WorkerSprite name={worker.name} state={portraitState} skilled={isSkilledWorker(worker)} className="worker-avatar" aria-hidden="true" />
                                 <div className="worker-headings">
                                     <span className="worker-name">{worker.name}</span>
                                     <span className="worker-badge" title={stateKey === 'resting' ? restTitle : undefined}>

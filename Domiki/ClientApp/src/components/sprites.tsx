@@ -212,12 +212,14 @@ const fallbackLook = (name: string): WorkerLook => {
 interface WorkerSpriteProps extends SVGProps<SVGSVGElement> {
     name: string;
     state?: 'idle' | 'working' | 'resting';
+    skilled?: boolean;
 }
 
-export const WorkerSprite = ({ name, state = 'idle', ...props }: WorkerSpriteProps) => {
+export const WorkerSprite = ({ name, state = 'idle', skilled = false, ...props }: WorkerSpriteProps) => {
     const [skin, hair, style, beard, hat, shirt, extra] = workerLooks[name] ?? fallbackLook(name);
     return (
         <WorkerPortrait data-skin={skin} data-hair={hair} data-style={style} data-state={state}
+            data-skilled={skilled ? 'true' : 'false'}
             data-beard={beard} data-hat={hat} data-shirt={shirt} data-extra={extra} {...props} />
     );
 };
