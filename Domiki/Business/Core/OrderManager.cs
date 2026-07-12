@@ -15,6 +15,7 @@ namespace Domiki.Web.Business.Core
         private Data.UnitOfWork _uow;
         private ResourceManager _resourceManager;
         private PlayerResourceManager _playerResourceManager;
+        private WorkerManager _workerManager;
         private VillageLevelCalculator _villageLevelCalculator;
         private SeasonManager _seasonManager;
         private TolokaManager _tolokaManager;
@@ -31,12 +32,20 @@ namespace Domiki.Web.Business.Core
             return Math.Max(1, (int)Math.Round(tier.Quantity * (double)ResourceManager.BaseMarketValue / ResourceManager.GetMarketValue(resourceTypeId), MidpointRounding.AwayFromZero));
         }
 
+        public static int GetEffectiveQuantity(OrderTier tier, int resourceTypeId, int capacity)
+        {
+            var quantity = GetOrderQuantity(tier, resourceTypeId);
+            var capacityLimit = Math.Max(2, (int)Math.Floor(capacity * tier.DurationSeconds / 3600.0 / 1.5));
+            return Math.Min(quantity, capacityLimit);
+        }
+
         public OrderManager(
             Data.UnitOfWork uow,
             Data.ApplicationDbContext context,
             ICalculator calculator,
             ResourceManager resourceManager,
             PlayerResourceManager playerResourceManager,
+            WorkerManager workerManager,
             VillageLevelCalculator villageLevelCalculator,
             SeasonManager seasonManager,
             TolokaManager tolokaManager)
@@ -46,6 +55,7 @@ namespace Domiki.Web.Business.Core
             _uow = uow;
             _resourceManager = resourceManager;
             _playerResourceManager = playerResourceManager;
+            _workerManager = workerManager;
             _villageLevelCalculator = villageLevelCalculator;
             _seasonManager = seasonManager;
             _tolokaManager = tolokaManager;
@@ -199,6 +209,21 @@ namespace Domiki.Web.Business.Core
                 .ToArray();
         }
 
+        public int GetCapacity(int playerId, int resourceTypeId)
+        {
+            var domikTypes = _resourceManager.GetDomikTypes().ToDictionary(x => x.Id);
+            var receipts = _resourceManager.GetReceipts().ToDictionary(x => x.Id);
+            var slots = _context.Domiks
+                .Where(x => x.PlayerId == playerId && x.Level >= 1)
+                .Select(x => new { x.TypeId, x.Level })
+                .ToArray()
+                .Select(d => domikTypes[d.TypeId].Levels.First(l => l.Value == d.Level))
+                .Where(level => level.Receipts.Any(r => receipts[r.Id].OutputResources.Any(o => o.Type.Id == resourceTypeId)))
+                .Sum(level => level.MaxManufactureCount);
+
+            return Math.Min(_workerManager.GetCapacity(playerId), slots);
+        }
+
         private CalculateInfo CreateOrder(int playerId, int villageLevel)
         {
             var neighbors = _villageLevelCalculator.GetOpenNeighbors(villageLevel);
@@ -222,7 +247,8 @@ namespace Domiki.Web.Business.Core
             var tier = Tiers[Random.Shared.Next(Tiers.Length)];
             var now = DateTimeHelper.GetNowDate();
             var expireDate = now.AddSeconds(tier.DurationSeconds);
-            var quantity = GetOrderQuantity(tier, resourceTypeId);
+            var capacity = GetCapacity(playerId, resourceTypeId);
+            var quantity = GetEffectiveQuantity(tier, resourceTypeId, capacity);
             var rewardCoins = (int)Math.Round(quantity * ResourceManager.GetMarketValue(resourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero);
 
             var order = new Data.Order

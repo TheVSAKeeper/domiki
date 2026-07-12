@@ -65,7 +65,8 @@ namespace Domiki.Web.Tests
                 foreach (var (order, resource) in orders)
                 {
                     var tier = OrderManager.Tiers.Single(candidate => candidate.RewardReputation == order.RewardReputation);
-                    var expectedQuantity = OrderManager.GetOrderQuantity(tier, resource.ResourceTypeId);
+                    var capacity = GetCapacity(playerId, resource.ResourceTypeId);
+                    var expectedQuantity = OrderManager.GetEffectiveQuantity(tier, resource.ResourceTypeId, capacity);
                     var expectedReward = (int)Math.Round(expectedQuantity * ResourceManager.GetMarketValue(resource.ResourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero);
                     Assert.That(resource.Value, Is.EqualTo(expectedQuantity));
                     Assert.That(order.RewardCoins, Is.EqualTo(expectedReward));
@@ -165,6 +166,14 @@ namespace Domiki.Web.Tests
             decor.Count += count;
             uow.Context.SaveChanges();
             uow.Commit();
+        }
+
+        private int GetCapacity(int playerId, int resourceTypeId)
+        {
+            using var uow = GetUow();
+            var capacity = GetOrderManager(uow).GetCapacity(playerId, resourceTypeId);
+            uow.Commit();
+            return capacity;
         }
 
         private void EnsureOrderBoard(int playerId)

@@ -1,0 +1,56 @@
+﻿using Domiki.Web.Business.Core;
+
+namespace Domiki.Web.Tests
+{
+    public class OrderCapacityTests : TestBase
+    {
+        private const int ClayResourceTypeId = 4;
+        private const int StoneResourceTypeId = 2;
+
+        [TestCase(0, 2)]
+        [TestCase(1, 5)]
+        [TestCase(2, 16)]
+        public void NewPlayerClayOrderQuantityIsCappedByStartingCapacityTest(int tierIndex, int expectedQuantity)
+        {
+            var playerId = GetPlayerId();
+            var tier = OrderManager.Tiers[tierIndex];
+
+            var capacity = GetCapacity(playerId, ClayResourceTypeId);
+            var quantity = OrderManager.GetEffectiveQuantity(tier, ClayResourceTypeId, capacity);
+
+            Assert.That(capacity, Is.EqualTo(1));
+            Assert.That(quantity, Is.EqualTo(expectedQuantity));
+        }
+
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        public void PlayerWithoutMatchingBuildingFloorsAtTwoTest(int tierIndex)
+        {
+            var playerId = GetPlayerId();
+            var tier = OrderManager.Tiers[tierIndex];
+
+            var capacity = GetCapacity(playerId, StoneResourceTypeId);
+            var quantity = OrderManager.GetEffectiveQuantity(tier, StoneResourceTypeId, capacity);
+
+            Assert.That(capacity, Is.EqualTo(0));
+            Assert.That(quantity, Is.EqualTo(2));
+        }
+
+        private int GetPlayerId()
+        {
+            using var uow = GetUow();
+            var playerId = GetDomikManager(uow).GetPlayerId("testUser_" + Guid.NewGuid());
+            uow.Commit();
+            return playerId;
+        }
+
+        private int GetCapacity(int playerId, int resourceTypeId)
+        {
+            using var uow = GetUow();
+            var capacity = GetOrderManager(uow).GetCapacity(playerId, resourceTypeId);
+            uow.Commit();
+            return capacity;
+        }
+    }
+}
