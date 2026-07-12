@@ -96,9 +96,9 @@ namespace Domiki.Web.Tests
 
         private void BuyForgeWithWorker(int playerId)
         {
-            BuyDomik(playerId, 2);
             using (var uow = GetUow())
             {
+                uow.Context.Domiks.Add(new Domiki.Web.Data.Domik { PlayerId = playerId, Id = 3, TypeId = 2, Level = 1 });
                 uow.Context.Domiks.Add(new Domiki.Web.Data.Domik
                 {
                     PlayerId = playerId,
@@ -112,9 +112,9 @@ namespace Domiki.Web.Tests
 
         private void BuyPotteryWithWorker(int playerId)
         {
-            BuyDomik(playerId, 2);
             using (var uow = GetUow())
             {
+                uow.Context.Domiks.Add(new Domiki.Web.Data.Domik { PlayerId = playerId, Id = 3, TypeId = 2, Level = 1 });
                 uow.Context.Domiks.Add(new Domiki.Web.Data.Domik
                 {
                     PlayerId = playerId,
@@ -122,15 +122,6 @@ namespace Domiki.Web.Tests
                     TypeId = 13,
                     Level = 3,
                 });
-                uow.Commit();
-            }
-        }
-
-        private void BuyDomik(int playerId, int domikTypeId)
-        {
-            using (var uow = GetUow())
-            {
-                GetDomikManager(uow).BuyDomik(playerId, domikTypeId);
                 uow.Commit();
             }
         }

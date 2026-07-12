@@ -10,8 +10,6 @@ namespace Domiki.Web.Tests
         public void FinishedManufactureIsDeliveredOnceTest()
         {
             var playerId = CreatePlayer();
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, 5);
 
             using (var uow = GetUow())
             {
@@ -89,15 +87,6 @@ namespace Domiki.Web.Tests
                 uow.Commit();
             }
             return playerId;
-        }
-
-        private void BuyDomik(int playerId, int domikTypeId)
-        {
-            using (var uow = GetUow())
-            {
-                GetDomikManager(uow).BuyDomik(playerId, domikTypeId);
-                uow.Commit();
-            }
         }
 
         private void GrantResource(int playerId, int resourceTypeId, int value)

@@ -78,9 +78,9 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             GrantResource(playerId, 1, 700);
             GrantBlueprint(playerId, 3);
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, 2);
+            GrantDomik(playerId, 3, 2);
+            GrantDomik(playerId, 4, 2);
+            GrantDomik(playerId, 5, 2);
             BuyDomik(playerId, 13);
             UpgradeDomik(playerId, 6);
             GrantResource(playerId, 4, 16);
@@ -97,7 +97,7 @@ namespace Domiki.Web.Tests
         public void DurationMultiplierUsesTraitsAndSkillAfterToolTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, 5);
+            GrantDomik(playerId, 3, 5);
             GrantResource(playerId, 8, 1);
             var worker = GetWorkers(playerId).Single();
             SetWorkerTrait(worker.Id, 3);
@@ -117,7 +117,7 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             for (var i = 0; i < 4; i++)
             {
-                BuyDomik(playerId, 2);
+                GrantDomik(playerId, 3 + i, 2);
             }
 
             var workers = GetWorkers(playerId);

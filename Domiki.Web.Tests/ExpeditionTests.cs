@@ -166,7 +166,7 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             BuyBarracks(playerId, 3);
-            BuyDomik(playerId, ProducerDomikTypeId);
+            GrantBuiltDomik(playerId, ProducerDomikTypeId);
             GrantResource(playerId, GoldResourceTypeId, 1);
             GrantResource(playerId, PlankResourceTypeId, EquipmentCost(ShortScoutId));
             var workerIds = GetWorkers(playerId).OrderBy(x => x.Id).Select(x => x.Id).ToArray();
@@ -201,7 +201,7 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             BuyBarracks(playerId, 2);
-            BuyDomik(playerId, ProducerDomikTypeId);
+            GrantBuiltDomik(playerId, ProducerDomikTypeId);
             GrantResource(playerId, GoldResourceTypeId, 3);
             GrantResource(playerId, PlankResourceTypeId, 2);
             var workerIds = GetWorkers(playerId).Select(x => x.Id).ToArray();
@@ -257,7 +257,7 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             BuyBarracks(playerId, 1);
-            BuyDomik(playerId, ProducerDomikTypeId);
+            GrantBuiltDomik(playerId, ProducerDomikTypeId);
             GrantResource(playerId, GoldResourceTypeId, 1);
             GrantResource(playerId, PlankResourceTypeId, 2);
 
@@ -568,7 +568,17 @@ namespace Domiki.Web.Tests
         {
             for (var i = 0; i < count; i++)
             {
-                BuyDomik(playerId, BarracksTypeId);
+                GrantBuiltDomik(playerId, BarracksTypeId);
+            }
+        }
+
+        private void GrantBuiltDomik(int playerId, int typeId)
+        {
+            using (var uow = GetUow())
+            {
+                var nextId = (uow.Context.Domiks.Where(x => x.PlayerId == playerId).Max(x => (int?)x.Id) ?? 0) + 1;
+                uow.Context.Domiks.Add(new Domiki.Web.Data.Domik { PlayerId = playerId, Id = nextId, TypeId = typeId, Level = 1 });
+                uow.Commit();
             }
         }
 

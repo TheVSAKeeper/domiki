@@ -13,7 +13,7 @@ namespace Domiki.Web.Tests
 
             Assert.That(GetWorkers(playerId).Length, Is.EqualTo(1));
 
-            BuyDomik(playerId, 2);
+            GrantDomik(playerId, 3, 2);
 
             var workers = GetWorkers(playerId);
             Assert.That(workers.Length, Is.EqualTo(2));
@@ -24,7 +24,7 @@ namespace Domiki.Web.Tests
         public void UpgradeBarracksAddsWorkerTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, 2);
+            GrantDomik(playerId, 3, 2);
             Assert.That(GetWorkers(playerId).Length, Is.EqualTo(2));
 
             UpgradeDomik(playerId, 1);
@@ -52,7 +52,7 @@ namespace Domiki.Web.Tests
         public void StartManufactureWithoutFreeWorkersThrowsTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, 5);
+            GrantDomik(playerId, 3, 5);
             StartManufacture(playerId, 2, 1, false);
 
             var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 3, 1, false));
@@ -80,9 +80,9 @@ namespace Domiki.Web.Tests
             GrantResource(playerId, 1, 100);
             for (var i = 0; i < 4; i++)
             {
-                BuyDomik(playerId, 2);
+                GrantDomik(playerId, 3 + i, 2);
             }
-            BuyDomik(playerId, 5);
+            GrantDomik(playerId, 7, 5);
             UpgradeDomik(playerId, 7);
 
             StartManufacture(playerId, 7, 2, false);
@@ -294,9 +294,9 @@ namespace Domiki.Web.Tests
         public void AutoSelectsWorkerWithBestFitnessOverFirstByIdTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, 5);
+            GrantDomik(playerId, 3, 2);
+            GrantDomik(playerId, 4, 2);
+            GrantDomik(playerId, 5, 5);
 
             var workers = GetWorkers(playerId);
             var weakWorker = workers[0];
@@ -314,8 +314,8 @@ namespace Domiki.Web.Tests
         public void ManualSelectionAssignsExplicitWorkerTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, 5);
+            GrantDomik(playerId, 3, 2);
+            GrantDomik(playerId, 4, 5);
 
             var workers = GetWorkers(playerId);
             var weakWorker = workers[0];
@@ -344,8 +344,8 @@ namespace Domiki.Web.Tests
         public void ManualSelectionWithWrongCountThrowsTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, 5);
+            GrantDomik(playerId, 3, 2);
+            GrantDomik(playerId, 4, 5);
 
             var workerIds = GetWorkers(playerId).Select(x => x.Id).ToArray();
 
@@ -360,9 +360,9 @@ namespace Domiki.Web.Tests
             GrantResource(playerId, 1, 100);
             for (var i = 0; i < 4; i++)
             {
-                BuyDomik(playerId, 2);
+                GrantDomik(playerId, 3 + i, 2);
             }
-            BuyDomik(playerId, 5);
+            GrantDomik(playerId, 7, 5);
             UpgradeDomik(playerId, 7);
 
             var workerId = GetWorkers(playerId).First().Id;
@@ -379,10 +379,10 @@ namespace Domiki.Web.Tests
             GrantResource(playerId, 1, 200);
             for (var i = 0; i < 4; i++)
             {
-                BuyDomik(playerId, 2);
+                GrantDomik(playerId, 3 + i, 2);
             }
             UpgradeDomik(playerId, 1);
-            BuyDomik(playerId, 5);
+            GrantDomik(playerId, 7, 5);
             UpgradeDomik(playerId, 7);
 
             var workers = GetWorkers(playerId);
@@ -412,8 +412,8 @@ namespace Domiki.Web.Tests
         public void ManualSelectionWithBusyWorkerThrowsTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, 5);
+            GrantDomik(playerId, 3, 2);
+            GrantDomik(playerId, 4, 5);
 
             var busyWorkerId = GetWorkers(playerId)[0].Id;
             StartManufacture(playerId, 2, 1, false, new[] { busyWorkerId });
@@ -426,7 +426,7 @@ namespace Domiki.Web.Tests
         public void ManualSelectionWithRestingWorkerThrowsTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, 2);
+            GrantDomik(playerId, 3, 2);
 
             var restingWorkerId = GetWorkers(playerId)[0].Id;
             SetWorkerRest(restingWorkerId, DateTimeHelper.GetNowDate().AddHours(1));

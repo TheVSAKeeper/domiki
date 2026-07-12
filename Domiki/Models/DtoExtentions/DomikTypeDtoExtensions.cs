@@ -4,7 +4,7 @@ namespace Domiki.Web.Models
 {
     public static class DomikTypeDtoExtensions
     {
-        public static DomikTypeDto ToDto(this DomikType t, int availableCount = 0, int? blueprintId = null)
+        public static DomikTypeDto ToDto(this DomikType t, int availableCount = 0, int? blueprintId = null, int? nextCountGateLevel = null)
         {
             return new DomikTypeDto
             {
@@ -16,6 +16,7 @@ namespace Domiki.Web.Models
                 MaxLevel = t.MaxLevel,
                 UnlockLevel = t.UnlockLevel,
                 BlueprintId = blueprintId,
+                NextCountGateLevel = nextCountGateLevel,
                 Levels = t.Levels.Select(x => x.ToDto()).ToArray(),
             };
         }

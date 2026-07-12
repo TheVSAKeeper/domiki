@@ -11,7 +11,6 @@ namespace Domiki.Web.Tests
         private const int GranaryTolokaTypeId = 2;
         private const int KilnTolokaTypeId = 3;
         private const int StoneResourceTypeId = 2;
-        private const int ClayMineDomikTypeId = 5;
         private const int ClayDig8hReceiptId = 14;
         private const int RainWeatherTypeId = 2;
         private const int ClearWeatherTypeId = 1;
@@ -144,8 +143,6 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             CompleteTolokaWithContribution(playerId, DateTimeHelper.GetNowDate());
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, ClayMineDomikTypeId);
             SetWeather(ClearWeatherTypeId);
 
             StartManufacture(playerId, 2, ClayDig8hReceiptId);
@@ -159,8 +156,6 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             CompleteTolokaWithContribution(playerId, DateTimeHelper.GetNowDate().AddHours(-9));
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, ClayMineDomikTypeId);
             SetWeather(ClearWeatherTypeId);
 
             StartManufacture(playerId, 2, ClayDig8hReceiptId);
@@ -174,8 +169,6 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             CompleteTolokaWithContribution(playerId, DateTimeHelper.GetNowDate());
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, ClayMineDomikTypeId);
             SetWeather(RainWeatherTypeId);
 
             StartManufacture(playerId, 2, ClayDig8hReceiptId);
@@ -248,8 +241,8 @@ namespace Domiki.Web.Tests
             CompleteTolokaWithContribution(playerId, DateTimeHelper.GetNowDate());
             GrantDecor(playerId, FountainDecorTypeId, 1);
             GrantResource(playerId, 1, 800);
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, 1);
+            GrantDomik(playerId, 3, 2);
+            GrantDomik(playerId, 4, 1);
             SetWeather(ClearWeatherTypeId);
             GrantResource(playerId, 6, 1);
             GrantResource(playerId, 7, 1);
@@ -267,8 +260,8 @@ namespace Domiki.Web.Tests
             CompleteTolokaWithContribution(playerId, DateTimeHelper.GetNowDate(), KilnTolokaTypeId);
             GrantDecor(playerId, FountainDecorTypeId, 1);
             GrantResource(playerId, 1, 800);
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, 1);
+            GrantDomik(playerId, 3, 2);
+            GrantDomik(playerId, 4, 1);
             SetWeather(ClearWeatherTypeId);
             GrantResource(playerId, 6, 1);
             GrantResource(playerId, 7, 1);

@@ -787,12 +787,15 @@ export const DomikiPage = () => {
                                 const levelLocked = villageLevel != null && purchaseDomikType.unlockLevel > villageLevel.level;
                                 const blueprint = purchaseDomikType.blueprintId == null ? null : blueprints.find(x => x.id === purchaseDomikType.blueprintId) ?? null;
                                 const blueprintLocked = blueprint != null && !blueprint.owned;
-                                const isLocked = levelLocked || blueprintLocked;
+                                const countGateLocked = purchaseDomikType.availableCount === 0 && purchaseDomikType.nextCountGateLevel != null;
+                                const isLocked = levelLocked || blueprintLocked || countGateLocked;
                                 const lockTitle = levelLocked
                                     ? `Откроется при обжитости ${purchaseDomikType.unlockLevel}`
                                     : blueprintLocked
                                         ? `Нужен чертёж (репутация ${blueprint.neighborName} ${blueprint.reputationThreshold})`
-                                        : undefined;
+                                        : countGateLocked
+                                            ? `Ещё один – при обжитости ${purchaseDomikType.nextCountGateLevel}`
+                                            : undefined;
                                 return (
                                     <div key={purchaseDomikType.id} className={'plot plot-shop' + (isLocked ? ' plot-locked' : '')} title={isLocked ? lockTitle : undefined}>
                                         <DomikSprite className="plot-sprite" logicName={purchaseDomikType.logicName} />
@@ -802,7 +805,7 @@ export const DomikiPage = () => {
                                         </span>
                                         <ResourcesBox resources={firstLevel?.resources ?? []} resourceTypes={resourceTypes} />
                                         <button className="btn-game" disabled={isLocked} title={lockTitle} onClick={() => buy(purchaseDomikType.id)}>
-                                            {blueprintLocked ? <LockIcon className="btn-ico" aria-hidden="true" /> : <BuildingIcon className="btn-ico" aria-hidden="true" />}
+                                            {blueprintLocked || countGateLocked ? <LockIcon className="btn-ico" aria-hidden="true" /> : <BuildingIcon className="btn-ico" aria-hidden="true" />}
                                             Купить
                                         </button>
                                     </div>

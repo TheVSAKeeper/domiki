@@ -147,9 +147,9 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             GrantResource(playerId, 1, 10000);
+            RaiseVillageLevelTo(playerId, 10);
             BuyDomik(playerId, 5);
             BuyDomik(playerId, 6);
-            RaiseVillageLevelTo(playerId, 10);
 
             for (var i = 0; i < 15; i++)
             {

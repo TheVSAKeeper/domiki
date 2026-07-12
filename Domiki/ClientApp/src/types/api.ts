@@ -59,6 +59,7 @@ export const domikTypeSchema = z.object({
     maxLevel: z.number(),
     unlockLevel: z.number(),
     blueprintId: z.number().nullable(),
+    nextCountGateLevel: z.number().nullable(),
     levels: z.array(upgradeLevelSchema),
 });
 export type DomikTypeDto = z.infer<typeof domikTypeSchema>;

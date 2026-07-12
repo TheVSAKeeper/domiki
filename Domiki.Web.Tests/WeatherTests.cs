@@ -229,8 +229,8 @@ namespace Domiki.Web.Tests
         {
             using (var uow = GetUow())
             {
-                var domikManager = GetDomikManager(uow);
-                domikManager.BuyDomik(playerId, domikTypeId);
+                var nextId = (uow.Context.Domiks.Where(x => x.PlayerId == playerId).Max(x => (int?)x.Id) ?? 0) + 1;
+                uow.Context.Domiks.Add(new Domiki.Web.Data.Domik { PlayerId = playerId, Id = nextId, TypeId = domikTypeId, Level = 1 });
                 uow.Commit();
             }
         }

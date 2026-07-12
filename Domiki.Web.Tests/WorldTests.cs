@@ -13,7 +13,7 @@ namespace Domiki.Web.Tests
         {
             var lowPlayerId = CreateNamedPlayer("Мир Низина", 0, 1);
             var middlePlayerId = CreateNamedPlayer("Мир Средняя", 1, 2);
-            BuyDomik(middlePlayerId, 2);
+            GrantDomik(middlePlayerId, 3, 2);
             var unnamedPlayerId = GetPlayerId();
 
             var world = GetWorld(lowPlayerId);
@@ -60,7 +60,7 @@ namespace Domiki.Web.Tests
         public void VisitVillageReturnsPublicFieldsAndBuildingsTest()
         {
             var playerId = CreateNamedPlayer("Мир Визит", 4, 5);
-            BuyDomik(playerId, 2);
+            GrantDomik(playerId, 3, 2);
 
             var visit = VisitVillage(playerId);
 
@@ -75,7 +75,7 @@ namespace Domiki.Web.Tests
         public void WorldDtosDoNotContainPrivatePlayerFieldsTest()
         {
             var playerId = CreateNamedPlayer("Мир Приватность", 5, 6);
-            BuyDomik(playerId, 2);
+            GrantDomik(playerId, 3, 2);
 
             WorldDto worldDto;
             VillageVisitDto visitDto;
@@ -173,14 +173,5 @@ namespace Domiki.Web.Tests
             }
         }
 
-        private void BuyDomik(int playerId, int domikTypeId)
-        {
-            using (var uow = GetUow())
-            {
-                var domikManager = GetDomikManager(uow);
-                domikManager.BuyDomik(playerId, domikTypeId);
-                uow.Commit();
-            }
-        }
     }
 }

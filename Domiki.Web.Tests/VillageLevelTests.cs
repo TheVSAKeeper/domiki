@@ -14,7 +14,7 @@ namespace Domiki.Web.Tests
             var initial = GetVillageLevel(playerId);
             Assert.That(initial.Level, Is.EqualTo(4));
 
-            BuyDomik(playerId, 2);
+            GrantDomik(playerId, 3, 2);
             var withBarracks = GetVillageLevel(playerId);
             Assert.That(withBarracks.Buildings, Is.EqualTo(3));
             Assert.That(withBarracks.Residents, Is.EqualTo(2));
@@ -44,8 +44,8 @@ namespace Domiki.Web.Tests
             var ex = Assert.Throws<BusinessException>(() => BuyDomik(playerId, 3));
             Assert.That(ex.Message, Is.EqualTo("Откроется при обжитости 6"));
 
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, 2);
+            GrantDomik(playerId, 3, 2);
+            GrantDomik(playerId, 4, 2);
 
             Assert.DoesNotThrow(() => BuyDomik(playerId, 3));
         }
@@ -65,7 +65,7 @@ namespace Domiki.Web.Tests
         public void OrderBoardCanUseUnlockedNeighborsAfterThresholdTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, 2);
+            GrantDomik(playerId, 3, 2);
             BuyDomik(playerId, 3);
 
             var sawGatedNeighbor = false;
@@ -84,7 +84,7 @@ namespace Domiki.Web.Tests
         public void AutoWorkerSelectionIsByIdBeforeSmartAutoThresholdTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, 2);
+            GrantDomik(playerId, 3, 2);
 
             var workers = GetWorkers(playerId);
             var weakWorker = workers[0];
@@ -102,8 +102,8 @@ namespace Domiki.Web.Tests
         public void AutoWorkerSelectionIsByFitnessAfterSmartAutoThresholdTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, 2);
+            GrantDomik(playerId, 3, 2);
+            GrantDomik(playerId, 4, 2);
 
             var workers = GetWorkers(playerId);
             var weakWorker = workers[0];

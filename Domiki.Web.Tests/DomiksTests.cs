@@ -7,6 +7,7 @@ namespace Domiki.Web.Tests
     public class DomiksTests : TestBase
     {
         private const int ClearWeatherTypeId = 1;
+        private const int MarketTypeId = 7;
 
         [SetUp]
         public void SetUp()
@@ -43,6 +44,7 @@ namespace Domiki.Web.Tests
         public void BuyDomikTest()
         {
             var playerId = GetPlayerId();
+            GrantDomik(playerId, 3, MarketTypeId);
             var beforeResources = GetResources(playerId);
             var types = GetDomikTypes();
             var buyType = types.First(x => x.UnlockLevel == 0);
@@ -51,7 +53,7 @@ namespace Domiki.Web.Tests
             var afterResources = GetResources(playerId);
             var domiks = GetDomiks(playerId);
             var domiksCount = domiks.Count();
-            Assert.That(domiksCount, Is.EqualTo(3));
+            Assert.That(domiksCount, Is.EqualTo(4));
             var level = domiks.First().Level;
             Assert.That(level, Is.EqualTo(1));
 
@@ -103,7 +105,6 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             var types = GetDomikTypes();
             var buyType = types.First(x => x.UnlockLevel == 0);
-            BuyDomik(playerId, buyType.Id);
             var beforeResources = GetResources(playerId);
             UpgradeDomik(playerId, 1);
 
@@ -175,8 +176,8 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             var clayMineId = 5;
             var barakTypeId = 2;
-            BuyDomik(playerId, clayMineId);
-            BuyDomik(playerId, barakTypeId);
+            GrantDomik(playerId, 3, clayMineId);
+            GrantDomik(playerId, 4, barakTypeId);
             var coinResourceTypeId = 1;
             var clayResourceTypeId = 4;
             var clayDigReceiptId = 1;
@@ -199,8 +200,8 @@ namespace Domiki.Web.Tests
             var barakTypeId = 2;
             var coinResourceTypeId = 1;
             var clayDigReceiptId = 1;
-            BuyDomik(playerId, clayMineTypeId);
-            BuyDomik(playerId, barakTypeId);
+            GrantDomik(playerId, 3, clayMineTypeId);
+            GrantDomik(playerId, 4, barakTypeId);
 
             var coins = GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value;
             GrantResource(playerId, coinResourceTypeId, -coins);
@@ -217,7 +218,7 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             var clayMineTypeId = 5;
-            BuyDomik(playerId, clayMineTypeId);
+            GrantDomik(playerId, 3, clayMineTypeId);
             var clayDigReceiptId = 1;
             var startingClayMineId = 2;
             var boughtClayMineId = 3;
@@ -232,9 +233,9 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             var barakTypeId = 2;
             var coinResourceTypeId = 1;
-            BuyDomik(playerId, barakTypeId);
-            BuyDomik(playerId, barakTypeId);
-            BuyDomik(playerId, mineTypeId);
+            GrantDomik(playerId, 3, barakTypeId);
+            GrantDomik(playerId, 4, barakTypeId);
+            GrantDomik(playerId, 5, mineTypeId);
             var beforeCoin = GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value;
             StartManufacture(playerId, 5, receiptId);
             var after = GetResources(playerId);
@@ -256,9 +257,9 @@ namespace Domiki.Web.Tests
             var additionalBarakCount = barakCount - 1;
             for (var i = 0; i < additionalBarakCount; i++)
             {
-                BuyDomik(playerId, barakTypeId);
+                GrantDomik(playerId, 3 + i, barakTypeId);
             }
-            BuyDomik(playerId, clayMineTypeId);
+            GrantDomik(playerId, 3 + additionalBarakCount, clayMineTypeId);
             var clayMineId = additionalBarakCount + 3;
             UpgradeDomik(playerId, clayMineId);
             if (expectThrow)
@@ -283,9 +284,9 @@ namespace Domiki.Web.Tests
             var clayResourceTypeId = 4;
             for (var i = 0; i < 4; i++)
             {
-                BuyDomik(playerId, barakTypeId);
+                GrantDomik(playerId, 3 + i, barakTypeId);
             }
-            BuyDomik(playerId, clayMineTypeId);
+            GrantDomik(playerId, 7, clayMineTypeId);
             UpgradeDomik(playerId, 7);
             var beforeCoin = GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value;
             StartManufacture(playerId, 7, groupReceiptId);
@@ -304,7 +305,7 @@ namespace Domiki.Web.Tests
             var clayDigReceiptId = 1;
             var clayResourceTypeId = 4;
             var startingClayMineId = 2;
-            BuyDomik(playerId, clayMineTypeId, false);
+            GrantDomik(playerId, 3, clayMineTypeId, level: 0);
             Assert.DoesNotThrow(() => StartManufacture(playerId, startingClayMineId, clayDigReceiptId));
             var clay = GetResources(playerId).First(x => x.Type.Id == clayResourceTypeId).Value;
             Assert.That(clay, Is.EqualTo(1));
@@ -316,7 +317,7 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             var clayMineTypeId = 5;
             var clayDigReceiptId = 1;
-            BuyDomik(playerId, clayMineTypeId, false);
+            GrantDomik(playerId, 3, clayMineTypeId, level: 0);
             var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 3, clayDigReceiptId));
             Assert.That(ex.Message, Is.EqualTo("Домик ещё строится"));
         }
@@ -329,9 +330,9 @@ namespace Domiki.Web.Tests
             var playerId = GetPlayerId();
             var barakTypeId = 2;
             var coinResourceTypeId = 1;
-            BuyDomik(playerId, barakTypeId);
-            BuyDomik(playerId, barakTypeId);
-            BuyDomik(playerId, mineTypeId);
+            GrantDomik(playerId, 3, barakTypeId);
+            GrantDomik(playerId, 4, barakTypeId);
+            GrantDomik(playerId, 5, mineTypeId);
             var beforeCoin = GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value;
             StartManufacture(playerId, 5, receiptId);
             var after = GetResources(playerId);
@@ -346,10 +347,8 @@ namespace Domiki.Web.Tests
         {
             var playerId = GetPlayerId();
             GrantResource(playerId, 1, 70);
-            var stoneMineTypeId = 3;
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, 2);
-            BuyDomik(playerId, stoneMineTypeId);
+            GrantDomik(playerId, 3, 2);
+            GrantDomik(playerId, 4, 2);
             UpgradeDomik(playerId, 3);
             Assert.Throws<BusinessException>(() => UpgradeDomik(playerId, 3));
         }
@@ -371,10 +370,10 @@ namespace Domiki.Web.Tests
             var clayDig8hReceiptId = 14;
             var makeDishesReceiptId = 43;
             var sellDishesReceiptId = 45;
-            BuyDomik(playerId, barakTypeId);
-            BuyDomik(playerId, clayMineTypeId);
-            BuyDomik(playerId, barakTypeId);
-            BuyDomik(playerId, barakTypeId);
+            GrantDomik(playerId, 3, barakTypeId);
+            GrantDomik(playerId, 4, clayMineTypeId);
+            GrantDomik(playerId, 5, barakTypeId);
+            GrantDomik(playerId, 6, barakTypeId);
             BuyDomik(playerId, potteryTypeId);
             BuyDomik(playerId, marketTypeId);
             StartManufacture(playerId, 4, clayDig8hReceiptId);
@@ -394,12 +393,8 @@ namespace Domiki.Web.Tests
         public void OptionalToolPreservesDurationAndConsumesToolTest(bool useOptional, int expectedDuration, int expectedToolLeft)
         {
             var playerId = GetPlayerId();
-            var barakTypeId = 2;
-            var clayMineTypeId = 5;
             var toolResourceTypeId = 8;
             var clayDig8hReceiptId = 14;
-            BuyDomik(playerId, barakTypeId);
-            BuyDomik(playerId, clayMineTypeId);
             GrantResource(playerId, toolResourceTypeId, 3);
             ResetWorkerTraits(playerId);
 
@@ -416,13 +411,9 @@ namespace Domiki.Web.Tests
         public void OptionalToolBoostsOutputTest(bool useOptional, int expectedClay)
         {
             var playerId = GetPlayerId();
-            var barakTypeId = 2;
-            var clayMineTypeId = 5;
             var toolResourceTypeId = 8;
             var clayResourceTypeId = 4;
             var clayDig8hReceiptId = 14;
-            BuyDomik(playerId, barakTypeId);
-            BuyDomik(playerId, clayMineTypeId);
             GrantResource(playerId, toolResourceTypeId, 1);
             ResetWorkerTraits(playerId);
 
@@ -436,11 +427,7 @@ namespace Domiki.Web.Tests
         public void OptionalToolRequiresToolTest()
         {
             var playerId = GetPlayerId();
-            var barakTypeId = 2;
-            var clayMineTypeId = 5;
             var clayDig8hReceiptId = 14;
-            BuyDomik(playerId, barakTypeId);
-            BuyDomik(playerId, clayMineTypeId);
 
             Assert.Throws<BusinessException>(() => StartManufacture(playerId, 2, clayDig8hReceiptId, useOptional: true));
         }
@@ -449,13 +436,9 @@ namespace Domiki.Web.Tests
         public void OptionalToolIgnoredWhenReceiptHasNoOptionalTest()
         {
             var playerId = GetPlayerId();
-            var barakTypeId = 2;
-            var clayMineTypeId = 5;
             var clayResourceTypeId = 4;
             var toolResourceTypeId = 8;
             var clayDigReceiptId = 1;
-            BuyDomik(playerId, barakTypeId);
-            BuyDomik(playerId, clayMineTypeId);
             GrantResource(playerId, toolResourceTypeId, 3);
 
             StartManufacture(playerId, 2, clayDigReceiptId, useOptional: true);

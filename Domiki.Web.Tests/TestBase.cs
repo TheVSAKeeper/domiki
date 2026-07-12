@@ -56,6 +56,14 @@ namespace Domiki.Web.Tests
             }
         }
 
+        public void GrantDomik(int playerId, int id, int typeId, int level = 1)
+        {
+            using var uow = GetUow();
+            uow.Context.Domiks.Add(new Domik { PlayerId = playerId, Id = id, TypeId = typeId, Level = level });
+            uow.Context.SaveChanges();
+            uow.Commit();
+        }
+
         public UnitOfWork GetUow()
         {
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();

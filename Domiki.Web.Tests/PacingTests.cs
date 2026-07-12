@@ -34,18 +34,17 @@ namespace Domiki.Web.Tests
         public void BuyReceiptWritesOffCoinsAndProducesResourceTest(int receiptId, int resourceTypeId)
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, 2);
             BuyDomik(playerId, 7);
             GrantResource(playerId, 1, 20);
-            UpgradeDomik(playerId, 4);
+            UpgradeDomik(playerId, 3);
             GrantResource(playerId, 1, 505);
             GrantResource(playerId, 2, 15);
             GrantResource(playerId, 3, 15);
-            UpgradeDomik(playerId, 4);
+            UpgradeDomik(playerId, 3);
             var coinsBefore = GetResource(playerId, 1);
             var resourceBefore = GetResource(playerId, resourceTypeId);
 
-            StartManufacture(playerId, 4, receiptId);
+            StartManufacture(playerId, 3, receiptId);
 
             Assert.That(coinsBefore - GetResource(playerId, 1), Is.EqualTo(35));
             Assert.That(GetResource(playerId, resourceTypeId) - resourceBefore, Is.EqualTo(1));

@@ -126,17 +126,38 @@ namespace Domiki.Web.Business.Core
             }
         }
 
-        public IEnumerable<(DomikType Type, int AvailableCount)> GetPurchaseAvailableDomiks(int playerId)
+        public IEnumerable<(DomikType Type, int AvailableCount, int? NextCountGateLevel)> GetPurchaseAvailableDomiks(int playerId)
         {
-            var available = new List<(DomikType Type, int AvailableCount)>();
+            var available = new List<(DomikType Type, int AvailableCount, int? NextCountGateLevel)>();
             var domiks = GetDomiks(playerId);
+            var gates = _resourceManager.GetDomikTypeCountGates();
+            var villageLevel = _villageLevelCalculator.GetLevel(playerId).Level;
             foreach (var domikType in _resourceManager.GetDomikTypes())
             {
                 var current = domiks.Count(x => x.Type.Id == domikType.Id);
-                var availableCount = Math.Max(0, domikType.MaxCount - current);
-                if (availableCount > 0)
+                var typeGates = gates.Where(x => x.DomikTypeId == domikType.Id).ToDictionary(x => x.Ordinal, x => x.UnlockLevel);
+
+                var allowed = domikType.MaxCount;
+                for (var ordinal = 2; ordinal <= domikType.MaxCount; ordinal++)
                 {
-                    available.Add((domikType, availableCount));
+                    if (typeGates.TryGetValue(ordinal, out var gateLevel) && gateLevel > villageLevel)
+                    {
+                        allowed = ordinal - 1;
+                        break;
+                    }
+                }
+                allowed = Math.Max(allowed, current);
+
+                var availableCount = Math.Max(0, Math.Min(domikType.MaxCount, allowed) - current);
+                int? nextCountGateLevel = null;
+                if (typeGates.TryGetValue(current + 1, out var nextGateLevel) && nextGateLevel > villageLevel)
+                {
+                    nextCountGateLevel = nextGateLevel;
+                }
+
+                if (availableCount > 0 || nextCountGateLevel != null)
+                {
+                    available.Add((domikType, availableCount, nextCountGateLevel));
                 }
             }
             return available;
@@ -169,10 +190,11 @@ namespace Domiki.Web.Business.Core
         public void BuyDomik(int playerId, int typeId)
         {
             _playerResourceManager.LockDbPlayerRow(playerId);
-            var available = GetPurchaseAvailableDomiks(playerId);
-            if (available.Any(x => x.Type.Id == typeId))
+            var available = GetPurchaseAvailableDomiks(playerId).ToArray();
+            var entry = available.FirstOrDefault(x => x.Type.Id == typeId);
+            if (entry.Type != null && entry.AvailableCount > 0)
             {
-                var domikType = _resourceManager.GetDomikTypes().First(x => x.Id == typeId);
+                var domikType = entry.Type;
                 if (!_villageLevelCalculator.CanBuyDomik(playerId, domikType))
                 {
                     throw new BusinessException($"Откроется при обжитости {domikType.UnlockLevel}");
@@ -204,6 +226,10 @@ namespace Domiki.Web.Business.Core
                         Date = date.AddSeconds(domikLevel.UpgradeSeconds),
                     });
                 };
+            }
+            else if (entry.Type != null && entry.NextCountGateLevel != null)
+            {
+                throw new BusinessException($"Ещё один {entry.Type.Name} откроется при обжитости {entry.NextCountGateLevel}");
             }
             else
             {

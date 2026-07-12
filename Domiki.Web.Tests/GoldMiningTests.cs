@@ -60,7 +60,7 @@ namespace Domiki.Web.Tests
         private int CreatePlayerWithGoldMine(int mineLevel)
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, BarracksDomikTypeId);
+            GrantDomik(playerId, 3, BarracksDomikTypeId);
             AddGoldMine(playerId, mineLevel);
             return playerId;
         }
@@ -72,15 +72,6 @@ namespace Domiki.Web.Tests
                 var playerId = GetDomikManager(uow).GetPlayerId("testUser_" + Guid.NewGuid());
                 uow.Commit();
                 return playerId;
-            }
-        }
-
-        private void BuyDomik(int playerId, int domikTypeId)
-        {
-            using (var uow = GetUow())
-            {
-                GetDomikManager(uow).BuyDomik(playerId, domikTypeId);
-                uow.Commit();
             }
         }
 
