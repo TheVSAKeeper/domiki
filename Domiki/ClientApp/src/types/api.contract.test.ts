@@ -17,6 +17,7 @@ type ContractSchema = {
 const modelsDirectory = resolve(fileURLToPath(import.meta.url), '../../../../Models');
 
 const mappings: Record<string, ContractSchema> = {
+    ActiveGoalDto: { schemaName: 'activeGoalSchema', shape: api.activeGoalSchema.shape },
     BlueprintDto: { schemaName: 'blueprintSchema', shape: api.blueprintSchema.shape },
     DecorStateDto: { schemaName: 'decorStateSchema', shape: api.decorStateSchema.shape },
     DecorTypeDto: { schemaName: 'decorTypeSchema', shape: api.decorTypeSchema.shape },
@@ -28,6 +29,7 @@ const mappings: Record<string, ContractSchema> = {
     ExpeditionStateDto: { schemaName: 'expeditionStateSchema', shape: api.expeditionStateSchema.shape },
     ExpeditionTypeDto: { schemaName: 'expeditionTypeSchema', shape: api.expeditionTypeSchema.shape },
     GameStateDto: { schemaName: 'gameStateSchema', shape: api.gameStateSchema.shape },
+    GoalsStateDto: { schemaName: 'goalsStateSchema', shape: api.goalsStateSchema.shape },
     ManufactureDto: { schemaName: 'manufactureSchema', shape: api.manufactureSchema.shape },
     MarketStateDto: { schemaName: 'marketStateSchema', shape: api.marketStateSchema.shape },
     ModificatorDto: { schemaName: 'modificatorSchema', shape: api.modificatorSchema.shape },
@@ -63,6 +65,7 @@ const mappings: Record<string, ContractSchema> = {
 const skippedDtos: Record<string, string> = {
     ModificatorTypeDto: 'endpoint GetModificatorTypes есть, клиент не вызывает, схемы нет',
     SetVillageDto: 'request payload SetVillage отправляется без zod-схемы',
+    SetFeedWorkersDto: 'request payload SetFeedWorkers отправляется без zod-схемы',
     PushSubscribeDto: 'request payload Push/Subscribe отправляется без zod-схемы',
     PushUnsubscribeDto: 'request payload Push/Unsubscribe отправляется без zod-схемы',
 };

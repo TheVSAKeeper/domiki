@@ -10,6 +10,7 @@ import {
     type DomikDto,
     type DomikTypeDto,
     type ExpeditionStateDto,
+    type GoalsStateDto,
     type MarketStateDto,
     type NeighborReputationDto,
     type OrderDto,
@@ -42,6 +43,7 @@ export interface GameData {
     decor: DecorStateDto | null;
     toloka: TolokaStateDto | null;
     market: MarketStateDto | null;
+    goals: GoalsStateDto | null;
     workers: WorkerDto[];
     purchaseDomikTypes: DomikTypeDto[] | null;
     now: number;
@@ -81,6 +83,7 @@ export function useGameData(): GameData {
     const [decor, setDecor] = useState<DecorStateDto | null>(null);
     const [toloka, setToloka] = useState<TolokaStateDto | null>(null);
     const [market, setMarket] = useState<MarketStateDto | null>(null);
+    const [goals, setGoals] = useState<GoalsStateDto | null>(null);
     const [workers, setWorkers] = useState<WorkerDto[]>([]);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [recap, setRecap] = useState<RecapDto | null>(null);
@@ -91,6 +94,7 @@ export function useGameData(): GameData {
     const pendingReload = useRef(false);
     const workersRef = useRef(workers);
     const expeditionsRef = useRef(expeditions);
+    const goalsRef = useRef(goals);
     const tolokaRef = useRef(toloka);
     const reloadedRestDeadlinesRef = useRef<Set<string>>(new Set());
     const reloadedTolokaBuffDeadlinesRef = useRef<Set<string>>(new Set());
@@ -102,6 +106,10 @@ export function useGameData(): GameData {
     useEffect(() => {
         expeditionsRef.current = expeditions;
     }, [expeditions]);
+
+    useEffect(() => {
+        goalsRef.current = goals;
+    }, [goals]);
 
     useEffect(() => {
         tolokaRef.current = toloka;
@@ -116,6 +124,10 @@ export function useGameData(): GameData {
                 toast.success(`Экспедиция «${finished.expeditionName}» вернулась`);
             }
         }
+        const prevGoal = goalsRef.current?.active;
+        if (prevGoal != null && (state.goals.active == null || state.goals.active.ordinal > prevGoal.ordinal)) {
+            toast.success(`Наказ выполнен: «${prevGoal.name}» (+${prevGoal.rewardCoins} монет)`);
+        }
         setDomiks(state.domiks);
         setResources(state.resources);
         setOrders(state.orders);
@@ -129,6 +141,7 @@ export function useGameData(): GameData {
         setDecor(state.decor);
         setToloka(state.toloka);
         setMarket(state.market);
+        setGoals(state.goals);
         setEvents(state.events);
         if (state.recap != null && state.recap.events.length > 0) {
             setRecap(state.recap);
@@ -276,6 +289,7 @@ export function useGameData(): GameData {
                 setDecor(state.decor);
                 setToloka(state.toloka);
                 setMarket(state.market);
+                setGoals(state.goals);
                 setEvents(state.events);
                 if (state.recap != null && state.recap.events.length > 0) {
                     setRecap(state.recap);
@@ -398,6 +412,7 @@ export function useGameData(): GameData {
         decor,
         toloka,
         market,
+        goals,
         workers,
         purchaseDomikTypes,
         now,

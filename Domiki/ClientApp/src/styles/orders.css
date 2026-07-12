@@ -4,6 +4,42 @@
     box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
+.goal-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.goal-card-head,
+.goal-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.goal-card-footer {
+    flex-wrap: wrap;
+}
+
+.goal-progress {
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.goal-name {
+    margin: 0;
+    font-weight: 700;
+}
+
+.goal-zeal-only {
+    margin-bottom: 12px;
+}
+
 .orders-head {
     display: flex;
     align-items: flex-start;

@@ -39,6 +39,7 @@ import { ProgressBar } from './ProgressBar';
 import { ResourcesBox } from './ResourcesBox';
 import { UpgradeBox } from './UpgradeBox';
 import { OrdersBox } from './OrdersBox';
+import { GoalCard } from './GoalCard';
 import { WorkersBox } from './WorkersBox';
 import { BlueprintsBox } from './BlueprintsBox';
 import { ExpeditionsBox } from './ExpeditionsBox';
@@ -78,7 +79,7 @@ interface GameTab {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, goals, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -411,7 +412,7 @@ export const DomikiPage = () => {
     const gameTabs: GameTab[] = [
         {
             key: 'orders', label: 'Заказы', Icon: ClipboardIcon, visible: true,
-            node: <OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes} resources={resources} now={now} onComplete={completeOrder} />,
+            node: <><GoalCard goals={goals} resourceTypes={resourceTypes} /><OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes} resources={resources} now={now} onComplete={completeOrder} /></>,
         },
         {
             key: 'blueprints', label: 'Вехи соседей', Icon: NoteIcon, visible: blueprints.length > 0 || (decor?.types ?? []).some(x => x.neighborId != null),
@@ -924,7 +925,7 @@ export const DomikiPage = () => {
                                             const hasOptional = receipt.optionalInputResources.length > 0;
                                             const useOptional = optionalReceiptIds.has(receipt.id);
                                             const autoRepeat = autoRepeatReceiptIds.has(receipt.id);
-                                            const view = computeReceiptView(receipt, resources, plodder.free, hasOptional && useOptional);
+                                            const view = computeReceiptView(receipt, resources, plodder.free, hasOptional && useOptional, goals?.zealCharges, selected.domikType);
                                             const expanded = expandedReceiptId === receipt.id;
                                             const isManual = manualReceiptIds.has(receipt.id);
                                             const selectedWorkerIds = selectedWorkerIdsByReceipt[receipt.id] ?? [];
@@ -953,7 +954,8 @@ export const DomikiPage = () => {
                                                                 <img src="/images/modificatorTypes/plodder.png" alt="Трудяги" />
                                                                 <span className="resource-value">{receipt.plodderCount}</span>
                                                             </span>
-                                                            <span className="timer">{formatDuration(view.durationSeconds)}</span>
+                                                            <span className="timer">{formatDuration(view.effectiveDurationSeconds)}</span>
+                                                            {view.zealMultiplier > 1 && <span className="receipt-zeal">×{view.zealMultiplier}</span>}
                                                             <ChevronDownIcon className="receipt-caret" aria-hidden="true" />
                                                         </span>
                                                     </button>

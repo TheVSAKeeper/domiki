@@ -53,6 +53,16 @@
     flex-shrink: 0;
 }
 
+.receipt-zeal {
+    padding: 2px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--pine-dark);
+    background: #d7e8a4;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
     .receipt-cost img {
         width: 18px;
         height: 18px;
@@ -344,4 +354,3 @@ progress {
         animation: none;
     }
 }
-

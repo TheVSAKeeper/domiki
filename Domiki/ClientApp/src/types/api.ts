@@ -383,6 +383,22 @@ export const recapSchema = z.object({
 });
 export type RecapDto = z.infer<typeof recapSchema>;
 
+export const activeGoalSchema = z.object({
+    id: z.number(),
+    ordinal: z.number(),
+    name: z.string(),
+    rewardCoins: z.number(),
+});
+export type ActiveGoalDto = z.infer<typeof activeGoalSchema>;
+
+export const goalsStateSchema = z.object({
+    active: activeGoalSchema.nullable(),
+    completedCount: z.number(),
+    totalCount: z.number(),
+    zealCharges: z.number(),
+});
+export type GoalsStateDto = z.infer<typeof goalsStateSchema>;
+
 export const gameStateSchema = z.object({
     domikTypes: domikTypeSchema.array(),
     resourceTypes: resourceTypeSchema.array(),
@@ -401,6 +417,7 @@ export const gameStateSchema = z.object({
     decor: decorStateSchema,
     toloka: tolokaStateSchema.nullable(),
     market: marketStateSchema.nullable(),
+    goals: goalsStateSchema,
     recap: recapSchema.nullish(),
     events: z.array(z.unknown()).transform(items => items.flatMap(item => {
         const parsed = recapEventSchema.safeParse(item);
@@ -424,6 +441,8 @@ export interface ReceiptView {
     receipt: ReceiptDto;
     inputs: ResourceDto[];
     durationSeconds: number;
+    effectiveDurationSeconds: number;
+    zealMultiplier: number;
     hasResources: boolean;
     hasPlodders: boolean;
     canRun: boolean;

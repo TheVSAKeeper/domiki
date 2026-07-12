@@ -3,6 +3,7 @@ import JournalIcon from 'pixelarticons/svg/article.svg?react';
 import BackpackIcon from 'pixelarticons/svg/backpack.svg?react';
 import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
+import CheckboxOnIcon from 'pixelarticons/svg/checkbox-on.svg?react';
 import type { DecorTypeDto, DomikTypeDto, RecapEventDto, ResourceTypeDto } from '../types/api';
 import { isNumber, isRecord, readLootEntry, readResource } from '../utils/recap';
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
@@ -122,6 +123,17 @@ const renderRow = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], domik
             <>
                 <BuildingCommunityIcon aria-hidden="true" />
                 <span className="journal-text">Толока завершена</span>
+            </>
+        );
+    }
+
+    if (event.type === 'GoalCompleted' && typeof data.name === 'string' && isNumber(data.rewardCoins)) {
+        const coinType = findResourceType(resourceTypes, 1);
+        return (
+            <>
+                <CheckboxOnIcon aria-hidden="true" />
+                <span className="journal-text">Наказ выполнен: {data.name}</span>
+                {coinType != null && <ResourceChip resourceType={coinType} value={data.rewardCoins} />}
             </>
         );
     }

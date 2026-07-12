@@ -1,24 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ResourceDto } from '../types/api';
-import { canAffordUpgrade, computePlodderCount, computeReceiptView, manufactureProgressPercent, progressPercent, sortDomiks } from './game';
+import { canAffordUpgrade, computePlodderCount, computeReceiptView, manufactureProgressPercent, progressPercent, sortDomiks, zealApplies, zealMultiplier } from './game';
 
-const domikTypes: DomikTypeDto[] = [
-    {
-        id: 1,
-        name: 'Рынок',
-        logicName: 'market',
-        maxCount: 1,
-        availableCount: 0,
-        maxLevel: 2,
-        unlockLevel: 0,
-        blueprintId: null,
-        nextCountGateLevel: null,
-        levels: [
-            { value: 1, resources: [], modificators: [{ typeId: 1, value: 3 }], receiptIds: [] },
-            { value: 2, resources: [], modificators: [{ typeId: 1, value: 5 }], receiptIds: [] },
-        ],
-    },
-];
+const marketDomikType: DomikTypeDto = {
+    id: 1,
+    name: 'Рынок',
+    logicName: 'market',
+    maxCount: 1,
+    availableCount: 0,
+    maxLevel: 2,
+    unlockLevel: 0,
+    blueprintId: null,
+    nextCountGateLevel: null,
+    levels: [
+        { value: 1, resources: [], modificators: [{ typeId: 1, value: 3 }], receiptIds: [] },
+        { value: 2, resources: [], modificators: [{ typeId: 1, value: 5 }], receiptIds: [] },
+    ],
+};
+
+const domikTypes: DomikTypeDto[] = [marketDomikType];
 
 describe('computePlodderCount', () => {
     it('sums modificator values for domiks with a level and subtracts working manufactures', () => {
@@ -91,6 +91,8 @@ describe('computeReceiptView', () => {
         expect(view.inputs).toEqual([{ typeId: 2, value: 10 }]);
     });
 
+    const mineType: DomikTypeDto = { ...marketDomikType, logicName: 'clay_mine' };
+
     it('blocks on missing resources and on missing plodders independently', () => {
         expect(computeReceiptView(receipt, [{ typeId: 2, value: 9 }], 5, false)).toMatchObject({ hasResources: false, canRun: false });
         expect(computeReceiptView(receipt, [{ typeId: 2, value: 10 }], 1, false)).toMatchObject({ hasPlodders: false, canRun: false });
@@ -101,6 +103,45 @@ describe('computeReceiptView', () => {
         expect(view.inputs).toEqual([{ typeId: 2, value: 15 }]);
         expect(view.durationSeconds).toBe(100);
         expect(view.canRun).toBe(true);
+    });
+
+    it('uses zeal charges for the effective duration', () => {
+        const view = computeReceiptView({ ...receipt, durationSeconds: 3600 }, [{ typeId: 2, value: 10 }], 2, false, 24, mineType);
+        expect(view).toMatchObject({ durationSeconds: 3600, effectiveDurationSeconds: 900, zealMultiplier: 4 });
+    });
+});
+
+describe('zealMultiplier', () => {
+    it.each<[number, number]>([
+        [17, 4],
+        [16, 2],
+        [1, 2],
+        [0, 1],
+    ])('%i charges → ×%i', (charges, expected) => {
+        expect(zealMultiplier(charges)).toBe(expected);
+    });
+});
+
+describe('zealApplies', () => {
+    const mineType: DomikTypeDto = { ...marketDomikType, logicName: 'clay_mine' };
+    const receipt: ReceiptDto = {
+        id: 1,
+        name: 'Глина',
+        logicName: 'clay',
+        inputResources: [],
+        optionalInputResources: [],
+        outputResources: [],
+        durationSeconds: 3600,
+        outputBonusPercent: 0,
+        plodderCount: 1,
+    };
+
+    it.each<[string, ReceiptDto, DomikTypeDto, boolean]>([
+        ['долгой смены', { ...receipt, durationSeconds: 28800 }, mineType, false],
+        ['лавки', receipt, marketDomikType, false],
+        ['смены ровно на час', receipt, mineType, true],
+    ])('возвращает %s', (_label, candidate, domikType, expected) => {
+        expect(zealApplies(candidate, domikType)).toBe(expected);
     });
 });
 

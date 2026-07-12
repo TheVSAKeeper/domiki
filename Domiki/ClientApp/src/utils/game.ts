@@ -5,6 +5,7 @@ export const INSTA_FINISH_SECONDS_PER_GOLD = 3600;
 export const INSTA_FINISH_MAX_GOLD = 6;
 export const GOLD_RESOURCE_TYPE_ID = 5;
 export const COIN_RESOURCE_TYPE_ID = 1;
+export const ZEAL_X4_THRESHOLD = 16;
 
 export const EXPEDITION_LOOT_KIND_RESOURCE = 1;
 export const EXPEDITION_LOOT_KIND_DECOR = 2;
@@ -108,21 +109,37 @@ function mergeResources(resources: ResourceDto[]): ResourceDto[] {
     return [...byType].map(([typeId, value]) => ({ typeId, value }));
 }
 
+export function zealMultiplier(zealCharges: number): number {
+    if (zealCharges > ZEAL_X4_THRESHOLD) {
+        return 4;
+    }
+
+    return zealCharges > 0 ? 2 : 1;
+}
+
+export function zealApplies(receipt: ReceiptDto, domikType: DomikTypeDto): boolean {
+    return receipt.durationSeconds <= 3600 && domikType.logicName !== 'market';
+}
+
 export function computeReceiptView(
     receipt: ReceiptDto,
     resources: ResourceDto[],
     freePlodders: number,
     useOptional: boolean,
+    zealCharges?: number,
+    domikType?: DomikTypeDto,
 ): ReceiptView {
     const withOptional = useOptional && receipt.optionalInputResources.length > 0;
     const inputs = mergeResources(
         withOptional ? [...receipt.inputResources, ...receipt.optionalInputResources] : receipt.inputResources,
     );
     const durationSeconds = receipt.durationSeconds;
+    const multiplier = domikType != null && zealApplies(receipt, domikType) ? zealMultiplier(zealCharges ?? 0) : 1;
+    const effectiveDurationSeconds = Math.max(1, Math.floor(durationSeconds / multiplier));
     const hasResources = hasResourcesFor(inputs, resources);
     const hasPlodders = freePlodders >= receipt.plodderCount;
 
-    return { receipt, inputs, durationSeconds, hasResources, hasPlodders, canRun: hasResources && hasPlodders };
+    return { receipt, inputs, durationSeconds, effectiveDurationSeconds, zealMultiplier: multiplier, hasResources, hasPlodders, canRun: hasResources && hasPlodders };
 }
 
 export function isWorkerFree(worker: WorkerDto, now: number): boolean {
