@@ -331,8 +331,9 @@ namespace Domiki.Web.Tests
             var after = GetResources(playerId);
             var toolGranted = ResourceValue(after, ToolResourceTypeId) - ResourceValue(before, ToolResourceTypeId) > 0;
             var decorGranted = GetDecor(playerId).Owned.Any(x => x.DecorTypeId == TrailIdolDecorTypeId);
+            var blueprintGranted = HasAnyBlueprint(playerId);
             var pity = GetPityCounter(playerId);
-            Assert.That(pity, Is.EqualTo(toolGranted || decorGranted ? 0 : 1));
+            Assert.That(pity, Is.EqualTo(toolGranted || decorGranted || blueprintGranted ? 0 : 1));
         }
 
         [Test]
@@ -353,7 +354,8 @@ namespace Domiki.Web.Tests
             var after = GetResources(playerId);
             var toolGranted = ResourceValue(after, ToolResourceTypeId) - ResourceValue(before, ToolResourceTypeId) is >= 2 and <= 3;
             var decorGranted = GetDecor(playerId).Owned.Any(x => x.DecorTypeId == TrailIdolDecorTypeId);
-            Assert.That(toolGranted || decorGranted, Is.True);
+            var blueprintGranted = HasAnyBlueprint(playerId);
+            Assert.That(toolGranted || decorGranted || blueprintGranted, Is.True);
             Assert.That(GetPityCounter(playerId), Is.EqualTo(0));
         }
 
@@ -377,7 +379,8 @@ namespace Domiki.Web.Tests
             var furnitureGranted = ResourceValue(after, FurnitureResourceTypeId) - ResourceValue(before, FurnitureResourceTypeId) > 0;
             var decorGranted = GetDecor(playerId).Owned.Any(x => x.DecorTypeId == WandererBannerDecorTypeId);
             var traitUpgraded = GetWorkers(playerId).Any(x => squadBeforeTraits.TryGetValue(x.Id, out var trait) && trait == "ordinary" && x.Trait.LogicName != "ordinary");
-            Assert.That(furnitureGranted || decorGranted || traitUpgraded, Is.True);
+            var blueprintGranted = HasAnyBlueprint(playerId);
+            Assert.That(furnitureGranted || decorGranted || traitUpgraded || blueprintGranted, Is.True);
             Assert.That(GetPityCounter(playerId), Is.EqualTo(0));
         }
 
@@ -452,8 +455,56 @@ namespace Domiki.Web.Tests
             var after = GetResources(playerId);
             var furnitureGranted = ResourceValue(after, FurnitureResourceTypeId) - ResourceValue(before, FurnitureResourceTypeId) > 0;
             var decorGranted = GetDecor(playerId).Owned.Any(x => x.DecorTypeId == WandererBannerDecorTypeId);
-            Assert.That(furnitureGranted || decorGranted, Is.True);
+            var blueprintGranted = HasAnyBlueprint(playerId);
+            Assert.That(furnitureGranted || decorGranted || blueprintGranted, Is.True);
             Assert.That(GetWorkers(playerId).All(x => x.Trait.LogicName == "nimble"), Is.True);
+        }
+
+        [Test]
+        public void ApplyBlueprintLootGrantsUnownedBlueprintTest()
+        {
+            var playerId = GetPlayerId();
+            using (var uow = GetUow())
+            {
+                var resourceManager = GetResourceManager(uow);
+                var manager = GetExpeditionManager(uow);
+                var blueprintManager = GetBlueprintManager(uow);
+                var type = resourceManager.GetExpeditionTypes().First(x => x.Id == ShortScoutId);
+                var entry = type.Loot.First(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.Blueprint);
+                var traits = resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
+
+                var result = manager.ApplyLootEntry(playerId, type, entry, Array.Empty<Domiki.Web.Data.Worker>(), traits, 0);
+                uow.Commit();
+
+                Assert.That(blueprintManager.GetBlueprints(playerId).Count(x => x.Owned), Is.EqualTo(1));
+                Assert.That(result.ToString(), Does.Contain("blueprintId"));
+            }
+        }
+
+        [Test]
+        public void ApplyBlueprintLootFallsBackWhenAllOwnedTest()
+        {
+            var playerId = GetPlayerId();
+            using (var uow = GetUow())
+            {
+                var resourceManager = GetResourceManager(uow);
+                var blueprintManager = GetBlueprintManager(uow);
+                foreach (var blueprint in resourceManager.GetBlueprints())
+                {
+                    blueprintManager.GrantBlueprint(playerId, blueprint.Id);
+                }
+
+                var manager = GetExpeditionManager(uow);
+                var type = resourceManager.GetExpeditionTypes().First(x => x.Id == ShortScoutId);
+                var entry = type.Loot.First(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.Blueprint);
+                var traits = resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
+
+                var result = manager.ApplyLootEntry(playerId, type, entry, Array.Empty<Domiki.Web.Data.Worker>(), traits, 0);
+                uow.Commit();
+
+                Assert.That(result, Is.Not.Null);
+                Assert.That(result.ToString(), Does.Not.Contain("blueprintId"));
+            }
         }
 
         [Test]
@@ -631,6 +682,14 @@ namespace Domiki.Web.Tests
                 resource.Value += value;
                 uow.Context.SaveChanges();
                 uow.Commit();
+            }
+        }
+
+        private bool HasAnyBlueprint(int playerId)
+        {
+            using (var uow = GetUow())
+            {
+                return uow.Context.PlayerBlueprints.Any(x => x.PlayerId == playerId);
             }
         }
 

@@ -44,6 +44,7 @@ namespace Domiki.Web.Models
                     Kind = (int)x.Kind,
                     ResourceTypeId = x.ResourceTypeId,
                     DecorTypeId = x.DecorTypeId,
+                    BlueprintId = x.BlueprintId,
                     MinValue = x.MinValue,
                     MaxValue = x.MaxValue,
                     IsRare = x.IsRare,

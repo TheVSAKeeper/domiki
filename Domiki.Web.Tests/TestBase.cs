@@ -124,7 +124,7 @@ namespace Domiki.Web.Tests
             var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
             var workerManager = new WorkerManager(uow.Context, resourceManager, playerResourceManager);
             var decorManager = new DecorManager(uow, uow.Context, resourceManager, playerResourceManager);
-            return new ExpeditionManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager, GetSeasonManager(uow), GetPlayerEventManager(uow), decorManager);
+            return new ExpeditionManager(uow, uow.Context, GetCalculator(calculatorJustFinishMode), resourceManager, playerResourceManager, workerManager, GetSeasonManager(uow), GetPlayerEventManager(uow), decorManager, GetBlueprintManager(uow));
         }
 
         public TolokaManager GetTolokaManager(UnitOfWork uow)

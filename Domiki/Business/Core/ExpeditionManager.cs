@@ -17,6 +17,7 @@ namespace Domiki.Web.Business.Core
         private SeasonManager _seasonManager;
         private PlayerEventManager _playerEventManager;
         private DecorManager _decorManager;
+        private BlueprintManager _blueprintManager;
 
         public ExpeditionManager(
             Data.UnitOfWork uow,
@@ -27,7 +28,8 @@ namespace Domiki.Web.Business.Core
             WorkerManager workerManager,
             SeasonManager seasonManager,
             PlayerEventManager playerEventManager,
-            DecorManager decorManager)
+            DecorManager decorManager,
+            BlueprintManager blueprintManager)
         {
             _uow = uow;
             _context = context;
@@ -38,6 +40,7 @@ namespace Domiki.Web.Business.Core
             _seasonManager = seasonManager;
             _playerEventManager = playerEventManager;
             _decorManager = decorManager;
+            _blueprintManager = blueprintManager;
         }
 
         public ExpeditionState GetExpeditions(int playerId)
@@ -232,6 +235,9 @@ namespace Domiki.Web.Business.Core
                 case Data.ExpeditionLootKind.TraitUpgrade:
                     return ApplyTraitUpgrade(playerId, type, squadWorkers, traits, groupLuck, entry.IsRare);
 
+                case Data.ExpeditionLootKind.Blueprint:
+                    return ApplyBlueprintLoot(playerId, type, entry, squadWorkers, traits, groupLuck, entry.IsRare);
+
                 default:
                     var value = Random.Shared.Next(entry.MinValue, entry.MaxValue + 1);
                     _playerResourceManager.GrantResource(playerId, entry.ResourceTypeId.Value, value);
@@ -255,6 +261,26 @@ namespace Domiki.Web.Business.Core
             var newTrait = nonOrdinaryTraits[Random.Shared.Next(nonOrdinaryTraits.Length)];
             worker.TraitId = newTrait.Id;
             return new { kind = (int)Data.ExpeditionLootKind.TraitUpgrade, workerName = worker.Name, newTrait = newTrait.Name, isRare };
+        }
+
+        private object ApplyBlueprintLoot(int playerId, ExpeditionType type, ExpeditionLoot entry, Data.Worker[] squadWorkers, Dictionary<int, Trait> traits, int groupLuck, bool isRare)
+        {
+            var owned = _context.PlayerBlueprints.Where(x => x.PlayerId == playerId).Select(x => x.BlueprintId).ToArray();
+            var candidates = _resourceManager.GetBlueprints()
+                .Where(x => !owned.Contains(x.Id) && (entry.BlueprintId == null || entry.BlueprintId == x.Id))
+                .ToArray();
+            if (candidates.Length == 0)
+            {
+                var fallbackPool = type.Loot
+                    .Where(x => x.IsRare && x.Kind != Data.ExpeditionLootKind.Blueprint && x.Kind != Data.ExpeditionLootKind.TraitUpgrade)
+                    .ToArray();
+                var fallbackEntry = PickLoot(fallbackPool, groupLuck);
+                return ApplyLootEntry(playerId, type, fallbackEntry, squadWorkers, traits, groupLuck);
+            }
+
+            var blueprint = candidates[Random.Shared.Next(candidates.Length)];
+            _blueprintManager.GrantBlueprint(playerId, blueprint.Id);
+            return new { kind = (int)Data.ExpeditionLootKind.Blueprint, blueprintId = blueprint.Id, blueprintName = blueprint.Name, isRare };
         }
 
         private static ExpeditionLoot PickLoot(ExpeditionLoot[] loot, int luckPercent)
