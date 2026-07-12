@@ -8,7 +8,7 @@ namespace Domiki.Web.Tests
     {
         private const int BarracksDomikTypeId = 2;
         private const int GoldMineDomikTypeId = 4;
-        private const int GoldMineDomikId = 2;
+        private const int GoldMineDomikId = 4;
         private const int GoldDigReceiptId = 3;
         private const int GoldResourceTypeId = 5;
 

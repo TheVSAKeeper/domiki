@@ -17,6 +17,8 @@ namespace Domiki.Web.Business.Core
         private const int InstaFinishSecondsPerGold = 3600;
         private const int InstaFinishMaxGold = 6;
         private const int GoldResourceTypeId = 5;
+        private const int StartingBarracksTypeId = 2;
+        private const int StartingClayMineTypeId = 5;
 
         private static readonly Regex SpaceRegex = new Regex(" +", RegexOptions.Compiled);
         private static readonly string[] VillageNameForbiddenWords =
@@ -76,6 +78,10 @@ namespace Domiki.Web.Business.Core
                 _context.Players.Add(dbPlayer);
                 _context.Resources.Add(new Data.Resource { TypeId = 1, Player = dbPlayer, Value = StartingCoins });
 
+                _context.SaveChanges();
+
+                _context.Domiks.Add(new Data.Domik { PlayerId = dbPlayer.Id, Id = 1, TypeId = StartingBarracksTypeId, Level = 1 });
+                _context.Domiks.Add(new Data.Domik { PlayerId = dbPlayer.Id, Id = 2, TypeId = StartingClayMineTypeId, Level = 1 });
                 _context.SaveChanges();
             }
             return dbPlayer.Id;

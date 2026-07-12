@@ -20,7 +20,6 @@ namespace Domiki.Web.Tests
         private const int ToolResourceTypeId = 8;
         private const int BlockResourceTypeId = 10;
         private const int ZarechieNeighborId = 1;
-        private const int BarracksDomikTypeId = 2;
         private const int LumberMillDomikTypeId = 6;
         private const int WoodDig8hReceiptId = 16;
         private const int FatigueThresholdSeconds = 8 * 3600;
@@ -153,15 +152,14 @@ namespace Domiki.Web.Tests
         public void ComfortShortensWorkerRestTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, BarracksDomikTypeId);
             BuyDomik(playerId, LumberMillDomikTypeId);
             var worker = GetWorkers(playerId).Single();
             SetWorkerTrait(worker.Id, 1);
             GrantDecor(playerId, FountainDecorTypeId, 1);
             SetWorkerWorked(worker.Id, FatigueThresholdSeconds - RestSeconds);
 
-            StartManufacture(playerId, 2, WoodDig8hReceiptId);
-            var manufacture = GetDomiks(playerId).Single(x => x.Id == 2).Manufactures.Single();
+            StartManufacture(playerId, 3, WoodDig8hReceiptId);
+            var manufacture = GetDomiks(playerId).Single(x => x.Id == 3).Manufactures.Single();
             var finishDate = manufacture.FinishDate.AddSeconds(1);
             FinishManufacture(playerId, manufacture.Id, finishDate);
 
@@ -173,15 +171,14 @@ namespace Domiki.Web.Tests
         public void ComfortRestReductionIsCappedAtHalfTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, BarracksDomikTypeId);
             BuyDomik(playerId, LumberMillDomikTypeId);
             var worker = GetWorkers(playerId).Single();
             SetWorkerTrait(worker.Id, 1);
             GrantDecor(playerId, FountainDecorTypeId, 10);
             SetWorkerWorked(worker.Id, FatigueThresholdSeconds - RestSeconds);
 
-            StartManufacture(playerId, 2, WoodDig8hReceiptId);
-            var manufacture = GetDomiks(playerId).Single(x => x.Id == 2).Manufactures.Single();
+            StartManufacture(playerId, 3, WoodDig8hReceiptId);
+            var manufacture = GetDomiks(playerId).Single(x => x.Id == 3).Manufactures.Single();
             var finishDate = manufacture.FinishDate.AddSeconds(1);
             FinishManufacture(playerId, manufacture.Id, finishDate);
 
@@ -193,15 +190,14 @@ namespace Domiki.Web.Tests
         public void NoFatigueWorkerDoesNotRestRegardlessComfortTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, BarracksDomikTypeId);
             BuyDomik(playerId, LumberMillDomikTypeId);
             var worker = GetWorkers(playerId).Single();
             SetWorkerTrait(worker.Id, 4);
             GrantDecor(playerId, FountainDecorTypeId, 10);
             SetWorkerWorked(worker.Id, FatigueThresholdSeconds);
 
-            StartManufacture(playerId, 2, WoodDig8hReceiptId);
-            var manufacture = GetDomiks(playerId).Single(x => x.Id == 2).Manufactures.Single();
+            StartManufacture(playerId, 3, WoodDig8hReceiptId);
+            var manufacture = GetDomiks(playerId).Single(x => x.Id == 3).Manufactures.Single();
             FinishManufacture(playerId, manufacture.Id, manufacture.FinishDate.AddSeconds(1));
 
             worker = GetWorkers(playerId).Single();

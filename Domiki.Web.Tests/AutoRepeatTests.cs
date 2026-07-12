@@ -15,9 +15,9 @@ namespace Domiki.Web.Tests
             BuyPotteryWithWorker(playerId);
             GrantResource(playerId, 4, 4);
 
-            StartManufacture(playerId, 2, 43, true);
+            StartManufacture(playerId, 4, 43, true);
 
-            Assert.That(GetManufactureCount(playerId, 2), Is.Zero);
+            Assert.That(GetManufactureCount(playerId, 4), Is.Zero);
             Assert.That(GetWorkers(playerId).All(x => x.ManufactureId == null), Is.True);
             Assert.That(GetResourceValue(playerId, 4), Is.Zero);
             Assert.That(GetResourceValue(playerId, 12), Is.EqualTo(2));
@@ -30,7 +30,7 @@ namespace Domiki.Web.Tests
             BuyPotteryWithWorker(playerId);
             GrantResource(playerId, 4, 4);
 
-            StartManufacture(playerId, 2, 43, true);
+            StartManufacture(playerId, 4, 43, true);
 
             using (var uow = GetUow())
             {
@@ -75,9 +75,9 @@ namespace Domiki.Web.Tests
             GrantResource(playerId, 6, 2);
             GrantResource(playerId, 7, 1);
 
-            StartManufacture(playerId, 2, 24, true);
+            StartManufacture(playerId, 4, 24, true);
 
-            Assert.That(GetManufactureCount(playerId, 2), Is.Zero);
+            Assert.That(GetManufactureCount(playerId, 4), Is.Zero);
             Assert.That(GetWorkers(playerId).All(x => x.ManufactureId == null), Is.True);
             Assert.That(GetResourceValue(playerId, 6), Is.EqualTo(1));
             Assert.That(GetResourceValue(playerId, 7), Is.Zero);
@@ -102,7 +102,7 @@ namespace Domiki.Web.Tests
                 uow.Context.Domiks.Add(new Domiki.Web.Data.Domik
                 {
                     PlayerId = playerId,
-                    Id = 2,
+                    Id = 4,
                     TypeId = 1,
                     Level = 3,
                 });
@@ -118,7 +118,7 @@ namespace Domiki.Web.Tests
                 uow.Context.Domiks.Add(new Domiki.Web.Data.Domik
                 {
                     PlayerId = playerId,
-                    Id = 2,
+                    Id = 4,
                     TypeId = 13,
                     Level = 3,
                 });

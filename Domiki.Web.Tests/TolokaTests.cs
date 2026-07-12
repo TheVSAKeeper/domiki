@@ -254,9 +254,9 @@ namespace Domiki.Web.Tests
             GrantResource(playerId, 6, 1);
             GrantResource(playerId, 7, 1);
 
-            StartManufacture(playerId, 2, GetReceiptId("make_tool"));
+            StartManufacture(playerId, 4, GetReceiptId("make_tool"));
 
-            var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 4).Manufactures.Single();
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(100));
         }
 
@@ -273,9 +273,9 @@ namespace Domiki.Web.Tests
             GrantResource(playerId, 6, 1);
             GrantResource(playerId, 7, 1);
 
-            StartManufacture(playerId, 2, GetReceiptId("make_tool"));
+            StartManufacture(playerId, 4, GetReceiptId("make_tool"));
 
-            var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 4).Manufactures.Single();
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(140));
         }
 

@@ -36,9 +36,9 @@ namespace Domiki.Web.Tests
             BuyDomik(playerId, domikTypeId);
             SetWeather(weatherTypeId);
 
-            StartManufacture(playerId, 2, receiptId, false);
+            StartManufacture(playerId, 4, receiptId, false);
 
-            var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 4).Manufactures.Single();
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(expectedOutputPercent));
         }
 
@@ -54,9 +54,9 @@ namespace Domiki.Web.Tests
             BuyDomik(playerId, domikTypeId);
             SetWeather(weatherTypeId);
 
-            StartManufacture(playerId, 3, receiptId, false);
+            StartManufacture(playerId, 5, receiptId, false);
 
-            var manufacture = GetDomiks(playerId).First(x => x.Id == 3).Manufactures.Single();
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 5).Manufactures.Single();
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(100));
         }
 
@@ -84,8 +84,8 @@ namespace Domiki.Web.Tests
             BuyDomik(playerId, LumberMillDomikTypeId);
             SetWeather(RainWeatherTypeId);
 
-            StartManufacture(playerId, 2, WoodDig8hReceiptId, false);
-            var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+            StartManufacture(playerId, 4, WoodDig8hReceiptId, false);
+            var manufacture = GetDomiks(playerId).First(x => x.Id == 4).Manufactures.Single();
             FinishManufacture(playerId, manufacture.Id, manufacture.FinishDate.AddSeconds(1));
 
             var wood = GetResources(playerId).First(x => x.Type.Id == WoodResourceTypeId);

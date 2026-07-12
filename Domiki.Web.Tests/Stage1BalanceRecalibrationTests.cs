@@ -82,11 +82,11 @@ namespace Domiki.Web.Tests
             BuyDomik(playerId, 2);
             BuyDomik(playerId, 2);
             BuyDomik(playerId, 13);
-            UpgradeDomik(playerId, 4);
+            UpgradeDomik(playerId, 6);
             GrantResource(playerId, 4, 16);
             var before = GetResources(playerId);
 
-            StartManufacture(playerId, 4, 27, true);
+            StartManufacture(playerId, 6, 27, true);
 
             var after = GetResources(playerId);
             Assert.That(ResourceValue(before, 4) - ResourceValue(after, 4), Is.EqualTo(16));
@@ -97,7 +97,6 @@ namespace Domiki.Web.Tests
         public void DurationMultiplierUsesTraitsAndSkillAfterToolTest()
         {
             var playerId = GetPlayerId();
-            BuyDomik(playerId, 2);
             BuyDomik(playerId, 5);
             GrantResource(playerId, 8, 1);
             var worker = GetWorkers(playerId).Single();
@@ -105,7 +104,7 @@ namespace Domiki.Web.Tests
             SetWorkerSkill(worker.Id, 5, 100);
             var start = DateTimeHelper.GetNowDate();
 
-            StartManufacture(playerId, 2, 14, false, true, new[] { worker.Id });
+            StartManufacture(playerId, 3, 14, false, true, new[] { worker.Id });
 
             var manufacture = GetManufactures(playerId).Single();
             var durationSeconds = (manufacture.FinishDate - start).TotalSeconds;
@@ -116,7 +115,7 @@ namespace Domiki.Web.Tests
         public void WorkerNamesAreUniquePerPlayerTest()
         {
             var playerId = GetPlayerId();
-            for (var i = 0; i < 5; i++)
+            for (var i = 0; i < 4; i++)
             {
                 BuyDomik(playerId, 2);
             }

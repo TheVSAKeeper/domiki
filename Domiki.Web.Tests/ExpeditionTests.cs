@@ -97,7 +97,7 @@ namespace Domiki.Web.Tests
         public void StartExpeditionAssignsWorkersAndWritesOffGoldTest(int expeditionTypeId, int workerCount, int goldCost, int durationSeconds)
         {
             var playerId = GetPlayerId();
-            BuyBarracks(playerId, workerCount);
+            BuyBarracks(playerId, workerCount - 1);
             GrantResource(playerId, GoldResourceTypeId, goldCost);
             GrantResource(playerId, PlankResourceTypeId, EquipmentCost(expeditionTypeId));
             var start = DateTimeHelper.GetNowDate();
@@ -170,7 +170,7 @@ namespace Domiki.Web.Tests
             GrantResource(playerId, GoldResourceTypeId, 1);
             GrantResource(playerId, PlankResourceTypeId, EquipmentCost(ShortScoutId));
             var workerIds = GetWorkers(playerId).OrderBy(x => x.Id).Select(x => x.Id).ToArray();
-            StartManufacture(playerId, 4, 1, new[] { workerIds[0] });
+            StartManufacture(playerId, 6, 1, new[] { workerIds[0] });
 
             var ex = Assert.Throws<BusinessException>(() => StartExpedition(playerId, ShortScoutId, new[] { workerIds[0], workerIds[1] }));
 
@@ -181,7 +181,7 @@ namespace Domiki.Web.Tests
         {
             yield return new TestCaseData(new Action<ExpeditionTests, int, int[]>((test, playerId, workerIds) =>
             {
-                test.StartManufacture(playerId, 4, 1, new[] { workerIds[0] });
+                test.StartManufacture(playerId, 2, 1, new[] { workerIds[0] });
                 test.StartManufacture(playerId, 5, 1, new[] { workerIds[1] });
             })).SetName("BusyWithManufacture");
             yield return new TestCaseData(new Action<ExpeditionTests, int, int[]>((test, playerId, workerIds) =>
@@ -200,8 +200,7 @@ namespace Domiki.Web.Tests
         public void StartExpeditionWithoutEnoughFreeWorkersThrowsTest(Action<ExpeditionTests, int, int[]> occupy)
         {
             var playerId = GetPlayerId();
-            BuyBarracks(playerId, 3);
-            BuyDomik(playerId, ProducerDomikTypeId);
+            BuyBarracks(playerId, 2);
             BuyDomik(playerId, ProducerDomikTypeId);
             GrantResource(playerId, GoldResourceTypeId, 3);
             GrantResource(playerId, PlankResourceTypeId, 2);
@@ -257,14 +256,14 @@ namespace Domiki.Web.Tests
         public void WorkerOnExpeditionIsNotSelectedForManufactureTest()
         {
             var playerId = GetPlayerId();
-            BuyBarracks(playerId, 2);
+            BuyBarracks(playerId, 1);
             BuyDomik(playerId, ProducerDomikTypeId);
             GrantResource(playerId, GoldResourceTypeId, 1);
             GrantResource(playerId, PlankResourceTypeId, 2);
 
             StartExpedition(playerId, ShortScoutId);
 
-            var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 3, 1));
+            var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 4, 1));
             Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
         }
 
@@ -289,7 +288,7 @@ namespace Domiki.Web.Tests
         public void FinishExpeditionGrantsLootWithinTableRangesTest()
         {
             var playerId = GetPlayerId();
-            BuyBarracks(playerId, 5);
+            BuyBarracks(playerId, 4);
             GrantResource(playerId, GoldResourceTypeId, 2);
             GrantResource(playerId, PlankResourceTypeId, 6);
             StartExpedition(playerId, LongJourneyId);
@@ -363,7 +362,7 @@ namespace Domiki.Web.Tests
         public void PityThresholdForcesRareLootOnLongJourneyAndResetsCounterTest()
         {
             var playerId = GetPlayerId();
-            BuyBarracks(playerId, 5);
+            BuyBarracks(playerId, 4);
             GrantResource(playerId, GoldResourceTypeId, 2);
             GrantResource(playerId, PlankResourceTypeId, EquipmentCost(LongJourneyId));
             SetPityCounter(playerId, ExpeditionManager.ExpeditionPityThreshold);
