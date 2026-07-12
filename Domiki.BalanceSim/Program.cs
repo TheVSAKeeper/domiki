@@ -20,5 +20,13 @@ var options = new DbContextOptionsBuilder<ApplicationDbContext>()
 using var context = new ApplicationDbContext(options);
 var resources = new ResourceManager(context);
 var data = SimulationData.Load(resources);
-var report = new BalanceSimulator(data).Run();
-Console.WriteLine(new BalanceReport(data, report).Render());
+var simulator = new BalanceSimulator(data);
+if (args.Contains("--ftue", StringComparer.OrdinalIgnoreCase))
+{
+    Console.WriteLine(new FtueReport(simulator.RunFtue()).Render());
+}
+else
+{
+    var report = simulator.Run();
+    Console.WriteLine(new BalanceReport(data, report).Render());
+}
