@@ -1,28 +1,80 @@
 .decor-panel {
     padding: 16px 18px;
     margin-bottom: 20px;
+    overflow: hidden;
     box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
-.decor-head {
+.decor-hero {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 14px;
+    margin: -16px -18px 18px;
+    padding: 14px 18px;
+    background: linear-gradient(115deg, #fdeec2 0%, var(--plank) 60%);
+    border-bottom: 3px solid var(--ink);
 }
 
-.decor-topline {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-}
-
-.decor-card-ico {
-    width: 20px;
-    height: 20px;
+.decor-hero-emblem {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
     flex-shrink: 0;
-    align-self: center;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.decor-hero-emblem svg {
+    width: 40px;
+    height: 40px;
+}
+
+.decor-hero-text {
+    min-width: 0;
+    flex: 1;
+}
+
+.decor-hero-title {
+    margin: 0 0 4px;
+}
+
+.decor-hero-sub {
+    margin: 0;
+    max-width: 46ch;
+    font-size: 13px;
+    line-height: 1.4;
+    color: rgba(51, 41, 26, .78);
+}
+
+.decor-hero-comfort {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 7px 16px 6px;
+    text-align: center;
+    color: var(--ink);
+    background: var(--coin);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 rgba(51, 41, 26, .2);
+}
+
+.decor-hero-comfort-num {
+    font-family: var(--pixel);
+    font-size: 22px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.decor-hero-comfort-label {
+    margin-top: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: lowercase;
 }
 
 .decor-grid {
@@ -34,11 +86,93 @@
 .decor-card {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 9px;
     min-width: 0;
-    padding: 12px;
-    background: rgba(255, 255, 255, .24);
+    padding: 10px;
+    background: var(--plank);
     border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.decor-card-owned {
+    background: #fff7e0;
+}
+
+.decor-shelf {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 96px;
+    padding: 8px;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -12px 0 var(--grass-dark), inset 0 -20px 0 var(--grass);
+}
+
+.decor-card-ico {
+    position: relative;
+    z-index: 1;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 2px;
+}
+
+.decor-card-locked .decor-card-ico {
+    filter: grayscale(.85);
+    opacity: .8;
+}
+
+.decor-comfort {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    z-index: 2;
+    font-family: var(--pixel);
+    font-size: 10px;
+    line-height: 1;
+    padding: 4px 6px 3px;
+    color: var(--pine-dark);
+    background: #e3f0d1;
+    border: 2px solid var(--pine);
+    clip-path: var(--cut);
+}
+
+.decor-owned-tag {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 2;
+    font-family: var(--pixel);
+    font-size: 10px;
+    line-height: 1;
+    padding: 4px 6px 3px;
+    color: var(--ink);
+    background: var(--coin);
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    font-variant-numeric: tabular-nums;
+}
+
+.decor-lock {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    background: rgba(51, 41, 26, .32);
+}
+
+.decor-lock-ico {
+    box-sizing: content-box;
+    width: 24px;
+    height: 24px;
+    padding: 6px;
+    color: #fffaec;
+    background: rgba(51, 41, 26, .82);
+    border: 2px solid #fffaec;
     clip-path: var(--cut);
 }
 
@@ -47,32 +181,31 @@
     font-family: var(--pixel);
     font-size: 12px;
     font-weight: 600;
+    text-align: center;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.decor-row {
+.decor-gate {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: auto;
+}
+
+.decor-gate-neighbor {
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-}
-
-.decor-comfort {
-    font-family: var(--pixel);
-    font-size: 11px;
-    padding: 3px 7px 2px;
-    color: var(--pine-dark);
-    background: #e3f0d1;
-    border: 2px solid var(--pine);
-    clip-path: var(--cut);
-}
-
-.decor-owned {
-    margin-left: auto;
+    gap: 6px;
     font-size: 12px;
-    color: var(--pine-dark);
-    opacity: .75;
+    font-weight: 700;
+    color: var(--roof);
+}
+
+.decor-gate-ico {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
 }
 
 .decor-card .btn-game {
@@ -81,7 +214,9 @@
 }
 
 .decor-exclusive {
-    margin-top: 16px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 3px dotted rgba(51, 41, 26, .3);
 }
 
 .decor-card-exclusive {
@@ -89,25 +224,38 @@
     border-color: #b8860b;
 }
 
+.decor-shelf-gold {
+    box-shadow: inset 0 -12px 0 #d9b455, inset 0 -20px 0 #e8cd83;
+}
+
 .decor-exclusive-badge {
-    align-self: flex-start;
+    align-self: center;
+    margin-top: auto;
     font-family: var(--pixel);
     font-size: 10px;
-    padding: 2px 7px 1px;
+    padding: 3px 8px 2px;
     color: #7a5c00;
     background: #fdf0c4;
     border: 2px solid #b8860b;
     clip-path: var(--cut);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
     .decor-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .decor-head {
-        flex-direction: column;
-        align-items: flex-start;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
 
+@media (max-width: 760px) {
+    .decor-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .decor-hero {
+        flex-wrap: wrap;
+    }
+
+    .decor-hero-comfort {
+        margin-left: auto;
+    }
+}
