@@ -698,6 +698,10 @@
     white-space: nowrap;
 }
 
+.hud > .resources .hud-resource-name {
+    display: none;
+}
+
 .hud-resource .resource-value {
     margin-left: 1px;
 }
@@ -748,11 +752,6 @@
     .weather-forecast .weather-chip {
         flex: 0 1 auto;
         min-width: 0;
-    }
-
-    .hud > .resources .hud-resource-name {
-        max-width: 68px;
-        font-size: 10px;
     }
 
     .hud > .resources {

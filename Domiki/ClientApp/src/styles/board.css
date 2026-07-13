@@ -104,6 +104,9 @@
 }
 
 .btn-game.btn-ghost {
+    padding: 8px 16px;
+    font-size: 14px;
+    line-height: 1;
     background: #fffaec;
     color: var(--ink);
 }
@@ -648,6 +651,28 @@
     gap: 10px;
 }
 
+.btn-game.btn-icon {
+    width: 38px;
+    height: 38px;
+    flex: 0 0 auto;
+    padding: 0;
+}
+
+.push-toggle {
+    margin-left: 2px;
+}
+
+.btn-game.btn-ghost.push-toggle-on {
+    color: var(--plank);
+    background: var(--pine);
+}
+
+.btn-game.btn-ghost.push-toggle-denied {
+    color: #8f3a1e;
+    background: #f3d3c6;
+    border-color: var(--roof);
+}
+
 .btn-game {
     display: inline-flex;
     align-items: center;
@@ -771,8 +796,24 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-wrap: wrap;
     gap: 12px;
     margin-top: 16px;
+}
+
+.domik-pager-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.domik-page-size {
+    margin-left: 8px;
+}
+
+.domik-page-size-pop {
+    top: auto;
+    bottom: calc(100% + 6px);
 }
 
 .domik-pager-status {

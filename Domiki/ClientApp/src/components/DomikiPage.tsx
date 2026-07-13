@@ -63,9 +63,9 @@ const MECHANIC_TAB: Record<string, string> = {
 type SortModeEntry = { mode: DomikSortMode; label: string; Icon: typeof StoreIcon };
 
 const SORT_MODES: readonly [SortModeEntry, ...SortModeEntry[]] = [
-    { mode: 'attention', label: 'Внимание', Icon: BellIcon },
-    { mode: 'type', label: 'Тип', Icon: GridIcon },
-    { mode: 'level', label: 'Уровень', Icon: ChevronUpIcon },
+    { mode: 'attention', label: 'По важности', Icon: BellIcon },
+    { mode: 'type', label: 'По типу', Icon: GridIcon },
+    { mode: 'level', label: 'По уровню', Icon: ChevronUpIcon },
 ];
 
 type RowsPerPage = 2 | 3 | 5 | 'all';
@@ -788,30 +788,10 @@ export const DomikiPage = () => {
                             }
                         </div>
                     }
-                    {domiks.length > 2 * columns &&
-                        <div className="domik-sort-menu" ref={pageSizeRef}>
-                            <button type="button" className="btn-game btn-ghost" aria-expanded={pageSizeOpen}
-                                title="Рядов домиков на странице"
-                                onClick={() => setPageSizeOpen(prev => !prev)}>
-                                <BuildingIcon className="btn-ico" aria-hidden="true" />
-                                {ROWS_PER_PAGE_OPTIONS.find(opt => opt.value === rowsPerPage)?.label ?? '3 ряда'}
-                                <ChevronDownIcon className="btn-ico" aria-hidden="true" />
-                            </button>
-                            {pageSizeOpen &&
-                                <div className="domik-sort-pop">
-                                    {ROWS_PER_PAGE_OPTIONS.map(opt =>
-                                        <button key={String(opt.value)} type="button"
-                                            className={'domik-sort-option' + (rowsPerPage === opt.value ? ' domik-sort-option-active' : '')}
-                                            onClick={() => { changeRowsPerPage(opt.value); setPageSizeOpen(false); }}>
-                                            {opt.label}
-                                        </button>,
-                                    )}
-                                </div>
-                            }
-                        </div>
-                    }
                     {pushState !== 'unsupported' &&
-                        <button type="button" className="btn-game btn-ghost" title="Уведомления" aria-label="Уведомления"
+                        <button type="button" className={`btn-game btn-ghost btn-icon push-toggle push-toggle-${pushState}`}
+                            title={pushState === 'on' ? 'Push-уведомления включены' : pushState === 'denied' ? 'Push-уведомления заблокированы браузером' : 'Push-уведомления выключены'}
+                            aria-label={pushState === 'on' ? 'Выключить push-уведомления' : 'Включить push-уведомления'}
                             disabled={pushBusy} onClick={() => void togglePush()}>
                             {pushState === 'on'
                                 ? <BellIcon className="btn-ico" aria-hidden="true" />
@@ -891,17 +871,43 @@ export const DomikiPage = () => {
                             })
                         }
                     </div>
-                    {totalPages > 1 &&
+                    {(totalPages > 1 || domiks.length > 2 * columns) &&
                         <div className="domik-pager">
-                            <button type="button" className="btn-game btn-ghost" disabled={safePage <= 1}
-                                onClick={() => setPage(safePage - 1)} aria-label="Предыдущая страница">
-                                <ChevronLeftIcon className="btn-ico" aria-hidden="true" />
-                            </button>
-                            <span className="domik-pager-status">Стр. {safePage} из {totalPages}</span>
-                            <button type="button" className="btn-game btn-ghost" disabled={safePage >= totalPages}
-                                onClick={() => setPage(safePage + 1)} aria-label="Следующая страница">
-                                <ChevronRightIcon className="btn-ico" aria-hidden="true" />
-                            </button>
+                            {totalPages > 1 &&
+                                <div className="domik-pager-nav">
+                                    <button type="button" className="btn-game btn-ghost btn-icon" disabled={safePage <= 1}
+                                        onClick={() => setPage(safePage - 1)} aria-label="Предыдущая страница">
+                                        <ChevronLeftIcon className="btn-ico" aria-hidden="true" />
+                                    </button>
+                                    <span className="domik-pager-status">Стр. {safePage} из {totalPages}</span>
+                                    <button type="button" className="btn-game btn-ghost btn-icon" disabled={safePage >= totalPages}
+                                        onClick={() => setPage(safePage + 1)} aria-label="Следующая страница">
+                                        <ChevronRightIcon className="btn-ico" aria-hidden="true" />
+                                    </button>
+                                </div>
+                            }
+                            {domiks.length > 2 * columns &&
+                                <div className="domik-sort-menu domik-page-size" ref={pageSizeRef}>
+                                    <button type="button" className="btn-game btn-ghost" aria-expanded={pageSizeOpen}
+                                        title="Рядов домиков на странице"
+                                        onClick={() => setPageSizeOpen(prev => !prev)}>
+                                        <BuildingIcon className="btn-ico" aria-hidden="true" />
+                                        {ROWS_PER_PAGE_OPTIONS.find(opt => opt.value === rowsPerPage)?.label ?? '3 ряда'}
+                                        <ChevronDownIcon className="btn-ico" aria-hidden="true" />
+                                    </button>
+                                    {pageSizeOpen &&
+                                        <div className="domik-sort-pop domik-page-size-pop">
+                                            {ROWS_PER_PAGE_OPTIONS.map(opt =>
+                                                <button key={String(opt.value)} type="button"
+                                                    className={'domik-sort-option' + (rowsPerPage === opt.value ? ' domik-sort-option-active' : '')}
+                                                    onClick={() => { changeRowsPerPage(opt.value); setPageSizeOpen(false); }}>
+                                                    {opt.label}
+                                                </button>,
+                                            )}
+                                        </div>
+                                    }
+                                </div>
+                            }
                         </div>
                     }
                 </section>
