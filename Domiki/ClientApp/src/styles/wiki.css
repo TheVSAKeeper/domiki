@@ -129,10 +129,6 @@
     text-align: center;
 }
 
-.wiki-res-slot {
-    position: relative;
-}
-
 button.wiki-res-cell {
     width: 100%;
     font: inherit;
@@ -151,22 +147,13 @@ button.wiki-res-cell {
         background: var(--plank-dark);
     }
 
-.wiki-res-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 20;
-}
-
 .wiki-res-pop {
-    position: absolute;
-    z-index: 21;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
-    min-width: 240px;
+    position: fixed;
+    z-index: 120;
     padding: 14px 16px 16px;
     box-shadow: 4px 6px 0 rgba(0, 0, 0, .25);
     cursor: default;
+    pointer-events: none;
 }
 
 .wiki-res-pop-head {

@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ApiError, getGameState } from '../services/api';
 import { useToast } from '../services/toast';
 import { formatDuration } from '../utils/time';
@@ -118,6 +119,8 @@ const MECHANICS: Mechanic[] = [
     },
 ];
 
+const RES_POP_WIDTH = 260;
+
 const METAL_CHAIN: { logicName: string; name: string; where: string }[] = [
     { logicName: 'ore', name: 'Руда', where: 'Рудник' },
     { logicName: 'iron', name: 'Железо', where: 'Кузница' },
@@ -185,7 +188,16 @@ export const Wiki = () => {
         }
         return next;
     });
-    const [activeRes, setActiveRes] = useState<number | null>(null);
+    const [resFlyout, setResFlyout] = useState<{ type: ResourceTypeDto; top: number; left: number } | null>(null);
+    const openResFlyout = (type: ResourceTypeDto, el: HTMLElement) => {
+        if (resourceLore[type.logicName] == null) {
+            return;
+        }
+        const rect = el.getBoundingClientRect();
+        const left = Math.max(12, Math.min(rect.left, window.innerWidth - RES_POP_WIDTH - 12));
+        setResFlyout({ type, top: rect.bottom + 6, left });
+    };
+    const closeResFlyout = () => setResFlyout(null);
     const [openMechanics, setOpenMechanics] = useState<ReadonlySet<string>>(new Set());
     const toggleMechanic = (key: string) => setOpenMechanics(prev => {
         const next = new Set(prev);
@@ -241,42 +253,44 @@ export const Wiki = () => {
 
             <section className="wiki-section">
                 <h2 className="section-head">Ресурсы</h2>
-                <p className="wiki-res-hint">Нажми на ресурс – откроется карточка: что это, откуда берётся и зачем нужен.</p>
+                <p className="wiki-res-hint">Наведи на ресурс – всплывёт карточка: что это, откуда берётся и зачем нужен.</p>
                 <div className="wiki-res-grid">
-                    {resourceTypes.map(type => {
-                        const lore = resourceLore[type.logicName];
-                        const open = activeRes === type.id;
-                        return (
-                            <div key={type.id} className="wiki-res-slot">
-                                <button
-                                    type="button"
-                                    className={'wiki-res-cell pixel-panel' + (open ? ' active' : '')}
-                                    aria-expanded={open}
-                                    onClick={() => setActiveRes(open ? null : type.id)}
-                                >
-                                    <ResourceSprite logicName={type.logicName} aria-hidden="true" />
-                                    <span>{type.name}</span>
-                                </button>
-                                {open && lore != null && (
-                                    <div className="wiki-res-pop pixel-panel" role="dialog" aria-label={type.name}>
-                                        <div className="wiki-res-pop-head">
-                                            <ResourceSprite logicName={type.logicName} size={40} aria-hidden="true" />
-                                            <span className="wiki-res-pop-name">{type.name}</span>
-                                        </div>
-                                        <p className="wiki-res-pop-flavor">{lore.flavor}</p>
-                                        <dl className="wiki-res-facts">
-                                            <dt>Откуда</dt>
-                                            <dd>{lore.source}</dd>
-                                            <dt>Зачем</dt>
-                                            <dd>{lore.use}</dd>
-                                        </dl>
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                    {resourceTypes.map(type => (
+                        <button
+                            key={type.id}
+                            type="button"
+                            className={'wiki-res-cell pixel-panel' + (resFlyout?.type.id === type.id ? ' active' : '')}
+                            onMouseEnter={e => { openResFlyout(type, e.currentTarget); }}
+                            onMouseLeave={closeResFlyout}
+                            onFocus={e => { openResFlyout(type, e.currentTarget); }}
+                            onBlur={closeResFlyout}
+                        >
+                            <ResourceSprite logicName={type.logicName} aria-hidden="true" />
+                            <span>{type.name}</span>
+                        </button>
+                    ))}
                 </div>
-                {activeRes != null && <div className="wiki-res-backdrop" onClick={() => setActiveRes(null)} aria-hidden="true" />}
+                {resFlyout != null && (() => {
+                    const lore = resourceLore[resFlyout.type.logicName];
+                    if (lore == null) {
+                        return null;
+                    }
+                    return createPortal(
+                        <div className="wiki-res-pop pixel-panel" role="tooltip" style={{ top: resFlyout.top, left: resFlyout.left, width: RES_POP_WIDTH }}>
+                            <div className="wiki-res-pop-head">
+                                <ResourceSprite logicName={resFlyout.type.logicName} size={40} aria-hidden="true" />
+                                <span className="wiki-res-pop-name">{resFlyout.type.name}</span>
+                            </div>
+                            <p className="wiki-res-pop-flavor">{lore.flavor}</p>
+                            <dl className="wiki-res-facts">
+                                <dt>Откуда</dt>
+                                <dd>{lore.source}</dd>
+                                <dt>Зачем</dt>
+                                <dd>{lore.use}</dd>
+                            </dl>
+                        </div>,
+                        document.body);
+                })()}
             </section>
 
             <section className="wiki-section">
