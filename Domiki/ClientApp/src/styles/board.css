@@ -2,7 +2,7 @@
     display: flex;
     align-items: flex-start;
     gap: 24px;
-    padding-bottom: 40px;
+    padding-bottom: 16px;
 }
 
 .game-tabs {
@@ -776,8 +776,12 @@
 }
 
 .domik-pager-status {
+    padding: 6px 12px;
     font-family: var(--pixel);
     font-size: 12px;
     font-weight: 700;
     color: var(--ink);
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
 }

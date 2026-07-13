@@ -267,10 +267,28 @@ function attentionRank(domik: DomikDto, domikTypes: DomikTypeDto[], resources: R
     return ATTENTION_ORDER[domikStatus(domik, type, resources)];
 }
 
+const MECHANIC_LOGIC_NAMES = new Set(['market_yard', 'gathering', 'scout_hut']);
+
+function typeCategoryRank(domikType: DomikTypeDto): number {
+    if (domikType.levels.some(level => level.receiptIds.length > 0)) {
+        return 0;
+    }
+    if (MECHANIC_LOGIC_NAMES.has(domikType.logicName)) {
+        return 1;
+    }
+    return 2;
+}
+
 export function sortDomiks(domiks: DomikDto[], domikTypes: DomikTypeDto[], resources: ResourceDto[], mode: DomikSortMode): DomikDto[] {
     const copy = [...domiks];
     if (mode === 'type') {
-        return copy.sort((a, b) => a.typeId - b.typeId || b.level - a.level);
+        return copy.sort((a, b) => {
+            const typeA = domikTypes.find(x => x.id === a.typeId);
+            const typeB = domikTypes.find(x => x.id === b.typeId);
+            const rankA = typeA == null ? 3 : typeCategoryRank(typeA);
+            const rankB = typeB == null ? 3 : typeCategoryRank(typeB);
+            return rankA - rankB || a.typeId - b.typeId || b.level - a.level;
+        });
     }
     if (mode === 'level') {
         return copy.sort((a, b) => b.level - a.level || a.typeId - b.typeId);

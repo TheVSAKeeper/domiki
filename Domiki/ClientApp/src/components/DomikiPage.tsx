@@ -68,12 +68,12 @@ const SORT_MODES: readonly [SortModeEntry, ...SortModeEntry[]] = [
     { mode: 'level', label: 'Уровень', Icon: ChevronUpIcon },
 ];
 
-type PageSize = 12 | 24 | 48 | 'all';
+type RowsPerPage = 2 | 3 | 5 | 'all';
 
-const PAGE_SIZE_OPTIONS: { value: PageSize; label: string }[] = [
-    { value: 12, label: '12' },
-    { value: 24, label: '24' },
-    { value: 48, label: '48' },
+const ROWS_PER_PAGE_OPTIONS: { value: RowsPerPage; label: string }[] = [
+    { value: 2, label: '2 ряда' },
+    { value: 3, label: '3 ряда' },
+    { value: 5, label: '5 рядов' },
     { value: 'all', label: 'Все' },
 ];
 
@@ -122,7 +122,7 @@ export const DomikiPage = () => {
     const [draftCrestColor, setDraftCrestColor] = useState(0);
     const [sortMode, setSortMode] = useState<DomikSortMode>(() => {
         const saved = localStorage.getItem('domik-sort-mode');
-        return saved === 'type' || saved === 'level' ? saved : 'attention';
+        return saved === 'attention' || saved === 'level' ? saved : 'type';
     });
     const changeSortMode = (mode: DomikSortMode) => {
         setSortMode(mode);
@@ -131,20 +131,22 @@ export const DomikiPage = () => {
     };
     const [sortOpen, setSortOpen] = useState(false);
     const sortRef = useRef<HTMLDivElement>(null);
-    const [pageSize, setPageSize] = useState<PageSize>(() => {
+    const [rowsPerPage, setRowsPerPage] = useState<RowsPerPage>(() => {
         const saved = localStorage.getItem('domik-page-size');
-        if (saved === '24') return 24;
-        if (saved === '48') return 48;
+        if (saved === '2') return 2;
+        if (saved === '5') return 5;
         if (saved === 'all') return 'all';
-        return 12;
+        return 3;
     });
     const [page, setPage] = useState(1);
     const [pageSizeOpen, setPageSizeOpen] = useState(false);
     const pageSizeRef = useRef<HTMLDivElement>(null);
-    const changePageSize = (size: PageSize) => {
-        setPageSize(size);
+    const domiksRef = useRef<HTMLDivElement>(null);
+    const [columns, setColumns] = useState(1);
+    const changeRowsPerPage = (rows: RowsPerPage) => {
+        setRowsPerPage(rows);
         setPage(1);
-        localStorage.setItem('domik-page-size', String(size));
+        localStorage.setItem('domik-page-size', String(rows));
     };
     const activeSort = SORT_MODES.find(item => item.mode === sortMode) ?? SORT_MODES[0];
     const [pushState, setPushState] = useState<PushState>('unsupported');
@@ -206,6 +208,22 @@ export const DomikiPage = () => {
         document.addEventListener('mousedown', onDown);
         return () => { document.removeEventListener('mousedown', onDown); };
     }, [pageSizeOpen]);
+
+    useEffect(() => {
+        const grid = domiksRef.current;
+        if (grid == null) {
+            return;
+        }
+
+        const measure = () => {
+            const count = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length;
+            setColumns(Math.max(1, count));
+        };
+        measure();
+        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+        observer?.observe(grid);
+        return () => { observer?.disconnect(); };
+    }, []);
 
     useEffect(() => {
         const sentinel = hudSentinelRef.current;
@@ -304,11 +322,10 @@ export const DomikiPage = () => {
         () => sortDomiks(domiks, domikTypes, resources, sortMode),
         [domiks, domikTypes, resources, sortMode],
     );
-    const totalPages = pageSize === 'all' ? 1 : Math.max(1, Math.ceil(sortedDomiks.length / pageSize));
+    const perPage = rowsPerPage === 'all' ? Math.max(1, sortedDomiks.length) : Math.max(1, rowsPerPage * columns);
+    const totalPages = Math.max(1, Math.ceil(sortedDomiks.length / perPage));
     const safePage = Math.min(page, totalPages);
-    const pagedDomiks = pageSize === 'all'
-        ? sortedDomiks
-        : sortedDomiks.slice((safePage - 1) * pageSize, safePage * pageSize);
+    const pagedDomiks = sortedDomiks.slice((safePage - 1) * perPage, safePage * perPage);
     const domikOrdinals = useMemo(() => {
         const idsByType = new Map<number, number[]>();
         for (const domik of domiks) {
@@ -771,21 +788,21 @@ export const DomikiPage = () => {
                             }
                         </div>
                     }
-                    {domiks.length > 12 &&
+                    {domiks.length > 2 * columns &&
                         <div className="domik-sort-menu" ref={pageSizeRef}>
                             <button type="button" className="btn-game btn-ghost" aria-expanded={pageSizeOpen}
-                                title="Домиков на странице"
+                                title="Рядов домиков на странице"
                                 onClick={() => setPageSizeOpen(prev => !prev)}>
                                 <BuildingIcon className="btn-ico" aria-hidden="true" />
-                                {pageSize === 'all' ? 'Все' : pageSize}
+                                {ROWS_PER_PAGE_OPTIONS.find(opt => opt.value === rowsPerPage)?.label ?? '3 ряда'}
                                 <ChevronDownIcon className="btn-ico" aria-hidden="true" />
                             </button>
                             {pageSizeOpen &&
                                 <div className="domik-sort-pop">
-                                    {PAGE_SIZE_OPTIONS.map(opt =>
+                                    {ROWS_PER_PAGE_OPTIONS.map(opt =>
                                         <button key={String(opt.value)} type="button"
-                                            className={'domik-sort-option' + (pageSize === opt.value ? ' domik-sort-option-active' : '')}
-                                            onClick={() => { changePageSize(opt.value); setPageSizeOpen(false); }}>
+                                            className={'domik-sort-option' + (rowsPerPage === opt.value ? ' domik-sort-option-active' : '')}
+                                            onClick={() => { changeRowsPerPage(opt.value); setPageSizeOpen(false); }}>
                                             {opt.label}
                                         </button>,
                                     )}
@@ -820,7 +837,7 @@ export const DomikiPage = () => {
                             resourceTypes={resourceTypes} resources={resources} blueprints={blueprints} villageLevel={villageLevel}
                             onBuy={buy} onClose={() => setShopVisible(false)} />
                     }
-                    <div className="domiks">
+                    <div className="domiks" ref={domiksRef}>
                         {domikTypes.length > 0 &&
                             pagedDomiks.map(domik => {
                                 const domikType = domikTypes.find(x => x.id === domik.typeId);
