@@ -8,33 +8,132 @@
 .goal-card {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     padding: 16px 18px;
     margin-bottom: 16px;
+    overflow: hidden;
     box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
-.goal-card-head,
-.goal-card-footer {
+.goal-hero {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+    gap: 14px;
+    margin: -16px -18px 2px;
+    padding: 13px 18px;
+    background: linear-gradient(115deg, #f2cd7f 0%, var(--plank) 62%);
+    border-bottom: 3px solid var(--ink);
 }
 
-.goal-card-footer {
-    flex-wrap: wrap;
+.goal-emblem {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    flex-shrink: 0;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
-.goal-progress {
-    font-size: 12px;
+.goal-emblem-ico {
+    width: 34px;
+    height: 34px;
+    color: var(--roof);
+}
+
+.goal-hero-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.goal-title {
+    margin: 0 0 5px;
+    font-family: var(--pixel);
+    font-size: 13px;
+    line-height: 1.4;
+    color: #6b4e00;
+}
+
+.goal-quest {
+    margin: 0;
+    font-size: 14px;
     font-weight: 700;
+    line-height: 1.3;
+    color: var(--ink);
+}
+
+.goal-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 6px 15px 5px;
+    text-align: center;
+    color: #fffaec;
+    background: var(--roof);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 rgba(51, 41, 26, .28);
+}
+
+.goal-stat-num {
+    font-family: var(--pixel);
+    font-size: 20px;
+    line-height: 1;
     font-variant-numeric: tabular-nums;
 }
 
-.goal-name {
-    margin: 0;
+.goal-stat-label {
+    margin-top: 4px;
+    font-size: 10px;
     font-weight: 700;
+    text-transform: lowercase;
+}
+
+.goal-card-footer {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+}
+
+.goal-reward-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(51, 41, 26, .7);
+}
+
+.goal-reward-chips {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.zeal-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.zeal-chip-label {
+    font-family: 'Golos Text', 'Segoe UI', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: rgba(51, 41, 26, .7);
+}
+
+.zeal-chip-count {
+    color: var(--ink);
+}
+
+.zeal-chip-mult {
+    font-size: 12px;
+    color: var(--roof);
 }
 
 .goal-zeal-only {
