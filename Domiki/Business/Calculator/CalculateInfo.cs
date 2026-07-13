@@ -14,5 +14,8 @@ namespace Domiki.Web.Business
         /// </summary>
         public DateTime Date { get; set; }
         public CalculateTypes Type { get; set; }
+
+        public string PushTitle { get; set; }
+        public string PushBody { get; set; }
     }
 }

@@ -117,10 +117,10 @@ namespace Domiki.Web.Business
                                 switch (calcDate.Type)
                                 {
                                     case CalculateTypes.Domiks:
-                                        pushSender.Notify(calcDate.PlayerId, "Домики", "Домик достроен – загляни в деревню", "/domiki-page");
+                                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody ?? "Домик достроен – загляни в деревню", "/domiki-page");
                                         break;
                                     case CalculateTypes.Manufacture:
-                                        pushSender.Notify(calcDate.PlayerId, "Домики", "Производство завершено – товары готовы", "/domiki-page");
+                                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody ?? "Производство завершено – товары готовы", "/domiki-page");
                                         break;
                                 }
 

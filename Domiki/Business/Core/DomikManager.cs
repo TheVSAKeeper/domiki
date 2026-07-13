@@ -315,6 +315,14 @@ namespace Domiki.Web.Business.Core
                     dbDomik.Level++;
                     _playerEventManager.Record(calcInfo.PlayerId, Data.PlayerEventType.DomikUpgraded, new { domikTypeId = dbDomik.TypeId, level = dbDomik.Level });
 
+                    var domikName = _resourceManager.GetDomikTypes().First(x => x.Id == dbDomik.TypeId).Name;
+                    (calcInfo.PushTitle, calcInfo.PushBody) = (dbDomik.Level % 3) switch
+                    {
+                        0 => ($"Новоселье в «{domikName}»!", $"Уровень {dbDomik.Level} готов. Пора замахнуться на большее?"),
+                        1 => ($"«{domikName}» вырос до {dbDomik.Level} уровня!", "Стропила подняты, краска высохла. Что улучшим следующим?"),
+                        _ => ($"«{domikName}»: уровень {dbDomik.Level}", "Стройка отгремела. Загляни – деревня хорошеет на глазах."),
+                    };
+
                     return true;
                 }
                 return false;
@@ -557,8 +565,10 @@ namespace Domiki.Web.Business.Core
                 var breadRes = _context.Resources.Local.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == 15)
                     ?? _context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == 15);
                 var freedWorkerIds = new List<int>();
+                var workerNames = new List<string>();
                 foreach (var worker in _context.Workers.Where(x => x.ManufactureId == dbManufacture.Id).ToArray())
                 {
+                    workerNames.Add(worker.Name);
                     IncrementWorkerSkill(worker.Id, dbDomik.TypeId);
                     if (!traits[worker.TraitId].NoFatigue && !isTradeDomik)
                     {
@@ -580,6 +590,29 @@ namespace Domiki.Web.Business.Core
                 }
                 _context.Manufactures.Remove(dbManufacture);
                 _playerEventManager.RecordManufactureFinished(calcInfo.PlayerId, dbDomik.TypeId, produced);
+
+                var manufactureDomikName = _resourceManager.GetDomikTypes().First(x => x.Id == dbDomik.TypeId).Name;
+                var pushWorker = workerNames.Count > 0 ? workerNames[dbManufacture.Id % workerNames.Count] : null;
+                if (produced.Count > 0)
+                {
+                    var resourceNames = _resourceManager.GetResourceTypes().ToDictionary(x => x.Id, x => x.Name);
+                    var producedList = string.Join(", ", produced.Select(x => x.Value + " × " + resourceNames[x.Key]));
+                    var (title, body) = (dbManufacture.Id % 4) switch
+                    {
+                        0 when pushWorker != null => ($"У {pushWorker} всё готово!", $"Со «{manufactureDomikName}» свежая партия: {producedList}. Что скуём дальше?"),
+                        1 when pushWorker != null => ($"«{manufactureDomikName}»: смена сдана", $"{pushWorker} управляется на славу – {producedList} уже на складе. Пора за новое дело!"),
+                        2 when pushWorker != null => ($"Труд не пропал даром", $"От {pushWorker} прибыло: {producedList}. Деревня ждёт нового свершения!"),
+                        _ => ($"«{manufactureDomikName}» – новая партия", $"На складе прибыло: {producedList}. Заглянешь запустить ещё?"),
+                    };
+                    calcInfo.PushTitle = title;
+                    calcInfo.PushBody = body;
+                }
+                else
+                {
+                    calcInfo.PushTitle = pushWorker != null ? $"Смена у {pushWorker} окончена" : $"«{manufactureDomikName}»: смена сдана";
+                    calcInfo.PushBody = "Мастерская простаивает – загляни, пора запускать новое.";
+                }
+
                 if (autoRepeat)
                 {
                     _context.SaveChanges();
