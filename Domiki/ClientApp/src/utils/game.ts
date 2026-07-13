@@ -14,6 +14,10 @@ export const EXPEDITION_LOOT_KIND_BLUEPRINT = 4;
 
 const plodderTypeId = 1;
 
+export function nextUpgradeLevel(domikType: DomikTypeDto, level: number) {
+    return domikType.levels.find(x => x.value === level + 1) ?? null;
+}
+
 export function hasResourcesFor(cost: ResourceDto[], owned: ResourceDto[]): boolean {
     return cost.every(resource => {
         const have = owned.find(x => x.typeId === resource.typeId);
@@ -37,8 +41,8 @@ export function canAffordUpgrade(domik: DomikDto, domikType: DomikTypeDto, resou
         return false;
     }
 
-    const domikLevel = domikType.levels.find(x => x.value === domik.level);
-    return domikLevel != null && hasResourcesFor(domikLevel.resources, resources);
+    const nextLevel = nextUpgradeLevel(domikType, domik.level);
+    return nextLevel != null && hasResourcesFor(nextLevel.resources, resources);
 }
 
 export function computePlodderCount(domiks: DomikDto[], domikTypes: DomikTypeDto[]): PlodderCount {
@@ -97,13 +101,12 @@ export function computeSelectedDomikView(
                 .map(receiptId => receipts.find(x => x.id === receiptId))
                 .filter((receipt): receipt is ReceiptDto => receipt != null);
 
-            if (domik.level < domikType.maxLevel && domik.finishDate == null) {
-                const hasResources = hasResourcesFor(domikLevel.resources, resources);
-
+            const nextLevel = nextUpgradeLevel(domikType, domik.level);
+            if (nextLevel != null && domik.level < domikType.maxLevel && domik.finishDate == null) {
                 upgrade = {
                     nextLevel: domik.level + 1,
-                    resources: domikLevel.resources,
-                    hasResources,
+                    resources: nextLevel.resources,
+                    hasResources: hasResourcesFor(nextLevel.resources, resources),
                 };
             }
         }

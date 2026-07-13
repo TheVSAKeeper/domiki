@@ -856,7 +856,7 @@ export const DomikiPage = () => {
                                 <span className="hint">Магазин пуст</span>
                             }
                             {purchaseDomikTypes.map(purchaseDomikType => {
-                                const firstLevel = purchaseDomikType.levels[0];
+                                const firstLevel = purchaseDomikType.levels.find(x => x.value === 1);
                                 const levelLocked = villageLevel != null && purchaseDomikType.unlockLevel > villageLevel.level;
                                 const blueprint = purchaseDomikType.blueprintId == null ? null : blueprints.find(x => x.id === purchaseDomikType.blueprintId) ?? null;
                                 const blueprintLocked = blueprint != null && !blueprint.owned;

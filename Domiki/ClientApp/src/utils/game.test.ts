@@ -56,25 +56,27 @@ describe('canAffordUpgrade', () => {
         logicName: 'mine',
         maxCount: 1,
         availableCount: 0,
-        maxLevel: 2,
+        maxLevel: 3,
         unlockLevel: 0,
         blueprintId: null,
         nextCountGateLevel: null,
         levels: [
-            { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
-            { value: 2, resources: [], modificators: [], receiptIds: [] },
+            { value: 1, resources: [{ typeId: 1, value: 10 }], modificators: [], receiptIds: [] },
+            { value: 2, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
+            { value: 3, resources: [{ typeId: 1, value: 999 }], modificators: [], receiptIds: [] },
         ],
     };
     const base: DomikDto = { id: 1, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null };
 
-    it('true only when upgrade available and resources suffice', () => {
+    it('checks the next level cost, not the current one', () => {
         expect(canAffordUpgrade(base, mineType, [{ typeId: 1, value: 100 }])).toBe(true);
+        expect(canAffordUpgrade({ ...base, level: 2 }, mineType, [{ typeId: 1, value: 100 }])).toBe(false);
     });
 
     it.each<[string, DomikDto, ResourceDto[]]>([
         ['not enough resources', base, [{ typeId: 1, value: 99 }]],
         ['upgrade in progress', { ...base, finishDate: '2026-01-01T00:00:00.000Z' }, [{ typeId: 1, value: 100 }]],
-        ['at max level', { ...base, level: 2 }, [{ typeId: 1, value: 100 }]],
+        ['at max level', { ...base, level: 3 }, [{ typeId: 1, value: 999 }]],
         ['level zero', { ...base, level: 0 }, [{ typeId: 1, value: 100 }]],
     ])('false when %s', (_label, domik, resources) => {
         expect(canAffordUpgrade(domik, mineType, resources)).toBe(false);
