@@ -1,7 +1,16 @@
 .market-panel {
     padding: 16px 18px;
     margin-bottom: 20px;
+    overflow: hidden;
     box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.market-awning {
+    height: 18px;
+    margin: -16px -18px 14px;
+    background: repeating-linear-gradient(90deg, var(--roof) 0 15px, #f0dcb0 15px 30px);
+    -webkit-mask: radial-gradient(circle 7px at 15px 100%, #0000 98%, #000) 0 100% / 30px 100% repeat-x;
+    mask: radial-gradient(circle 7px at 15px 100%, #0000 98%, #000) 0 100% / 30px 100% repeat-x;
 }
 
 .market-head,
@@ -14,7 +23,14 @@
     gap: 10px;
 }
 
+.market-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
 .market-commission {
+    font-size: 13px;
     font-variant-numeric: tabular-nums;
 }
 
@@ -27,6 +43,7 @@
     width: 20px;
     height: 20px;
     flex-shrink: 0;
+    color: var(--pine-dark);
 }
 
 .market-layout {
@@ -54,6 +71,34 @@
     clip-path: var(--cut);
 }
 
+.market-stall {
+    gap: 9px;
+    background: #fdf5e1;
+    box-shadow: inset 0 -5px 0 rgba(51, 41, 26, .09);
+}
+
+.market-form {
+    background: #fdf5e1;
+    box-shadow: inset 0 -5px 0 var(--plank-dark);
+}
+
+.market-stall .market-seller {
+    padding-bottom: 8px;
+    border-bottom: 2px dashed rgba(51, 41, 26, .25);
+}
+
+.market-stall-locked {
+    background: #efe4cb;
+}
+
+    .market-stall-locked .market-lot-resources {
+        opacity: .55;
+    }
+
+    .market-stall-locked .resource-lack {
+        opacity: 1;
+    }
+
 .market-card-title,
 .market-column-head,
 .market-village-name {
@@ -67,6 +112,30 @@
 .market-card-title {
     color: var(--ink);
     font-weight: 600;
+}
+
+.market-column-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 22px;
+}
+
+.market-count {
+    flex-shrink: 0;
+    padding: 3px 7px;
+    font-size: 10px;
+    color: var(--ink);
+    background: var(--plank-dark);
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    font-variant-numeric: tabular-nums;
+}
+
+.market-count-live {
+    color: var(--plank);
+    background: var(--pine);
 }
 
 .market-field select,
@@ -124,6 +193,11 @@
         image-rendering: pixelated;
     }
 
+    .resource-option-selected {
+        background: var(--coin);
+        box-shadow: inset 0 0 0 2px #fffaec;
+    }
+
 .number-stepper {
     display: inline-flex;
     align-items: center;
@@ -166,6 +240,108 @@
 
 .market-side .panel-label {
     margin-bottom: 0;
+}
+
+.trade-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.trade-rate {
+    padding: 3px 7px;
+    font-family: var(--pixel);
+    font-size: 10px;
+    color: var(--ink);
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    font-variant-numeric: tabular-nums;
+}
+
+.trade-deal {
+    padding: 3px 7px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.trade-deal-good {
+    color: var(--plank);
+    background: var(--pine);
+}
+
+.trade-deal-fair {
+    color: var(--ink);
+    background: var(--plank-dark);
+}
+
+.trade-deal-bad {
+    color: var(--plank);
+    background: var(--roof);
+}
+
+.market-stall-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+}
+
+.market-cost {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.market-afford {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--pine);
+}
+
+    .market-afford .btn-ico {
+        color: var(--pine);
+    }
+
+.market-shortfall {
+    flex-wrap: wrap;
+}
+
+    .market-shortfall .resources {
+        gap: 4px 10px;
+    }
+
+    .market-shortfall .resource-box svg,
+    .market-shortfall .resource-box img {
+        width: 20px;
+        height: 20px;
+    }
+
+.market-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 22px 14px;
+    text-align: center;
+    background: rgba(255, 255, 255, .16);
+    border: 3px dashed rgba(51, 41, 26, .3);
+    clip-path: var(--cut);
+}
+
+.market-empty-ico {
+    width: 52px;
+    height: 52px;
+    opacity: .85;
+    image-rendering: pixelated;
 }
 
 .market-card .btn-game {

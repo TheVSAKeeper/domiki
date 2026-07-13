@@ -18,6 +18,20 @@ const market: MarketStateDto = {
     maxLots: 1,
 };
 
+const lot = (id: number, wantResourceTypeId: number, wantValue: number): MarketStateDto['lots'][number] => ({
+    id,
+    sellerId: id,
+    sellerVillageName: 'Соседи',
+    sellerCrestIcon: 0,
+    sellerCrestColor: 0,
+    giveResourceTypeId: 2,
+    giveValue: 10,
+    wantResourceTypeId,
+    wantValue,
+    commissionCoins: 0,
+    expireDate: '2999-01-01T00:00:00Z',
+});
+
 describe('MarketBox', () => {
     it('names resource radio options after their resources', () => {
         render(
@@ -35,5 +49,41 @@ describe('MarketBox', () => {
         const givePicker = screen.getByRole('radiogroup', { name: 'Ресурс, который даю' });
         expect(within(givePicker).getByRole('radio', { name: 'Монеты' })).toBeChecked();
         expect(within(givePicker).getByRole('radio', { name: 'Дерево' })).not.toBeChecked();
+    });
+
+    it('blocks accepting a lot the player cannot pay for and names the shortfall', () => {
+        render(
+            <MarketBox
+                market={{ ...market, lots: [lot(1, 1, 5)] }}
+                resourceTypes={resourceTypes}
+                resources={[{ typeId: 1, value: 3 }]}
+                now={0}
+                onPost={vi.fn()}
+                onAccept={vi.fn()}
+                onCancel={vi.fn()}
+            />,
+        );
+
+        expect(screen.getByRole('button', { name: /Принять/ })).toBeDisabled();
+        expect(screen.getByText(/не хватает/)).toBeInTheDocument();
+    });
+
+    it('surfaces affordable lots first and enables their accept button', () => {
+        render(
+            <MarketBox
+                market={{ ...market, lots: [lot(1, 1, 5), lot(2, 2, 2)] }}
+                resourceTypes={resourceTypes}
+                resources={[{ typeId: 1, value: 3 }, { typeId: 2, value: 10 }]}
+                now={0}
+                onPost={vi.fn()}
+                onAccept={vi.fn()}
+                onCancel={vi.fn()}
+            />,
+        );
+
+        const accepts = screen.getAllByRole('button', { name: /Принять/ });
+        expect(accepts[0]).toBeEnabled();
+        expect(accepts[1]).toBeDisabled();
+        expect(screen.getByText(/по карману$/)).toBeInTheDocument();
     });
 });

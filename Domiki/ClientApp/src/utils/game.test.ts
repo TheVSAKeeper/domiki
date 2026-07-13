@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ResourceDto } from '../types/api';
-import { canAffordUpgrade, computePlodderCount, computeReceiptView, manufactureProgressPercent, progressPercent, resourceShortfall, sortDomiks, zealApplies, zealMultiplier } from './game';
+import { canAffordUpgrade, computePlodderCount, computeReceiptView, manufactureProgressPercent, progressPercent, resourceShortfall, sortDomiks, tradeDeal, tradeRatio, zealApplies, zealMultiplier } from './game';
 
 describe('resourceShortfall', () => {
     it('returns exact deficits and merges repeated costs', () => {
@@ -8,6 +8,28 @@ describe('resourceShortfall', () => {
             [{ typeId: 2, value: 8 }, { typeId: 3, value: 4 }, { typeId: 2, value: 3 }],
             [{ typeId: 2, value: 7 }, { typeId: 3, value: 9 }],
         )).toEqual([{ typeId: 2, value: 4 }]);
+    });
+});
+
+describe('tradeDeal', () => {
+    it.each([
+        { give: 20, giveMv: 1, want: 10, wantMv: 1, deal: 'good' },
+        { give: 10, giveMv: 1, want: 10, wantMv: 1, deal: 'fair' },
+        { give: 5, giveMv: 1, want: 10, wantMv: 1, deal: 'bad' },
+        { give: 10, giveMv: 2, want: 1, wantMv: 1, deal: 'good' },
+        { give: 10, giveMv: 1, want: 1, wantMv: 0, deal: 'fair' },
+    ])('rates $give×$giveMv for $want×$wantMv as $deal', ({ give, giveMv, want, wantMv, deal }) => {
+        expect(tradeDeal(give, giveMv, want, wantMv)).toBe(deal);
+    });
+});
+
+describe('tradeRatio', () => {
+    it.each([
+        { give: 10, want: 1, expected: [10, 1] },
+        { give: 20, want: 4, expected: [5, 1] },
+        { give: 7, want: 3, expected: [7, 3] },
+    ])('reduces $give:$want', ({ give, want, expected }) => {
+        expect(tradeRatio(give, want)).toEqual(expected);
     });
 });
 

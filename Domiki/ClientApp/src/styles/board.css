@@ -451,8 +451,13 @@
     }
 
     .btn-game:disabled {
-        background: #97927e;
+        color: rgba(255, 255, 255, .72);
+        background: #9c968a;
+        background-image: repeating-linear-gradient(45deg, transparent 0 6px, rgba(51, 41, 26, .16) 6px 8px);
+        opacity: .8;
         cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
     }
 
 .hurry-cost-ico {

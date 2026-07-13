@@ -36,6 +36,29 @@ export function resourceShortfall(cost: ResourceDto[], owned: ResourceDto[]): Re
     });
 }
 
+export type TradeDeal = 'good' | 'fair' | 'bad';
+
+export function tradeDeal(giveValue: number, giveMarketValue: number, wantValue: number, wantMarketValue: number): TradeDeal {
+    const received = giveValue * giveMarketValue;
+    const paid = wantValue * wantMarketValue;
+    if (paid <= 0 || received <= 0) {
+        return 'fair';
+    }
+
+    const ratio = received / paid;
+    if (ratio >= 1.15) {
+        return 'good';
+    }
+
+    return ratio <= 0.85 ? 'bad' : 'fair';
+}
+
+export function tradeRatio(giveValue: number, wantValue: number): [number, number] {
+    const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
+    const divisor = gcd(Math.abs(giveValue), Math.abs(wantValue)) || 1;
+    return [giveValue / divisor, wantValue / divisor];
+}
+
 export function canAffordUpgrade(domik: DomikDto, domikType: DomikTypeDto, resources: ResourceDto[]): boolean {
     if (domik.level <= 0 || domik.level >= domikType.maxLevel || domik.finishDate != null) {
         return false;
