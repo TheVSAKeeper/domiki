@@ -217,6 +217,24 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--pine) var(--plank-dark);
+}
+
+.worker-picker::-webkit-scrollbar {
+    width: 10px;
+}
+
+.worker-picker::-webkit-scrollbar-track {
+    background: var(--plank-dark);
+    border-left: 2px solid var(--ink);
+}
+
+.worker-picker::-webkit-scrollbar-thumb {
+    background: var(--pine);
+    border: 2px solid var(--ink);
 }
 
 .worker-chip-pick {

@@ -1084,7 +1084,9 @@ export const DomikiPage = () => {
                                                                         return (
                                                                             <button key={worker.id} type="button"
                                                                                 className={'worker-chip worker-chip-pick' + (isSelected ? ' worker-chip-selected' : '')}
-                                                                                onClick={() => toggleSelectedWorker(receipt.id, worker.id, receipt.plodderCount)}>
+                                                                                onClick={() => receipt.plodderCount === 1 && view.hasResources
+                                                                                    ? startManufacture(selected.domik.id, receipt.id, hasOptional && useOptional, autoRepeat, [worker.id])
+                                                                                    : toggleSelectedWorker(receipt.id, worker.id, receipt.plodderCount)}>
                                                                                 <WorkerSprite name={worker.name} skilled={isSkilledWorker(worker)} className="worker-avatar" aria-hidden="true" />
                                                                                 <span className="worker-name">{worker.name}</span>
                                                                                 <span className="worker-effect">{fitness >= 0 ? '+' : ''}{fitness} %</span>
