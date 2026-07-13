@@ -160,16 +160,266 @@
     gap: 16px;
 }
 
-.purchase-box {
+.shop {
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.shop-head {
     display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: var(--plank);
+    background: var(--pine);
+    border-bottom: 3px solid var(--ink);
+}
+
+.shop-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-right: auto;
+}
+
+.shop-title-ico {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    color: var(--coin);
+}
+
+.shop-head .panel-title {
+    margin: 0;
+    color: var(--plank);
+}
+
+.shop-sub {
+    margin: 3px 0 0;
+    font-size: 12px;
+    color: rgba(251, 243, 223, .82);
+}
+
+.shop-close {
+    display: inline-flex;
+    padding: 6px;
+    color: var(--plank);
+    background: transparent;
+    border: 3px solid transparent;
+    cursor: pointer;
+}
+
+    .shop-close:hover {
+        color: var(--coin);
+    }
+
+    .shop-close:focus-visible {
+        outline: none;
+        border-color: var(--coin);
+    }
+
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 14px;
+    padding: 16px;
+}
+
+.shop-empty {
+    grid-column: 1 / -1;
+    padding: 18px 8px;
+    text-align: center;
+}
+
+.shop-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 10px 12px;
+    text-align: center;
+    background: var(--plank-dark);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.shop-card--ready {
+    background: #fff7e0;
+    border-color: var(--coin);
+    box-shadow: 0 0 0 3px rgba(231, 168, 59, .28);
+}
+
+.shop-card--locked {
+    filter: grayscale(.7);
+    opacity: .82;
+}
+
+.shop-card-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 6px 3px;
+    font-family: var(--pixel);
+    font-size: 9px;
+    line-height: 1;
+    color: var(--ink);
+    background: var(--coin);
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+    .shop-card-badge svg {
+        width: 12px;
+        height: 12px;
+    }
+
+.shop-card-badge--locked {
+    color: var(--roof);
+    background: var(--plank);
+}
+
+.shop-card-sprite {
+    width: 88px;
+    height: 88px;
+    image-rendering: pixelated;
+}
+
+.shop-card-name {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.shop-card .resources {
+    justify-content: center;
+    gap: 4px 12px;
+}
+
+.shop-card-lock {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--roof);
+}
+
+.shop-card-lack {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--roof);
+}
+
+    .shop-card-lack img {
+        width: 18px;
+        height: 18px;
+        image-rendering: pixelated;
+    }
+
+.shop-card-locknote {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.shop-card-hint {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.35;
+    color: rgba(51, 41, 26, .72);
+}
+
+.shop-need {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 9px;
+    text-align: left;
+    background: rgba(194, 91, 51, .09);
+    border: 2px solid rgba(194, 91, 51, .3);
+}
+
+.shop-need-head {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--pixel);
+    font-size: 9px;
+    line-height: 1.3;
+    color: var(--roof);
+}
+
+    .shop-need-head img {
+        width: 16px;
+        height: 16px;
+        image-rendering: pixelated;
+    }
+
+.shop-need-row {
+    display: flex;
+    align-items: center;
     flex-wrap: wrap;
-    gap: 16px;
-    margin-bottom: 16px;
-    padding: 14px;
-    border: 3px dashed var(--ink);
-    background: rgba(251, 243, 223, .45);
-    width: fit-content;
-    max-width: 100%;
+    gap: 3px 6px;
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.shop-need-ico {
+    width: 22px;
+    height: 22px;
+    image-rendering: pixelated;
+}
+
+.shop-need-name {
+    font-weight: 600;
+}
+
+.shop-need-qty {
+    font-family: var(--pixel);
+    font-size: 9px;
+    color: var(--roof);
+}
+
+.shop-need-arrow {
+    color: rgba(51, 41, 26, .45);
+}
+
+.shop-need-where {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px 8px;
+    flex-wrap: wrap;
+}
+
+.shop-need-where-text {
+    font-weight: 500;
+    color: rgba(51, 41, 26, .75);
+}
+
+.shop-need-src {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 700;
+}
+
+.shop-need-src-ico {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+}
+
+.shop-card-buy {
+    width: 100%;
+    margin-top: auto;
 }
 
 .plot {
@@ -217,21 +467,6 @@
     z-index: 1;
 }
 
-.plot-locked {
-    filter: grayscale(.75);
-    opacity: .72;
-}
-
-.plot-shop {
-    width: 136px;
-}
-
-    .plot-shop,
-    .plot-shop:hover {
-        cursor: default;
-        transform: none;
-    }
-
 .plot-sprite {
     width: 96px;
     height: 96px;
@@ -274,10 +509,6 @@
     flex-direction: column;
     align-items: center;
     gap: 5px;
-    margin-top: auto;
-}
-
-.plot-shop .btn-game {
     margin-top: auto;
 }
 

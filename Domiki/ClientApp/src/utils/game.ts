@@ -36,6 +36,35 @@ export function resourceShortfall(cost: ResourceDto[], owned: ResourceDto[]): Re
     });
 }
 
+export interface ResourceSource {
+    logicName: string;
+    name: string;
+}
+
+export function resourceSourceMap(domikTypes: DomikTypeDto[], receipts: ReceiptDto[]): Map<number, ResourceSource[]> {
+    const receiptById = new Map(receipts.map(receipt => [receipt.id, receipt]));
+    const map = new Map<number, ResourceSource[]>();
+
+    for (const type of domikTypes) {
+        const outputs = new Set<number>();
+        for (const level of type.levels) {
+            for (const receiptId of level.receiptIds) {
+                receiptById.get(receiptId)?.outputResources.forEach(output => outputs.add(output.typeId));
+            }
+        }
+
+        for (const typeId of outputs) {
+            const list = map.get(typeId) ?? [];
+            if (!list.some(source => source.logicName === type.logicName)) {
+                list.push({ logicName: type.logicName, name: type.name });
+                map.set(typeId, list);
+            }
+        }
+    }
+
+    return map;
+}
+
 export type TradeDeal = 'good' | 'fair' | 'bad';
 
 export function tradeDeal(giveValue: number, giveMarketValue: number, wantValue: number, wantMarketValue: number): TradeDeal {

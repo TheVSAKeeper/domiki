@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ResourceDto } from '../types/api';
-import { canAffordUpgrade, computePlodderCount, computeReceiptView, manufactureProgressPercent, progressPercent, resourceShortfall, sortDomiks, tradeDeal, tradeRatio, zealApplies, zealMultiplier } from './game';
+import { canAffordUpgrade, computePlodderCount, computeReceiptView, manufactureProgressPercent, progressPercent, resourceShortfall, resourceSourceMap, sortDomiks, tradeDeal, tradeRatio, zealApplies, zealMultiplier } from './game';
 
 describe('resourceShortfall', () => {
     it('returns exact deficits and merges repeated costs', () => {
@@ -8,6 +8,36 @@ describe('resourceShortfall', () => {
             [{ typeId: 2, value: 8 }, { typeId: 3, value: 4 }, { typeId: 2, value: 3 }],
             [{ typeId: 2, value: 7 }, { typeId: 3, value: 9 }],
         )).toEqual([{ typeId: 2, value: 4 }]);
+    });
+});
+
+describe('resourceSourceMap', () => {
+    const receipt = (id: number, outputTypeIds: number[]): ReceiptDto => ({
+        id, name: `r${id}`, logicName: `r${id}`, inputResources: [], optionalInputResources: [],
+        durationSeconds: 10, outputBonusPercent: 0, plodderCount: 1,
+        outputResources: outputTypeIds.map(typeId => ({ typeId, value: 1 })),
+    });
+    const building = (id: number, name: string, logicName: string, receiptIds: number[]): DomikTypeDto => ({
+        id, name, logicName, maxCount: 1, availableCount: 0, maxLevel: 2, unlockLevel: 0,
+        blueprintId: null, nextCountGateLevel: null,
+        levels: [{ value: 1, resources: [], modificators: [], receiptIds }],
+    });
+
+    it('maps each output resource to the buildings that produce it, without duplicates', () => {
+        const receipts = [receipt(1, [10, 11]), receipt(2, [11])];
+        const buildings = [
+            building(1, 'Маслобойня', 'creamery', [1]),
+            building(2, 'Кузница', 'forge', [2]),
+        ];
+
+        const map = resourceSourceMap(buildings, receipts);
+
+        expect(map.get(10)).toEqual([{ logicName: 'creamery', name: 'Маслобойня' }]);
+        expect(map.get(11)).toEqual([
+            { logicName: 'creamery', name: 'Маслобойня' },
+            { logicName: 'forge', name: 'Кузница' },
+        ]);
+        expect(map.get(99)).toBeUndefined();
     });
 });
 

@@ -41,6 +41,7 @@ import { DecorBox } from './DecorBox';
 import { TolokaBox } from './TolokaBox';
 import { MarketBox } from './MarketBox';
 import { JournalBox } from './JournalBox';
+import { ShopBox } from './ShopBox';
 import { RecapModal } from './RecapModal';
 import { AbstractSprite, DomikSprite, MechanicSprite, ResourceSprite, WeatherSprite, WorkerSprite } from './sprites';
 import { isSkilledWorker } from '../utils/worker';
@@ -755,7 +756,7 @@ export const DomikiPage = () => {
                     {purchaseDomikTypes != null &&
                         <button className="btn-game" onClick={() => toggleShop()}>
                             <StoreIcon className="btn-ico" aria-hidden="true" />
-                            {shopVisible ? 'Закрыть магазин' : 'Магазин'}
+                            {shopVisible ? 'Закрыть' : 'Плотник'}
                         </button>
                     }
                 </div>
@@ -763,41 +764,9 @@ export const DomikiPage = () => {
             <div className="workspace">
                 <section className="village">
                     {shopVisible && purchaseDomikTypes != null &&
-                        <div className="purchase-box">
-                            {purchaseDomikTypes.length === 0 &&
-                                <span className="hint">Магазин пуст</span>
-                            }
-                            {purchaseDomikTypes.map(purchaseDomikType => {
-                                const firstLevel = purchaseDomikType.levels.find(x => x.value === 1);
-                                const levelLocked = villageLevel != null && purchaseDomikType.unlockLevel > villageLevel.level;
-                                const blueprint = purchaseDomikType.blueprintId == null ? null : blueprints.find(x => x.id === purchaseDomikType.blueprintId) ?? null;
-                                const blueprintLocked = blueprint != null && !blueprint.owned;
-                                const countGateLocked = purchaseDomikType.availableCount === 0 && purchaseDomikType.nextCountGateLevel != null;
-                                const isLocked = levelLocked || blueprintLocked || countGateLocked;
-                                const lockTitle = levelLocked
-                                    ? `Откроется при обжитости ${purchaseDomikType.unlockLevel}`
-                                    : blueprintLocked
-                                        ? `Нужен чертёж (репутация ${blueprint.neighborName} ${blueprint.reputationThreshold})`
-                                        : countGateLocked
-                                            ? `Ещё один – при обжитости ${purchaseDomikType.nextCountGateLevel}`
-                                            : undefined;
-                                return (
-                                    <div key={purchaseDomikType.id} className={'plot plot-shop' + (isLocked ? ' plot-locked' : '')} title={isLocked ? lockTitle : undefined}>
-                                        <DomikSprite className="plot-sprite" logicName={purchaseDomikType.logicName} />
-                                        <span className="plot-name">{purchaseDomikType.name}</span>
-                                        <span className="plot-status">
-                                            {isLocked ? lockTitle : `Доступно: ${purchaseDomikType.availableCount}/${purchaseDomikType.maxCount}`}
-                                        </span>
-                                        <ResourcesBox resources={firstLevel?.resources ?? []} resourceTypes={resourceTypes} />
-                                        <button className="btn-game" disabled={isLocked} title={lockTitle} onClick={() => buy(purchaseDomikType.id)}>
-                                            {blueprintLocked || countGateLocked ? <LockIcon className="btn-ico" aria-hidden="true" /> : <BuildingIcon className="btn-ico" aria-hidden="true" />}
-                                            Купить
-                                        </button>
-                                    </div>
-                                );
-                            })
-                            }
-                        </div>
+                        <ShopBox purchaseDomikTypes={purchaseDomikTypes} domikTypes={domikTypes} receipts={receipts}
+                            resourceTypes={resourceTypes} resources={resources} blueprints={blueprints} villageLevel={villageLevel}
+                            onBuy={buy} onClose={() => setShopVisible(false)} />
                     }
                     <div className="domiks">
                         {domikTypes.length > 0 &&
