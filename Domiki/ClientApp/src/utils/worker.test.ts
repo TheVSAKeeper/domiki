@@ -23,16 +23,34 @@ const baseWorker: WorkerDto = {
 
 describe('describeWorker', () => {
     it.each<[string, WorkerDto['skills'], string]>([
-        ['no skills', [], 'Пока без ремесла.'],
-        ['only zero-bonus skills', [{ domikTypeId: 1, uses: 3, bonusPercent: 0 }], 'Пока без ремесла.'],
-        ['beginner bonus 1-9', [{ domikTypeId: 1, uses: 1, bonusPercent: 5 }], 'Начинающий работник: Рынок.'],
-        ['skilled bonus 10-24', [{ domikTypeId: 1, uses: 1, bonusPercent: 10 }], 'Умелый работник: Рынок.'],
-        ['masterful bonus 25+', [{ domikTypeId: 1, uses: 1, bonusPercent: 25 }], 'Мастеровитый работник: Рынок.'],
-        ['uses the highest bonus across multiple skills', [
+        ['no skills', [], 'Пока без ремесла, зато рвётся учиться.'],
+        ['only zero-bonus skills', [{ domikTypeId: 1, uses: 3, bonusPercent: 0 }], 'Пока без ремесла, зато рвётся учиться.'],
+        ['beginner bonus 1-9', [{ domikTypeId: 1, uses: 1, bonusPercent: 5 }], 'Начинающий торговец. Учится на ходу и не ноет.'],
+        ['skilled bonus 10-24', [{ domikTypeId: 1, uses: 1, bonusPercent: 10 }], 'Умелый торговец. Сдачу считает быстрее счётов.'],
+        ['masterful bonus 25+', [{ domikTypeId: 1, uses: 1, bonusPercent: 25 }], 'Знатный торговец. Сдачу считает быстрее счётов.'],
+        ['each craft keeps its own tier word', [
             { domikTypeId: 1, uses: 1, bonusPercent: 5 },
             { domikTypeId: 2, uses: 1, bonusPercent: 30 },
-        ], 'Мастеровитый работник: Рынок, Кузня.'],
+        ], 'Знатный кузнец, начинающий торговец. Искры летят, а работа поёт.'],
     ])('%s -> %s', (_name, skills, expected) => {
         expect(describeWorker({ ...baseWorker, skills }, domikTypes)).toBe(expected);
+    });
+
+    it.each<[string, string, WorkerDto['skills'], string]>([
+        ['female forge', 'Ульяна', [{ domikTypeId: 2, uses: 1, bonusPercent: 10 }], 'Умелая кузнечиха. Искры летят, а работа поёт.'],
+        ['female multi craft', 'Дарья', [
+            { domikTypeId: 1, uses: 1, bonusPercent: 5 },
+            { domikTypeId: 2, uses: 1, bonusPercent: 30 },
+        ], 'Знатная кузнечиха, начинающая торговка. Искры летят, а работа поёт.'],
+        ['male name ending in -я stays male', 'Илья', [{ domikTypeId: 2, uses: 1, bonusPercent: 10 }], 'Умелый кузнец. Искры летят, а работа поёт.'],
+    ])('%s -> %s', (_name, name, skills, expected) => {
+        expect(describeWorker({ ...baseWorker, name, skills }, domikTypes)).toBe(expected);
+    });
+
+    it('picks a different flavor for a different worker id at the same craft', () => {
+        const skills = [{ domikTypeId: 2, uses: 1, bonusPercent: 15 }];
+        const a = describeWorker({ ...baseWorker, id: 10, skills }, domikTypes);
+        const b = describeWorker({ ...baseWorker, id: 11, skills }, domikTypes);
+        expect(a).not.toBe(b);
     });
 });
