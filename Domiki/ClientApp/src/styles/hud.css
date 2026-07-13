@@ -128,9 +128,10 @@
 
 .weather-forecast-label {
     font-family: var(--pixel);
-    font-size: 9px;
+    font-size: 11px;
+    font-weight: 600;
     text-transform: uppercase;
-    color: rgba(51, 41, 26, .6);
+    color: #685941;
     padding-top: 2px;
 }
 
@@ -448,6 +449,25 @@
     font-variant-numeric: tabular-nums;
 }
 
+.hud-resource {
+    gap: 5px;
+    padding-right: 2px;
+}
+
+.hud-resource-name {
+    max-width: 82px;
+    overflow: hidden;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hud-resource .resource-value {
+    margin-left: 1px;
+}
+
 @media (prefers-reduced-motion: no-preference) {
     .resource-value.res-gain {
         animation: res-gain 480ms ease-out;
@@ -478,6 +498,47 @@
 }
 
 @media (max-width: 575px) {
+    .weather-strip {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .weather-forecast {
+        flex: 1 1 100%;
+        flex-wrap: wrap;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .weather-forecast .weather-chip {
+        flex: 0 1 auto;
+        min-width: 0;
+    }
+
+    .hud > .resources .hud-resource-name {
+        max-width: 68px;
+        font-size: 10px;
+    }
+
+    .hud > .resources {
+        gap: 7px 12px;
+    }
+
+    .hud-compact .hud-resource-name {
+        display: inline;
+        max-width: 54px;
+        font-size: 10px;
+    }
+
+    .hud-compact .hud-resource > svg {
+        display: none;
+    }
+
+    .hud-compact .hud-resource {
+        gap: 3px;
+    }
+
     .hud.hud-collapsed > :not(.hud-compact) {
         display: none;
     }
@@ -485,7 +546,7 @@
     .hud-collapsed .hud-compact {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
         width: 100%;
         min-height: 40px;
         padding: 0;

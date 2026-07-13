@@ -118,6 +118,31 @@
     margin: 0;
 }
 
+.resource-shortfall {
+    flex-wrap: wrap;
+}
+
+.resource-shortfall .resources {
+    gap: 4px 12px;
+    margin: 0;
+}
+
+.resource-shortfall .resource-box {
+    gap: 5px;
+}
+
+.resource-shortfall .resource-name,
+.resource-name {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.resource-shortfall .resource-box svg,
+.resource-shortfall .resource-box img {
+    width: 20px;
+    height: 20px;
+}
+
 .resource-lack .resource-value {
     color: var(--roof);
 }

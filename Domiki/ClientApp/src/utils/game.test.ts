@@ -1,6 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ResourceDto } from '../types/api';
-import { canAffordUpgrade, computePlodderCount, computeReceiptView, manufactureProgressPercent, progressPercent, sortDomiks, zealApplies, zealMultiplier } from './game';
+import { canAffordUpgrade, computePlodderCount, computeReceiptView, manufactureProgressPercent, progressPercent, resourceShortfall, sortDomiks, zealApplies, zealMultiplier } from './game';
+
+describe('resourceShortfall', () => {
+    it('returns exact deficits and merges repeated costs', () => {
+        expect(resourceShortfall(
+            [{ typeId: 2, value: 8 }, { typeId: 3, value: 4 }, { typeId: 2, value: 3 }],
+            [{ typeId: 2, value: 7 }, { typeId: 3, value: 9 }],
+        )).toEqual([{ typeId: 2, value: 4 }]);
+    });
+});
 
 const marketDomikType: DomikTypeDto = {
     id: 1,

@@ -29,7 +29,7 @@ import { useToast } from '../services/toast';
 import { disablePush, enablePush, getPushState } from '../services/push';
 import type { PushState } from '../services/push';
 import { useGameData } from '../hooks/useGameData';
-import { COIN_RESOURCE_TYPE_ID, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE, GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, sortDomiks, workerFitness } from '../utils/game';
+import { COIN_RESOURCE_TYPE_ID, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE, GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, resourceShortfall, sortDomiks, workerFitness } from '../utils/game';
 import type { DomikSortMode } from '../utils/game';
 import { domikThemedName } from '../utils/domikNames';
 import { formatDuration, remainingSeconds } from '../utils/time';
@@ -103,6 +103,9 @@ export const DomikiPage = () => {
     const closeLevelFlyout = () => setLevelFlyout(null);
     const gameTabsRef = useRef<HTMLDivElement>(null);
     const gameTabPanelRef = useRef<HTMLDivElement>(null);
+    const hudRef = useRef<HTMLElement>(null);
+    const [hudStickyOffset, setHudStickyOffset] = useState(76);
+    const [tabsOverflow, setTabsOverflow] = useState({ left: false, right: false });
     const tabAnchorReady = useRef(false);
     const scrollTabsPending = useRef(false);
     const hudSentinelRef = useRef<HTMLDivElement>(null);
@@ -204,6 +207,18 @@ export const DomikiPage = () => {
         return () => { observer.disconnect(); };
     }, []);
 
+    useEffect(() => {
+        const hud = hudRef.current;
+        if (hud == null) {
+            return;
+        }
+        const updateOffset = () => setHudStickyOffset(hud.offsetHeight + 16);
+        updateOffset();
+        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateOffset);
+        observer?.observe(hud);
+        return () => { observer?.disconnect(); };
+    }, []);
+
     const toggleExpand = (receiptId: number) =>
         setExpandedReceiptId(prev => (prev === receiptId ? null : receiptId));
 
@@ -298,6 +313,9 @@ export const DomikiPage = () => {
         : currentWeather?.effects.find(effect => effect.domikTypeId === selected.domikType.id) ?? null;
     const goldValue = resources.find(x => x.typeId === GOLD_RESOURCE_TYPE_ID)?.value ?? 0;
     const goldType = resourceTypes.find(x => x.id === GOLD_RESOURCE_TYPE_ID);
+    const formatShortfall = (cost: { typeId: number; value: number }[]) => resourceShortfall(cost, resources)
+        .map(item => `${resourceTypes.find(type => type.id === item.typeId)?.name ?? `ресурс #${item.typeId}`} ×${item.value}`)
+        .join(', ');
     const recapView = useMemo(() => buildRecapView(recap?.events ?? []), [recap]);
     const recapVisible = recap != null && recap.events.length > 0 && recap.awaySeconds >= 1800;
 
@@ -446,12 +464,64 @@ export const DomikiPage = () => {
     ];
     const visibleGameTabs = gameTabs.filter(tab => tab.visible);
     const activeGameTab = visibleGameTabs.find(tab => tab.key === activeTab) ?? visibleGameTabs[0];
+    const activeGameTabKey = activeGameTab?.key;
     const nextGoal = villageLevel?.upcomingUnlocks.find((unlock): unlock is typeof unlock & { level: number } => unlock.level != null);
 
+    useEffect(() => {
+        const tabs = gameTabsRef.current;
+        if (tabs == null) {
+            return;
+        }
+
+        const updateOverflow = () => {
+            const max = tabs.scrollWidth - tabs.clientWidth;
+            setTabsOverflow({ left: tabs.scrollLeft > 2, right: tabs.scrollLeft < max - 2 });
+        };
+        updateOverflow();
+        tabs.addEventListener('scroll', updateOverflow, { passive: true });
+        const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateOverflow);
+        observer?.observe(tabs);
+        return () => {
+            tabs.removeEventListener('scroll', updateOverflow);
+            observer?.disconnect();
+        };
+    }, [visibleGameTabs.length]);
+
+    useEffect(() => {
+        const tabs = gameTabsRef.current;
+        const active = activeGameTabKey == null ? null : tabs?.querySelector<HTMLElement>(`#game-tab-${activeGameTabKey}`);
+        if (tabs == null || active == null) {
+            return;
+        }
+
+        const left = active.offsetLeft;
+        const right = left + active.offsetWidth;
+        if (left < tabs.scrollLeft || right > tabs.scrollLeft + tabs.clientWidth) {
+            tabs.scrollTo({ left: Math.max(0, left - 12), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+        }
+    }, [activeGameTabKey]);
+
+    const activateTabByKeyboard = (event: React.KeyboardEvent<HTMLButtonElement>, index: number) => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+            return;
+        }
+        event.preventDefault();
+        const nextIndex = event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+                ? visibleGameTabs.length - 1
+                : (index + (event.key === 'ArrowRight' ? 1 : -1) + visibleGameTabs.length) % visibleGameTabs.length;
+        const next = visibleGameTabs[nextIndex];
+        if (next != null) {
+            setActiveTab(next.key);
+            requestAnimationFrame(() => document.getElementById(`game-tab-${next.key}`)?.focus());
+        }
+    };
+
     return (
-        <div className="game">
+        <div className="game" style={{ '--hud-sticky-offset': `${hudStickyOffset}px` } as React.CSSProperties}>
             <div className="hud-sentinel" ref={hudSentinelRef} aria-hidden="true" />
-            <header className={'hud pixel-panel' + (hudCollapsed ? ' hud-collapsed' : '')}>
+            <header ref={hudRef} className={'hud pixel-panel' + (hudCollapsed ? ' hud-collapsed' : '')}>
                 <button type="button" className="hud-compact" onClick={() => { setHudPinnedOpen(true); }} title="Развернуть панель">
                     {coinType != null && coinValue != null && <HudResource resourceType={coinType} value={coinValue} />}
                     <div className="resource-box">
@@ -831,9 +901,20 @@ export const DomikiPage = () => {
                                     : null;
                                 const cardWeather = currentWeather?.effects.find(
                                     effect => effect.domikTypeId === domik.typeId && effect.outputPercent !== 100) ?? null;
+                                const displayName = domikDisplayName(domik.typeId, domik.id, domikType.name);
+                                const upgradeAvailable = canAffordUpgrade(domik, domikType, resources);
+                                const cardStatus = domik.finishDate != null
+                                    ? 'идёт улучшение'
+                                    : hasManufacture
+                                        ? 'идёт производство'
+                                        : upgradeAvailable
+                                            ? 'доступно улучшение'
+                                            : 'готов к работе';
                                 return (
                                     <button key={domik.id}
                                         className={'plot' + (selectedDomikId === domik.id ? ' plot-selected' : '')}
+                                        aria-label={`${displayName}, уровень ${domik.level}, ${cardStatus}`}
+                                        aria-pressed={selectedDomikId === domik.id}
                                         onClick={() => selectDomik(domik.id, domikType.logicName)}>
                                         {cardWeather != null &&
                                             <span className={'plot-weather' + (cardWeather.outputPercent > 100 ? ' plot-weather-buff' : ' plot-weather-nerf')}
@@ -842,17 +923,17 @@ export const DomikiPage = () => {
                                             </span>
                                         }
                                         <AnimatedDomikSprite mode="levelup" className="plot-sprite" logicName={domikType.logicName} level={domik.level} working={hasManufacture} />
-                                        <span className="plot-name">{domikDisplayName(domik.typeId, domik.id, domikType.name)}</span>
+                                        <span className="plot-name">{displayName}</span>
                                         <UpgradeBox durationSeconds={durationSecondsText} level={domik.level} />
                                         <span className="plot-status">
-                                            {canAffordUpgrade(domik, domikType, resources) &&
-                                                <img className="status-icon" src="/images/upgrade_available.png" alt="Доступно улучшение" title="Доступно улучшение" />
+                                            {upgradeAvailable &&
+                                                <img className="status-icon" src="/images/upgrade_available.png" alt="" aria-hidden="true" title="Доступно улучшение" />
                                             }
                                             {domik.finishDate != null &&
-                                                <img className="status-icon icon-busy" src="/images/upgrade_in_process.png" alt="Идёт улучшение" title="Идёт улучшение" />
+                                                <img className="status-icon icon-busy" src="/images/upgrade_in_process.png" alt="" aria-hidden="true" title="Идёт улучшение" />
                                             }
                                             {hasManufacture &&
-                                                <AbstractSprite logicName="production_recipe" size={24} className="status-icon" aria-label="Идёт производство" />
+                                                <AbstractSprite logicName="production_recipe" size={24} className="status-icon" aria-hidden="true" />
                                             }
                                         </span>
                                     </button>
@@ -871,8 +952,10 @@ export const DomikiPage = () => {
                     }
                     {selected != null &&
                         <div>
-                            <h3 className="panel-title">{domikDisplayName(selected.domik.typeId, selected.domik.id, selected.domikType.name)}</h3>
-                            <span className="domik-level">ур. {selected.domik.level}</span>
+                            <div className="actions-heading">
+                                <h3 className="panel-title">{domikDisplayName(selected.domik.typeId, selected.domik.id, selected.domikType.name)}</h3>
+                                <span className="domik-level">ур. {selected.domik.level}</span>
+                            </div>
                             {domikLore[selected.domikType.logicName] != null &&
                                 <p className="domik-lore">{domikLore[selected.domikType.logicName]}</p>
                             }
@@ -884,11 +967,17 @@ export const DomikiPage = () => {
                                     </div>
                                     <button className="btn-game"
                                         disabled={!selected.upgrade.hasResources}
-                                        title={selected.upgrade.hasResources ? undefined : 'Не хватает ресурсов'}
+                                        title={selected.upgrade.hasResources ? undefined : `Не хватает: ${formatShortfall(selected.upgrade.resources)}`}
                                         onClick={() => upgrade(selected.domik.id)}>
                                         <ArrowUpIcon className="btn-ico" aria-hidden="true" />
                                         Улучшить
                                     </button>
+                                    {!selected.upgrade.hasResources &&
+                                        <div className="note-warn resource-shortfall">
+                                            <img src="/images/upgrade_no_resources.png" alt="" />
+                                            <span>Не хватает</span>
+                                            <ResourcesBox resources={resourceShortfall(selected.upgrade.resources, resources)} resourceTypes={resourceTypes} showNames />
+                                        </div>}
                                 </div>
                             }
                             {selected.domik.finishDate != null &&
@@ -897,7 +986,9 @@ export const DomikiPage = () => {
                                         const hurryCost = instaFinishCost(selected.domik.finishDate, now);
                                         const tooFar = !canInstaFinish(selected.domik.finishDate, now);
                                         const notEnoughGold = goldValue < hurryCost;
-                                        const hurryTitle = tooFar ? 'До конца слишком далеко' : notEnoughGold ? 'Не хватает золота' : undefined;
+                                        const hurryTitle = tooFar
+                                            ? `До конца ${selected.remainingText ?? ''}; ускорение доступно в последние 6 ч`
+                                            : notEnoughGold ? `Не хватает золота: ${hurryCost - goldValue}` : undefined;
 
                                         return (
                                             <>
@@ -935,9 +1026,25 @@ export const DomikiPage = () => {
                                                 .sort((a, b) => b.fitness - a.fitness);
                                             const freeIdsForType = new Set(freeWorkersForType.map(({ worker }) => worker.id));
                                             const validSelectedIds = selectedWorkerIds.filter(id => freeIdsForType.has(id));
+                                            const missingResources = resourceShortfall(view.inputs, resources);
+                                            const missingResourcesText = formatShortfall(view.inputs);
+                                            const automaticWorkerShortfall = Math.max(0, receipt.plodderCount - plodder.free);
                                             const canRun = isManual
                                                 ? view.hasResources && validSelectedIds.length === receipt.plodderCount
                                                 : view.canRun;
+                                            const workerBlockReason = isManual
+                                                ? validSelectedIds.length !== receipt.plodderCount
+                                                    ? `Выберите ровно ${receipt.plodderCount} трудяг (сейчас ${validSelectedIds.length})`
+                                                    : null
+                                                : !view.hasPlodders ? `Не хватает свободных трудяг: ${automaticWorkerShortfall}` : null;
+                                            const blockTitle = [
+                                                !view.hasResources ? `Не хватает: ${missingResourcesText}` : null,
+                                                workerBlockReason,
+                                            ].filter(reason => reason != null).join('; ');
+                                            const summaryBlockTitle = [
+                                                !view.hasResources ? `Не хватает: ${missingResourcesText}` : null,
+                                                !view.hasPlodders ? `Не хватает свободных трудяг: ${automaticWorkerShortfall}` : null,
+                                            ].filter(reason => reason != null).join('; ');
                                             return (
                                                 <div key={receipt.id}
                                                     className={'receipt-row' + (expanded ? ' receipt-open' : '') + (view.canRun ? '' : ' receipt-blocked')}>
@@ -948,7 +1055,7 @@ export const DomikiPage = () => {
                                                         <span className="receipt-cost">
                                                             {!view.canRun &&
                                                                 <img className="receipt-warn" src="/images/upgrade_no_resources.png"
-                                                                    alt="" title={!view.hasPlodders ? 'Нет свободных трудяг' : 'Не хватает ресурсов'} />
+                                                                    alt="" title={summaryBlockTitle} />
                                                             }
                                                             <span className="resource-box" title="Трудяги">
                                                                 <img src="/images/modificatorTypes/plodder.png" alt="Трудяги" />
@@ -1025,18 +1132,20 @@ export const DomikiPage = () => {
                                                             }
                                                             <button className="btn-game"
                                                                 disabled={!canRun}
+                                                                title={!canRun ? blockTitle : undefined}
                                                                 onClick={() => startManufacture(selected.domik.id, receipt.id, hasOptional && useOptional, autoRepeat, isManual ? validSelectedIds : undefined)}>
                                                                 <PlayIcon className="btn-ico" aria-hidden="true" />
                                                                 Запустить
                                                             </button>
-                                                            {!canRun &&
-                                                                <p className="note-warn">
+                                                             {!canRun &&
+                                                                <div className="note-warn resource-shortfall">
                                                                     <img src="/images/upgrade_no_resources.png" alt="" />
-                                                                    {isManual
-                                                                        ? !view.hasResources ? 'Не хватает ресурсов' : `Выберите ровно ${receipt.plodderCount} трудяг`
-                                                                        : !view.hasPlodders ? 'Нет свободных трудяг' : 'Не хватает ресурсов'}
-                                                                </p>
-                                                            }
+                                                                    {!view.hasResources
+                                                                        ? <><span>Не хватает</span><ResourcesBox resources={missingResources} resourceTypes={resourceTypes} showNames /></>
+                                                                        : null}
+                                                                    {workerBlockReason != null && <span>{workerBlockReason}</span>}
+                                                                </div>
+                                                             }
                                                         </div>
                                                     }
                                                 </div>
@@ -1067,26 +1176,39 @@ export const DomikiPage = () => {
                     }
                 </aside>
             </div>
-            <div className="game-tabs" ref={gameTabsRef}>
+            <nav className={'game-tabs' + (tabsOverflow.left ? ' game-tabs-overflow-left' : '') + (tabsOverflow.right ? ' game-tabs-overflow-right' : '')}
+                ref={gameTabsRef} aria-label="Разделы деревни">
                 <button type="button" className="game-tab game-tab-home" onClick={() => { window.scrollTo({ top: 0 }); }}>
                     <BuildingIcon className="game-tab-ico" aria-hidden="true" />
                     Домики
                 </button>
-                {visibleGameTabs.map(tab => (
-                    <button type="button" key={tab.key}
-                        className={'game-tab' + (tab.key === activeGameTab?.key ? ' game-tab-active' : '')}
-                        onClick={() => {
-                            setActiveTab(tab.key);
-                            if (window.matchMedia('(max-width: 900px)').matches) {
-                                gameTabPanelRef.current?.scrollIntoView({ block: 'start' });
-                            }
-                        }}>
-                        <tab.Icon className="game-tab-ico" aria-hidden="true" />
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
-            <div className="game-tab-panel" ref={gameTabPanelRef}>
+                <div className="game-tabs-list" role="tablist" aria-label="Игровые разделы">
+                    {visibleGameTabs.map((tab, index) => {
+                        const active = tab.key === activeGameTab?.key;
+                        return (
+                            <button type="button" role="tab" key={tab.key} id={`game-tab-${tab.key}`}
+                                data-game-tab={tab.key}
+                                aria-selected={active}
+                                aria-controls="game-tab-panel"
+                                tabIndex={active ? 0 : -1}
+                                className={'game-tab' + (active ? ' game-tab-active' : '')}
+                                onKeyDown={event => activateTabByKeyboard(event, index)}
+                                onClick={() => {
+                                    setActiveTab(tab.key);
+                                    if (window.matchMedia('(max-width: 900px)').matches) {
+                                        gameTabPanelRef.current?.scrollIntoView({ block: 'start' });
+                                    }
+                                }}>
+                                <tab.Icon className="game-tab-ico" aria-hidden="true" />
+                                {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
+                <span className="game-tabs-affordance" aria-hidden="true">›</span>
+            </nav>
+            <div className="game-tab-panel" ref={gameTabPanelRef} id="game-tab-panel" role="tabpanel"
+                aria-labelledby={activeGameTab == null ? undefined : `game-tab-${activeGameTab.key}`} tabIndex={0}>
                 {activeGameTab?.node}
             </div>
         </div>

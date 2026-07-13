@@ -20,7 +20,9 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
     const hurryCost = instaFinishCost(manufacture.finishDate, now);
     const tooFar = !canInstaFinish(manufacture.finishDate, now);
     const notEnoughGold = goldValue < hurryCost;
-    const hurryTitle = tooFar ? 'До конца слишком далеко' : notEnoughGold ? 'Не хватает золота' : undefined;
+    const hurryTitle = tooFar
+        ? `До конца ${remainingText}; ускорение доступно в последние 6 ч`
+        : notEnoughGold ? `Не хватает золота: ${hurryCost - goldValue}` : undefined;
 
     return (
         <div className="manufacture-box">

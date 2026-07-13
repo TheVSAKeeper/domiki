@@ -80,6 +80,26 @@ import IronResSprite from '../assets/resourceTypes/iron.svg?react';
 
 type SpriteComponent = FC<SVGProps<SVGSVGElement>>;
 
+const prepareInlineSprite = (node: SVGSVGElement | null) => {
+    if (node == null) {
+        return;
+    }
+
+    node.querySelectorAll('title, desc').forEach(element => element.remove());
+};
+
+const cleanSpriteProps = (props: SVGProps<SVGSVGElement>): SVGProps<SVGSVGElement> => {
+    const hidden = props['aria-hidden'] ?? (props['aria-label'] == null ? true : undefined);
+    return {
+        ...props,
+        ref: prepareInlineSprite,
+        role: hidden ? undefined : (props.role ?? 'img'),
+        'aria-hidden': hidden,
+        'aria-labelledby': undefined,
+        focusable: 'false',
+    };
+};
+
 const domikSprites: Record<string, SpriteComponent> = {
     bakery: BakerySprite,
     barracks: BarracksSprite,
@@ -179,7 +199,7 @@ interface IconSpriteProps extends SVGProps<SVGSVGElement> {
 const makeIconSprite = (sprites: Record<string, SpriteComponent>, fallback?: SpriteComponent) =>
     ({ logicName, size = 32, ...props }: IconSpriteProps) => {
         const Sprite = sprites[logicName] ?? fallback;
-        return Sprite == null ? null : <Sprite data-size={size} {...props} />;
+        return Sprite == null ? null : <Sprite data-size={size} {...cleanSpriteProps(props)} />;
     };
 
 const mechanicSprites: Record<string, SpriteComponent> = {
@@ -212,12 +232,12 @@ const clampLevel = (level: number) => Math.min(5, Math.max(1, Math.floor(level))
 
 export const DomikSprite = ({ logicName, level = 1, working = false, ...props }: SpriteProps) => {
     const Sprite = domikSprites[logicName];
-    return Sprite == null ? null : <Sprite data-level={clampLevel(level)} data-working={working ? 'true' : 'false'} {...props} />;
+    return Sprite == null ? null : <Sprite data-level={clampLevel(level)} data-working={working ? 'true' : 'false'} {...cleanSpriteProps(props)} />;
 };
 
 export const TolokaSprite = ({ logicName, level = 1, ...props }: SpriteProps) => {
     const Sprite = tolokaSprites[logicName];
-    return Sprite == null ? null : <Sprite data-level={clampLevel(level)} {...props} />;
+    return Sprite == null ? null : <Sprite data-level={clampLevel(level)} {...cleanSpriteProps(props)} />;
 };
 
 type WorkerLook = [skin: number, hair: number, style: string, beard: number, hat: number, shirt: number, extra: number];
@@ -277,6 +297,6 @@ export const WorkerSprite = ({ name, state = 'idle', skilled = false, ...props }
     return (
         <WorkerPortrait data-skin={skin} data-hair={hair} data-style={style} data-state={state}
             data-skilled={skilled ? 'true' : 'false'}
-            data-beard={beard} data-hat={hat} data-shirt={shirt} data-extra={extra} {...props} />
+            data-beard={beard} data-hat={hat} data-shirt={shirt} data-extra={extra} {...cleanSpriteProps(props)} />
     );
 };

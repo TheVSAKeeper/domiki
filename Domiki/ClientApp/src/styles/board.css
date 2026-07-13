@@ -12,7 +12,20 @@
     margin-top: 20px;
     padding-bottom: 8px;
     overflow-x: auto;
+    scrollbar-width: none;
     scroll-margin-top: 80px;
+}
+
+.game-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.game-tabs-list {
+    display: contents;
+}
+
+.game-tabs-affordance {
+    display: none;
 }
 
 .game-tab-panel {
@@ -39,6 +52,17 @@
 .game-tab-active {
     color: var(--plank);
     background: var(--pine);
+}
+
+.game-tab:focus-visible {
+    outline: 3px solid var(--coin);
+    outline-offset: -3px;
+    box-shadow: 0 0 0 2px #fffaec;
+}
+
+.game-tab-panel:focus-visible {
+    outline: 3px solid var(--coin);
+    outline-offset: 3px;
 }
 
 .game-tab-home {
@@ -284,7 +308,7 @@
 .actions {
     flex: 0 0 320px;
     position: sticky;
-    top: 76px;
+    top: var(--hud-sticky-offset, 76px);
     padding: 18px;
     box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
@@ -304,6 +328,20 @@
     border: 3px solid var(--ink);
     clip-path: var(--cut);
     cursor: pointer;
+}
+
+.actions-heading {
+    position: sticky;
+    top: var(--hud-sticky-offset, 76px);
+    z-index: 2;
+    margin: -4px -4px 0;
+    padding: 4px 44px 10px 4px;
+    background: var(--plank);
+    border-bottom: 2px solid rgba(51, 41, 26, .18);
+}
+
+.actions-heading .panel-title {
+    margin-bottom: 8px;
 }
 
     .actions-close:hover {
@@ -438,6 +476,10 @@
 }
 
 @media (max-width: 900px) {
+    .actions-heading {
+        top: 0;
+    }
+
     .game-tabs {
         position: fixed;
         left: 0;
@@ -448,6 +490,31 @@
         padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
         background: var(--plank);
         border-top: 3px solid var(--ink);
+    }
+
+    .game-tabs-affordance {
+        position: sticky;
+        right: -10px;
+        width: 0;
+        align-self: stretch;
+        flex: 0 0 0;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity .15s;
+        box-shadow: -20px 0 18px 14px var(--plank);
+    }
+
+    .game-tabs-overflow-right .game-tabs-affordance {
+        display: grid;
+        width: 24px;
+        flex-basis: 24px;
+        place-items: center;
+        font-family: var(--pixel);
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--ink);
+        background: linear-gradient(90deg, rgba(251, 243, 223, .35), var(--plank) 45%);
+        opacity: 1;
     }
 
     .game-tab-home {

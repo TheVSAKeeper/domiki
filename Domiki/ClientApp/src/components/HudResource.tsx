@@ -26,8 +26,9 @@ export const HudResource = ({ resourceType, value }: HudResourceProps) => {
     }, [value, reduce]);
 
     return (
-        <div className="resource-box" title={resourceType.name}>
+        <div className="resource-box hud-resource" title={resourceType.name} aria-label={`${resourceType.name}: ${value}`}>
             <ResourceSprite logicName={resourceType.logicName} aria-hidden="true" />
+            <span className="hud-resource-name" aria-hidden="true">{resourceType.name}</span>
             <span className={'resource-value' + (isGain ? ' res-gain' : '')}>{value}</span>
         </div>
     );

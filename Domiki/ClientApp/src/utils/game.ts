@@ -21,6 +21,17 @@ export function hasResourcesFor(cost: ResourceDto[], owned: ResourceDto[]): bool
     });
 }
 
+export function resourceShortfall(cost: ResourceDto[], owned: ResourceDto[]): ResourceDto[] {
+    const required = new Map<number, number>();
+    cost.forEach(resource => required.set(resource.typeId, (required.get(resource.typeId) ?? 0) + resource.value));
+
+    return [...required].flatMap(([typeId, value]) => {
+        const available = owned.find(resource => resource.typeId === typeId)?.value ?? 0;
+        const missing = Math.max(0, value - available);
+        return missing > 0 ? [{ typeId, value: missing }] : [];
+    });
+}
+
 export function canAffordUpgrade(domik: DomikDto, domikType: DomikTypeDto, resources: ResourceDto[]): boolean {
     if (domik.level <= 0 || domik.level >= domikType.maxLevel || domik.finishDate != null) {
         return false;
