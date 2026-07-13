@@ -20,6 +20,7 @@ import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
 import JournalIcon from 'pixelarticons/svg/article.svg?react';
 import ChevronLeftIcon from 'pixelarticons/svg/chevron-left.svg?react';
 import ChevronRightIcon from 'pixelarticons/svg/chevron-right.svg?react';
+import RepeatIcon from 'pixelarticons/svg/repeat.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { disablePush, enablePush, getPushState } from '../services/push';
@@ -429,7 +430,10 @@ export const DomikiPage = () => {
 
     const hurryManufactureAction = (manufactureId: number) => runAction(() => hurryManufacture(manufactureId), 'Производство ускорено');
 
-    const toggleManufactureAutoRepeat = (manufactureId: number, next: boolean) => runAction(() => setManufactureAutoRepeat(manufactureId, next));
+    const toggleManufactureAutoRepeat = (manufactureId: number, next: boolean) => runAction(
+        () => setManufactureAutoRepeat(manufactureId, next),
+        next ? 'Автоповтор включён' : 'Повторы остановлены',
+    );
 
     const hurryDomikAction = (domikId: number) => runAction(() => hurryDomik(domikId), 'Улучшение ускорено');
 
@@ -826,6 +830,13 @@ export const DomikiPage = () => {
                                 }
 
                                 const hasManufacture = domik.manufactures != null && domik.manufactures.length > 0;
+                                const repeatedRecipeNames = (domik.manufactures ?? [])
+                                    .filter(manufacture => manufacture.autoRepeat)
+                                    .map(manufacture => receipts.find(receipt => receipt.id === manufacture.receiptId)?.name)
+                                    .filter((name): name is string => name != null);
+                                const repeatTitle = repeatedRecipeNames.length > 0
+                                    ? `Автоповтор: ${repeatedRecipeNames.join(', ')}`
+                                    : null;
                                 const durationSecondsText = domik.finishDate != null
                                     ? formatDuration(remainingSeconds(domik.finishDate, now))
                                     : null;
@@ -834,9 +845,9 @@ export const DomikiPage = () => {
                                 const displayName = domikDisplayName(domik.typeId, domik.id, domikType.name);
                                 const upgradeAvailable = canAffordUpgrade(domik, domikType, resources);
                                 const cardStatus = domik.finishDate != null
-                                    ? 'идёт улучшение'
+                                        ? 'идёт улучшение'
                                     : hasManufacture
-                                        ? 'идёт производство'
+                                        ? `идёт производство${repeatTitle == null ? '' : `, ${repeatTitle.toLocaleLowerCase()}`}`
                                         : upgradeAvailable
                                             ? 'доступно улучшение'
                                             : 'готов к работе';
@@ -864,6 +875,9 @@ export const DomikiPage = () => {
                                             }
                                             {hasManufacture &&
                                                 <AbstractSprite logicName="production_recipe" size={24} className="status-icon" aria-hidden="true" />
+                                            }
+                                            {repeatTitle != null &&
+                                                <RepeatIcon className="status-icon status-repeat" aria-hidden="true" title={repeatTitle} />
                                             }
                                         </span>
                                     </button>
@@ -1061,8 +1075,13 @@ export const DomikiPage = () => {
                                                             <label className="receipt-optional">
                                                                 <input type="checkbox" checked={autoRepeat}
                                                                     onChange={() => toggleAutoRepeat(receipt.id)} />
-                                                                Повторять
+                                                                Повторять смену автоматически
                                                             </label>
+                                                            {autoRepeat &&
+                                                                <p className="receipt-repeat-hint">
+                                                                    После каждой смены этот рецепт запустится снова, пока хватает ресурсов и трудяги могут работать.
+                                                                </p>
+                                                            }
                                                             {weatherEffect != null &&
                                                                 <p className="weather-modifier">
                                                                     Погода: {weatherEffect.outputPercent >= 100 ? '+' : ''}{weatherEffect.outputPercent - 100} % выход
