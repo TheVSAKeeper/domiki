@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" data-active="true" data-state="idle" data-motion="on" role="img" aria-labelledby="brick-arch-title brick-arch-desc" focusable="false">
+  <title id="brick-arch-title">Кирпичная арка</title>
+  <desc id="brick-arch-desc">Красная кирпичная садовая арка со ступенчатым сводом и каменным основанием.</desc>
+  <style>
+    .tiny,.micro{display:inline}
+    svg[data-size="32"] .tiny,svg[data-size="24"] .tiny{display:none}
+    svg[data-size="24"] .micro{display:none}
+    .glow{transform-box:fill-box;transform-origin:center}
+    svg[data-motion="on"][data-active="true"] .glow{animation:arch-glow 3.2s steps(1,end) infinite}
+    svg[data-state="disabled"] .scene{filter:saturate(.25);opacity:.58}
+    svg:hover:not([data-state="disabled"]) .scene{animation:arch-hover .28s steps(3,end)}
+    @keyframes arch-glow{0%,44%,60%,100%{opacity:1}48%,56%{opacity:.68}}
+    @keyframes arch-hover{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px)}}
+    @media (prefers-reduced-motion:reduce){.scene,.glow{animation:none!important;transform:none!important}}
+  </style>
+  <g class="scene">
+    <!-- broad stone footing keeps the silhouette grounded at 24 px -->
+    <rect x="4" y="54" width="20" height="6" fill="#262626"/>
+    <rect x="40" y="54" width="20" height="6" fill="#262626"/>
+    <rect x="8" y="54" width="14" height="4" fill="#92999e"/>
+    <rect x="42" y="54" width="14" height="4" fill="#92999e"/>
+
+    <!-- left pier -->
+    <rect x="8" y="22" width="16" height="34" fill="#262626"/>
+    <rect x="10" y="24" width="12" height="30" fill="#a94332"/>
+    <rect x="10" y="30" width="12" height="4" fill="#c65a42"/>
+    <rect x="10" y="42" width="12" height="4" fill="#7f382d"/>
+    <!-- right pier -->
+    <rect x="40" y="22" width="16" height="34" fill="#262626"/>
+    <rect x="42" y="24" width="12" height="30" fill="#a94332"/>
+    <rect x="42" y="30" width="12" height="4" fill="#7f382d"/>
+    <rect x="42" y="42" width="12" height="4" fill="#c65a42"/>
+
+    <!-- stepped arch: the opening remains a clean, unmistakable void -->
+    <rect x="12" y="14" width="40" height="12" fill="#262626"/>
+    <rect x="18" y="8" width="28" height="10" fill="#262626"/>
+    <rect x="20" y="10" width="24" height="8" fill="#b94d38"/>
+    <rect x="14" y="16" width="36" height="8" fill="#a94332"/>
+    <rect x="18" y="22" width="10" height="8" fill="#262626"/>
+    <rect x="36" y="22" width="10" height="8" fill="#262626"/>
+    <rect x="20" y="22" width="6" height="6" fill="#c65a42"/>
+    <rect x="38" y="22" width="6" height="6" fill="#7f382d"/>
+
+    <!-- high-contrast brick rhythm; removed in the tiniest rendering -->
+    <g class="micro" fill="#e8b98a">
+      <rect x="12" y="34" width="2" height="4"/>
+      <rect x="20" y="46" width="2" height="4"/>
+      <rect x="50" y="34" width="2" height="4"/>
+      <rect x="42" y="46" width="2" height="4"/>
+      <rect x="28" y="14" width="8" height="2"/>
+    </g>
+    <g class="tiny">
+      <rect x="16" y="18" width="8" height="2" fill="#7f382d"/>
+      <rect x="40" y="18" width="8" height="2" fill="#c65a42"/>
+      <rect class="glow" x="30" y="6" width="4" height="4" fill="#e8b83a"/>
+    </g>
+  </g>
+</svg>

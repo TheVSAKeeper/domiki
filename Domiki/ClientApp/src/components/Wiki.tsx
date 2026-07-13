@@ -6,20 +6,10 @@ import { formatDuration } from '../utils/time';
 import { domikLore } from '../utils/domikLore';
 import { resourceLore } from '../utils/resourceLore';
 import type { DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, WeatherStateDto } from '../types/api';
-import { DomikSprite, MechanicSprite, ResourceSprite } from './sprites';
+import { DecorSprite, DomikSprite, MechanicSprite, ResourceSprite, WeatherSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import { PixelLoader } from './PixelLoader';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
-import CloudSunIcon from 'pixelarticons/svg/cloud-sun.svg?react';
-import CloudIcon from 'pixelarticons/svg/cloud.svg?react';
-import CloudMoonIcon from 'pixelarticons/svg/cloud-moon.svg?react';
-import FireIcon from 'pixelarticons/svg/fire.svg?react';
-import WindIcon from 'pixelarticons/svg/wind.svg?react';
-import GardenIcon from 'pixelarticons/svg/tree.svg?react';
-import FenceIcon from 'pixelarticons/svg/grid-3x2.svg?react';
-import FlowerIcon from 'pixelarticons/svg/heart.svg?react';
-import FountainIcon from 'pixelarticons/svg/home.svg?react';
-import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 
 interface Catalog {
     domikTypes: DomikTypeDto[];
@@ -28,22 +18,6 @@ interface Catalog {
     weather: WeatherStateDto;
     decor: DecorStateDto;
 }
-
-const WEATHER_ICONS: Record<string, typeof CloudSunIcon> = {
-    clear: CloudSunIcon,
-    rain: CloudIcon,
-    drought: FireIcon,
-    frost: CloudMoonIcon,
-    wind: WindIcon,
-};
-
-const DECOR_ICONS: Record<string, typeof FenceIcon> = {
-    fence: FenceIcon,
-    flowerbed: FlowerIcon,
-    garden: GardenIcon,
-    fountain: FountainIcon,
-    brick_arch: BuildingIcon,
-};
 
 interface Mechanic {
     key: string;
@@ -406,7 +380,10 @@ export const Wiki = () => {
                                             <div className="wiki-mechanic-live">
                                                 {weather.current != null && (
                                                     <>
-                                                        <span className="wiki-mechanic-live-label">Сейчас: {weather.current.weatherName}</span>
+                                                        <span className="wiki-mechanic-live-label">
+                                                            <WeatherSprite logicName={weather.current.logicName} size={24} className="weather-chip-ico" aria-hidden="true" />
+                                                            Сейчас: {weather.current.weatherName}
+                                                        </span>
                                                         {weather.current.effects.some(e => e.outputPercent !== 100) && (
                                                             <div className="weather-effects">
                                                                 {weather.current.effects.filter(e => e.outputPercent !== 100).map(e => {
@@ -432,7 +409,6 @@ export const Wiki = () => {
                                                         <span className="wiki-mechanic-live-label">Прогноз:</span>
                                                         <div className="weather-effects">
                                                             {weather.forecast.map(period => {
-                                                                const ForecastIcon = WEATHER_ICONS[period.logicName] ?? CloudSunIcon;
                                                                 const hint = period.effects
                                                                     .filter(e => e.outputPercent !== 100)
                                                                     .flatMap(e => {
@@ -442,7 +418,7 @@ export const Wiki = () => {
                                                                     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0];
                                                                 return (
                                                                     <span key={period.startDate} className="weather-chip" title={period.weatherName}>
-                                                                        <ForecastIcon className="weather-chip-ico" aria-hidden="true" />
+                                                                        <WeatherSprite logicName={period.logicName} size={24} className="weather-chip-ico" aria-hidden="true" />
                                                                         {period.weatherName}
                                                                         {hint != null && (
                                                                             <span className={'weather-effect' + (hint.delta > 0 ? ' weather-effect-buff' : ' weather-effect-nerf')} title={`${hint.domikType.name}: ${hint.delta > 0 ? '+' : ''}${hint.delta}% выход`}>
@@ -461,10 +437,9 @@ export const Wiki = () => {
                                         {m.key === 'decor' && decor.types.length > 0 && (
                                             <div className="wiki-res-grid">
                                                 {decor.types.map(type => {
-                                                    const DecorIcon = DECOR_ICONS[type.logicName] ?? GardenIcon;
                                                     return (
                                                         <div key={type.id} className="wiki-res-cell pixel-panel" title={type.name}>
-                                                            <DecorIcon aria-hidden="true" />
+                                                            <DecorSprite logicName={type.logicName} size={32} aria-hidden="true" />
                                                             <span>{type.name} · уют +{type.comfortPoints}</span>
                                                         </div>
                                                     );

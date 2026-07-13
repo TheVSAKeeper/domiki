@@ -59,7 +59,8 @@ export function describeWorker(worker: WorkerDto, domikTypes: DomikTypeDto[]): s
     const skilled = worker.skills
         .filter(s => s.bonusPercent > 0)
         .sort((a, b) => b.bonusPercent - a.bonusPercent || a.domikTypeId - b.domikTypeId);
-    if (skilled.length === 0) {
+    const top = skilled[0];
+    if (top == null) {
         return 'Пока без ремесла, зато рвётся учиться.';
     }
 
@@ -71,7 +72,6 @@ export function describeWorker(worker: WorkerDto, domikTypes: DomikTypeDto[]): s
     });
     const skill = parts.join(', ').replace(/^./, c => c.toUpperCase());
 
-    const top = skilled[0];
     const topType = domikTypes.find(t => t.id === top.domikTypeId);
     const craft = topType != null ? CRAFTS[topType.logicName] : undefined;
     const flavor = top.bonusPercent >= 10 && craft != null

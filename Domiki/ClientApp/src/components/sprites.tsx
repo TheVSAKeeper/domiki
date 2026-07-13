@@ -1,5 +1,4 @@
 import type { FC, SVGProps } from 'react';
-import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import BarracksSprite from '../assets/domikTypes/barracks.svg?react';
 import ClayMineSprite from '../assets/domikTypes/clay_mine.svg?react';
 import FieldSprite from '../assets/domikTypes/field.svg?react';
@@ -34,6 +33,8 @@ import DecorFlowersSprite from '../assets/decorTypes/flowers.svg?react';
 import DecorFountainSprite from '../assets/decorTypes/fountain.svg?react';
 import DecorGardenSprite from '../assets/decorTypes/garden.svg?react';
 import DecorTrophySprite from '../assets/decorTypes/trophy.svg?react';
+import DecorBrickArchSprite from '../assets/decorTypes/brick_arch.svg?react';
+import DecorLanternSprite from '../assets/decorTypes/lantern.svg?react';
 import TraitOrdinarySprite from '../assets/traits/ordinary.svg?react';
 import TraitNimbleSprite from '../assets/traits/nimble.svg?react';
 import TraitDiligentSprite from '../assets/traits/diligent.svg?react';
@@ -143,6 +144,8 @@ const decorSprites: Record<string, SpriteComponent> = {
     bench: DecorBenchSprite,
     trail_idol: DecorTrophySprite,
     wanderer_banner: DecorFlagSprite,
+    brick_arch: DecorBrickArchSprite,
+    lantern: DecorLanternSprite,
 };
 
 const traitSprites: Record<string, SpriteComponent> = {
@@ -193,12 +196,30 @@ const resourceSprites: Record<string, SpriteComponent> = {
 
 interface IconSpriteProps extends SVGProps<SVGSVGElement> {
     logicName: string;
-    size?: 24 | 32 | 64;
+    size?: 24 | 32 | 40 | 48 | 64;
 }
 
-const makeIconSprite = (sprites: Record<string, SpriteComponent>, fallback?: SpriteComponent) =>
+const warnedUnknownSprites = new Set<string>();
+
+const warnUnknownSprite = (kind: string, logicName: string) => {
+    if (!import.meta.env.DEV) {
+        return;
+    }
+
+    const key = `${kind}:${logicName}`;
+    if (!warnedUnknownSprites.has(key)) {
+        warnedUnknownSprites.add(key);
+        console.warn(`[sprites] Unknown ${kind} logicName: "${logicName}"`);
+    }
+};
+
+const makeIconSprite = (kind: string, sprites: Record<string, SpriteComponent>, fallback?: SpriteComponent) =>
     ({ logicName, size = 32, ...props }: IconSpriteProps) => {
-        const Sprite = sprites[logicName] ?? fallback;
+        const mappedSprite = sprites[logicName];
+        if (mappedSprite == null) {
+            warnUnknownSprite(kind, logicName);
+        }
+        const Sprite = mappedSprite ?? fallback;
         return Sprite == null ? null : <Sprite data-size={size} {...cleanSpriteProps(props)} />;
     };
 
@@ -214,13 +235,13 @@ const mechanicSprites: Record<string, SpriteComponent> = {
     decor: MechDecorSprite,
 };
 
-export const MechanicSprite = makeIconSprite(mechanicSprites);
-export const WeatherSprite = makeIconSprite(weatherSprites);
-export const DecorSprite = makeIconSprite(decorSprites, BuildingIcon);
-export const TraitSprite = makeIconSprite(traitSprites, TraitOrdinarySprite);
-export const NeighborSprite = makeIconSprite(neighborSprites, NeighborGenericSprite);
-export const AbstractSprite = makeIconSprite(abstractSprites);
-export const ResourceSprite = makeIconSprite(resourceSprites);
+export const MechanicSprite = makeIconSprite('mechanic', mechanicSprites);
+export const WeatherSprite = makeIconSprite('weather', weatherSprites);
+export const DecorSprite = makeIconSprite('decor', decorSprites);
+export const TraitSprite = makeIconSprite('trait', traitSprites, TraitOrdinarySprite);
+export const NeighborSprite = makeIconSprite('neighbor', neighborSprites, NeighborGenericSprite);
+export const AbstractSprite = makeIconSprite('abstract', abstractSprites);
+export const ResourceSprite = makeIconSprite('resource', resourceSprites);
 
 interface SpriteProps extends SVGProps<SVGSVGElement> {
     logicName: string;
@@ -232,11 +253,17 @@ const clampLevel = (level: number) => Math.min(5, Math.max(1, Math.floor(level))
 
 export const DomikSprite = ({ logicName, level = 1, working = false, ...props }: SpriteProps) => {
     const Sprite = domikSprites[logicName];
+    if (Sprite == null) {
+        warnUnknownSprite('domik', logicName);
+    }
     return Sprite == null ? null : <Sprite data-level={clampLevel(level)} data-working={working ? 'true' : 'false'} {...cleanSpriteProps(props)} />;
 };
 
 export const TolokaSprite = ({ logicName, level = 1, ...props }: SpriteProps) => {
     const Sprite = tolokaSprites[logicName];
+    if (Sprite == null) {
+        warnUnknownSprite('toloka', logicName);
+    }
     return Sprite == null ? null : <Sprite data-level={clampLevel(level)} {...cleanSpriteProps(props)} />;
 };
 

@@ -64,6 +64,7 @@ const ResourcePicker = ({ resourceTypes, selectedId, onSelect, label }: { resour
     <div className="resource-picker" role="radiogroup" aria-label={label}>
         {resourceTypes.map(type => (
             <button key={type.id} type="button" role="radio" aria-checked={type.id === selectedId}
+                aria-label={type.name}
                 className={'resource-option' + (type.id === selectedId ? ' resource-option-selected' : '')}
                 title={type.name} onClick={() => onSelect(type.id)}>
                 <ResourceSprite logicName={type.logicName} aria-hidden="true" />

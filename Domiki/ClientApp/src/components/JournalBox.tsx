@@ -1,4 +1,3 @@
-import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import JournalIcon from 'pixelarticons/svg/article.svg?react';
 import BackpackIcon from 'pixelarticons/svg/backpack.svg?react';
 import StoreIcon from 'pixelarticons/svg/store.svg?react';
@@ -28,13 +27,14 @@ const renderRow = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], domik
     }
 
     if (event.type === 'ManufactureFinished' && Array.isArray(data.resources)) {
+        const domikType = isNumber(data.domikTypeId) ? domikTypes.find(x => x.id === data.domikTypeId) : undefined;
         const resources = data.resources.flatMap(entry => {
             const parsed = readResource(entry);
             return parsed == null ? [] : [parsed];
         });
         return (
             <>
-                <BuildingIcon aria-hidden="true" />
+                {domikType != null && <DomikSprite logicName={domikType.logicName} aria-hidden="true" />}
                 <span className="journal-text">{isNumber(data.cycles) && data.cycles > 1 ? `Производство ×${data.cycles}` : 'Производство'}</span>
                 <span className="journal-chips">
                     {resources.map(resource => {

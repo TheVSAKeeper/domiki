@@ -13,12 +13,6 @@ import SaveIcon from 'pixelarticons/svg/save.svg?react';
 import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
 import EarthIcon from 'pixelarticons/svg/earth.svg?react';
-import ClipboardIcon from 'pixelarticons/svg/clipboard.svg?react';
-import NoteIcon from 'pixelarticons/svg/note.svg?react';
-import BackpackIcon from 'pixelarticons/svg/backpack.svg?react';
-import GardenIcon from 'pixelarticons/svg/tree.svg?react';
-import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
-import UsersIcon from 'pixelarticons/svg/users.svg?react';
 import BellIcon from 'pixelarticons/svg/bell.svg?react';
 import BellOffIcon from 'pixelarticons/svg/bell-off.svg?react';
 import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
@@ -73,7 +67,7 @@ const SORT_MODES: readonly [SortModeEntry, ...SortModeEntry[]] = [
 interface GameTab {
     key: string;
     label: string;
-    Icon: typeof StoreIcon;
+    icon: ReactNode;
     visible: boolean;
     node: ReactNode;
 }
@@ -429,36 +423,36 @@ export const DomikiPage = () => {
 
     const gameTabs: GameTab[] = [
         {
-            key: 'orders', label: 'Заказы', Icon: ClipboardIcon, visible: true,
+            key: 'orders', label: 'Заказы', icon: <MechanicSprite logicName="orders" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,
             node: <><GoalCard goals={goals} resourceTypes={resourceTypes} /><OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes} resources={resources} now={now} onComplete={completeOrder} /></>,
         },
         {
-            key: 'blueprints', label: 'Вехи соседей', Icon: NoteIcon, visible: blueprints.length > 0 || (decor?.types ?? []).some(x => x.neighborId != null),
+            key: 'blueprints', label: 'Вехи соседей', icon: <MechanicSprite logicName="blueprints" size={24} className="game-tab-ico" aria-hidden="true" />, visible: blueprints.length > 0 || (decor?.types ?? []).some(x => x.neighborId != null),
             node: <BlueprintsBox blueprints={blueprints} domikTypes={domikTypes} decorTypes={decor?.types ?? []} reputations={reputation} />,
         },
         {
-            key: 'expeditions', label: 'Экспедиции', Icon: BackpackIcon, visible: expeditions != null,
+            key: 'expeditions', label: 'Экспедиции', icon: <MechanicSprite logicName="expeditions" size={24} className="game-tab-ico" aria-hidden="true" />, visible: expeditions != null,
             node: <ExpeditionsBox expeditions={expeditions} resourceTypes={resourceTypes} decorTypes={decor?.types ?? []} resources={resources} workers={workers} now={now} onStart={startExpeditionAction} />,
         },
         {
-            key: 'decor', label: 'Декор', Icon: GardenIcon, visible: decor != null,
+            key: 'decor', label: 'Декор', icon: <MechanicSprite logicName="decor" size={24} className="game-tab-ico" aria-hidden="true" />, visible: decor != null,
             node: <DecorBox decor={decor} resourceTypes={resourceTypes} resources={resources} reputations={reputation} onBuy={buyDecorAction} />,
         },
         {
-            key: 'toloka', label: 'Толока', Icon: BuildingCommunityIcon, visible: toloka != null,
+            key: 'toloka', label: 'Толока', icon: <MechanicSprite logicName="toloka" size={24} className="game-tab-ico" aria-hidden="true" />, visible: toloka != null,
             node: <TolokaBox toloka={toloka} resourceTypes={resourceTypes} resources={resources} now={now} onContribute={contributeTolokaAction} />,
         },
         {
-            key: 'market', label: 'Ярмарка', Icon: StoreIcon, visible: market != null,
+            key: 'market', label: 'Ярмарка', icon: <MechanicSprite logicName="market" size={24} className="game-tab-ico" aria-hidden="true" />, visible: market != null,
             node: <MarketBox market={market} resourceTypes={resourceTypes} resources={resources} now={now}
                 onPost={postLotAction} onAccept={acceptLotAction} onCancel={cancelLotAction} />,
         },
         {
-            key: 'workers', label: 'Трудяги', Icon: UsersIcon, visible: true,
+            key: 'workers', label: 'Трудяги', icon: <MechanicSprite logicName="workers" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,
             node: <WorkersBox workers={workers} domikTypes={domikTypes} domiks={domiks} expeditions={expeditions} feedWorkers={village?.feedWorkers ?? false} now={now} onToggleFeedWorkers={toggleFeedWorkers} />,
         },
         {
-            key: 'journal', label: 'Журнал', Icon: JournalIcon, visible: true,
+            key: 'journal', label: 'Журнал', icon: <JournalIcon className="game-tab-ico" aria-hidden="true" />, visible: true,
             node: <JournalBox events={events} resourceTypes={resourceTypes} domikTypes={domikTypes} decorTypes={decor?.types ?? []} now={now} />,
         },
     ];
@@ -1111,7 +1105,7 @@ export const DomikiPage = () => {
                                         gameTabPanelRef.current?.scrollIntoView({ block: 'start' });
                                     }
                                 }}>
-                                <tab.Icon className="game-tab-ico" aria-hidden="true" />
+                                {tab.icon}
                                 {tab.label}
                             </button>
                         );
