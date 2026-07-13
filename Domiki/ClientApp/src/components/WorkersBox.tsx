@@ -2,9 +2,10 @@ import { useState } from 'react';
 import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
+import CrownIcon from 'pixelarticons/svg/crown.svg?react';
 import type { DomikDto, DomikTypeDto, ExpeditionStateDto, WorkerDto } from '../types/api';
 import { formatDuration, formatDurationShort, remainingSeconds } from '../utils/time';
-import { describeWorker, isSkilledWorker } from '../utils/worker';
+import { describeWorker, describeWorkerParts, isSkilledWorker, rankedSkills } from '../utils/worker';
 import { AbstractSprite, DomikSprite, MechanicSprite, TraitSprite, WorkerSprite } from './sprites';
 
 type WorkerState = 'expedition' | 'busy' | 'resting' | 'free';
@@ -18,6 +19,10 @@ interface WorkersBoxProps {
     now: number;
     onToggleFeedWorkers: (enabled: boolean) => void;
 }
+
+const stateLabels: Record<WorkerState, string> = { expedition: 'В экспедиции', busy: 'Работает', resting: 'Отдыхает', free: 'Свободен' };
+const tallyLabels: Record<WorkerState, string> = { expedition: 'в пути', busy: 'за работой', resting: 'отдыхают', free: 'свободны' };
+const tallyOrder: WorkerState[] = ['free', 'busy', 'resting', 'expedition'];
 
 const WorkerDetails = ({ worker, domikTypes, style }: { worker: WorkerDto; domikTypes: DomikTypeDto[]; style: CSSProperties }) => {
     const effect = worker.traitDurationPercent === 0 ? '' : ` ${worker.traitDurationPercent} %`;
@@ -60,14 +65,47 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
     const [hover, setHover] = useState<{ worker: WorkerDto; rect: DOMRect } | null>(null);
     const clearHover = (id: number) => setHover(prev => (prev?.worker.id === id ? null : prev));
 
+    const stateOf = (worker: WorkerDto): WorkerState => {
+        if (worker.expeditionId != null) {
+            return 'expedition';
+        }
+        if (worker.manufactureId != null) {
+            return 'busy';
+        }
+        if (worker.restUntil != null && remainingSeconds(worker.restUntil, now) > 0) {
+            return 'resting';
+        }
+        return 'free';
+    };
+
+    const tally = workers.reduce<Record<WorkerState, number>>(
+        (acc, worker) => { acc[stateOf(worker)] += 1; return acc; },
+        { expedition: 0, busy: 0, resting: 0, free: 0 },
+    );
+
     return (
         <section className="workers-panel pixel-panel">
             <div className="workers-head">
-                <h3 className="panel-title mech-title"><MechanicSprite logicName="workers" size={24} className="panel-title-ico" aria-hidden="true" />Трудяги</h3>
-                <label className="receipt-optional expedition-manual-toggle" title="Хлеб вдвое сокращает отдых">
+                <div className="workers-hero">
+                    <span className="workers-hero-emblem"><MechanicSprite logicName="workers" size={40} aria-hidden="true" /></span>
+                    <div className="workers-hero-text">
+                        <h3 className="panel-title workers-hero-title">Трудяги</h3>
+                        {workers.length > 0 &&
+                            <div className="workers-tally">
+                                <span className="workers-tally-total">{workers.length}</span>
+                                {tallyOrder.filter(key => tally[key] > 0).map(key => (
+                                    <span key={key} className={`workers-tally-item workers-tally--${key}`}>
+                                        <i className="workers-tally-dot" aria-hidden="true" />{tally[key]} {tallyLabels[key]}
+                                    </span>
+                                ))}
+                            </div>
+                        }
+                    </div>
+                </div>
+                <label className="receipt-optional workers-feed" title="Хлеб вдвое сокращает отдых">
                     <input type="checkbox" checked={feedWorkers} onChange={event => onToggleFeedWorkers(event.target.checked)} />
-                    Кормить трудяг хлебом
-                    <span className="workers-feed-effect">хлеб вдвое сокращает отдых</span>
+                    <span className="workers-feed-text">Кормить трудяг хлебом</span>
+                    <span className="workers-feed-effect">вдвое сокращает отдых</span>
                 </label>
             </div>
             <div className="workers-list">
@@ -76,15 +114,8 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
                 }
                 {workers.map(worker => {
                     const restingSeconds = worker.restUntil == null ? 0 : remainingSeconds(worker.restUntil, now);
-                    const isResting = worker.manufactureId == null && worker.expeditionId == null && worker.restUntil != null && restingSeconds > 0;
-                    const stateKey: WorkerState = worker.expeditionId != null
-                        ? 'expedition'
-                        : worker.manufactureId != null
-                            ? 'busy'
-                            : isResting
-                                ? 'resting'
-                                : 'free';
-                    const stateLabel = { expedition: 'В экспедиции', busy: 'Работает', resting: 'Отдыхает', free: 'Свободен' }[stateKey];
+                    const stateKey = stateOf(worker);
+                    const stateLabel = stateLabels[stateKey];
                     const restTitle = worker.restUntil == null
                         ? undefined
                         : `Отдыхает до ${new Date(worker.restUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${formatDuration(restingSeconds)})`;
@@ -109,25 +140,60 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
                         : stateKey === 'busy' || stateKey === 'expedition'
                             ? 'working'
                             : 'idle';
+                    const craft = describeWorkerParts(worker, domikTypes);
+                    const ranked = rankedSkills(worker);
+                    const best = ranked[0];
+                    const bestType = best == null ? undefined : domikTypes.find(t => t.id === best.domikTypeId);
+                    const extra = ranked.slice(1);
+                    const extraTitle = extra
+                        .map(skill => {
+                            const type = domikTypes.find(t => t.id === skill.domikTypeId);
+                            return type == null ? null : `${type.name}: +${skill.bonusPercent} %`;
+                        })
+                        .filter(Boolean)
+                        .join(' · ');
                     return (
                         <article key={worker.id} className={`worker-card worker--${stateKey}`} tabIndex={0}
                             onMouseEnter={event => setHover({ worker, rect: event.currentTarget.getBoundingClientRect() })}
                             onMouseLeave={() => clearHover(worker.id)}
                             onFocus={event => setHover({ worker, rect: event.currentTarget.getBoundingClientRect() })}
                             onBlur={() => clearHover(worker.id)}>
-                            <div className="worker-card-face">
-                                <WorkerSprite name={worker.name} state={portraitState} skilled={isSkilledWorker(worker)} className="worker-avatar" aria-hidden="true" />
+                            <div className="worker-topline" title={stateKey === 'resting' ? restTitle : undefined}>
+                                <span className="worker-badge">
+                                    {stateKey === 'resting' && <AbstractSprite logicName="fatigue_rest" size={24} className="worker-badge-ico" aria-hidden="true" />}
+                                    {stateLabel}
+                                </span>
+                                {timer != null &&
+                                    <span className="worker-timer" title={timer.full}>
+                                        <ClockIcon className="worker-timer-ico" aria-hidden="true" />
+                                        {formatDurationShort(timer.seconds)}
+                                    </span>
+                                }
+                            </div>
+                            <div className="worker-card-body">
+                                <span className="worker-portrait">
+                                    <WorkerSprite name={worker.name} state={portraitState} skilled={isSkilledWorker(worker)} className="worker-avatar" aria-hidden="true" />
+                                    {craft.tier === 'master' && <CrownIcon className="worker-seal" aria-hidden="true" />}
+                                </span>
                                 <div className="worker-headings">
                                     <span className="worker-name">{worker.name}</span>
-                                    <span className="worker-badge" title={stateKey === 'resting' ? restTitle : undefined}>
-                                        {stateKey === 'resting' && <AbstractSprite logicName="fatigue_rest" size={24} className="worker-badge-ico" aria-hidden="true" />}
-                                        {stateLabel}
-                                    </span>
-                                    {timer != null &&
-                                        <span className="worker-timer" title={timer.full}>
-                                            <ClockIcon className="worker-timer-ico" aria-hidden="true" />
-                                            {formatDurationShort(timer.seconds)}
-                                        </span>
+                                    <span className={`worker-title worker-title--${craft.tier}`}>{craft.primaryTitle}</span>
+                                    <p className="worker-flavor">{craft.flavor}</p>
+                                    {(best != null && bestType != null || worker.noFatigue) &&
+                                        <div className="worker-card-tags">
+                                            {best != null && bestType != null &&
+                                                <span className="worker-skill" title={`${bestType.name}: +${best.bonusPercent} % · ${best.uses} завершённых работ`}>
+                                                    <DomikSprite logicName={bestType.logicName} className="worker-skill-ico" aria-hidden="true" />
+                                                    +{best.bonusPercent} %
+                                                </span>
+                                            }
+                                            {extra.length > 0 &&
+                                                <span className="worker-more" title={extraTitle}>ещё {extra.length}</span>
+                                            }
+                                            {worker.noFatigue &&
+                                                <span className="worker-flag"><AbstractSprite logicName="fatigue_rest" size={24} className="worker-flag-ico" aria-hidden="true" />не устаёт</span>
+                                            }
+                                        </div>
                                     }
                                 </div>
                             </div>
@@ -137,7 +203,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
             </div>
             {hover != null && createPortal(
                 <WorkerDetails worker={hover.worker} domikTypes={domikTypes}
-                    style={{ position: 'fixed', top: hover.rect.bottom + 4, left: hover.rect.left, width: hover.rect.width }} />,
+                    style={{ position: 'fixed', top: hover.rect.bottom + 4, left: hover.rect.left, width: Math.max(hover.rect.width, 240) }} />,
                 document.body)}
         </section>
     );

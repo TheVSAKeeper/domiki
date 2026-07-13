@@ -5,29 +5,117 @@
 .workers-panel {
     padding: 16px 18px;
     margin-bottom: 20px;
+    overflow: hidden;
     box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
 .workers-head {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: -16px -18px 16px;
+    padding: 14px 18px;
+    background: linear-gradient(115deg, #cfe0b6 0%, var(--plank) 58%);
+    border-bottom: 3px solid var(--ink);
 }
 
-.workers-head .panel-title {
-    margin-top: 0;
+.workers-hero {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-width: 0;
+}
+
+.workers-hero-emblem {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    flex: none;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.workers-hero-emblem svg {
+    width: 40px;
+    height: 40px;
+    image-rendering: pixelated;
+}
+
+.workers-hero-text {
+    min-width: 0;
+}
+
+.workers-hero-title {
+    margin: 0 0 7px;
+}
+
+.workers-tally {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(51, 41, 26, .68);
+}
+
+.workers-tally-total {
+    font-family: var(--pixel);
+    font-size: 15px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.workers-tally-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.workers-tally-dot {
+    width: 9px;
+    height: 9px;
+    flex: none;
+    border: 2px solid var(--ink);
+}
+
+.workers-tally--free .workers-tally-dot {
+    background: var(--pine);
+}
+
+.workers-tally--busy .workers-tally-dot {
+    background: var(--roof);
+}
+
+.workers-tally--resting .workers-tally-dot {
+    background: #517ea6;
+}
+
+.workers-tally--expedition .workers-tally-dot {
+    background: #b8860b;
+}
+
+.workers-feed {
+    flex-wrap: wrap;
+    row-gap: 2px;
 }
 
 .workers-feed-effect {
+    width: 100%;
     color: var(--ink-muted);
     font-size: 10px;
+    font-weight: 600;
 }
 
 .workers-list {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
 }
 
 .workers-list .hint {
@@ -44,22 +132,226 @@
     clip-path: var(--cut);
 }
 
+.worker-chip-pick .worker-avatar {
+    width: 24px;
+    height: 24px;
+}
+
 .worker-card {
     position: relative;
     display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--plank);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+    cursor: help;
 }
 
-.worker-card-face {
+.worker-card:focus-visible {
+    outline: 3px solid var(--coin);
+    outline-offset: 2px;
+}
+
+.worker-topline {
     display: flex;
     align-items: center;
-    gap: 10px;
-    width: 100%;
-    min-height: 76px;
-    padding: 10px 11px;
+    gap: 8px;
+    padding: 7px 10px;
+    border-bottom: 3px solid var(--ink);
+    background: linear-gradient(120deg, #d9cfb6, var(--plank) 82%);
+}
+
+.worker--free .worker-topline {
+    background: linear-gradient(120deg, #cfe0b6, var(--plank) 82%);
+}
+
+.worker--busy .worker-topline {
+    background: linear-gradient(120deg, #f0c6a0, var(--plank) 82%);
+}
+
+.worker--resting .worker-topline {
+    background: linear-gradient(120deg, #bcd6f2, var(--plank) 82%);
+}
+
+.worker--expedition .worker-topline {
+    background: linear-gradient(120deg, #f4e1ad, var(--plank) 82%);
+}
+
+.worker-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--plank);
+    white-space: nowrap;
+}
+
+.worker--free .worker-badge {
+    background: var(--pine);
+    border-color: var(--pine-dark);
+}
+
+.worker--busy .worker-badge {
+    background: var(--roof);
+}
+
+.worker--resting .worker-badge {
+    background: #517ea6;
+}
+
+.worker--expedition .worker-badge {
+    background: #b8860b;
+}
+
+.worker-badge-ico {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    image-rendering: pixelated;
+}
+
+.worker-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.worker-timer-ico {
+    width: 15px;
+    height: 15px;
+    flex: none;
+}
+
+.worker-card-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 11px;
+}
+
+.worker-portrait {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 66px;
+    height: 66px;
+    flex: none;
     background: #fffaec;
     border: 3px solid var(--ink);
     clip-path: var(--cut);
-    cursor: help;
+    box-shadow: inset 0 -3px 0 var(--plank-dark);
+}
+
+.worker--free .worker-portrait {
+    background: #e4f0d5;
+}
+
+.worker--busy .worker-portrait {
+    background: #f6e2d3;
+}
+
+.worker--resting .worker-portrait {
+    background: #dcebfb;
+}
+
+.worker--expedition .worker-portrait {
+    background: #fbe6bd;
+}
+
+.worker-avatar {
+    width: 56px;
+    height: 56px;
+    flex: none;
+    image-rendering: pixelated;
+}
+
+.worker-seal {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 21px;
+    height: 21px;
+    padding: 2px;
+    color: #6b4e00;
+    background: var(--coin);
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.worker-headings {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    flex: 1;
+}
+
+.worker-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.worker-title {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.25;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.worker-title--none {
+    color: rgba(51, 41, 26, .5);
+    font-weight: 600;
+    font-style: italic;
+}
+
+.worker-title--novice {
+    color: var(--ink-muted);
+}
+
+.worker-title--skilled {
+    color: var(--pine);
+}
+
+.worker-title--master {
+    color: #a9791b;
+}
+
+.worker-flavor {
+    display: -webkit-box;
+    margin: 2px 0 0;
+    font-size: 12px;
+    font-style: italic;
+    line-height: 1.35;
+    color: rgba(51, 41, 26, .62);
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.worker-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+    margin-top: 5px;
 }
 
 .worker-details {
@@ -76,60 +368,20 @@
     pointer-events: none;
 }
 
-.worker-card:focus-visible .worker-card-face {
-    outline: none;
-    border-color: var(--coin);
-}
-
-.worker-timer {
+.worker-trait {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
     font-size: 12px;
     font-weight: 700;
     color: var(--pine-dark);
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
 }
 
-.worker-timer-ico {
-    width: 15px;
-    height: 15px;
-    flex: none;
-}
-
-.worker-headings {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    min-width: 0;
-}
-
-.worker-avatar {
-    width: 56px;
-    height: 56px;
+.worker-trait-ico {
+    width: 22px;
+    height: 22px;
     flex: none;
     image-rendering: pixelated;
-}
-
-.worker-chip-pick .worker-avatar {
-    width: 24px;
-    height: 24px;
-}
-
-.worker-name {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--ink);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.worker-trait {
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--pine-dark);
 }
 
 .worker-desc {
@@ -137,12 +389,6 @@
     font-style: italic;
     color: var(--pine-dark);
     line-height: 1.4;
-}
-
-.worker-effect {
-    font-size: 12px;
-    font-weight: 700;
-    color: #517e2d;
 }
 
 .worker-skills {
@@ -173,10 +419,25 @@
     image-rendering: pixelated;
 }
 
+.worker-more {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    background: var(--plank);
+    border: 2px dashed var(--pine);
+    clip-path: var(--cut);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--pine-dark);
+    cursor: help;
+    font-variant-numeric: tabular-nums;
+}
+
 .worker-flag {
     display: inline-flex;
     align-items: center;
-    padding: 2px 6px;
+    gap: 3px;
+    padding: 2px 6px 2px 3px;
     background: #d9ead1;
     border: 2px solid #517e2d;
     clip-path: var(--cut);
@@ -185,84 +446,6 @@
     color: #517e2d;
 }
 
-.worker--free .worker-card-face {
-    border-color: var(--pine);
-}
-
-.worker--free .worker-badge {
-    background: var(--pine);
-    border-color: var(--pine-dark);
-}
-
-.worker--busy .worker-card-face {
-    border-color: var(--roof);
-    background: #f7ece4;
-}
-
-.worker--busy .worker-badge {
-    background: var(--roof);
-    border-color: var(--ink);
-}
-
-.worker--resting .worker-card-face {
-    border-color: #517ea6;
-    background: #eef6ff;
-}
-
-.worker--resting .worker-badge {
-    background: #517ea6;
-    border-color: var(--ink);
-}
-
-.worker--expedition .worker-card-face {
-    border-color: #b8860b;
-    background: #fdf0c4;
-}
-
-.worker--expedition .worker-badge {
-    background: #b8860b;
-    border-color: var(--ink);
-}
-
-.worker-badge {
-    align-self: flex-start;
-    padding: 2px 7px;
-    border: 2px solid var(--ink);
-    clip-path: var(--cut);
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--plank);
-    white-space: nowrap;
-}
-
-@media (max-width: 575px) {
-    .worker-chip {
-        align-items: start;
-        width: 100%;
-    }
-}
-
-
-.worker-trait {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.worker-trait-ico {
-    width: 22px;
-    height: 22px;
-    flex: none;
-    image-rendering: pixelated;
-}
-
-.worker-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.worker-badge-ico,
 .worker-flag-ico {
     width: 16px;
     height: 16px;
@@ -276,4 +459,15 @@
     flex: none;
     align-self: center;
     image-rendering: pixelated;
+}
+
+@media (max-width: 575px) {
+    .worker-chip {
+        align-items: start;
+        width: 100%;
+    }
+
+    .workers-head {
+        align-items: flex-start;
+    }
 }

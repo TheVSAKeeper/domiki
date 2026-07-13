@@ -1,9 +1,28 @@
-import type { DomikTypeDto, WorkerDto } from '../types/api';
+import type { DomikTypeDto, WorkerDto, WorkerSkillDto } from '../types/api';
 
 export const SKILLED_BONUS_THRESHOLD = 10;
+export const MASTER_BONUS_THRESHOLD = 25;
+
+export type WorkerTier = 'none' | 'novice' | 'skilled' | 'master';
 
 export function isSkilledWorker(worker: WorkerDto): boolean {
     return worker.skills.some(s => s.bonusPercent >= SKILLED_BONUS_THRESHOLD);
+}
+
+function tierOf(bonus: number): WorkerTier {
+    if (bonus >= MASTER_BONUS_THRESHOLD) {
+        return 'master';
+    }
+    if (bonus >= SKILLED_BONUS_THRESHOLD) {
+        return 'skilled';
+    }
+    return 'novice';
+}
+
+export function rankedSkills(worker: WorkerDto): WorkerSkillDto[] {
+    return worker.skills
+        .filter(s => s.bonusPercent > 0)
+        .sort((a, b) => b.bonusPercent - a.bonusPercent || a.domikTypeId - b.domikTypeId);
 }
 
 interface Craft {
@@ -54,29 +73,43 @@ function tierWord(bonus: number, female: boolean): string {
     return female ? 'начинающая' : 'начинающий';
 }
 
-export function describeWorker(worker: WorkerDto, domikTypes: DomikTypeDto[]): string {
+export interface WorkerCraft {
+    title: string;
+    primaryTitle: string;
+    flavor: string;
+    tier: WorkerTier;
+}
+
+export function describeWorkerParts(worker: WorkerDto, domikTypes: DomikTypeDto[]): WorkerCraft {
     const female = FEMALE_NAMES.has(worker.name);
-    const skilled = worker.skills
-        .filter(s => s.bonusPercent > 0)
-        .sort((a, b) => b.bonusPercent - a.bonusPercent || a.domikTypeId - b.domikTypeId);
+    const skilled = rankedSkills(worker);
     const top = skilled[0];
     if (top == null) {
-        return 'Пока без ремесла, зато рвётся учиться.';
+        return { title: '', primaryTitle: female ? 'ученица' : 'ученик', flavor: 'Пока без ремесла, зато рвётся учиться.', tier: 'none' };
     }
 
-    const parts = skilled.map(s => {
-        const type = domikTypes.find(t => t.id === s.domikTypeId);
+    const describePart = (skill: WorkerSkillDto): string => {
+        const type = domikTypes.find(t => t.id === skill.domikTypeId);
         const craft = type != null ? CRAFTS[type.logicName] : undefined;
         const noun = craft != null ? (female ? craft.f : craft.m) : (female ? 'работница' : 'работник');
-        return `${tierWord(s.bonusPercent, female)} ${noun}`;
-    });
-    const skill = parts.join(', ').replace(/^./, c => c.toUpperCase());
+        return `${tierWord(skill.bonusPercent, female)} ${noun}`;
+    };
+    const capitalise = (text: string) => text.replace(/^./, c => c.toUpperCase());
 
     const topType = domikTypes.find(t => t.id === top.domikTypeId);
-    const craft = topType != null ? CRAFTS[topType.logicName] : undefined;
-    const flavor = top.bonusPercent >= 10 && craft != null
-        ? craft.flavors[worker.id % craft.flavors.length]
-        : NOVICE_FLAVORS[worker.id % NOVICE_FLAVORS.length];
+    const topCraft = topType != null ? CRAFTS[topType.logicName] : undefined;
+    const flavors = top.bonusPercent >= SKILLED_BONUS_THRESHOLD && topCraft != null ? topCraft.flavors : NOVICE_FLAVORS;
+    const flavor = flavors[worker.id % flavors.length] ?? flavors[0] ?? '';
 
-    return `${skill}. ${flavor}`;
+    return {
+        title: capitalise(skilled.map(describePart).join(', ')),
+        primaryTitle: capitalise(describePart(top)),
+        flavor,
+        tier: tierOf(top.bonusPercent),
+    };
+}
+
+export function describeWorker(worker: WorkerDto, domikTypes: DomikTypeDto[]): string {
+    const { title, flavor } = describeWorkerParts(worker, domikTypes);
+    return title === '' ? flavor : `${title}. ${flavor}`;
 }
