@@ -27,7 +27,7 @@ namespace Domiki.Web.Tests
 
             var name = GetDomikTypes().First(x => x.Id == domikTypeId).Name;
             var ex = Assert.Throws<BusinessException>(() => BuyDomik(playerId, domikTypeId));
-            Assert.That(ex.Message, Is.EqualTo($"Ещё один {name} откроется при обжитости {gateLevel}"));
+            Assert.That(ex.Message, Is.EqualTo($"Постройка «{name}» откроется при обжитости {gateLevel}"));
         }
 
         [TestCase(BarakTypeId, 5, true)]
@@ -55,7 +55,7 @@ namespace Domiki.Web.Tests
 
             SetVillageLevel(playerId, 11);
             var ex = Assert.Throws<BusinessException>(() => BuyDomik(playerId, StoneMineTypeId));
-            Assert.That(ex.Message, Is.EqualTo("Ещё один Каменоломня откроется при обжитости 12"));
+            Assert.That(ex.Message, Is.EqualTo("Постройка «Каменоломня» откроется при обжитости 12"));
 
             SetVillageLevel(playerId, 12);
             Assert.DoesNotThrow(() => BuyDomik(playerId, StoneMineTypeId));
@@ -79,7 +79,7 @@ namespace Domiki.Web.Tests
             Assert.That(barak.NextCountGateLevel, Is.EqualTo(24));
 
             var ex = Assert.Throws<BusinessException>(() => BuyDomik(playerId, BarakTypeId));
-            Assert.That(ex.Message, Is.EqualTo("Ещё один Барак откроется при обжитости 24"));
+            Assert.That(ex.Message, Is.EqualTo("Постройка «Артельная изба» откроется при обжитости 24"));
 
             ownedCount = GetDomiks(playerId).Count(x => x.Type.Id == BarakTypeId);
             Assert.That(ownedCount, Is.EqualTo(4));

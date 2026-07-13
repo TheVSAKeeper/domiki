@@ -243,7 +243,7 @@ namespace Domiki.Web.Business.Core
             }
             else if (entry.Type != null && entry.NextCountGateLevel != null)
             {
-                throw new BusinessException($"Ещё один {entry.Type.Name} откроется при обжитости {entry.NextCountGateLevel}");
+                throw new BusinessException($"Постройка «{entry.Type.Name}» откроется при обжитости {entry.NextCountGateLevel}");
             }
             else
             {

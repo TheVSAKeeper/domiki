@@ -68,7 +68,7 @@ namespace Domiki.Web.Tests
             Assert.That(visit.CrestIcon, Is.EqualTo(4));
             Assert.That(visit.CrestColor, Is.EqualTo(5));
             Assert.That(visit.Level.Level, Is.GreaterThan(0));
-            Assert.That(visit.Buildings.Any(x => x.TypeName == "Барак" && x.Level == 1), Is.True);
+            Assert.That(visit.Buildings.Any(x => x.TypeName == "Артельная изба" && x.Level == 1), Is.True);
         }
 
         [Test]

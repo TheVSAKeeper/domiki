@@ -112,7 +112,7 @@ namespace Domiki.Web.Data
                 new StarterGoal { Id = 2, Ordinal = 2, Name = "Купи Лавку", ConditionType = GoalConditionType.BuildDomikType, Param = 7, Param2 = 0, RewardCoins = 20 },
                 new StarterGoal { Id = 3, Ordinal = 3, Name = "Продай ресурс в Лавке", ConditionType = GoalConditionType.SellAnyResource, Param = 0, Param2 = 0, RewardCoins = 15 },
                 new StarterGoal { Id = 4, Ordinal = 4, Name = "Купи Лесопилку", ConditionType = GoalConditionType.BuildDomikType, Param = 6, Param2 = 0, RewardCoins = 20 },
-                new StarterGoal { Id = 5, Ordinal = 5, Name = "Улучши Барак до уровня 2", ConditionType = GoalConditionType.UpgradeDomikToLevel, Param = 2, Param2 = 2, RewardCoins = 50 },
+                new StarterGoal { Id = 5, Ordinal = 5, Name = "Улучши Артельную избу до уровня 2", ConditionType = GoalConditionType.UpgradeDomikToLevel, Param = 2, Param2 = 2, RewardCoins = 50 },
                 new StarterGoal { Id = 6, Ordinal = 6, Name = "Сдай заказ соседям", ConditionType = GoalConditionType.CompleteAnyOrder, Param = 0, Param2 = 0, RewardCoins = 30 },
                 new StarterGoal { Id = 7, Ordinal = 7, Name = "Поставь смену на 8 часов", ConditionType = GoalConditionType.StartAnyManufacture, Param = 28800, Param2 = 0, RewardCoins = 20 },
                 new StarterGoal { Id = 8, Ordinal = 8, Name = "Купи Каменоломню", ConditionType = GoalConditionType.BuildDomikType, Param = 3, Param2 = 0, RewardCoins = 40 },
