@@ -20,7 +20,7 @@ interface Milestone {
     threshold: number;
     current: number;
     owned: boolean;
-    building?: DomikTypeDto;
+    building?: DomikTypeDto | undefined;
     decorLogicName?: string;
 }
 

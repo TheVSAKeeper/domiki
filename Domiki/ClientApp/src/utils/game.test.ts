@@ -20,7 +20,7 @@ describe('resourceSourceMap', () => {
     const building = (id: number, name: string, logicName: string, receiptIds: number[]): DomikTypeDto => ({
         id, name, logicName, maxCount: 1, availableCount: 0, maxLevel: 2, unlockLevel: 0,
         blueprintId: null, nextCountGateLevel: null,
-        levels: [{ value: 1, resources: [], modificators: [], receiptIds }],
+        levels: [{ value: 1, resources: [], modificators: [], receiptIds, maxManufactureCount: 0 }],
     });
 
     it('maps each output resource to the buildings that produce it, without duplicates', () => {
@@ -74,8 +74,8 @@ const marketDomikType: DomikTypeDto = {
     blueprintId: null,
     nextCountGateLevel: null,
     levels: [
-        { value: 1, resources: [], modificators: [{ typeId: 1, value: 3 }], receiptIds: [] },
-        { value: 2, resources: [], modificators: [{ typeId: 1, value: 5 }], receiptIds: [] },
+        { value: 1, resources: [], modificators: [{ typeId: 1, value: 3 }], receiptIds: [], maxManufactureCount: 0 },
+        { value: 2, resources: [], modificators: [{ typeId: 1, value: 5 }], receiptIds: [], maxManufactureCount: 0 },
     ],
 };
 
@@ -113,9 +113,9 @@ describe('canAffordUpgrade', () => {
         blueprintId: null,
         nextCountGateLevel: null,
         levels: [
-            { value: 1, resources: [{ typeId: 1, value: 10 }], modificators: [], receiptIds: [] },
-            { value: 2, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
-            { value: 3, resources: [{ typeId: 1, value: 999 }], modificators: [], receiptIds: [] },
+            { value: 1, resources: [{ typeId: 1, value: 10 }], modificators: [], receiptIds: [], maxManufactureCount: 0 },
+            { value: 2, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [], maxManufactureCount: 0 },
+            { value: 3, resources: [{ typeId: 1, value: 999 }], modificators: [], receiptIds: [], maxManufactureCount: 0 },
         ],
     };
     const base: DomikDto = { id: 1, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null };
@@ -253,8 +253,8 @@ describe('sortDomiks', () => {
             blueprintId: null,
             nextCountGateLevel: null,
             levels: [
-                { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
-                { value: 2, resources: [], modificators: [], receiptIds: [] },
+                { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [], maxManufactureCount: 0 },
+                { value: 2, resources: [], modificators: [], receiptIds: [], maxManufactureCount: 0 },
             ],
         },
         {
@@ -268,7 +268,7 @@ describe('sortDomiks', () => {
             blueprintId: null,
             nextCountGateLevel: null,
             levels: [
-                { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [] },
+                { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [], maxManufactureCount: 0 },
             ],
         },
     ];

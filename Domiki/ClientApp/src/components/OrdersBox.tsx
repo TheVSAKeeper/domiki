@@ -83,7 +83,7 @@ export const OrdersBox = ({ orders, reputation, resourceTypes, resources, now, o
                 </div>}
             {orders.length === 0
                 ? <div className="orders-empty">
-                    <MechanicSprite logicName="orders" size={44} aria-hidden="true" />
+                    <MechanicSprite logicName="orders" size={48} aria-hidden="true" />
                     <p className="orders-empty-title">На столе пусто</p>
                     <p className="orders-empty-hint">Соседям пока нечего просить – загляните позже, весточки приходят сами.</p>
                 </div>
