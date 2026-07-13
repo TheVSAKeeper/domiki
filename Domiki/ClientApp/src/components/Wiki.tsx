@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { ApiError, getGameState } from '../services/api';
 import { useToast } from '../services/toast';
 import { formatDuration } from '../utils/time';
 import { domikLore } from '../utils/domikLore';
+import { resourceLore } from '../utils/resourceLore';
 import type { DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, WeatherStateDto } from '../types/api';
 import { DomikSprite, MechanicSprite, ResourceSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
@@ -117,6 +118,12 @@ const MECHANICS: Mechanic[] = [
     },
 ];
 
+const METAL_CHAIN: { logicName: string; name: string; where: string }[] = [
+    { logicName: 'ore', name: 'Руда', where: 'Рудник' },
+    { logicName: 'iron', name: 'Железо', where: 'Кузница' },
+    { logicName: 'tool', name: 'Инструмент', where: 'Кузница + доски' },
+];
+
 interface ResChipsProps {
     items: ResourceDto[];
     resourceTypes: ResourceTypeDto[];
@@ -178,6 +185,7 @@ export const Wiki = () => {
         }
         return next;
     });
+    const [activeRes, setActiveRes] = useState<number | null>(null);
     const [openMechanics, setOpenMechanics] = useState<ReadonlySet<string>>(new Set());
     const toggleMechanic = (key: string) => setOpenMechanics(prev => {
         const next = new Set(prev);
@@ -233,14 +241,42 @@ export const Wiki = () => {
 
             <section className="wiki-section">
                 <h2 className="section-head">Ресурсы</h2>
+                <p className="wiki-res-hint">Нажми на ресурс – откроется карточка: что это, откуда берётся и зачем нужен.</p>
                 <div className="wiki-res-grid">
-                    {resourceTypes.map(type => (
-                        <div key={type.id} className="wiki-res-cell pixel-panel" title={type.name}>
-                            <ResourceSprite logicName={type.logicName} aria-hidden="true" />
-                            <span>{type.name}</span>
-                        </div>
-                    ))}
+                    {resourceTypes.map(type => {
+                        const lore = resourceLore[type.logicName];
+                        const open = activeRes === type.id;
+                        return (
+                            <div key={type.id} className="wiki-res-slot">
+                                <button
+                                    type="button"
+                                    className={'wiki-res-cell pixel-panel' + (open ? ' active' : '')}
+                                    aria-expanded={open}
+                                    onClick={() => setActiveRes(open ? null : type.id)}
+                                >
+                                    <ResourceSprite logicName={type.logicName} aria-hidden="true" />
+                                    <span>{type.name}</span>
+                                </button>
+                                {open && lore != null && (
+                                    <div className="wiki-res-pop pixel-panel" role="dialog" aria-label={type.name}>
+                                        <div className="wiki-res-pop-head">
+                                            <ResourceSprite logicName={type.logicName} size={40} aria-hidden="true" />
+                                            <span className="wiki-res-pop-name">{type.name}</span>
+                                        </div>
+                                        <p className="wiki-res-pop-flavor">{lore.flavor}</p>
+                                        <dl className="wiki-res-facts">
+                                            <dt>Откуда</dt>
+                                            <dd>{lore.source}</dd>
+                                            <dt>Зачем</dt>
+                                            <dd>{lore.use}</dd>
+                                        </dl>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
+                {activeRes != null && <div className="wiki-res-backdrop" onClick={() => setActiveRes(null)} aria-hidden="true" />}
             </section>
 
             <section className="wiki-section">
@@ -295,7 +331,7 @@ export const Wiki = () => {
                                                     <div className="wiki-level-head">
                                                         <span className="wiki-level-badge">Ур. {level.value}</span>
                                                         {level.resources.length > 0 && (
-                                                            <span className="wiki-level-cost">апгрейд: <ResChips items={level.resources} resourceTypes={resourceTypes} /></span>
+                                                            <span className="wiki-level-cost">{level.value === 1 ? 'постройка' : 'апгрейд'}: <ResChips items={level.resources} resourceTypes={resourceTypes} /></span>
                                                         )}
                                                     </div>
                                                     {levelReceipts.map(receipt => (
@@ -314,9 +350,20 @@ export const Wiki = () => {
 
             <section className="wiki-section">
                 <h2 className="section-head">Переделы</h2>
-                <div className="wiki-mechanic-body">
-                    <p>Металлическая цепочка: руда → железо → инструмент. Руду добывают в Руднике, железо выплавляют в Кузнице, а железо с досками куют в инструмент.</p>
-                    <p>До обжитости 20 инструмент добывается только в походах.</p>
+                <div className="wiki-chain pixel-panel">
+                    <div className="wiki-chain-flow">
+                        {METAL_CHAIN.map((step, i) => (
+                            <Fragment key={step.logicName}>
+                                {i > 0 && <span className="wiki-chain-arrow" aria-hidden="true">→</span>}
+                                <div className="wiki-chain-node">
+                                    <ResourceSprite logicName={step.logicName} size={48} aria-hidden="true" />
+                                    <span className="wiki-chain-name">{step.name}</span>
+                                    <span className="wiki-chain-where">{step.where}</span>
+                                </div>
+                            </Fragment>
+                        ))}
+                    </div>
+                    <p className="wiki-chain-note">Сырьё сначала перерабатывают: руда груба, а в паре переделов становится добротным инструментом. До обжитости 20 инструмент достаётся только из экспедиций.</p>
                 </div>
             </section>
 
@@ -415,18 +462,6 @@ export const Wiki = () => {
                             </div>
                         );
                     })}
-                </div>
-            </section>
-
-            <section className="wiki-section">
-                <h2 className="section-head">Формулы</h2>
-                <div className="wiki-mechanic-body">
-                    <p><strong>Уют и отдых:</strong> 1 очко уюта = −1 % к длительности отдыха трудяги; полезность капится на 50 очках (−50 % отдыха, минимум). Очки сверх 50 бесполезны: ни в отдых, ни в обжитость (оба слагаемых капятся на 50).</p>
-                    <p><strong>Обед:</strong> Если включена кормёжка и есть хлеб, уходящий на отдых трудяга съедает 1 хлеб и отдыхает вдвое меньше (при полном уюте – 30 мин вместо часа). Соня не ест.</p>
-                    <p><strong>Провизия:</strong> Отправив отряд с провизией (1 хлеб на трудягу), пропускаешь 2-часовой отдых после похода.</p>
-                    <p><strong>Эффективный ранг черт</strong> (с учётом отдыха на длинном горизонте): Работящий 1.00 &gt; Проворный 0.89 &gt; Обычный = Соня 0.80. Соня медленнее на смене (+25 % длительности), но не устаёт и не уходит в отдых – по нетто наравне с Обычным, не хуже (скрытое доминирование снято).</p>
-                    <p><strong>Клемп ускорения:</strong> суммарное ускорение (черты + скилл) не опускает длительность рецепта ниже 60 % базовой; сверхбыстрая артель упирается в этот пол. Инструмент теперь добавляет выход, а не срезает длительность, и в клемп не входит.</p>
-                    <p><strong>Обжитость</strong> (уже показана в HUD, для полноты): сумма уровней построек ×1 + жители ×2 + вехи репутации ×5 + очки уюта (комфорт-вклад капится на 50).</p>
                 </div>
             </section>
         </div>
