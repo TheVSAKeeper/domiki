@@ -75,6 +75,8 @@ import DishesResSprite from '../assets/resourceTypes/dishes.svg?react';
 import GrainResSprite from '../assets/resourceTypes/grain.svg?react';
 import FlourResSprite from '../assets/resourceTypes/flour.svg?react';
 import BreadResSprite from '../assets/resourceTypes/bread.svg?react';
+import OreResSprite from '../assets/resourceTypes/ore.svg?react';
+import IronResSprite from '../assets/resourceTypes/iron.svg?react';
 
 type SpriteComponent = FC<SVGProps<SVGSVGElement>>;
 
@@ -165,8 +167,8 @@ const resourceSprites: Record<string, SpriteComponent> = {
     grain: GrainResSprite,
     flour: FlourResSprite,
     bread: BreadResSprite,
-    ore: StoneResSprite,
-    iron: ToolResSprite,
+    ore: OreResSprite,
+    iron: IronResSprite,
 };
 
 interface IconSpriteProps extends SVGProps<SVGSVGElement> {
