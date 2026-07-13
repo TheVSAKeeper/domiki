@@ -1,53 +1,169 @@
 .toloka-panel {
     padding: 16px 18px;
     margin-bottom: 20px;
+    overflow: hidden;
     box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
-.toloka-head {
+.toloka-hero {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 14px;
+    margin: -16px -18px 14px;
+    padding: 14px 18px;
+    background: linear-gradient(120deg, var(--grass-dark) 0%, var(--grass) 30%, var(--plank) 72%);
+    border-bottom: 3px solid var(--ink);
 }
 
-.toloka-topline,
-.toloka-row,
-.toloka-form {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+.toloka-hero-emblem {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
-.toloka-card {
+.toloka-hero-emblem svg {
+    width: 40px;
+    height: 40px;
+}
+
+.toloka-hero-text {
+    min-width: 0;
+    flex: 1;
+}
+
+.toloka-hero-title {
+    margin: 0 0 4px;
+}
+
+.toloka-hero-sub {
+    margin: 0;
+    max-width: 54ch;
+    font-size: 13px;
+    line-height: 1.4;
+    color: rgba(51, 41, 26, .78);
+}
+
+.toloka-hero-stat {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    padding: 12px;
-    background: rgba(255, 255, 255, .24);
+    align-items: center;
+    flex-shrink: 0;
+    padding: 7px 16px 6px;
+    text-align: center;
+    color: var(--ink);
+    background: var(--coin);
     border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 rgba(51, 41, 26, .28);
+}
+
+.toloka-hero-stat-num {
+    font-family: var(--pixel);
+    font-size: 22px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.toloka-hero-stat-label {
+    margin-top: 5px;
+    max-width: 12ch;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-transform: lowercase;
+}
+
+.toloka-site {
+    display: grid;
+    grid-template-columns: minmax(200px, 300px) 1fr;
+    align-items: center;
+    gap: 18px;
+    padding: 14px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, .28);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.toloka-scene {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 8px 12px;
+    background:
+        radial-gradient(120% 72% at 50% 100%, rgba(127, 152, 99, .42), transparent 70%),
+        rgba(255, 250, 236, .5);
+    border: 2px solid var(--ink);
     clip-path: var(--cut);
 }
 
 .toloka-sprite {
-    align-self: center;
-    width: 96px;
-    height: 96px;
+    width: 128px;
+    height: 128px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 4px 0 rgba(51, 41, 26, .16));
 }
 
-.toloka-topline {
-    justify-content: space-between;
-}
-
-.toloka-name {
-    overflow: hidden;
+.toloka-stage {
     font-family: var(--pixel);
-    font-size: 11px;
-    font-weight: 600;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: 10px;
+    color: var(--pine-dark);
+    text-transform: lowercase;
+}
+
+.toloka-site-done .toloka-stage {
+    color: #8a6a12;
+}
+
+.toloka-pot {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.toloka-pot-head,
+.toloka-pot-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.toloka-pot-head .panel-label {
+    margin-bottom: 0;
+    color: var(--pine-dark);
+}
+
+.toloka-pot .progress-bar {
+    height: 24px;
+}
+
+.toloka-pot-hint {
+    font-size: 12px;
+    font-style: italic;
+    color: rgba(51, 41, 26, .6);
+}
+
+.toloka-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -3px 0 var(--plank-dark);
 }
 
 .toloka-form input {
@@ -66,15 +182,36 @@
     border-color: var(--coin);
 }
 
-.toloka-locked .toloka-card {
+.toloka-form .btn-game {
+    margin-left: auto;
+}
+
+.toloka-buffs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.toloka-locked .toloka-site {
     background: rgba(236, 220, 184, .7);
 }
 
 @media (max-width: 900px) {
-    .toloka-head,
-    .toloka-topline {
-        flex-direction: column;
-        align-items: flex-start;
+    .toloka-hero {
+        flex-wrap: wrap;
+    }
+
+    .toloka-site {
+        grid-template-columns: 1fr;
+    }
+
+    .toloka-hero-stat {
+        margin-left: auto;
+    }
+
+    .toloka-form .btn-game {
+        margin-left: 0;
+        flex: 1;
     }
 }
-
