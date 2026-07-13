@@ -766,3 +766,18 @@
         padding-bottom: calc(76px + env(safe-area-inset-bottom));
     }
 }
+
+.domik-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.domik-pager-status {
+    font-family: var(--pixel);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+}

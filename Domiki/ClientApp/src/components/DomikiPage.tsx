@@ -18,6 +18,8 @@ import BellOffIcon from 'pixelarticons/svg/bell-off.svg?react';
 import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
 import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
 import JournalIcon from 'pixelarticons/svg/article.svg?react';
+import ChevronLeftIcon from 'pixelarticons/svg/chevron-left.svg?react';
+import ChevronRightIcon from 'pixelarticons/svg/chevron-right.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { disablePush, enablePush, getPushState } from '../services/push';
@@ -66,6 +68,15 @@ const SORT_MODES: readonly [SortModeEntry, ...SortModeEntry[]] = [
     { mode: 'level', label: 'Уровень', Icon: ChevronUpIcon },
 ];
 
+type PageSize = 12 | 24 | 48 | 'all';
+
+const PAGE_SIZE_OPTIONS: { value: PageSize; label: string }[] = [
+    { value: 12, label: '12' },
+    { value: 24, label: '24' },
+    { value: 48, label: '48' },
+    { value: 'all', label: 'Все' },
+];
+
 interface GameTab {
     key: string;
     label: string;
@@ -102,8 +113,6 @@ export const DomikiPage = () => {
     const hudRef = useRef<HTMLElement>(null);
     const [hudStickyOffset, setHudStickyOffset] = useState(76);
     const [tabsOverflow, setTabsOverflow] = useState({ left: false, right: false });
-    const tabAnchorReady = useRef(false);
-    const scrollTabsPending = useRef(false);
     const hudSentinelRef = useRef<HTMLDivElement>(null);
     const [hudAway, setHudAway] = useState(false);
     const [hudPinnedOpen, setHudPinnedOpen] = useState(false);
@@ -117,10 +126,26 @@ export const DomikiPage = () => {
     });
     const changeSortMode = (mode: DomikSortMode) => {
         setSortMode(mode);
+        setPage(1);
         localStorage.setItem('domik-sort-mode', mode);
     };
     const [sortOpen, setSortOpen] = useState(false);
     const sortRef = useRef<HTMLDivElement>(null);
+    const [pageSize, setPageSize] = useState<PageSize>(() => {
+        const saved = localStorage.getItem('domik-page-size');
+        if (saved === '24') return 24;
+        if (saved === '48') return 48;
+        if (saved === 'all') return 'all';
+        return 12;
+    });
+    const [page, setPage] = useState(1);
+    const [pageSizeOpen, setPageSizeOpen] = useState(false);
+    const pageSizeRef = useRef<HTMLDivElement>(null);
+    const changePageSize = (size: PageSize) => {
+        setPageSize(size);
+        setPage(1);
+        localStorage.setItem('domik-page-size', String(size));
+    };
     const activeSort = SORT_MODES.find(item => item.mode === sortMode) ?? SORT_MODES[0];
     const [pushState, setPushState] = useState<PushState>('unsupported');
     const [pushBusy, setPushBusy] = useState(false);
@@ -168,18 +193,19 @@ export const DomikiPage = () => {
     }, [sortOpen]);
 
     useEffect(() => {
-        if (!tabAnchorReady.current) {
-            tabAnchorReady.current = true;
+        if (!pageSizeOpen) {
             return;
         }
 
-        if (!scrollTabsPending.current) {
-            return;
-        }
+        const onDown = (event: MouseEvent) => {
+            if (pageSizeRef.current != null && !pageSizeRef.current.contains(event.target as Node)) {
+                setPageSizeOpen(false);
+            }
+        };
 
-        scrollTabsPending.current = false;
-        gameTabsRef.current?.scrollIntoView({ behavior: 'auto', block: 'start' });
-    }, [activeTab]);
+        document.addEventListener('mousedown', onDown);
+        return () => { document.removeEventListener('mousedown', onDown); };
+    }, [pageSizeOpen]);
 
     useEffect(() => {
         const sentinel = hudSentinelRef.current;
@@ -278,6 +304,11 @@ export const DomikiPage = () => {
         () => sortDomiks(domiks, domikTypes, resources, sortMode),
         [domiks, domikTypes, resources, sortMode],
     );
+    const totalPages = pageSize === 'all' ? 1 : Math.max(1, Math.ceil(sortedDomiks.length / pageSize));
+    const safePage = Math.min(page, totalPages);
+    const pagedDomiks = pageSize === 'all'
+        ? sortedDomiks
+        : sortedDomiks.slice((safePage - 1) * pageSize, safePage * pageSize);
     const domikOrdinals = useMemo(() => {
         const idsByType = new Map<number, number[]>();
         for (const domik of domiks) {
@@ -418,7 +449,6 @@ export const DomikiPage = () => {
         setSelectedDomikId(id);
         const mechTab = MECHANIC_TAB[logicName];
         if (mechTab && mechTab !== activeTab) {
-            scrollTabsPending.current = true;
             setActiveTab(mechTab);
         }
     };
@@ -741,6 +771,28 @@ export const DomikiPage = () => {
                             }
                         </div>
                     }
+                    {domiks.length > 12 &&
+                        <div className="domik-sort-menu" ref={pageSizeRef}>
+                            <button type="button" className="btn-game btn-ghost" aria-expanded={pageSizeOpen}
+                                title="Домиков на странице"
+                                onClick={() => setPageSizeOpen(prev => !prev)}>
+                                <BuildingIcon className="btn-ico" aria-hidden="true" />
+                                {pageSize === 'all' ? 'Все' : pageSize}
+                                <ChevronDownIcon className="btn-ico" aria-hidden="true" />
+                            </button>
+                            {pageSizeOpen &&
+                                <div className="domik-sort-pop">
+                                    {PAGE_SIZE_OPTIONS.map(opt =>
+                                        <button key={String(opt.value)} type="button"
+                                            className={'domik-sort-option' + (pageSize === opt.value ? ' domik-sort-option-active' : '')}
+                                            onClick={() => { changePageSize(opt.value); setPageSizeOpen(false); }}>
+                                            {opt.label}
+                                        </button>,
+                                    )}
+                                </div>
+                            }
+                        </div>
+                    }
                     {pushState !== 'unsupported' &&
                         <button type="button" className="btn-game btn-ghost" title="Уведомления" aria-label="Уведомления"
                             disabled={pushBusy} onClick={() => void togglePush()}>
@@ -770,7 +822,7 @@ export const DomikiPage = () => {
                     }
                     <div className="domiks">
                         {domikTypes.length > 0 &&
-                            sortedDomiks.map(domik => {
+                            pagedDomiks.map(domik => {
                                 const domikType = domikTypes.find(x => x.id === domik.typeId);
                                 if (domikType == null) {
                                     return null;
@@ -822,6 +874,19 @@ export const DomikiPage = () => {
                             })
                         }
                     </div>
+                    {totalPages > 1 &&
+                        <div className="domik-pager">
+                            <button type="button" className="btn-game btn-ghost" disabled={safePage <= 1}
+                                onClick={() => setPage(safePage - 1)} aria-label="Предыдущая страница">
+                                <ChevronLeftIcon className="btn-ico" aria-hidden="true" />
+                            </button>
+                            <span className="domik-pager-status">Стр. {safePage} из {totalPages}</span>
+                            <button type="button" className="btn-game btn-ghost" disabled={safePage >= totalPages}
+                                onClick={() => setPage(safePage + 1)} aria-label="Следующая страница">
+                                <ChevronRightIcon className="btn-ico" aria-hidden="true" />
+                            </button>
+                        </div>
+                    }
                 </section>
                 {selected != null && <div className="actions-scrim" role="presentation" onClick={() => { setSelectedDomikId(null); }} />}
                 <aside className={'actions pixel-panel' + (selected == null ? ' actions--empty' : '')}>
