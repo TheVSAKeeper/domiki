@@ -477,7 +477,7 @@ export const DomikiPage = () => {
     const gameTabs: GameTab[] = [
         {
             key: 'orders', label: 'Заказы', icon: <MechanicSprite logicName="orders" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,
-            node: <><GoalCard goals={goals} resourceTypes={resourceTypes} /><OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes} resources={resources} now={now} onComplete={completeOrder} /></>,
+            node: <OrdersBox orders={orders} reputation={reputation} resourceTypes={resourceTypes} resources={resources} now={now} onComplete={completeOrder} />,
         },
         {
             key: 'blueprints', label: 'Вехи соседей', icon: <MechanicSprite logicName="blueprints" size={24} className="game-tab-ico" aria-hidden="true" />, visible: blueprints.length > 0 || (decor?.types ?? []).some(x => x.neighborId != null),
@@ -703,6 +703,7 @@ export const DomikiPage = () => {
                         <ChevronUpIcon className="btn-ico" aria-hidden="true" />
                     </button>}
             </header>
+            <GoalCard goals={goals} resourceTypes={resourceTypes} />
             {identityVisible &&
                 <div className="modal-backdrop" role="presentation">
                     <form className="identity-modal pixel-panel" onSubmit={event => { event.preventDefault(); void saveIdentity(); }}>
