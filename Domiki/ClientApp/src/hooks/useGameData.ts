@@ -36,6 +36,7 @@ export interface GameData {
     orders: OrderDto[];
     reputation: NeighborReputationDto[];
     blueprints: BlueprintDto[];
+    loading: boolean;
     village: VillageDto | null;
     villageLevel: VillageLevelDto | null;
     weather: WeatherStateDto | null;
@@ -89,6 +90,7 @@ export function useGameData(): GameData {
     const [recap, setRecap] = useState<RecapDto | null>(null);
     const [events, setEvents] = useState<RecapEventDto[]>([]);
     const [now, setNow] = useState(() => Date.now());
+    const [loading, setLoading] = useState(true);
 
     const refetching = useRef(false);
     const pendingReload = useRef(false);
@@ -301,6 +303,10 @@ export function useGameData(): GameData {
                 if (err instanceof ApiError) {
                     toast.error(err.message);
                 }
+            } finally {
+                if (!signal.aborted) {
+                    setLoading(false);
+                }
             }
         })();
 
@@ -416,6 +422,7 @@ export function useGameData(): GameData {
         workers,
         purchaseDomikTypes,
         now,
+        loading,
         reload,
         refreshPurchaseTypes,
         setVillage,

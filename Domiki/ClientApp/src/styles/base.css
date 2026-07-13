@@ -132,6 +132,17 @@ code {
     padding: 48px 0;
 }
 
+.game-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    background-color: var(--field);
+    background-image: repeating-conic-gradient(var(--field-dark) 0% 25%, var(--field) 0% 50%);
+    background-size: 56px 56px;
+}
+
 .pixel-loader-dots {
     display: flex;
     gap: 8px;

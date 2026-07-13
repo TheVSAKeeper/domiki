@@ -46,6 +46,7 @@ import { AbstractSprite, DomikSprite, MechanicSprite, ResourceSprite, WeatherSpr
 import { isSkilledWorker } from '../utils/worker';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import { HudResource } from './HudResource';
+import { PixelLoader } from './PixelLoader';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 import { buildRecapView } from '../utils/recap';
 
@@ -74,7 +75,7 @@ interface GameTab {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, goals, workers, purchaseDomikTypes, now, reload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, goals, workers, purchaseDomikTypes, now, loading, reload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -514,6 +515,11 @@ export const DomikiPage = () => {
 
     return (
         <div className="game" style={{ '--hud-sticky-offset': `${hudStickyOffset}px` } as React.CSSProperties}>
+            {loading &&
+                <div className="game-loading">
+                    <PixelLoader label="Загрузка деревни…" />
+                </div>
+            }
             <div className="hud-sentinel" ref={hudSentinelRef} aria-hidden="true" />
             <header ref={hudRef} className={'hud pixel-panel' + (hudCollapsed ? ' hud-collapsed' : '')}>
                 <button type="button" className="hud-compact" onClick={() => { setHudPinnedOpen(true); }} title="Развернуть панель">
