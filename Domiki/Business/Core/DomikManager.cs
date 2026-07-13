@@ -620,7 +620,7 @@ namespace Domiki.Web.Business.Core
                     {
                         StartManufacture(playerId, domikId, receiptId, useOptional, freedWorkerIds.ToArray(), autoRepeat: true);
                     }
-                    catch (BusinessException)
+                    catch (Exception)
                     {
                     }
                 }

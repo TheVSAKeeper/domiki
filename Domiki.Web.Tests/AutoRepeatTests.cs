@@ -84,6 +84,49 @@ namespace Domiki.Web.Tests
             Assert.That(GetResourceValue(playerId, 8), Is.EqualTo(1));
         }
 
+        [Test]
+        public void AutoRepeatSurvivesRecipeMissingFromLevelTest()
+        {
+            var playerId = GetPlayerId();
+            GrantDomik(playerId, 4, 1, 3);
+
+            int manufactureId;
+            using (var uow = GetUow())
+            {
+                var manufacture = new Domiki.Web.Data.Manufacture
+                {
+                    DomikId = 4,
+                    DomikPlayerId = playerId,
+                    ReceiptId = 22,
+                    PlodderCount = 1,
+                    FinishDate = DateTimeHelper.GetNowDate().AddSeconds(-3600),
+                    DurationSeconds = 1800,
+                    OutputPercent = 100,
+                    AutoRepeat = true,
+                    UseOptional = false,
+                };
+                uow.Context.Manufactures.Add(manufacture);
+                uow.Context.SaveChanges();
+                manufactureId = manufacture.Id;
+                uow.Commit();
+            }
+
+            using (var uow = GetUow())
+            {
+                var domikManager = GetDomikManager(uow);
+                var calcInfo = new CalculateInfo { PlayerId = playerId, ObjectId = manufactureId, Type = CalculateTypes.Manufacture };
+                Assert.DoesNotThrow(() => domikManager.FinishManufacture(DateTimeHelper.GetNowDate(), calcInfo));
+                uow.Commit();
+            }
+
+            Assert.That(GetManufactureCount(playerId, 4), Is.Zero);
+            using (var uow = GetUow())
+            {
+                Assert.That(uow.Context.Manufactures.Any(x => x.Id == manufactureId), Is.False);
+                uow.Commit();
+            }
+        }
+
         private int GetPlayerId()
         {
             using (var uow = GetUow())

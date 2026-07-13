@@ -7,13 +7,18 @@ namespace Domiki.Web.Business
 {
     public class Calculator : ICalculator
     {
+        private const int PoisonThreshold = 10;
+        private const int PoisonRetrySeconds = 300;
+        private const int MaxEventsPerTick = 100;
+
         private IServiceProvider _serviceProvider;
         private ILogger<Calculator> _logger;
         private List<CalculateInfo> _datas;
         private DateTime? _minDate;
         private System.Timers.Timer t;
         private bool _isInit;
-        private int _errorCount = 0;
+        private CalculateInfo _failingEvent;
+        private int _failingCount;
 
         public Calculator(IServiceProvider serviceProvider, ILogger<Calculator> logger)
         {
@@ -92,82 +97,130 @@ namespace Domiki.Web.Business
 
         private void Tick(object sender, ElapsedEventArgs e)
         {
-            if (_minDate != null)
+            if (_minDate == null)
             {
-                var date = DateTimeHelper.GetNowDate();
-                if (_minDate <= date)
+                return;
+            }
+            var date = DateTimeHelper.GetNowDate();
+            if (_minDate > date)
+            {
+                return;
+            }
+
+            t.Stop();
+            try
+            {
+                DrainDue(date, MaxEventsPerTick);
+            }
+            finally
+            {
+                t.Start();
+            }
+        }
+
+        internal void DrainDue(DateTime date, int budget)
+        {
+            while (_minDate != null && _minDate <= date && budget-- > 0)
+            {
+                RunDue(date);
+            }
+        }
+
+        internal void RunDue(DateTime date)
+        {
+            if (_datas.Count == 0)
+            {
+                _minDate = null;
+                return;
+            }
+
+            var calcDate = _datas[0];
+            try
+            {
+                var startDate = DateTime.Now;
+                var result = ProcessEvent(date, calcDate);
+                var time = (DateTime.Now - startDate).TotalMilliseconds;
+                _logger.LogInformation("Calculator - tick success: " + calcDate.PlayerId + " - " + calcDate.ObjectId + " - " + calcDate.Type + " " + time + "ms");
+                if (result)
                 {
-                    t.Stop();
-                    var calcDate = _datas[0];
-                    try
-                    {
-                        var startDate = DateTime.Now;
-                        using (IServiceScope scope = _serviceProvider.CreateScope())
-                        {
-                            CalculatorTick calculatorTick = scope.ServiceProvider.GetRequiredService<CalculatorTick>();
-                            UnitOfWork uow = scope.ServiceProvider.GetRequiredService<UnitOfWork>();
-                            var result = calculatorTick.Calculate(date, calcDate);
-                            uow.Context.SaveChanges();
-                            uow.Commit();
+                    _datas.Remove(calcDate);
+                    _minDate = _datas.Count > 0 ? (DateTime?)_datas[0].Date : null;
+                    _logger.LogInformation("Calculator - tick remove data: " + calcDate.PlayerId + " - " + calcDate.ObjectId + " - " + calcDate.Type);
+                }
+                _failingEvent = null;
+                _failingCount = 0;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Calculator - tick trable: " + calcDate.PlayerId + " - " + calcDate.ObjectId + " - " + calcDate.Type + " | message: " + ex.Message);
+                if (ReferenceEquals(_failingEvent, calcDate))
+                {
+                    _failingCount++;
+                }
+                else
+                {
+                    _failingEvent = calcDate;
+                    _failingCount = 1;
+                }
 
-                            if (result)
-                            {
-                                var pushSender = scope.ServiceProvider.GetRequiredService<PushSender>();
-                                var broker = scope.ServiceProvider.GetRequiredService<GameStateBroker>();
-                                switch (calcDate.Type)
-                                {
-                                    case CalculateTypes.Domiks:
-                                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody ?? "Домик достроен – загляни в деревню", "/domiki-page");
-                                        break;
-                                    case CalculateTypes.Manufacture:
-                                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody ?? "Производство завершено – товары готовы", "/domiki-page");
-                                        break;
-                                }
-
-                                switch (calcDate.Type)
-                                {
-                                    case CalculateTypes.Domiks:
-                                    case CalculateTypes.Manufacture:
-                                    case CalculateTypes.OrderExpire:
-                                    case CalculateTypes.Expedition:
-                                        broker.Publish(calcDate.PlayerId, GameStateScopes.State);
-                                        break;
-                                    case CalculateTypes.TradeLotExpire:
-                                        broker.Publish(calcDate.PlayerId, GameStateScopes.State);
-                                        broker.Broadcast(GameStateScopes.Market);
-                                        break;
-                                    case CalculateTypes.WeatherRotation:
-                                        broker.Broadcast(GameStateScopes.State);
-                                        break;
-                                }
-                            }
-
-                            var time = (DateTime.Now - startDate).TotalMilliseconds;
-                            _logger.LogInformation("Calculator - tick success: " + calcDate.PlayerId + " - " + calcDate.ObjectId + " - " + calcDate.Type + " " + time + "ms");
-                            if (result)
-                            {
-                                // todo посмотреть дату следующего, и если она наступила, тоже обработать и так далее. так как за одну секунду менее 1000/25=40 событий можно обработать
-                                _datas.Remove(calcDate);
-                                _minDate = _datas.Count > 0 ? (DateTime?)_datas[0].Date : null;
-                                _logger.LogInformation("Calculator - tick remove data: " + calcDate.PlayerId + " - " + calcDate.ObjectId + " - " + calcDate.Type);
-                            }
-                        }
-                        _errorCount = 0;
-                    }
-                    catch (Exception ex)
-                    {
-                        _errorCount++;
-                        _logger.LogError(ex, "Calculator - tick trable: " + calcDate.PlayerId + " - " + calcDate.ObjectId + " - " + calcDate.Type + " | message: " + ex.Message);
-                    }
-
-                    if (_errorCount < 10)
-                    {
-                        t.Start();
-                    }
+                if (_failingCount >= PoisonThreshold)
+                {
+                    _datas.RemoveAt(0);
+                    _minDate = _datas.Count > 0 ? (DateTime?)_datas[0].Date : null;
+                    _failingEvent = null;
+                    _failingCount = 0;
+                    calcDate.Date = date.AddSeconds(PoisonRetrySeconds);
+                    _logger.LogError("Calculator - poison event deferred " + PoisonRetrySeconds + "s: " + calcDate.PlayerId + " - " + calcDate.ObjectId + " - " + calcDate.Type);
+                    Insert(calcDate);
                 }
             }
         }
 
+        protected virtual bool ProcessEvent(DateTime date, CalculateInfo calcDate)
+        {
+            using (IServiceScope scope = _serviceProvider.CreateScope())
+            {
+                CalculatorTick calculatorTick = scope.ServiceProvider.GetRequiredService<CalculatorTick>();
+                UnitOfWork uow = scope.ServiceProvider.GetRequiredService<UnitOfWork>();
+                var result = calculatorTick.Calculate(date, calcDate);
+                uow.Context.SaveChanges();
+                uow.Commit();
+
+                if (result)
+                {
+                    var pushSender = scope.ServiceProvider.GetRequiredService<PushSender>();
+                    var broker = scope.ServiceProvider.GetRequiredService<GameStateBroker>();
+                    switch (calcDate.Type)
+                    {
+                        case CalculateTypes.Domiks:
+                            pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody ?? "Домик достроен – загляни в деревню", "/domiki-page");
+                            break;
+                        case CalculateTypes.Manufacture:
+                            pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody ?? "Производство завершено – товары готовы", "/domiki-page");
+                            break;
+                    }
+
+                    switch (calcDate.Type)
+                    {
+                        case CalculateTypes.Domiks:
+                        case CalculateTypes.Manufacture:
+                        case CalculateTypes.OrderExpire:
+                        case CalculateTypes.Expedition:
+                            broker.Publish(calcDate.PlayerId, GameStateScopes.State);
+                            break;
+                        case CalculateTypes.TradeLotExpire:
+                            broker.Publish(calcDate.PlayerId, GameStateScopes.State);
+                            broker.Broadcast(GameStateScopes.Market);
+                            break;
+                        case CalculateTypes.WeatherRotation:
+                            broker.Broadcast(GameStateScopes.State);
+                            break;
+                    }
+                }
+
+                return result;
+            }
+        }
 
         private List<CalculateInfo> GetCalculateDates()
         {
@@ -254,5 +307,15 @@ namespace Domiki.Web.Business
                 return dates;
             }
         }
+
+        internal void SeedForTest(IEnumerable<CalculateInfo> events)
+        {
+            _datas = events.OrderBy(x => x.Date).ToList();
+            _minDate = _datas.Count > 0 ? (DateTime?)_datas[0].Date : null;
+        }
+
+        internal IReadOnlyList<CalculateInfo> PendingForTest => _datas;
+
+        internal DateTime? MinDateForTest => _minDate;
     }
 }
