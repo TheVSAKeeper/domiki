@@ -29,7 +29,7 @@ import { useToast } from '../services/toast';
 import { disablePush, enablePush, getPushState } from '../services/push';
 import type { PushState } from '../services/push';
 import { useGameData } from '../hooks/useGameData';
-import { COIN_RESOURCE_TYPE_ID, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE, GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, resourceShortfall, sortDomiks, workerFitness } from '../utils/game';
+import { COIN_RESOURCE_TYPE_ID, GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, resourceShortfall, sortDomiks, workerFitness } from '../utils/game';
 import type { DomikSortMode } from '../utils/game';
 import { domikThemedName } from '../utils/domikNames';
 import { formatDuration, remainingSeconds } from '../utils/time';
@@ -46,8 +46,8 @@ import { ExpeditionsBox } from './ExpeditionsBox';
 import { DecorBox } from './DecorBox';
 import { TolokaBox } from './TolokaBox';
 import { MarketBox } from './MarketBox';
-import { ResourceChip } from './ResourceChip';
 import { JournalBox } from './JournalBox';
+import { RecapModal } from './RecapModal';
 import { AbstractSprite, DomikSprite, MechanicSprite, ResourceSprite, WeatherSprite, WorkerSprite } from './sprites';
 import { isSkilledWorker } from '../utils/worker';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
@@ -696,104 +696,16 @@ export const DomikiPage = () => {
                 </div>
             }
             {recapVisible &&
-                <div className="modal-backdrop" role="presentation">
-                    <section className="recap-modal pixel-panel" role="dialog" aria-modal="true" aria-label="Пока вас не было">
-                        <div className="recap-modal-head">
-                            <h2 className="panel-title">Пока вас не было – {formatDuration(recap.awaySeconds)}</h2>
-                            <button type="button" className="identity-button" title="Закрыть" onClick={clearRecap}>
-                                <CloseIcon className="btn-ico" aria-hidden="true" />
-                            </button>
-                        </div>
-                        {recapView.toloka.length > 0 &&
-                            <div className="recap-section">
-                                <span className="panel-label">Толока завершена</span>
-                                {recapView.toloka.map((event, index) => {
-                                    const name = toloka?.active.tolokaTypeId === event.tolokaTypeId ? toloka.active.name : `Толока #${event.tolokaTypeId}`;
-                                    return <span key={`${event.tolokaTypeId}-${index}`} className="recap-line">{name}</span>;
-                                })}
-                            </div>
-                        }
-                        {recapView.expeditions.length > 0 &&
-                            <div className="recap-section">
-                                <span className="panel-label">Экспедиции</span>
-                                {recapView.expeditions.map((event, index) => {
-                                    const name = expeditions?.types.find(type => type.id === event.expeditionTypeId)?.name ?? `Экспедиция #${event.expeditionTypeId}`;
-                                    return (
-                                        <div key={`${event.expeditionTypeId}-${index}`} className="recap-row">
-                                            <BackpackIcon className="recap-row-ico" aria-hidden="true" />
-                                            <span className="recap-line">{name}</span>
-                                            <div className="recap-chips">
-                                                {event.loot.map((loot, lootIndex) => {
-                                                    if (loot.kind === EXPEDITION_LOOT_KIND_DECOR) {
-                                                        const decorType = decor?.types.find(x => x.id === loot.decorTypeId);
-                                                        return <span key={lootIndex} className="recap-fallback">Нашли {decorType?.name ?? 'декор'}</span>;
-                                                    }
-                                                    if (loot.kind === EXPEDITION_LOOT_KIND_TRAIT_UPGRADE) {
-                                                        return <span key={lootIndex} className="recap-fallback">{loot.workerName} закалился: {loot.newTrait}</span>;
-                                                    }
-                                                    const type = resourceTypes.find(resourceType => resourceType.id === loot.typeId);
-                                                    return type == null
-                                                        ? <span key={lootIndex} className="recap-fallback">Ресурс #{loot.typeId} ×{loot.value}</span>
-                                                        : <ResourceChip key={lootIndex} resourceType={type} value={loot.value ?? 0} rare={loot.isRare} />;
-                                                })}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        }
-                        {recapView.market.length > 0 &&
-                            <div className="recap-section">
-                                <span className="panel-label">Ярмарка</span>
-                                {recapView.market.map((event, index) => {
-                                    const give = resourceTypes.find(type => type.id === event.give.typeId);
-                                    const want = event.want == null ? null : resourceTypes.find(type => type.id === event.want?.typeId);
-                                    return (
-                                        <div key={`${event.kind}-${index}`} className="recap-row">
-                                            <StoreIcon className="recap-row-ico" aria-hidden="true" />
-                                            <span className="recap-line">{event.kind === 'sold' ? 'Продано' : 'Лот истёк –'}</span>
-                                            {give == null ? <span className="recap-fallback">Ресурс #{event.give.typeId} ×{event.give.value}</span> : <ResourceChip resourceType={give} value={event.give.value} />}
-                                            {event.kind === 'sold' && event.want != null &&
-                                                <>
-                                                    <span className="recap-arrow">→ получено</span>
-                                                    {want == null ? <span className="recap-fallback">Ресурс #{event.want.typeId} ×{event.want.value}</span> : <ResourceChip resourceType={want} value={event.want.value} />}
-                                                </>
-                                            }
-                                            {event.kind === 'expired' && <span className="recap-line">возвращён</span>}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        }
-                        {recapView.produced.length > 0 &&
-                            <div className="recap-section">
-                                <span className="panel-label">Произведено</span>
-                                <div className="recap-chips">
-                                    {recapView.produced.map(resource => {
-                                        const type = resourceTypes.find(resourceType => resourceType.id === resource.typeId);
-                                        return type == null
-                                            ? <span key={resource.typeId} className="recap-fallback">Ресурс #{resource.typeId} ×{resource.value}</span>
-                                            : <ResourceChip key={resource.typeId} resourceType={type} value={resource.value} />;
-                                    })}
-                                </div>
-                            </div>
-                        }
-                        {recapView.upgrades.length > 0 &&
-                            <div className="recap-section">
-                                <span className="panel-label">Постройки улучшены</span>
-                                {recapView.upgrades.map((event, index) => {
-                                    const type = domikTypes.find(domikType => domikType.id === event.domikTypeId);
-                                    return (
-                                        <div key={`${event.domikTypeId}-${index}`} className="recap-row">
-                                            {type != null && <DomikSprite className="recap-domik-sprite" logicName={type.logicName} level={event.level} />}
-                                            <span className="recap-line">{type?.name ?? `Постройка #${event.domikTypeId}`} → ур. {event.level}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        }
-                    </section>
-                </div>
+                <RecapModal
+                    awaySeconds={recap.awaySeconds}
+                    view={recapView}
+                    resourceTypes={resourceTypes}
+                    domikTypes={domikTypes}
+                    decorTypes={decor?.types ?? []}
+                    expeditionTypes={expeditions?.types ?? []}
+                    toloka={toloka}
+                    onClose={clearRecap}
+                />
             }
             <div className="village-header">
                 <div className="village-identity">
