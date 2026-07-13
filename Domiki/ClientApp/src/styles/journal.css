@@ -4,30 +4,182 @@
     box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
-.journal-list {
+.journal-hero {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    align-items: center;
+    gap: 14px;
+    margin: -16px -18px 16px;
+    padding: 14px 18px;
+    background: linear-gradient(115deg, #d9c7a0 0%, var(--plank) 62%);
+    border-bottom: 3px solid var(--ink);
 }
 
-.journal-row {
+.journal-hero-emblem {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+    .journal-hero-emblem svg {
+        width: 40px;
+        height: 40px;
+    }
+
+.journal-hero-text {
+    min-width: 0;
+    flex: 1;
+}
+
+.journal-hero-title {
+    margin: 0 0 4px;
+}
+
+.journal-hero-sub {
+    margin: 0;
+    font-size: 13px;
+    color: var(--pine-dark);
+}
+
+.journal-hero-stat {
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    gap: 2px;
+    min-width: 62px;
+    padding: 8px 10px;
+    text-align: center;
+    color: #fff8e6;
+    background: var(--pine);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    font-family: var(--pixel);
+}
+
+    .journal-hero-stat b {
+        font-size: 20px;
+        font-weight: 400;
+        line-height: 1;
+    }
+
+    .journal-hero-stat small {
+        font-size: 8px;
+        opacity: .85;
+    }
+
+.journal-timeline {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-left: 4px;
+}
+
+.journal-timeline::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: 22px;
+    width: 3px;
+    background: var(--plank-dark);
+    z-index: 0;
+}
+
+.journal-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.journal-day {
+    position: relative;
+    z-index: 1;
+    margin-top: 4px;
+}
+
+    .journal-group:first-child .journal-day {
+        margin-top: 0;
+    }
+
+.journal-day-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    background: var(--plank-dark);
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    font-family: var(--pixel);
+    font-size: 10px;
+    color: var(--ink);
+}
+
+.journal-entry {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.journal-node {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    color: #fff8e6;
+    background: var(--accent, var(--pine));
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, .16);
+}
+
+    .journal-node svg {
+        width: 22px;
+        height: 22px;
+    }
+
+.journal-entry[data-tone="prod"] { --accent: #4a7a3a; }
+.journal-entry[data-tone="build"] { --accent: #b6763a; }
+.journal-entry[data-tone="exp"] { --accent: var(--roof); }
+.journal-entry[data-tone="market"] { --accent: var(--coin); }
+.journal-entry[data-tone="toloka"] { --accent: #6d8fa8; }
+.journal-entry[data-tone="goal"] { --accent: #a9791b; }
+
+.journal-entry[data-tone="market"] .journal-node,
+.journal-entry[data-tone="goal"] .journal-node {
+    color: #4a3600;
+}
+
+.journal-card {
+    flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 12px;
-    background: var(--plank);
+    min-height: 40px;
+    padding: 7px 12px;
+    background: #fffaec;
+    border: 2px solid var(--plank-dark);
     clip-path: var(--cut);
+    transition: border-color .12s;
 }
 
-.journal-row svg {
-    width: 24px;
-    height: 24px;
-    flex-shrink: 0;
-}
+    .journal-card:hover {
+        border-color: var(--accent, var(--pine));
+    }
 
-.journal-row .domik-sprite, .journal-row [class*="sprite"] {
-    flex-shrink: 0;
-}
+    .journal-card > svg {
+        width: 30px;
+        height: 30px;
+        flex-shrink: 0;
+    }
 
 .journal-text {
     font-weight: 600;
@@ -51,4 +203,46 @@
 .journal-loot-rare {
     outline: 2px solid var(--coin);
     outline-offset: 1px;
+}
+
+.journal-empty {
+    display: grid;
+    place-items: center;
+    gap: 8px;
+    padding: 34px 20px;
+    text-align: center;
+    background: #fffaec;
+    border: 3px dashed rgba(51, 41, 26, .3);
+    clip-path: var(--cut);
+}
+
+.journal-empty-ico {
+    width: 44px;
+    height: 44px;
+    opacity: .8;
+}
+
+.journal-empty-title {
+    margin: 0;
+    font-family: var(--pixel);
+    font-size: 13px;
+}
+
+.journal-empty-hint {
+    margin: 0;
+    max-width: 34ch;
+    font-size: 13px;
+    color: var(--pine-dark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .journal-card {
+        transition: none;
+    }
+}
+
+@media (max-width: 460px) {
+    .journal-hero-stat {
+        display: none;
+    }
 }
