@@ -1,21 +1,159 @@
 .expeditions-panel {
     padding: 16px 18px;
     margin-bottom: 20px;
+    overflow: hidden;
     box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
-.expeditions-head {
+.expeditions-hero {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 14px;
+    margin: -16px -18px 14px;
+    padding: 14px 18px;
+    background: linear-gradient(115deg, #f1c9a6 0%, var(--plank) 62%);
+    border-bottom: 3px solid var(--ink);
 }
 
-.pity-ico {
-    width: 20px;
-    height: 20px;
+.expeditions-hero-emblem {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
     flex-shrink: 0;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.expeditions-hero-emblem svg {
+    width: 40px;
+    height: 40px;
+}
+
+.expeditions-hero-text {
+    min-width: 0;
+    flex: 1;
+}
+
+.expeditions-hero-title {
+    margin: 0 0 4px;
+}
+
+.expeditions-hero-sub {
+    margin: 0;
+    max-width: 48ch;
+    font-size: 13px;
+    line-height: 1.4;
+    color: rgba(51, 41, 26, .78);
+}
+
+.expeditions-hero-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 7px 16px 6px;
+    text-align: center;
+    color: #fffaec;
+    background: var(--pine);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 rgba(51, 41, 26, .28);
+}
+
+.expeditions-hero-stat-num {
+    font-family: var(--pixel);
+    font-size: 22px;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.expeditions-hero-stat-label {
+    margin-top: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: lowercase;
+}
+
+.expeditions-trail {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.expeditions-trail-label {
+    flex-shrink: 0;
+    font-family: var(--pixel);
+    font-size: 9px;
+    line-height: 1.5;
+    color: var(--pine-dark);
+    text-transform: lowercase;
+}
+
+.expeditions-trail-track {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 0 2px;
+    background-image: repeating-linear-gradient(90deg, rgba(51, 41, 26, .22) 0 6px, transparent 6px 12px);
+    background-position: 0 50%;
+    background-repeat: repeat-x;
+    background-size: 12px 2px;
+}
+
+.trail-pip {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    background: var(--plank-dark);
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.trail-pip:nth-child(even) {
+    transform: translateY(4px);
+}
+
+.trail-pip-done {
+    background: var(--coin);
+}
+
+.expeditions-trail-goal {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    margin-left: auto;
+    color: #7a5c00;
+    background: #fdf0c4;
+    border: 2px solid #b8860b;
+    clip-path: var(--cut);
+}
+
+.expeditions-trail-goal svg {
+    width: 16px;
+    height: 16px;
+}
+
+.expeditions-trail-count {
+    flex-shrink: 0;
+    font-family: var(--pixel);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--roof);
+    font-variant-numeric: tabular-nums;
 }
 
 .expeditions-grid {
@@ -30,21 +168,55 @@
     gap: 10px;
     min-width: 0;
     padding: 12px;
-    background: rgba(255, 255, 255, .24);
+    background: var(--plank);
     border: 3px solid var(--ink);
     clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
 .expedition-topline {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    margin: -12px -12px 2px;
+    padding: 9px 11px;
+    background: linear-gradient(120deg, #e2d3b4, var(--plank) 80%);
+    border-bottom: 3px solid var(--ink);
 }
 
-.expedition-card-ico {
-    width: 18px;
-    height: 18px;
+.expedition-topline-near {
+    background: linear-gradient(120deg, #cfe0b6, var(--plank) 82%);
+}
+
+.expedition-topline-far {
+    background: linear-gradient(120deg, #f0c6a0, var(--plank) 82%);
+}
+
+.expedition-topline-quick {
+    background: linear-gradient(120deg, #f4e1ad, var(--plank) 82%);
+}
+
+.expedition-flavor {
+    margin: -2px 0 0;
+    font-size: 12px;
+    line-height: 1.35;
+    color: rgba(51, 41, 26, .68);
+}
+
+.expedition-emblem {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
     flex-shrink: 0;
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.expedition-emblem svg {
+    width: 22px;
+    height: 22px;
 }
 
 .expedition-name {
@@ -72,9 +244,116 @@
 }
 
 .expedition-reward {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 9px;
     margin-top: 2px;
-    padding-top: 10px;
-    border-top: 2px dotted rgba(51, 41, 26, .28);
+    padding: 9px 11px 11px;
+    background: #fffaec;
+    border: 2px solid rgba(184, 134, 11, .4);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -3px 0 rgba(184, 134, 11, .12);
+}
+
+.loot-tier {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.loot-tier-label {
+    font-family: var(--pixel);
+    font-size: 9px;
+    letter-spacing: .3px;
+    text-transform: lowercase;
+    color: var(--pine-dark);
+}
+
+.loot-common-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 16px;
+}
+
+.loot-common-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--pixel);
+    font-size: 12px;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.loot-common-item svg,
+.loot-common-item img {
+    width: 18px;
+    height: 18px;
+    image-rendering: pixelated;
+}
+
+.loot-tier-rare {
+    padding-top: 9px;
+    border-top: 2px dashed rgba(184, 134, 11, .38);
+}
+
+.loot-tier-label-rare {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #a9791b;
+}
+
+.loot-tier-label-rare svg {
+    width: 13px;
+    height: 13px;
+}
+
+.loot-tier-chance {
+    font-family: var(--pixel);
+    font-size: 8px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: rgba(122, 92, 0, .72);
+}
+
+.rare-finds-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.rare-find {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px 5px 6px;
+    background: linear-gradient(135deg, #fdf0c4, #f6df95);
+    border: 2px solid #c79a2e;
+    clip-path: var(--cut);
+    font-family: var(--pixel);
+    font-size: 11px;
+    color: #6b4e00;
+    box-shadow: inset 0 -3px 0 rgba(184, 134, 11, .25);
+}
+
+.rare-find-ico {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    flex: none;
+}
+
+.rare-find-ico svg,
+.rare-find-ico img {
+    width: 20px;
+    height: 20px;
+    image-rendering: pixelated;
+}
+
+.rare-find-label {
+    font-variant-numeric: tabular-nums;
 }
 
     .expedition-req .panel-label,
@@ -92,8 +371,7 @@
     margin: 0 0 4px;
 }
 
-.expedition-chips,
-.expedition-loot {
+.expedition-chips {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
@@ -159,6 +437,23 @@
     gap: 6px;
 }
 
+.expedition-crew-member {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 10px 4px 5px;
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.expedition-crew-face {
+    width: 38px;
+    height: 38px;
+    flex: none;
+    image-rendering: pixelated;
+}
+
 .expedition-manual-toggle {
     display: flex;
     align-items: center;
@@ -182,12 +477,32 @@
 .expeditions-active {
     display: flex;
     flex-direction: column;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 3px dotted rgba(51, 41, 26, .3);
+}
+
+.expeditions-active-head {
+    display: flex;
+    align-items: center;
     gap: 8px;
-    margin-top: 14px;
+}
+
+.expeditions-active-ico {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--roof);
+}
+
+.expeditions-active-title {
+    margin-bottom: 0;
 }
 
 .expedition-card-active {
     background: var(--plank-dark);
+    box-shadow: inset 0 -4px 0 rgba(51, 41, 26, .12);
 }
 
 @media (max-width: 900px) {
@@ -195,9 +510,12 @@
         grid-template-columns: 1fr;
     }
 
-    .expeditions-head {
-        flex-direction: column;
-        align-items: flex-start;
+    .expeditions-hero {
+        flex-wrap: wrap;
+    }
+
+    .expeditions-hero-stat {
+        margin-left: auto;
     }
 }
 
