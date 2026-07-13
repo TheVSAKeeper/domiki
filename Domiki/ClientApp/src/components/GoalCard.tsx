@@ -1,4 +1,3 @@
-import FlagIcon from 'pixelarticons/svg/flag.svg?react';
 import type { GoalsStateDto, ResourceTypeDto } from '../types/api';
 import { zealMultiplier } from '../utils/game';
 import { ProgressBar } from './ProgressBar';
@@ -48,7 +47,7 @@ export const GoalCard = ({ goals, resourceTypes }: GoalCardProps) => {
         <section className="goal-card pixel-panel">
             <div className="goal-hero">
                 <div className="goal-emblem">
-                    <FlagIcon className="goal-emblem-ico" aria-hidden="true" />
+                    <AbstractSprite logicName="elder_order" size={32} className="goal-emblem-ico" aria-hidden="true" />
                 </div>
                 <div className="goal-hero-text">
                     <h3 className="goal-title">Наказ старосты</h3>

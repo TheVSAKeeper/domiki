@@ -17,7 +17,6 @@ import BellIcon from 'pixelarticons/svg/bell.svg?react';
 import BellOffIcon from 'pixelarticons/svg/bell-off.svg?react';
 import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
 import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
-import JournalIcon from 'pixelarticons/svg/article.svg?react';
 import ChevronLeftIcon from 'pixelarticons/svg/chevron-left.svg?react';
 import ChevronRightIcon from 'pixelarticons/svg/chevron-right.svg?react';
 import RepeatIcon from 'pixelarticons/svg/repeat.svg?react';
@@ -526,7 +525,7 @@ export const DomikiPage = () => {
             node: <WorkersBox workers={workers} domikTypes={domikTypes} domiks={domiks} expeditions={expeditions} feedWorkers={village?.feedWorkers ?? false} now={now} onToggleFeedWorkers={toggleFeedWorkers} />,
         },
         {
-            key: 'journal', label: 'Журнал', icon: <JournalIcon className="game-tab-ico" aria-hidden="true" />, visible: true,
+            key: 'journal', label: 'Журнал', icon: <AbstractSprite logicName="journal" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,
             node: <JournalBox events={events} resourceTypes={resourceTypes} domikTypes={domikTypes} decorTypes={decor?.types ?? []} now={now} />,
         },
     ];

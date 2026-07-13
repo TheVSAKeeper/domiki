@@ -1,5 +1,4 @@
 import type { FC, ReactNode, SVGProps } from 'react';
-import JournalIcon from 'pixelarticons/svg/article.svg?react';
 import BackpackIcon from 'pixelarticons/svg/backpack.svg?react';
 import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
@@ -10,7 +9,7 @@ import type { DecorTypeDto, DomikTypeDto, RecapEventDto, ResourceTypeDto } from 
 import { isNumber, isRecord, readLootEntry, readResource } from '../utils/recap';
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
 import { formatRelativeTime } from '../utils/time';
-import { DomikSprite } from './sprites';
+import { AbstractSprite, DomikSprite, MechanicSprite } from './sprites';
 import { ResourceChip } from './ResourceChip';
 
 interface JournalBoxProps {
@@ -111,6 +110,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
             Icon: BackpackIcon,
             body: (
                 <>
+                    <MechanicSprite logicName="expeditions" aria-hidden="true" />
                     <span className="journal-text">Экспедиция вернулась</span>
                     <span className="journal-chips">
                         {loot.map((entry, index) => {
@@ -220,7 +220,7 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, now 
     return (
         <section className="journal-panel pixel-panel">
             <header className="journal-hero">
-                <span className="journal-hero-emblem" aria-hidden="true"><JournalIcon /></span>
+                <span className="journal-hero-emblem" aria-hidden="true"><AbstractSprite logicName="journal" size={40} /></span>
                 <div className="journal-hero-text">
                     <h3 className="journal-hero-title panel-title">Журнал</h3>
                     <p className="journal-hero-sub">Летопись двора: что ни день – то новое дело.</p>
@@ -236,7 +236,7 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, now 
             {entries.length === 0
                 ? (
                     <div className="journal-empty">
-                        <JournalIcon className="journal-empty-ico" aria-hidden="true" />
+                        <AbstractSprite logicName="journal" size={48} className="journal-empty-ico" aria-hidden="true" />
                         <p className="journal-empty-title">Летопись пока пуста</p>
                         <p className="journal-empty-hint">Стройте, производите, шлите экспедиции – двор начнёт вести дневник сам.</p>
                     </div>
