@@ -1,10 +1,10 @@
 import FlagIcon from 'pixelarticons/svg/flag.svg?react';
-import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 import type { GoalsStateDto, ResourceTypeDto } from '../types/api';
 import { zealMultiplier } from '../utils/game';
 import { ProgressBar } from './ProgressBar';
 import { ResourceChip } from './ResourceChip';
 import { StatChip } from './StatChip';
+import { AbstractSprite } from './sprites';
 
 interface GoalCardProps {
     goals: GoalsStateDto | null;
@@ -22,7 +22,7 @@ const shiftWord = (n: number): string => {
 const ZealChip = ({ charges }: { charges: number }) => {
     const multiplier = zealMultiplier(charges);
     return (
-        <StatChip icon={<ZapIcon className="stat-chip-ico" aria-hidden="true" />} title="Ускорение коротких производств">
+        <StatChip icon={<AbstractSprite logicName="untouched_deposits" size={24} className="stat-chip-ico" aria-hidden="true" />} title="Ускорение коротких производств">
             <span className="zeal-chip">
                 <span className="zeal-chip-label">Нетронутые залежи</span>
                 <span className="zeal-chip-count">{charges} {shiftWord(charges)}</span>

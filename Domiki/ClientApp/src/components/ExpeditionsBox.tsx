@@ -1,11 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import BackpackIcon from 'pixelarticons/svg/backpack.svg?react';
 import MapPinIcon from 'pixelarticons/svg/map-pin.svg?react';
-import FlagIcon from 'pixelarticons/svg/flag.svg?react';
 import GiftIcon from 'pixelarticons/svg/gift.svg?react';
-import SparklesIcon from 'pixelarticons/svg/sparkles.svg?react';
-import NoteIcon from 'pixelarticons/svg/note.svg?react';
-import ShieldIcon from 'pixelarticons/svg/shield.svg?react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import CoinsIcon from 'pixelarticons/svg/coins.svg?react';
 import UsersIcon from 'pixelarticons/svg/users.svg?react';
@@ -16,7 +12,7 @@ import { formatDuration, remainingSeconds } from '../utils/time';
 import { ResourceChip } from './ResourceChip';
 import { StatChip } from './StatChip';
 import { ProgressBar } from './ProgressBar';
-import { DecorSprite, MechanicSprite, ResourceSprite, WorkerSprite } from './sprites';
+import { AbstractSprite, DecorSprite, MechanicSprite, ResourceSprite, WorkerSprite } from './sprites';
 
 const durationBetween = (startDate: string, finishDate: string) =>
     Math.max(1, Math.round((new Date(finishDate).getTime() - new Date(startDate).getTime()) / 1000));
@@ -31,9 +27,17 @@ interface ExpeditionsBoxProps {
     onStart: (expeditionTypeId: number, workerIds?: number[], provisions?: boolean) => void;
 }
 
-const EXPEDITION_ICONS: Record<string, typeof MapPinIcon> = {
-    short_scout: MapPinIcon,
-    long_journey: FlagIcon,
+const EXPEDITION_EMBLEM: Record<string, string> = {
+    short_scout: 'near_sortie',
+    long_journey: 'long_expedition',
+    foot_scout: 'walking_sortie',
+};
+
+const ExpeditionEmblem = ({ logicName, size = 40, className }: { logicName: string | undefined; size?: 24 | 32 | 40; className?: string }) => {
+    const emblem = logicName == null ? undefined : EXPEDITION_EMBLEM[logicName];
+    return emblem == null
+        ? <BackpackIcon className={className} aria-hidden="true" />
+        : <AbstractSprite logicName={emblem} size={size} className={className} aria-hidden="true" />;
 };
 
 const EXPEDITION_FLAVOR: Record<string, string> = {
@@ -111,7 +115,6 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                 <p className="expeditions-hint hint">Снаряжение готовят постройки-переделы (кузница, лесопилка). Нет нужного ресурса – сначала наладьте производство.</p>}
             <div className="expeditions-grid">
                 {expeditions.types.map(type => {
-                    const TypeIcon = EXPEDITION_ICONS[type.logicName] ?? BackpackIcon;
                     const canAffordGold = hasResourcesFor([{ typeId: GOLD_RESOURCE_TYPE_ID, value: type.goldCost }], resources);
                     const equipment = type.equipment.filter(entry => !entry.isOptional);
                     const provisionEquipment = type.equipment.filter(entry => entry.isOptional);
@@ -134,7 +137,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                     return (
                         <div key={type.id} className="expedition-card">
                             <div className={'expedition-topline expedition-topline-' + (EXPEDITION_TONE[type.logicName] ?? 'near')}>
-                                <span className="expedition-emblem"><TypeIcon aria-hidden="true" /></span>
+                                <span className="expedition-emblem"><ExpeditionEmblem logicName={type.logicName} /></span>
                                 <span className="expedition-name">{type.name}</span>
                             </div>
                             {EXPEDITION_FLAVOR[type.logicName] != null &&
@@ -201,7 +204,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                 {rareLoot.length > 0 &&
                                     <div className="loot-tier loot-tier-rare">
                                         <span className="loot-tier-label loot-tier-label-rare">
-                                            <SparklesIcon aria-hidden="true" />
+                                            <AbstractSprite logicName="rare_expedition_find" size={24} aria-hidden="true" />
                                             редкие находки
                                             <span className="loot-tier-chance">· если повезёт</span>
                                         </span>
@@ -214,11 +217,11 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                                         label={decorType?.name ?? 'Декор'} title={`Трофей в деревню: ${decorType?.name ?? 'декор'}`} />;
                                                 }
                                                 if (entry.kind === EXPEDITION_LOOT_KIND_TRAIT_UPGRADE) {
-                                                    return <RareFind key="trait-upgrade" icon={<ShieldIcon aria-hidden="true" />}
+                                                    return <RareFind key="trait-upgrade" icon={<AbstractSprite logicName="expedition_hardening" size={32} aria-hidden="true" />}
                                                         label="Закалка похода" title="Трудяга вернётся крепче – прокачка черты" />;
                                                 }
                                                 if (entry.kind === EXPEDITION_LOOT_KIND_BLUEPRINT) {
-                                                    return <RareFind key="blueprint" icon={<NoteIcon aria-hidden="true" />}
+                                                    return <RareFind key="blueprint" icon={<AbstractSprite logicName="blueprint" size={32} aria-hidden="true" />}
                                                         label="Чертёж" title="Случайный чертёж, которого у вас ещё нет" />;
                                                 }
 
@@ -253,7 +256,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                             }
                             <button className="btn-game" disabled={!canStart} title={blockedTitle}
                                 onClick={() => onStart(type.id, isManual ? picked : undefined, useProvisions)}>
-                                <TypeIcon className="btn-ico" aria-hidden="true" />
+                                <ExpeditionEmblem logicName={type.logicName} size={24} className="btn-ico" />
                                 Отправить
                             </button>
                         </div>
@@ -269,14 +272,13 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                     <div className="expeditions-grid">
                         {expeditions.active.map(expedition => {
                             const type = expeditions.types.find(x => x.id === expedition.expeditionTypeId);
-                            const TypeIcon = type == null ? BackpackIcon : EXPEDITION_ICONS[type.logicName] ?? BackpackIcon;
                             const crew = workers.filter(worker => worker.expeditionId === expedition.id);
                             const total = durationBetween(expedition.startDate, expedition.finishDate);
                             const left = remainingSeconds(expedition.finishDate, now);
                             return (
                                 <div key={expedition.id} className="expedition-card expedition-card-active">
                                     <div className={'expedition-topline expedition-topline-' + (type == null ? 'near' : EXPEDITION_TONE[type.logicName] ?? 'near')}>
-                                        <span className="expedition-emblem"><TypeIcon aria-hidden="true" /></span>
+                                        <span className="expedition-emblem"><ExpeditionEmblem logicName={type?.logicName} /></span>
                                         <span className="expedition-name">{expedition.expeditionName}</span>
                                     </div>
                                     <ProgressBar value={total - left} max={total} label={formatDuration(left)} />

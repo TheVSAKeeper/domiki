@@ -52,6 +52,13 @@ import WorkerSkillSprite from '../assets/abstract/worker_skill.svg?react';
 import FatigueRestSprite from '../assets/abstract/fatigue_rest.svg?react';
 import PrestigeSprite from '../assets/abstract/prestige_new_valley.svg?react';
 import ProductionRecipeSprite from '../assets/abstract/production_recipe.svg?react';
+import NearSortieSprite from '../assets/abstract/near_sortie.svg?react';
+import LongExpeditionSprite from '../assets/abstract/long_expedition.svg?react';
+import WalkingSortieSprite from '../assets/abstract/walking_sortie.svg?react';
+import RareExpeditionFindSprite from '../assets/abstract/rare_expedition_find.svg?react';
+import ExpeditionHardeningSprite from '../assets/abstract/expedition_hardening.svg?react';
+import BlueprintSprite from '../assets/abstract/blueprint.svg?react';
+import UntouchedDepositsSprite from '../assets/abstract/untouched_deposits.svg?react';
 import MechObzhitostSprite from '../assets/mechanics/obzhitost.svg?react';
 import MechOrdersSprite from '../assets/mechanics/orders.svg?react';
 import MechWorkersSprite from '../assets/mechanics/workers.svg?react';
@@ -172,6 +179,13 @@ const abstractSprites: Record<string, SpriteComponent> = {
     fatigue_rest: FatigueRestSprite,
     prestige_new_valley: PrestigeSprite,
     production_recipe: ProductionRecipeSprite,
+    near_sortie: NearSortieSprite,
+    long_expedition: LongExpeditionSprite,
+    walking_sortie: WalkingSortieSprite,
+    rare_expedition_find: RareExpeditionFindSprite,
+    expedition_hardening: ExpeditionHardeningSprite,
+    blueprint: BlueprintSprite,
+    untouched_deposits: UntouchedDepositsSprite,
 };
 
 const resourceSprites: Record<string, SpriteComponent> = {
