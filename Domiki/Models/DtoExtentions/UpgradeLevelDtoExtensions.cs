@@ -12,6 +12,7 @@ namespace Domiki.Web.Models
                 Resources = t.Resources.Select(x => x.ToDto()).ToArray(),
                 Modificators = t.Modificators.Select(x => x.ToDto()).ToArray(),
                 ReceiptIds = t.Receipts.Select(x => x.Id).ToArray(),
+                MaxManufactureCount = t.MaxManufactureCount,
             };
         }
     }

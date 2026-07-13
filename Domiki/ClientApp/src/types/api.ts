@@ -47,6 +47,7 @@ export const upgradeLevelSchema = z.object({
     resources: z.array(resourceSchema),
     modificators: z.array(modificatorSchema),
     receiptIds: z.array(z.number()),
+    maxManufactureCount: z.number(),
 });
 export type UpgradeLevelDto = z.infer<typeof upgradeLevelSchema>;
 

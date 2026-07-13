@@ -345,10 +345,31 @@ export const DomikiPage = () => {
 
         return { ordinalById, countByType };
     }, [domiks]);
-    const domikDisplayName = (typeId: number, id: number, name: string) =>
+    const domikDisplayName = (typeId: number, id: number, name: string, logicName: string) =>
         (domikOrdinals.countByType.get(typeId) ?? 1) > 1
-            ? domikThemedName(name, typeId, domikOrdinals.ordinalById.get(id) ?? 1)
+            ? domikThemedName(name, logicName, domikOrdinals.ordinalById.get(id) ?? 1)
             : name;
+    const upgradeBenefits = selected?.upgrade == null
+        ? null
+        : (() => {
+            const currentLevel = selected.domikType.levels.find(level => level.value === selected.domik.level);
+            const nextLevel = selected.domikType.levels.find(level => level.value === selected.upgrade?.nextLevel);
+            if (currentLevel == null || nextLevel == null) {
+                return null;
+            }
+
+            const plodderDelta = (nextLevel.modificators.find(modificator => modificator.typeId === 1)?.value ?? 0)
+                - (currentLevel.modificators.find(modificator => modificator.typeId === 1)?.value ?? 0);
+            const manufactureDelta = nextLevel.maxManufactureCount - currentLevel.maxManufactureCount;
+            const newReceiptNames = nextLevel.receiptIds
+                .filter(receiptId => !currentLevel.receiptIds.includes(receiptId))
+                .map(receiptId => receipts.find(receipt => receipt.id === receiptId)?.name)
+                .filter((name): name is string => name != null);
+
+            return plodderDelta > 0 || manufactureDelta > 0 || newReceiptNames.length > 0
+                ? { plodderDelta, manufactureDelta, newReceiptNames }
+                : null;
+        })();
     const currentWeather = weather?.current ?? null;
     const hudCollapsed = hudAway && !hudPinnedOpen;
     const coinType = resourceTypes.find(t => t.id === COIN_RESOURCE_TYPE_ID);
@@ -843,7 +864,7 @@ export const DomikiPage = () => {
                                     : null;
                                 const cardWeather = currentWeather?.effects.find(
                                     effect => effect.domikTypeId === domik.typeId && effect.outputPercent !== 100) ?? null;
-                                const displayName = domikDisplayName(domik.typeId, domik.id, domikType.name);
+                                const displayName = domikDisplayName(domik.typeId, domik.id, domikType.name, domikType.logicName);
                                 const upgradeAvailable = canAffordUpgrade(domik, domikType, resources);
                                 const cardStatus = domik.finishDate != null
                                         ? 'идёт улучшение'
@@ -937,7 +958,7 @@ export const DomikiPage = () => {
                     {selected != null &&
                         <div>
                             <div className="actions-heading">
-                                <h3 className="panel-title">{domikDisplayName(selected.domik.typeId, selected.domik.id, selected.domikType.name)}</h3>
+                                <h3 className="panel-title">{domikDisplayName(selected.domik.typeId, selected.domik.id, selected.domikType.name, selected.domikType.logicName)}</h3>
                                 <span className="domik-level">ур. {selected.domik.level}</span>
                             </div>
                             {domikLore[selected.domikType.logicName] != null &&
@@ -949,6 +970,14 @@ export const DomikiPage = () => {
                                         <span className="panel-label">Улучшение до ур. {selected.upgrade.nextLevel}</span>
                                         <ResourcesBox resources={selected.upgrade.resources} resourceTypes={resourceTypes} have={resources} />
                                     </div>
+                                    {upgradeBenefits != null &&
+                                        <div>
+                                            <span className="panel-label">Что даст ур. {selected.upgrade.nextLevel}</span>
+                                            {upgradeBenefits.plodderDelta > 0 && <div>+{upgradeBenefits.plodderDelta} трудяг</div>}
+                                            {upgradeBenefits.manufactureDelta > 0 && <div>+{upgradeBenefits.manufactureDelta} одновременное производство</div>}
+                                            {upgradeBenefits.newReceiptNames.length > 0 && <div>Новые рецепты: {upgradeBenefits.newReceiptNames.join(', ')}</div>}
+                                        </div>
+                                    }
                                     <button className="btn-game"
                                         disabled={!selected.upgrade.hasResources}
                                         title={selected.upgrade.hasResources ? undefined : `Не хватает: ${formatShortfall(selected.upgrade.resources)}`}

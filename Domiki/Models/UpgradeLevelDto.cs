@@ -23,5 +23,7 @@ namespace Domiki.Web.Models
         /// Что можно производить в постройке.
         /// </summary>
         public int[] ReceiptIds { get; set; }
+
+        public int MaxManufactureCount { get; set; }
     }
 }

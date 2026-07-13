@@ -423,6 +423,13 @@ button.wiki-res-cell {
         color: var(--pine-dark);
     }
 
+    .wiki-village-level {
+        align-items: center;
+        display: inline-flex;
+        font-size: 14px;
+        gap: 6px;
+    }
+
     .wiki-mechanic-live .wiki-res-grid {
         margin-top: 4px;
     }
@@ -452,4 +459,3 @@ button.wiki-res-cell {
         margin-left: 0;
     }
 }
-

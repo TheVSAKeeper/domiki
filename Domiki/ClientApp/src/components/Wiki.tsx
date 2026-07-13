@@ -5,7 +5,7 @@ import { useToast } from '../services/toast';
 import { formatDuration } from '../utils/time';
 import { domikLore } from '../utils/domikLore';
 import { resourceLore } from '../utils/resourceLore';
-import type { DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, WeatherStateDto } from '../types/api';
+import type { DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, VillageLevelDto, WeatherStateDto } from '../types/api';
 import { DecorSprite, DomikSprite, MechanicSprite, ResourceSprite, WeatherSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import { PixelLoader } from './PixelLoader';
@@ -17,6 +17,7 @@ interface Catalog {
     receipts: ReceiptDto[];
     weather: WeatherStateDto;
     decor: DecorStateDto;
+    villageLevel: VillageLevelDto;
 }
 
 interface Mechanic {
@@ -33,7 +34,7 @@ const MECHANICS: Mechanic[] = [
         logic: 'obzhitost',
         name: 'Обжитость',
         teaser: 'уровень деревни, открывает контент',
-        description: 'Уровень деревни – не опыт, а производная от её состояния: сумма уровней построек ×1, жители ×2, вехи репутации ×5, очки уюта. Нафармить дёшево нельзя. Пороги обжитости открывают новые постройки, соседей, приросты и здания механик.',
+        description: 'Уровень деревни – не опыт, а производная от её состояния: сумма уровней построек ×1, жители ×2, вехи репутации ×5, очки уюта. Нафармить дёшево нельзя. Ниже – твоя обжитость сейчас и ближайшие открытия.',
     },
     {
         key: 'orders',
@@ -195,6 +196,7 @@ export const Wiki = () => {
                     receipts: state.receipts,
                     weather: state.weather,
                     decor: state.decor,
+                    villageLevel: state.villageLevel,
                 });
             } catch (err) {
                 if (err instanceof DOMException && err.name === 'AbortError') {
@@ -213,7 +215,7 @@ export const Wiki = () => {
         return <div className="wiki"><PixelLoader label="Загрузка справочника…" /></div>;
     }
 
-    const { domikTypes, resourceTypes, receipts, weather, decor } = catalog;
+    const { domikTypes, resourceTypes, receipts, weather, decor, villageLevel } = catalog;
     const receiptById = (id: number) => receipts.find(x => x.id === id);
     const buildings = [...domikTypes].sort((a, b) => a.unlockLevel - b.unlockLevel || a.id - b.id);
 
@@ -376,6 +378,39 @@ export const Wiki = () => {
                                 {open && (
                                     <div className="wiki-mechanic-body">
                                         <p>{m.description}</p>
+                                        {m.key === 'village' && (
+                                            <div className="wiki-mechanic-live">
+                                                <span className="wiki-mechanic-live-label wiki-village-level">
+                                                    <MechanicSprite logicName="obzhitost" size={32} className="weather-chip-ico" aria-hidden="true" />
+                                                    Текущая обжитость: {villageLevel.level}
+                                                </span>
+                                                <dl className="wiki-res-facts">
+                                                    <dt>Постройки</dt>
+                                                    <dd>{villageLevel.buildings} × 1 = {villageLevel.buildings}</dd>
+                                                    <dt>Жители</dt>
+                                                    <dd>{villageLevel.residents} × 2 = {villageLevel.residents * 2}</dd>
+                                                    <dt>Вехи репутации</dt>
+                                                    <dd>{villageLevel.reputation} × 5 = {villageLevel.reputation * 5}</dd>
+                                                    <dt>Уют</dt>
+                                                    <dd>{Math.min(villageLevel.comfort, 50)} × 1 = {Math.min(villageLevel.comfort, 50)}</dd>
+                                                    <dt>Итого</dt>
+                                                    <dd>{villageLevel.level}</dd>
+                                                </dl>
+                                                {villageLevel.upcomingUnlocks.length > 0 && (
+                                                    <>
+                                                        <span className="wiki-mechanic-live-label">Ближайшие открытия:</span>
+                                                        <dl className="wiki-res-facts">
+                                                            {villageLevel.upcomingUnlocks.slice(0, 5).map(unlock => (
+                                                                <Fragment key={`${unlock.label}-${unlock.level ?? unlock.requirement}`}>
+                                                                    <dt>{unlock.label}</dt>
+                                                                    <dd>{unlock.level != null ? `при обжитости ${unlock.level}` : unlock.requirement}</dd>
+                                                                </Fragment>
+                                                            ))}
+                                                        </dl>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
                                         {m.key === 'weather' && (
                                             <div className="wiki-mechanic-live">
                                                 {weather.current != null && (
