@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" role="img" aria-labelledby="near-sortie-title near-sortie-desc" focusable="false" preserveAspectRatio="xMidYMid meet" color-interpolation="sRGB" data-active="true" data-state="idle" data-motion="on" data-animation-profile="signal" style="--asset-phase:-.6s">
+  <title id="near-sortie-title">Ближняя вылазка</title>
+  <desc id="near-sortie-desc">Дом, два коротких шага и ближайший красный флажок.</desc>
+  <style>
+    .micro{} .tiny{}
+    svg[data-size="32"] .tiny,svg[data-size="24"] .tiny{display:none}
+    svg[data-size="24"] .micro{display:none}
+    svg{--asset-loop:4.8s;--asset-accent-loop:3.2s;--asset-step:1px;overflow:hidden}
+    .asset-stage,.asset-fx,.asset-fx *{transform-box:fill-box;transform-origin:center}
+    .asset-fx,.asset-fx *{pointer-events:none}
+    svg[data-motion="on"][data-active="true"] .profile-bob{animation:asset-enter .32s steps(4,end) both,asset-bob var(--asset-loop) steps(1,end) var(--asset-phase) infinite}
+    svg[data-motion="on"][data-active="true"] .profile-grounded{animation:asset-enter .32s steps(4,end) both,asset-grounded var(--asset-loop) steps(1,end) var(--asset-phase) infinite}
+    svg[data-motion="on"][data-active="true"] .profile-nudge{animation:asset-enter .32s steps(4,end) both,asset-nudge var(--asset-loop) steps(1,end) var(--asset-phase) infinite}
+    @keyframes asset-enter{0%{opacity:0;transform:translateY(2px)}66%{opacity:1;transform:translateY(-1px)}100%{opacity:1;transform:translateY(0)}}
+    @keyframes asset-bob{0%,70%,100%{transform:translateY(0)}76%,84%{transform:translateY(-1px)}88%{transform:translateY(0)}}
+    @keyframes asset-grounded{0%,78%,100%{opacity:1}82%{opacity:.96}86%{opacity:1}}
+    @keyframes asset-nudge{0%,70%,100%{transform:translate(0,0)}76%,84%{transform:translate(1px,1px)}88%{transform:translate(0,0)}}
+    svg[data-motion="on"][data-active="true"] .asset-accent{animation:asset-accent var(--asset-accent-loop) steps(1,end) infinite}
+    @keyframes asset-accent{0%,42%,58%,100%{opacity:1}46%{opacity:.68}50%{opacity:1}54%{opacity:.84}}
+    svg[data-motion="on"][data-active="true"] .fx-glint{animation:fx-glint 3s steps(1,end) infinite}
+    svg[data-motion="on"][data-active="true"] .fx-flow{animation:fx-flow 2.4s steps(1,end) infinite}
+    @keyframes fx-glint{0%,55%,100%{opacity:0}60%,70%{opacity:1}75%{opacity:0}}
+    @keyframes fx-flow{0%,35%{opacity:0;transform:translateX(-2px)}42%,62%{opacity:1}70%,100%{opacity:0;transform:translateX(2px)}}
+    .fx-selection,.fx-attention{display:none}
+    svg[data-state="selected"] .fx-selection{display:inline;animation:selected 1.2s steps(1,end) infinite}
+    svg[data-state="attention"] .fx-attention{display:inline;animation:attention 1s steps(1,end) infinite}
+    @keyframes selected{0%,100%{opacity:1}50%{opacity:.55}}
+    @keyframes attention{0%,32%,100%{opacity:0}36%,68%{opacity:1}72%{opacity:0}}
+    svg[data-state="pressed"] .asset-stage{animation:none!important;transform:translateY(1px)}
+    svg[data-state="disabled"] .asset-stage,svg[data-state="disabled"] .asset-fx{animation:none!important;filter:saturate(.25);opacity:.58}
+    svg[data-state="hidden"] .asset-stage,svg[data-state="hidden"] .asset-fx{visibility:hidden}
+    svg[data-motion="slow"]{--asset-loop:6.8s;--asset-accent-loop:5.2s}
+    svg[data-motion="fast"]{--asset-loop:3.1s;--asset-accent-loop:2.2s}
+    svg[data-motion="paused"] *{animation-play-state:paused!important}
+    svg[data-motion="off"] *{animation:none!important}
+    @media (prefers-reduced-motion:reduce){.asset-stage,.asset-fx *,.asset-accent{animation:none!important;transform:none!important}}
+  </style>
+  <g class="asset-stage profile-grounded"><rect x="4" y="49" width="56" height="6" fill="#262626"/><rect x="6" y="36" width="20" height="13" fill="#262626"/><rect x="10" y="39" width="12" height="10" fill="#efe6d4"/><rect x="4" y="33" width="24" height="5" fill="#262626"/><rect x="9" y="29" width="14" height="4" fill="#9a6534"/><rect x="14" y="43" width="5" height="6" fill="#9a6534"/><rect x="29" y="42" width="6" height="5" fill="#e8b83a"/><rect x="36" y="36" width="6" height="5" fill="#4b963f"/><rect x="44" y="22" width="4" height="27" fill="#262626"/><rect x="48" y="22" width="12" height="4" fill="#262626"/><rect x="48" y="26" width="11" height="12" fill="#c03434"/><rect x="48" y="38" width="5" height="4" fill="#8f2d2d"/></g>
+  <g class="asset-fx" aria-hidden="true"><rect x="50" y="18" width="4" height="4" fill="#fff5d6" class="fx-glint"/></g>
+  <g class="asset-fx fx-selection" aria-hidden="true">
+    <rect x="4" y="4" width="12" height="4" fill="#e8b83a"/><rect x="4" y="4" width="4" height="12" fill="#e8b83a"/><rect x="48" y="4" width="12" height="4" fill="#e8b83a"/><rect x="56" y="4" width="4" height="12" fill="#e8b83a"/>
+    <rect x="4" y="56" width="12" height="4" fill="#e8b83a"/><rect x="4" y="48" width="4" height="12" fill="#e8b83a"/><rect x="48" y="56" width="12" height="4" fill="#e8b83a"/><rect x="56" y="48" width="4" height="12" fill="#e8b83a"/>
+  </g>
+  <g class="asset-fx fx-attention" aria-hidden="true"><rect x="48" y="6" width="4" height="10" fill="#c03434"/><rect x="44" y="2" width="12" height="4" fill="#e8b83a"/><rect x="48" y="18" width="4" height="4" fill="#efe6d4"/></g>
+</svg>
