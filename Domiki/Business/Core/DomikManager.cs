@@ -599,9 +599,9 @@ namespace Domiki.Web.Business.Core
                     var producedList = string.Join(", ", produced.Select(x => x.Value + " × " + resourceNames[x.Key]));
                     var (title, body) = (dbManufacture.Id % 4) switch
                     {
-                        0 when pushWorker != null => ($"У {pushWorker} всё готово!", $"Со «{manufactureDomikName}» свежая партия: {producedList}. Что скуём дальше?"),
+                        0 when pushWorker != null => ($"У {NameGrammar.Genitive(pushWorker)} всё готово!", $"Со «{manufactureDomikName}» свежая партия: {producedList}. Что скуём дальше?"),
                         1 when pushWorker != null => ($"«{manufactureDomikName}»: смена сдана", $"{pushWorker} управляется на славу – {producedList} уже на складе. Пора за новое дело!"),
-                        2 when pushWorker != null => ($"Труд не пропал даром", $"От {pushWorker} прибыло: {producedList}. Деревня ждёт нового свершения!"),
+                        2 when pushWorker != null => ($"Труд не пропал даром", $"От {NameGrammar.Genitive(pushWorker)} прибыло: {producedList}. Деревня ждёт нового свершения!"),
                         _ => ($"«{manufactureDomikName}» – новая партия", $"На складе прибыло: {producedList}. Заглянешь запустить ещё?"),
                     };
                     calcInfo.PushTitle = title;
@@ -609,7 +609,7 @@ namespace Domiki.Web.Business.Core
                 }
                 else
                 {
-                    calcInfo.PushTitle = pushWorker != null ? $"Смена у {pushWorker} окончена" : $"«{manufactureDomikName}»: смена сдана";
+                    calcInfo.PushTitle = pushWorker != null ? $"Смена у {NameGrammar.Genitive(pushWorker)} окончена" : $"«{manufactureDomikName}»: смена сдана";
                     calcInfo.PushBody = "Мастерская простаивает – загляни, пора запускать новое.";
                 }
 

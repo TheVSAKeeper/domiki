@@ -7,6 +7,7 @@ import type { DomikDto, DomikTypeDto, ExpeditionStateDto, WorkerDto } from '../t
 import { formatDuration, formatDurationShort, remainingSeconds } from '../utils/time';
 import { describeWorker, describeWorkerParts, isSkilledWorker, rankedSkills } from '../utils/worker';
 import { AbstractSprite, DomikSprite, MechanicSprite, TraitSprite, WorkerSprite } from './sprites';
+import { genderForm, traitLabel } from '../utils/gender';
 
 type WorkerState = 'expedition' | 'busy' | 'resting' | 'free';
 
@@ -31,7 +32,7 @@ const WorkerDetails = ({ worker, domikTypes, style }: { worker: WorkerDto; domik
         <div className="worker-details" style={style}>
             <span className="worker-trait">
                 <TraitSprite logicName={worker.traitLogicName} size={24} className="worker-trait-ico" aria-hidden="true" />
-                {worker.traitName}{effect}
+                {traitLabel(worker.traitLogicName, worker.traitName, worker.gender)}{effect}
             </span>
             <span className="worker-desc">{describeWorker(worker, domikTypes)}</span>
             {(worker.noFatigue || visibleSkills.length > 0) &&
@@ -115,7 +116,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
                 {workers.map(worker => {
                     const restingSeconds = worker.restUntil == null ? 0 : remainingSeconds(worker.restUntil, now);
                     const stateKey = stateOf(worker);
-                    const stateLabel = stateLabels[stateKey];
+                    const stateLabel = stateKey === 'free' ? genderForm(worker.gender, 'Свободен', 'Свободна') : stateLabels[stateKey];
                     const restTitle = worker.restUntil == null
                         ? undefined
                         : `Отдыхает до ${new Date(worker.restUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${formatDuration(restingSeconds)})`;

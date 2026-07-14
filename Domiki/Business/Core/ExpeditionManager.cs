@@ -261,7 +261,7 @@ namespace Domiki.Web.Business.Core
             var nonOrdinaryTraits = traits.Values.Where(x => x.LogicName != "ordinary").ToArray();
             var newTrait = nonOrdinaryTraits[Random.Shared.Next(nonOrdinaryTraits.Length)];
             worker.TraitId = newTrait.Id;
-            return new { kind = (int)Data.ExpeditionLootKind.TraitUpgrade, workerName = worker.Name, newTrait = newTrait.Name, isRare };
+            return new { kind = (int)Data.ExpeditionLootKind.TraitUpgrade, workerName = worker.Name, workerGender = (int)NameGrammar.GenderOf(worker.Name), newTrait = newTrait.Name, newTraitLogicName = newTrait.LogicName, isRare };
         }
 
         private object ApplyBlueprintLoot(int playerId, ExpeditionType type, ExpeditionLoot entry, Data.Worker[] squadWorkers, Dictionary<int, Trait> traits, int groupLuck, bool isRare)

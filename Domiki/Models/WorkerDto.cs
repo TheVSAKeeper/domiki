@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public int Gender { get; set; }
         public int TraitId { get; set; }
         public string TraitName { get; set; }
         public string TraitLogicName { get; set; }

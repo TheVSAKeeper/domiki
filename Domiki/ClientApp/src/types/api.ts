@@ -205,6 +205,7 @@ export type WorkerSkillDto = z.infer<typeof workerSkillSchema>;
 export const workerSchema = z.object({
     id: z.number(),
     name: z.string(),
+    gender: z.number(),
     traitId: z.number(),
     traitName: z.string(),
     traitLogicName: z.string(),

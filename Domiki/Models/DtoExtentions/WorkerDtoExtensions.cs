@@ -10,6 +10,7 @@ namespace Domiki.Web.Models
             {
                 Id = worker.Id,
                 Name = worker.Name,
+                Gender = (int)Domiki.Web.Business.Core.NameGrammar.GenderOf(worker.Name),
                 TraitId = worker.Trait.Id,
                 TraitName = worker.Trait.Name,
                 TraitLogicName = worker.Trait.LogicName,

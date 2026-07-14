@@ -9,6 +9,7 @@ import type { DecorTypeDto, DomikTypeDto, RecapEventDto, ResourceTypeDto } from 
 import { isNumber, isRecord, readLootEntry, readResource } from '../utils/recap';
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
 import { formatRelativeTime } from '../utils/time';
+import { genderForm, traitLabel } from '../utils/gender';
 import { AbstractSprite, DomikSprite, MechanicSprite } from './sprites';
 import { ResourceChip } from './ResourceChip';
 
@@ -119,7 +120,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
                                 return <span key={index} className="journal-loot-rare">Нашли {decorType?.name ?? 'декор'}</span>;
                             }
                             if (entry.kind === EXPEDITION_LOOT_KIND_TRAIT_UPGRADE) {
-                                return <span key={index} className="journal-loot-rare">{entry.workerName} закалился: {entry.newTrait}</span>;
+                                return <span key={index} className="journal-loot-rare">{entry.workerName} {genderForm(entry.workerGender, 'закалился', 'закалилась')}: {traitLabel(entry.newTraitLogicName ?? '', entry.newTrait ?? '', entry.workerGender)}</span>;
                             }
                             if (entry.kind === EXPEDITION_LOOT_KIND_BLUEPRINT) {
                                 return <span key={index} className="journal-loot-rare">Нашли {entry.blueprintName ?? 'чертёж'}</span>;

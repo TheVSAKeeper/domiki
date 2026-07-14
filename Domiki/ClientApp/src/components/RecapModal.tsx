@@ -9,6 +9,7 @@ import type { DecorTypeDto, DomikTypeDto, ExpeditionTypeDto, ResourceTypeDto, To
 import type { RecapView } from '../utils/recap';
 import { EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
 import { formatDuration } from '../utils/time';
+import { genderForm, traitLabel } from '../utils/gender';
 import { DomikSprite } from './sprites';
 import { ResourceChip } from './ResourceChip';
 
@@ -98,7 +99,7 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
                                                 return <span key={lootIndex} className="recap-fallback">Нашли {decorType?.name ?? 'декор'}</span>;
                                             }
                                             if (loot.kind === EXPEDITION_LOOT_KIND_TRAIT_UPGRADE) {
-                                                return <span key={lootIndex} className="recap-fallback">{loot.workerName} закалился: {loot.newTrait}</span>;
+                                                return <span key={lootIndex} className="recap-fallback">{loot.workerName} {genderForm(loot.workerGender, 'закалился', 'закалилась')}: {traitLabel(loot.newTraitLogicName ?? '', loot.newTrait ?? '', loot.workerGender)}</span>;
                                             }
                                             const type = resourceTypes.find(resourceType => resourceType.id === loot.typeId);
                                             return type == null

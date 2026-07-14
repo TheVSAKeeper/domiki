@@ -12,42 +12,6 @@ namespace Domiki.Web.Business.Core
             return worker.ManufactureId == null && worker.ExpeditionId == null && (worker.RestUntil == null || worker.RestUntil <= now);
         }
 
-        private static readonly string[] WorkerNames =
-        {
-            "Аким",
-            "Борис",
-            "Варвара",
-            "Глеб",
-            "Дарья",
-            "Егор",
-            "Ждан",
-            "Злата",
-            "Илья",
-            "Кира",
-            "Лада",
-            "Мирон",
-            "Нина",
-            "Остап",
-            "Пелагея",
-            "Роман",
-            "Сава",
-            "Тая",
-            "Ульяна",
-            "Фёдор",
-            "Ярина",
-            "Агата",
-            "Бажен",
-            "Велена",
-            "Гордей",
-            "Демьян",
-            "Есения",
-            "Захар",
-            "Лукерья",
-            "Марта",
-            "Назар",
-            "Прасковья",
-        };
-
         private readonly Data.ApplicationDbContext _context;
         private readonly ResourceManager _resourceManager;
         private readonly PlayerResourceManager _playerResourceManager;
@@ -127,7 +91,7 @@ namespace Domiki.Web.Business.Core
 
         private string GetWorkerName(HashSet<string> usedNames, int ordinal)
         {
-            foreach (var name in WorkerNames)
+            foreach (var name in NameGrammar.Names)
             {
                 if (!usedNames.Contains(name))
                 {

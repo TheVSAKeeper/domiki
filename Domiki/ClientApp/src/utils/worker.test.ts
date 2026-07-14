@@ -10,6 +10,7 @@ const domikTypes: DomikTypeDto[] = [
 const baseWorker: WorkerDto = {
     id: 1,
     name: 'Аким',
+    gender: 1,
     traitId: 1,
     traitName: 'Упрямый',
     traitLogicName: 'ordinary',
@@ -36,15 +37,15 @@ describe('describeWorker', () => {
         expect(describeWorker({ ...baseWorker, skills }, domikTypes)).toBe(expected);
     });
 
-    it.each<[string, string, WorkerDto['skills'], string]>([
-        ['female forge', 'Ульяна', [{ domikTypeId: 2, uses: 1, bonusPercent: 10 }], 'Умелая кузнечиха. Искры летят, а работа поёт.'],
-        ['female multi craft', 'Дарья', [
+    it.each<[string, string, number, WorkerDto['skills'], string]>([
+        ['female forge', 'Ульяна', 2, [{ domikTypeId: 2, uses: 1, bonusPercent: 10 }], 'Умелая кузнечиха. Искры летят, а работа поёт.'],
+        ['female multi craft', 'Дарья', 2, [
             { domikTypeId: 1, uses: 1, bonusPercent: 5 },
             { domikTypeId: 2, uses: 1, bonusPercent: 30 },
         ], 'Знатная кузнечиха, начинающая торговка. Искры летят, а работа поёт.'],
-        ['male name ending in -я stays male', 'Илья', [{ domikTypeId: 2, uses: 1, bonusPercent: 10 }], 'Умелый кузнец. Искры летят, а работа поёт.'],
-    ])('%s -> %s', (_name, name, skills, expected) => {
-        expect(describeWorker({ ...baseWorker, name, skills }, domikTypes)).toBe(expected);
+        ['male name ending in -я stays male', 'Илья', 1, [{ domikTypeId: 2, uses: 1, bonusPercent: 10 }], 'Умелый кузнец. Искры летят, а работа поёт.'],
+    ])('%s -> %s', (_name, name, gender, skills, expected) => {
+        expect(describeWorker({ ...baseWorker, name, gender, skills }, domikTypes)).toBe(expected);
     });
 
     it('picks a different flavor for a different worker id at the same craft', () => {

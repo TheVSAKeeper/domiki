@@ -1,4 +1,5 @@
 import type { DomikTypeDto, WorkerDto, WorkerSkillDto } from '../types/api';
+import { isFemale } from './gender';
 
 export const SKILLED_BONUS_THRESHOLD = 10;
 export const MASTER_BONUS_THRESHOLD = 25;
@@ -51,11 +52,6 @@ const CRAFTS: Record<string, Craft> = {
     workshop: { m: 'мастеровой', f: 'мастеровая', flavors: ['За что ни возьмётся, всё ладится.', 'Инструмент под руку сам просится.', 'Из ничего смастерит нужное.'] },
 };
 
-const FEMALE_NAMES = new Set([
-    'Варвара', 'Дарья', 'Злата', 'Кира', 'Лада', 'Нина', 'Пелагея', 'Тая',
-    'Ульяна', 'Ярина', 'Агата', 'Велена', 'Есения', 'Лукерья', 'Марта', 'Прасковья',
-]);
-
 const NOVICE_FLAVORS = [
     'Пока приглядывается, но искра есть.',
     'Учится на ходу и не ноет.',
@@ -81,7 +77,7 @@ export interface WorkerCraft {
 }
 
 export function describeWorkerParts(worker: WorkerDto, domikTypes: DomikTypeDto[]): WorkerCraft {
-    const female = FEMALE_NAMES.has(worker.name);
+    const female = isFemale(worker.gender);
     const skilled = rankedSkills(worker);
     const top = skilled[0];
     if (top == null) {

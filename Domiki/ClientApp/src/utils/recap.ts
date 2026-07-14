@@ -8,7 +8,9 @@ export interface RecapLootEntry {
     value?: number;
     decorTypeId?: number;
     workerName?: string;
+    workerGender?: number;
     newTrait?: string;
+    newTraitLogicName?: string;
     blueprintId?: number;
     blueprintName?: string;
 }
@@ -49,7 +51,9 @@ export const readLootEntry = (value: unknown): RecapLootEntry[] => {
         ...(isNumber(value.value) ? { value: value.value } : {}),
         ...(isNumber(value.decorTypeId) ? { decorTypeId: value.decorTypeId } : {}),
         ...(typeof value.workerName === 'string' ? { workerName: value.workerName } : {}),
+        ...(isNumber(value.workerGender) ? { workerGender: value.workerGender } : {}),
         ...(typeof value.newTrait === 'string' ? { newTrait: value.newTrait } : {}),
+        ...(typeof value.newTraitLogicName === 'string' ? { newTraitLogicName: value.newTraitLogicName } : {}),
         ...(isNumber(value.blueprintId) ? { blueprintId: value.blueprintId } : {}),
         ...(typeof value.blueprintName === 'string' ? { blueprintName: value.blueprintName } : {}),
     }];
