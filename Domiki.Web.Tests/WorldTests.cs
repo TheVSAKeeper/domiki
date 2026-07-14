@@ -47,11 +47,11 @@ namespace Domiki.Web.Tests
             var npcs = world.Villages.Where(x => x.IsNpc).ToArray();
 
             Assert.That(npcs.Length, Is.EqualTo(5));
-            AssertNpc(npcs, "Заречье", 45, 2, 2, 6);
-            AssertNpc(npcs, "Боровое", 38, 1, 0, 7);
-            AssertNpc(npcs, "Каменка", 30, 3, 4, 2);
-            AssertNpc(npcs, "Глинищи", 24, 6, 1, 4);
-            AssertNpc(npcs, "Дубрава", 18, 4, 5, 3);
+            AssertNpc(npcs, "Заречье", "zarechye", 45, 2, 2, 6);
+            AssertNpc(npcs, "Боровое", "borovoe", 38, 1, 0, 7);
+            AssertNpc(npcs, "Каменка", "kamenka", 30, 3, 4, 2);
+            AssertNpc(npcs, "Глинищи", "glinischi", 24, 6, 1, 4);
+            AssertNpc(npcs, "Дубрава", "dubrava", 18, 4, 5, 3);
             Assert.That(npcs.All(x => x.PlayerId == null), Is.True);
             Assert.That(npcs.All(x => !x.IsMe), Is.True);
         }
@@ -114,9 +114,10 @@ namespace Domiki.Web.Tests
             Assert.That(json, Does.Not.Contain("AspNetUserId"));
         }
 
-        private static void AssertNpc(WorldVillage[] npcs, string name, int level, int crestIcon, int crestColor, int resourceTypeId)
+        private static void AssertNpc(WorldVillage[] npcs, string name, string logicName, int level, int crestIcon, int crestColor, int resourceTypeId)
         {
             var npc = npcs.Single(x => x.VillageName == name);
+            Assert.That(npc.NpcLogicName, Is.EqualTo(logicName));
             Assert.That(npc.Level, Is.EqualTo(level));
             Assert.That(npc.CrestIcon, Is.EqualTo(crestIcon));
             Assert.That(npc.CrestColor, Is.EqualTo(crestColor));

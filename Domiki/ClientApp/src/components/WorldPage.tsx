@@ -14,6 +14,8 @@ import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from 
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { StatChip } from './StatChip';
 import { PixelLoader } from './PixelLoader';
+import { WorldMap } from './WorldMap';
+import { villageKey } from '../utils/worldMap';
 import type { VillageVisitDto, WorldDto, WorldVillageDto } from '../types/api';
 
 type SortKey = 'level' | 'seasonOrders' | 'seasonToloka' | 'seasonExpeditions' | 'comfort';
@@ -55,6 +57,7 @@ export const WorldPage = () => {
     const [visit, setVisit] = useState<VillageVisitDto | null>(null);
     const [visitLoading, setVisitLoading] = useState(false);
     const [sortKey, setSortKey] = useState<SortKey>('level');
+    const [focus, setFocus] = useState<{ key: string; seq: number } | null>(null);
     const [now, setNow] = useState(() => Date.now());
     const visitControllerRef = useRef<AbortController | null>(null);
 
@@ -182,37 +185,65 @@ export const WorldPage = () => {
             </section>
 
             <section className="wiki-section world-layout">
-                <div className="world-list pixel-panel">
-                    {sortedVillages.map((village, index) => (
-                        <button
-                            type="button"
-                            key={`${village.playerId ?? 'npc'}-${village.villageName}`}
-                            className={'world-row' + (village.isMe ? ' world-row-me' : '') + (selectedVillage === village ? ' world-row-selected' : '')}
-                            onClick={() => { void openVillage(village); }}
-                            title={village.isNpc ? 'Сосед' : 'Визит'}
-                        >
-                            <span className="world-rank">{index + 1}</span>
-                            <Crest icon={village.crestIcon} color={village.crestColor} />
-                            <span className="world-name">
-                                {village.villageName}
-                                {village.isMe && <span className="world-tag">моя</span>}
-                                {village.isNpc && <span className="world-tag">NPC</span>}
-                            </span>
-                            <span className="world-metric" title={activeMetric.label}>
-                                {sortKey !== 'level' &&
-                                    <>
-                                        <activeMetric.Icon className="world-metric-ico" aria-hidden="true" />
-                                        {village[sortKey]}
-                                    </>
-                                }
-                            </span>
-                            <span className="world-level">{village.level}</span>
-                        </button>
-                    ))}
+                <div className="world-main">
+                    <WorldMap
+                        villages={world.villages}
+                        metricKey={sortKey}
+                        metricLabel={activeMetric.label}
+                        selectedKey={selectedVillage == null ? null : villageKey(selectedVillage)}
+                        onSelect={village => { void openVillage(village); }}
+                        focus={focus}
+                    />
+                    <div className="world-ledger pixel-panel">
+                        <h2 className="panel-title world-ledger-title">
+                            <activeMetric.Icon className="world-tab-ico" aria-hidden="true" />
+                            Летопись – {activeMetric.label}
+                        </h2>
+                        {sortedVillages.slice(0, 10).map((village, index) => (
+                            <button
+                                type="button"
+                                key={villageKey(village)}
+                                className={'world-row' + (village.isMe ? ' world-row-me' : '') + (selectedVillage === village ? ' world-row-selected' : '')}
+                                onClick={() => {
+                                    void openVillage(village);
+                                    setFocus({ key: villageKey(village), seq: Date.now() });
+                                }}
+                                title={village.isNpc ? 'Сосед' : 'Визит'}
+                            >
+                                <span className="world-rank">{index + 1}</span>
+                                <Crest icon={village.crestIcon} color={village.crestColor} />
+                                <span className="world-name">
+                                    {village.villageName}
+                                    {village.isMe && <span className="world-tag">моя</span>}
+                                    {village.isNpc && <span className="world-tag">NPC</span>}
+                                </span>
+                                <span className="world-metric" title={activeMetric.label}>
+                                    {sortKey !== 'level' &&
+                                        <>
+                                            <activeMetric.Icon className="world-metric-ico" aria-hidden="true" />
+                                            {village[sortKey]}
+                                        </>
+                                    }
+                                </span>
+                                <span className="world-level">{village.level}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 <aside className="world-visit pixel-panel">
-                    {selectedVillage == null && <p className="hint">Выбери деревню</p>}
+                    {selectedVillage == null &&
+                        <div className="world-legend">
+                            <h2 className="panel-title">Весь мир — на ладони</h2>
+                            <p className="hint">Исследуй долину, находи сильнейшие артели и заглядывай в гости. Карта живая: тяни её и меняй масштаб.</p>
+                            <ul className="world-legend-list">
+                                <li>Поселения растут вместе с обжитостью</li>
+                                <li>Золотой вымпел отмечает твою деревню</li>
+                                <li>Номер над поляной — место в сезонном топ-3</li>
+                                <li>Большая эмблема — торговое село соседей</li>
+                            </ul>
+                        </div>
+                    }
                     {selectedVillage != null && selectedVillage.isNpc &&
                         <div className="world-visit-head">
                             <Crest icon={selectedVillage.crestIcon} color={selectedVillage.crestColor} />

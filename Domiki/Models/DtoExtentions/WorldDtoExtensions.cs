@@ -25,6 +25,7 @@ namespace Domiki.Web.Models
                 IsNpc = village.IsNpc,
                 IsMe = village.IsMe,
                 NpcResourceTypeId = village.NpcResourceTypeId,
+                NpcLogicName = village.NpcLogicName,
                 SeasonOrders = village.SeasonOrders,
                 SeasonToloka = village.SeasonToloka,
                 SeasonExpeditions = village.SeasonExpeditions,

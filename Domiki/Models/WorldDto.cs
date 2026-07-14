@@ -16,6 +16,7 @@
         public bool IsNpc { get; set; }
         public bool IsMe { get; set; }
         public int? NpcResourceTypeId { get; set; }
+        public string NpcLogicName { get; set; }
         public int SeasonOrders { get; set; }
         public int SeasonToloka { get; set; }
         public int SeasonExpeditions { get; set; }

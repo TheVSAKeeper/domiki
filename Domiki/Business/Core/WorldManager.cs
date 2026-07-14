@@ -106,6 +106,7 @@ namespace Domiki.Web.Business.Core
                         IsNpc = true,
                         IsMe = false,
                         NpcResourceTypeId = x.PrimaryResourceTypeId,
+                        NpcLogicName = x.LogicName,
                     };
                 });
         }
