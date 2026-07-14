@@ -49,6 +49,7 @@ export interface GameData {
     purchaseDomikTypes: DomikTypeDto[] | null;
     now: number;
     reload: () => Promise<void>;
+    scheduleReload: () => void;
     refreshPurchaseTypes: () => Promise<void>;
     setVillage: (name: string, crestIcon: number, crestColor: number) => Promise<void>;
     setFeedWorkers: (enabled: boolean) => Promise<void>;
@@ -95,15 +96,21 @@ export function useGameData(): GameData {
     const refetching = useRef(false);
     const pendingReload = useRef(false);
     const workersRef = useRef(workers);
+    const domiksRef = useRef(domiks);
     const expeditionsRef = useRef(expeditions);
     const goalsRef = useRef(goals);
     const tolokaRef = useRef(toloka);
     const reloadedRestDeadlinesRef = useRef<Set<string>>(new Set());
     const reloadedTolokaBuffDeadlinesRef = useRef<Set<string>>(new Set());
+    const reloadedFinishDeadlinesRef = useRef<Set<string>>(new Set());
 
     useEffect(() => {
         workersRef.current = workers;
     }, [workers]);
+
+    useEffect(() => {
+        domiksRef.current = domiks;
+    }, [domiks]);
 
     useEffect(() => {
         expeditionsRef.current = expeditions;
@@ -131,6 +138,7 @@ export function useGameData(): GameData {
             toast.success(`Наказ выполнен: «${prevGoal.name}» (+${prevGoal.rewardCoins} монет)`);
         }
         setDomiks(state.domiks);
+        setPurchaseDomikTypes(state.purchaseAvailableDomiks);
         setResources(state.resources);
         setOrders(state.orders);
         setReputation(state.reputation);
@@ -196,23 +204,23 @@ export function useGameData(): GameData {
 
     const hurryManufacture = useCallback(async (manufactureId: number) => {
         await hurryManufactureApi(manufactureId);
-        await reload();
-    }, [reload]);
+        scheduleReload();
+    }, [scheduleReload]);
 
     const setManufactureAutoRepeat = useCallback(async (manufactureId: number, autoRepeat: boolean) => {
         await setManufactureAutoRepeatApi(manufactureId, autoRepeat);
-        await reload();
-    }, [reload]);
+        scheduleReload();
+    }, [scheduleReload]);
 
     const hurryDomik = useCallback(async (domikId: number) => {
         await hurryDomikApi(domikId);
-        await reload();
-    }, [reload]);
+        scheduleReload();
+    }, [scheduleReload]);
 
     const startExpedition = useCallback(async (expeditionTypeId: number, workerIds?: number[], provisions?: boolean) => {
         await startExpeditionApi(expeditionTypeId, workerIds, provisions);
-        await reload();
-    }, [reload]);
+        scheduleReload();
+    }, [scheduleReload]);
 
     const contributeToloka = useCallback(async (amount: number) => {
         await contributeTolokaApi(amount);
@@ -386,12 +394,31 @@ export function useGameData(): GameData {
             expiredWorkerRest = true;
         }
 
+        let expiredFinish = false;
+        for (const domik of domiksRef.current) {
+            if (domik.finishDate != null) {
+                const key = `domik:${domik.id}:${domik.finishDate}`;
+                if (!reloadedFinishDeadlinesRef.current.has(key) && remainingSeconds(domik.finishDate, now) <= 0) {
+                    reloadedFinishDeadlinesRef.current.add(key);
+                    expiredFinish = true;
+                }
+            }
+
+            for (const manufacture of domik.manufactures ?? []) {
+                const key = `manufacture:${manufacture.id}:${manufacture.finishDate}`;
+                if (!reloadedFinishDeadlinesRef.current.has(key) && remainingSeconds(manufacture.finishDate, now) <= 0) {
+                    reloadedFinishDeadlinesRef.current.add(key);
+                    expiredFinish = true;
+                }
+            }
+        }
+
         const expiredTolokaBuffs = tolokaRef.current?.activeBuffs.filter(buff => {
             const key = `toloka:${buff.logicName}:${buff.buffUntil}`;
             return remainingSeconds(buff.buffUntil, now) <= 0 && !reloadedTolokaBuffDeadlinesRef.current.has(key);
         }) ?? [];
 
-        if (!expiredWorkerRest && expiredTolokaBuffs.length === 0) {
+        if (!expiredWorkerRest && !expiredFinish && expiredTolokaBuffs.length === 0) {
             return;
         }
 
@@ -424,6 +451,7 @@ export function useGameData(): GameData {
         now,
         loading,
         reload,
+        scheduleReload,
         refreshPurchaseTypes,
         setVillage,
         setFeedWorkers,

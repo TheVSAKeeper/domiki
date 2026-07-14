@@ -87,7 +87,7 @@ interface GameTab {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, goals, workers, purchaseDomikTypes, now, loading, reload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, goals, workers, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -423,29 +423,25 @@ export const DomikiPage = () => {
         const domikType = domikTypes.find(type => type.id === typeId);
         return runAction(async () => {
             await apiPost(`Domiki/BuyDomik/${typeId}`);
-            await reload();
-            await refreshPurchaseTypes();
+            scheduleReload();
         }, domikType == null ? 'Домик построен' : `«${domikType.name}» построен`);
     };
 
     const upgrade = (id: number) => runAction(async () => {
         await apiPost(`Domiki/UpgradeDomik/${id}`);
-        await reload();
+        scheduleReload();
     }, 'Улучшение запущено');
 
     const startManufacture = (domikId: number, receiptId: number, useOptional: boolean, autoRepeat: boolean, workerIds?: number[]) => runAction(async () => {
         const workerIdsQuery = (workerIds ?? []).map(id => `&workerIds=${id}`).join('');
         await apiPost(`Domiki/StartManufacture/${domikId}/${receiptId}?useOptional=${String(useOptional)}&autoRepeat=${String(autoRepeat)}${workerIdsQuery}`);
         setSelectedWorkerIdsByReceipt(prev => ({ ...prev, [receiptId]: [] }));
-        await reload();
+        scheduleReload();
     }, 'Производство запущено');
 
     const completeOrder = (orderId: number) => runAction(async () => {
         await completeOrderApi(orderId);
-        await reload();
-        if (shopVisible) {
-            await refreshPurchaseTypes();
-        }
+        scheduleReload();
     }, 'Заказ выполнен');
 
     const hurryManufactureAction = (manufactureId: number) => runAction(() => hurryManufacture(manufactureId), 'Производство ускорено');
