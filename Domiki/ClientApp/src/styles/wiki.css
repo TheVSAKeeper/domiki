@@ -207,6 +207,66 @@ button.wiki-res-cell {
         line-height: 1.4;
     }
 
+.res-info-pop {
+    position: fixed;
+    z-index: 950;
+    padding: 14px 16px 16px;
+    box-shadow: 4px 6px 0 rgba(0, 0, 0, .25);
+    cursor: default;
+    pointer-events: none;
+}
+
+.res-info-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 2px dashed var(--plank-dark);
+}
+
+    .res-info-head svg {
+        width: 40px;
+        height: 40px;
+        flex-shrink: 0;
+        image-rendering: pixelated;
+    }
+
+.res-info-name {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.res-info-flavor {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-style: italic;
+    line-height: 1.4;
+    color: rgba(51, 41, 26, .75);
+}
+
+.res-info-facts {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 5px 12px;
+    margin: 0;
+}
+
+    .res-info-facts dt {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: var(--roof);
+        padding-top: 1px;
+    }
+
+    .res-info-facts dd {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
 .wiki-buildings {
     display: flex;
     flex-direction: column;

@@ -30,7 +30,9 @@ import type { DomikSortMode } from '../utils/game';
 import { domikThemedName } from '../utils/domikNames';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { domikLore } from '../utils/domikLore';
+import { pluralRu } from '../utils/plural';
 import { ManufactureBox } from './ManufactureBox';
+import { StatChip } from './StatChip';
 import { ProgressBar } from './ProgressBar';
 import { ResourcesBox } from './ResourcesBox';
 import { UpgradeBox } from './UpgradeBox';
@@ -50,6 +52,7 @@ import { isSkilledWorker } from '../utils/worker';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import { HudResource } from './HudResource';
 import { PixelLoader } from './PixelLoader';
+import { ResourceInfoProvider } from './ResourceInfo';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 import { buildRecapView } from '../utils/recap';
 
@@ -582,6 +585,7 @@ export const DomikiPage = () => {
     };
 
     return (
+        <ResourceInfoProvider resourceTypes={resourceTypes} domikTypes={domikTypes} receipts={receipts}>
         <div className="game" style={{ '--hud-sticky-offset': `${hudStickyOffset}px` } as React.CSSProperties}>
             {loading &&
                 <div className="game-loading">
@@ -966,11 +970,26 @@ export const DomikiPage = () => {
                                         <ResourcesBox resources={selected.upgrade.resources} resourceTypes={resourceTypes} have={resources} />
                                     </div>
                                     {upgradeBenefits != null &&
-                                        <div>
+                                        <div className="upgrade-benefits">
                                             <span className="panel-label">Что даст ур. {selected.upgrade.nextLevel}</span>
-                                            {upgradeBenefits.plodderDelta > 0 && <div>+{upgradeBenefits.plodderDelta} трудяг</div>}
-                                            {upgradeBenefits.manufactureDelta > 0 && <div>+{upgradeBenefits.manufactureDelta} одновременное производство</div>}
-                                            {upgradeBenefits.newReceiptNames.length > 0 && <div>Новые рецепты: {upgradeBenefits.newReceiptNames.join(', ')}</div>}
+                                            <div className="upgrade-benefits-chips">
+                                                {upgradeBenefits.plodderDelta > 0 &&
+                                                    <StatChip icon={<img className="stat-chip-ico" src="/images/modificatorTypes/plodder.png" alt="" />} title="Вместимость трудяг">
+                                                        +{upgradeBenefits.plodderDelta} {pluralRu(upgradeBenefits.plodderDelta, 'трудяга', 'трудяги', 'трудяг')}
+                                                    </StatChip>}
+                                                {upgradeBenefits.manufactureDelta > 0 &&
+                                                    <StatChip icon={<GridIcon className="stat-chip-ico" aria-hidden="true" />} title="Одновременные производства">
+                                                        +{upgradeBenefits.manufactureDelta} {pluralRu(upgradeBenefits.manufactureDelta, 'производство', 'производства', 'производств')}
+                                                    </StatChip>}
+                                                {upgradeBenefits.newReceiptNames.slice(0, 3).map((name, index) =>
+                                                    <StatChip key={`${name}-${index}`} icon={<AbstractSprite logicName="production_recipe" size={24} className="stat-chip-ico" aria-hidden="true" />} title="Новый рецепт">
+                                                        {name}
+                                                    </StatChip>)}
+                                                {upgradeBenefits.newReceiptNames.length > 3 &&
+                                                    <StatChip icon={<AbstractSprite logicName="production_recipe" size={24} className="stat-chip-ico" aria-hidden="true" />} title={upgradeBenefits.newReceiptNames.slice(3).join(', ')}>
+                                                        +{upgradeBenefits.newReceiptNames.length - 3} ещё
+                                                    </StatChip>}
+                                            </div>
                                         </div>
                                     }
                                     <button className="btn-game"
@@ -980,12 +999,6 @@ export const DomikiPage = () => {
                                         <ArrowUpIcon className="btn-ico" aria-hidden="true" />
                                         Улучшить
                                     </button>
-                                    {!selected.upgrade.hasResources &&
-                                        <div className="note-warn resource-shortfall">
-                                            <img src="/images/upgrade_no_resources.png" alt="" />
-                                            <span>Не хватает</span>
-                                            <ResourcesBox resources={resourceShortfall(selected.upgrade.resources, resources)} resourceTypes={resourceTypes} showNames />
-                                        </div>}
                                 </div>
                             }
                             {selected.domik.finishDate != null &&
@@ -1227,5 +1240,6 @@ export const DomikiPage = () => {
                 {activeGameTab?.node}
             </div>
         </div>
+        </ResourceInfoProvider>
     );
 };

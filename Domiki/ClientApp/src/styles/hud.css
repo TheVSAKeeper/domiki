@@ -669,6 +669,17 @@
     gap: 7px;
 }
 
+.upgrade-benefits {
+    margin-top: 10px;
+}
+
+.upgrade-benefits-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 6px;
+}
+
     .resource-box img, .resource-box svg {
         width: 26px;
         height: 26px;
