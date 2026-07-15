@@ -55,6 +55,11 @@
             return ByName.TryGetValue(name, out var entry) ? entry.Gender : WorkerGender.Masculine;
         }
 
+        public static string GenderForm(string name, string masculine, string feminine)
+        {
+            return GenderOf(name) == WorkerGender.Feminine ? feminine : masculine;
+        }
+
         public static string Genitive(string name)
         {
             if (ByName.TryGetValue(name, out var entry))

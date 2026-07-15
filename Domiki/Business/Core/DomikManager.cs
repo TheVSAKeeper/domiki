@@ -318,9 +318,9 @@ namespace Domiki.Web.Business.Core
                     var domikName = _resourceManager.GetDomikTypes().First(x => x.Id == dbDomik.TypeId).Name;
                     (calcInfo.PushTitle, calcInfo.PushBody) = (dbDomik.Level % 3) switch
                     {
-                        0 => ($"Новоселье в «{domikName}»!", $"Уровень {dbDomik.Level} готов. Пора замахнуться на большее?"),
-                        1 => ($"«{domikName}» вырос до {dbDomik.Level} уровня!", "Стропила подняты, краска высохла. Что улучшим следующим?"),
-                        _ => ($"«{domikName}»: уровень {dbDomik.Level}", "Стройка отгремела. Загляни – деревня хорошеет на глазах."),
+                        0 => ($"«{domikName}»: уровень {dbDomik.Level}!", "Стены крепче, дело шире – заглядывай оценить обновку."),
+                        1 => ("Обновка в хозяйстве", $"«{domikName}» теперь уровня {dbDomik.Level} – самое время развернуться пошире."),
+                        _ => ("Плотники своё дело знают", $"«{domikName}» – уже уровень {dbDomik.Level}: ладно скроено, крепко сшито."),
                     };
 
                     return true;
@@ -597,19 +597,37 @@ namespace Domiki.Web.Business.Core
                 {
                     var resourceNames = _resourceManager.GetResourceTypes().ToDictionary(x => x.Id, x => x.Name);
                     var producedList = string.Join(", ", produced.Select(x => x.Value + " × " + resourceNames[x.Key]));
-                    var (title, body) = (dbManufacture.Id % 4) switch
+                    if (pushWorker != null)
                     {
-                        0 when pushWorker != null => ($"У {NameGrammar.Genitive(pushWorker)} всё готово!", $"Со «{manufactureDomikName}» свежая партия: {producedList}. Что скуём дальше?"),
-                        1 when pushWorker != null => ($"«{manufactureDomikName}»: смена сдана", $"{pushWorker} управляется на славу – {producedList} уже на складе. Пора за новое дело!"),
-                        2 when pushWorker != null => ($"Труд не пропал даром", $"От {NameGrammar.Genitive(pushWorker)} прибыло: {producedList}. Деревня ждёт нового свершения!"),
-                        _ => ($"«{manufactureDomikName}» – новая партия", $"На складе прибыло: {producedList}. Заглянешь запустить ещё?"),
+                        var nameGen = NameGrammar.Genitive(pushWorker);
+                        (calcInfo.PushTitle, calcInfo.PushBody) = (dbManufacture.Id % 6) switch
+                        {
+                            0 => ($"{pushWorker} {NameGrammar.GenderForm(pushWorker, "потрудился", "потрудилась")} на совесть", $"«{manufactureDomikName}» шлёт гостинец: {producedList}. Заглянешь принять?"),
+                            1 => ($"«{manufactureDomikName}»: {pushWorker} {NameGrammar.GenderForm(pushWorker, "управился", "управилась")}", $"На склад легло {producedList} – ни крошки не потерялось."),
+                            2 => ("Умелые руки не скучают", $"{pushWorker} {NameGrammar.GenderForm(pushWorker, "наработал", "наработала")} добра: {producedList} – забирай, пока домовята не растащили!"),
+                            3 => ("Смена сдана – склад полнее", $"{pushWorker} {NameGrammar.GenderForm(pushWorker, "сложил", "сложила")} в закрома {producedList}. Что поручим теперь?"),
+                            4 => ($"{pushWorker} {NameGrammar.GenderForm(pushWorker, "принёс", "принесла")} добрые вести", $"На складе прибавилось: {producedList} – работа у {nameGen} спорится."),
+                            _ => ("Поспело в самый срок", $"{pushWorker} {NameGrammar.GenderForm(pushWorker, "довёл", "довела")} дело до конца – принимай {producedList} да задумай новое."),
+                        };
+                    }
+                    else
+                    {
+                        calcInfo.PushTitle = $"«{manufactureDomikName}» – новая партия";
+                        calcInfo.PushBody = $"На складе прибыло: {producedList}. Заглянешь запустить ещё?";
+                    }
+                }
+                else if (pushWorker != null)
+                {
+                    (calcInfo.PushTitle, calcInfo.PushBody) = (dbManufacture.Id % 3) switch
+                    {
+                        0 => ($"{pushWorker} {NameGrammar.GenderForm(pushWorker, "заскучал", "заскучала")} без работы", "Смена прошла, а выдать нечего – подкинь припасов, и дело закипит."),
+                        1 => ($"«{manufactureDomikName}» простаивает", $"{pushWorker} ждёт поручений – без сырья даже золотые руки скучают. Заглянешь?"),
+                        _ => ("Смена вышла вхолостую", $"{pushWorker} {NameGrammar.GenderForm(pushWorker, "старался", "старалась")}, да выдать нечего – проверь, всего ли хватает в хозяйстве."),
                     };
-                    calcInfo.PushTitle = title;
-                    calcInfo.PushBody = body;
                 }
                 else
                 {
-                    calcInfo.PushTitle = pushWorker != null ? $"Смена у {NameGrammar.Genitive(pushWorker)} окончена" : $"«{manufactureDomikName}»: смена сдана";
+                    calcInfo.PushTitle = $"«{manufactureDomikName}»: смена сдана";
                     calcInfo.PushBody = "Мастерская простаивает – загляни, пора запускать новое.";
                 }
 

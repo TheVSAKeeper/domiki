@@ -198,6 +198,9 @@ namespace Domiki.Web.Business
                         case CalculateTypes.Manufacture:
                             pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody ?? "Производство завершено – товары готовы", "/domiki-page");
                             break;
+                        case CalculateTypes.Expedition when calcDate.PushBody != null:
+                            pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody, "/domiki-page");
+                            break;
                     }
 
                     switch (calcDate.Type)

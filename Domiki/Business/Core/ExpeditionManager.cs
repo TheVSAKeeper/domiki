@@ -221,6 +221,29 @@ namespace Domiki.Web.Business.Core
                 worker.ExpeditionId = null;
             }
 
+            var heroWorker = assignedWorkers.Length > 0 ? assignedWorkers[dbExpedition.Id % assignedWorkers.Length].Name : null;
+            if (heroWorker != null)
+            {
+                var expName = $"«{type.Name}»";
+                if (gotRare)
+                {
+                    (calcInfo.PushTitle, calcInfo.PushBody) = (dbExpedition.Id % 2) switch
+                    {
+                        0 => ($"{heroWorker} {NameGrammar.GenderForm(heroWorker, "принёс", "принесла")} трофей!", $"Из похода {expName} отряд вернулся с сундуком – редкая удача, беги делить добычу!"),
+                        _ => ($"Знатная находка в {expName}", $"{heroWorker} {NameGrammar.GenderForm(heroWorker, "набрёл", "набрела")} на диковину – такое в руки нечасто идёт, встречай героя!"),
+                    };
+                }
+                else
+                {
+                    (calcInfo.PushTitle, calcInfo.PushBody) = (dbExpedition.Id % 3) switch
+                    {
+                        0 => ($"{heroWorker} {NameGrammar.GenderForm(heroWorker, "вернулся", "вернулась")} из похода", $"Отряд одолел {expName} и принёс добычу – заглянешь разобрать поклажу?"),
+                        1 => ($"{expName}: отряд дома", $"{heroWorker} {NameGrammar.GenderForm(heroWorker, "привёл", "привела")} трудяг целыми да с полными котомками – всё готово к дележу."),
+                        _ => ("С похода да с прибытком", $"{heroWorker} {NameGrammar.GenderForm(heroWorker, "прошёл", "прошла")} {expName} и {NameGrammar.GenderForm(heroWorker, "вернулся", "вернулась")} не с пустыми руками."),
+                    };
+                }
+            }
+
             _context.Expeditions.Remove(dbExpedition);
             return true;
         }
