@@ -32,3 +32,27 @@ export const domikThemedName = (baseName: string, logicName: string, ordinal: nu
         ? `${baseName} ${ordinal}`
         : `${baseName} «${pool[ordinal - 1]}»`;
 };
+
+export type DomikNamer = (typeId: number, id: number, typeName: string, logicName: string) => string;
+
+export const buildDomikNamer = (domiks: { id: number; typeId: number }[]): DomikNamer => {
+    const idsByType = new Map<number, number[]>();
+    for (const domik of domiks) {
+        const ids = idsByType.get(domik.typeId) ?? [];
+        ids.push(domik.id);
+        idsByType.set(domik.typeId, ids);
+    }
+
+    const ordinalById = new Map<number, number>();
+    const countByType = new Map<number, number>();
+    for (const [typeId, ids] of idsByType) {
+        const sortedIds = [...ids].sort((a, b) => a - b);
+        countByType.set(typeId, sortedIds.length);
+        sortedIds.forEach((id, index) => ordinalById.set(id, index + 1));
+    }
+
+    return (typeId, id, typeName, logicName) =>
+        (countByType.get(typeId) ?? 1) > 1
+            ? domikThemedName(typeName, logicName, ordinalById.get(id) ?? 1)
+            : typeName;
+};

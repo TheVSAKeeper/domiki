@@ -27,7 +27,7 @@ import type { PushState } from '../services/push';
 import { useGameData } from '../hooks/useGameData';
 import { COIN_RESOURCE_TYPE_ID, GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, resourceShortfall, sortDomiks, workerFitness } from '../utils/game';
 import type { DomikSortMode } from '../utils/game';
-import { domikThemedName } from '../utils/domikNames';
+import { buildDomikNamer } from '../utils/domikNames';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { domikLore } from '../utils/domikLore';
 import { pluralRu } from '../utils/plural';
@@ -329,28 +329,7 @@ export const DomikiPage = () => {
     const totalPages = Math.max(1, Math.ceil(sortedDomiks.length / perPage));
     const safePage = Math.min(page, totalPages);
     const pagedDomiks = sortedDomiks.slice((safePage - 1) * perPage, safePage * perPage);
-    const domikOrdinals = useMemo(() => {
-        const idsByType = new Map<number, number[]>();
-        for (const domik of domiks) {
-            const ids = idsByType.get(domik.typeId) ?? [];
-            ids.push(domik.id);
-            idsByType.set(domik.typeId, ids);
-        }
-
-        const ordinalById = new Map<number, number>();
-        const countByType = new Map<number, number>();
-        for (const [typeId, ids] of idsByType) {
-            const sortedIds = [...ids].sort((a, b) => a - b);
-            countByType.set(typeId, sortedIds.length);
-            sortedIds.forEach((id, index) => ordinalById.set(id, index + 1));
-        }
-
-        return { ordinalById, countByType };
-    }, [domiks]);
-    const domikDisplayName = (typeId: number, id: number, name: string, logicName: string) =>
-        (domikOrdinals.countByType.get(typeId) ?? 1) > 1
-            ? domikThemedName(name, logicName, domikOrdinals.ordinalById.get(id) ?? 1)
-            : name;
+    const domikDisplayName = useMemo(() => buildDomikNamer(domiks), [domiks]);
     const upgradeBenefits = selected?.upgrade == null
         ? null
         : (() => {

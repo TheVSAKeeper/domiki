@@ -216,6 +216,23 @@
     image-rendering: pixelated;
 }
 
+.worker-workplace {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.worker-workplace-ico {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    image-rendering: pixelated;
+}
+
 .worker-timer {
     display: inline-flex;
     align-items: center;
@@ -366,6 +383,18 @@
     clip-path: var(--cut);
     box-shadow: inset 0 -4px 0 var(--plank-dark);
     pointer-events: none;
+}
+
+.worker-detail-workplace {
+    gap: 6px;
+    padding-bottom: 6px;
+    border-bottom: 2px dashed var(--plank-dark);
+    font-size: 13px;
+}
+
+.worker-detail-workplace .worker-workplace-ico {
+    width: 24px;
+    height: 24px;
 }
 
 .worker-trait {

@@ -155,7 +155,7 @@
     @keyframes workerBodyWork {
       0%, 12%, 72%, 100% { transform: translate(0px, 0px) }
       18%, 30% { transform: translate(-1px, -1px) }
-      34%, 43% { transform: translate(1px, 2px) }
+      32%, 43% { transform: translate(1px, 2px) }
       48%, 60% { transform: translate(0px, 1px) }
     }
     @keyframes workerFrameReady {
@@ -175,13 +175,13 @@
       44%, 69% { opacity: 1 }
     }
     @keyframes workerSpark {
-      0%, 35%, 44%, 100% { opacity: 0; transform: translate(0px, 0px) }
-      36%, 39% { opacity: 1; transform: translate(0px, 0px) }
-      40%, 43% { opacity: 1; transform: translate(2px, -2px) }
+      0%, 31%, 44%, 100% { opacity: 0; transform: translate(0px, 0px) }
+      32%, 36% { opacity: 1; transform: translate(0px, 0px) }
+      37%, 43% { opacity: 1; transform: translate(2px, -2px) }
     }
     @keyframes workerFlash {
-      0%, 34%, 42%, 100% { opacity: 0 }
-      35%, 41% { opacity: 1 }
+      0%, 31%, 38%, 100% { opacity: 0 }
+      32%, 37% { opacity: 1 }
     }
     @keyframes workerSweat {
       0%, 56%, 72%, 100% { opacity: 0; transform: translate(0px, 0px) }

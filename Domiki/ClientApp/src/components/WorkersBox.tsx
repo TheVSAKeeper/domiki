@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import CrownIcon from 'pixelarticons/svg/crown.svg?react';
 import type { DomikDto, DomikTypeDto, ExpeditionStateDto, WorkerDto } from '../types/api';
+import { buildDomikNamer, type DomikNamer } from '../utils/domikNames';
 import { formatDuration, formatDurationShort, remainingSeconds } from '../utils/time';
 import { describeWorker, describeWorkerParts, isSkilledWorker, rankedSkills } from '../utils/worker';
 import { AbstractSprite, DomikSprite, MechanicSprite, TraitSprite, WorkerSprite } from './sprites';
@@ -25,11 +26,21 @@ const stateLabels: Record<WorkerState, string> = { expedition: 'В экспед�
 const tallyLabels: Record<WorkerState, string> = { expedition: 'в пути', busy: 'за работой', resting: 'отдыхают', free: 'свободны' };
 const tallyOrder: WorkerState[] = ['free', 'busy', 'resting', 'expedition'];
 
-const WorkerDetails = ({ worker, domikTypes, style }: { worker: WorkerDto; domikTypes: DomikTypeDto[]; style: CSSProperties }) => {
+const WorkerDetails = ({ worker, domikTypes, domiks, namer, style }: { worker: WorkerDto; domikTypes: DomikTypeDto[]; domiks: DomikDto[]; namer: DomikNamer; style: CSSProperties }) => {
     const effect = worker.traitDurationPercent === 0 ? '' : ` ${worker.traitDurationPercent} %`;
     const visibleSkills = worker.skills.filter(skill => skill.bonusPercent > 0);
+    const workplaceDomik = worker.manufactureId == null
+        ? null
+        : domiks.find(d => (d.manufactures ?? []).some(m => m.id === worker.manufactureId));
+    const workplaceType = workplaceDomik == null ? null : domikTypes.find(t => t.id === workplaceDomik.typeId) ?? null;
     return (
         <div className="worker-details" style={style}>
+            {workplaceDomik != null && workplaceType != null &&
+                <span className="worker-workplace worker-detail-workplace">
+                    <DomikSprite logicName={workplaceType.logicName} className="worker-workplace-ico" aria-hidden="true" />
+                    {namer(workplaceType.id, workplaceDomik.id, workplaceType.name, workplaceType.logicName)}
+                </span>
+            }
             <span className="worker-trait">
                 <TraitSprite logicName={worker.traitLogicName} size={24} className="worker-trait-ico" aria-hidden="true" />
                 {traitLabel(worker.traitLogicName, worker.traitName, worker.gender)}{effect}
@@ -65,6 +76,7 @@ const WorkerDetails = ({ worker, domikTypes, style }: { worker: WorkerDto; domik
 export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorkers, now, onToggleFeedWorkers }: WorkersBoxProps) => {
     const [hover, setHover] = useState<{ worker: WorkerDto; rect: DOMRect } | null>(null);
     const clearHover = (id: number) => setHover(prev => (prev?.worker.id === id ? null : prev));
+    const namer = useMemo(() => buildDomikNamer(domiks), [domiks]);
 
     const stateOf = (worker: WorkerDto): WorkerState => {
         if (worker.expeditionId != null) {
@@ -136,6 +148,13 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
                         }
                         return null;
                     })();
+                    const workplaceType = (() => {
+                        if (stateKey !== 'busy') {
+                            return null;
+                        }
+                        const domik = domiks.find(d => (d.manufactures ?? []).some(m => m.id === worker.manufactureId));
+                        return domik == null ? null : domikTypes.find(t => t.id === domik.typeId) ?? null;
+                    })();
                     const portraitState = stateKey === 'resting'
                         ? 'resting'
                         : stateKey === 'busy' || stateKey === 'expedition'
@@ -164,6 +183,12 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
                                     {stateKey === 'resting' && <AbstractSprite logicName="fatigue_rest" size={24} className="worker-badge-ico" aria-hidden="true" />}
                                     {stateLabel}
                                 </span>
+                                {workplaceType != null &&
+                                    <span className="worker-workplace" title={`Работает в постройке «${workplaceType.name}»`}>
+                                        <DomikSprite logicName={workplaceType.logicName} className="worker-workplace-ico" aria-hidden="true" />
+                                        {workplaceType.name}
+                                    </span>
+                                }
                                 {timer != null &&
                                     <span className="worker-timer" title={timer.full}>
                                         <ClockIcon className="worker-timer-ico" aria-hidden="true" />
@@ -203,7 +228,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
                 })}
             </div>
             {hover != null && createPortal(
-                <WorkerDetails worker={hover.worker} domikTypes={domikTypes}
+                <WorkerDetails worker={hover.worker} domikTypes={domikTypes} domiks={domiks} namer={namer}
                     style={{ position: 'fixed', top: hover.rect.bottom + 4, left: hover.rect.left, width: Math.max(hover.rect.width, 240) }} />,
                 document.body)}
         </section>
