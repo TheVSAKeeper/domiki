@@ -524,12 +524,51 @@
     font-variant-numeric: tabular-nums;
 }
 
-.domik-lore {
-    margin: 10px 0 0;
+.lore-tip {
+    display: inline-flex;
+    vertical-align: middle;
+    margin-left: 6px;
+    color: var(--pine-dark);
+    cursor: help;
+}
+
+    .lore-tip:focus-visible {
+        outline: none;
+        color: var(--pine);
+    }
+
+.lore-tip-ico {
+    width: 18px;
+    height: 18px;
+}
+
+.lore-tip-pop {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 20;
+    width: max-content;
+    max-width: 260px;
+    padding: 10px 12px;
+    font-family: 'Golos Text', 'Segoe UI', sans-serif;
     font-size: 13px;
     font-style: italic;
+    font-weight: 400;
     line-height: 1.45;
-    color: rgba(51, 41, 26, .75);
+    color: rgba(51, 41, 26, .85);
+    background: var(--plank);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: 4px 6px 0 rgba(0, 0, 0, .25);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.lore-tip:hover .lore-tip-pop,
+.lore-tip:focus-within .lore-tip-pop {
+    opacity: 1;
+    visibility: visible;
 }
 
 .timer {
@@ -574,8 +613,20 @@
     border-bottom: 2px solid rgba(51, 41, 26, .18);
 }
 
+    .actions-heading + .panel-block {
+        margin-top: 12px;
+        padding-top: 0;
+        border-top: none;
+    }
+
 .actions-heading .panel-title {
-    margin-bottom: 8px;
+    margin-bottom: 0;
+}
+
+.actions-heading .domik-level {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 8px;
 }
 
     .actions-close:hover {
@@ -606,6 +657,33 @@
     font-size: 11px;
     color: var(--ink);
     margin-bottom: 10px;
+}
+
+.panel-block-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px 12px;
+    margin-bottom: 10px;
+}
+
+    .panel-block-head .panel-label {
+        margin-bottom: 0;
+    }
+
+.manufacture-slots {
+    font-family: var(--pixel);
+    font-size: 11px;
+    color: var(--pine-dark);
+    white-space: nowrap;
+}
+
+.manufacture-slots-full {
+    color: var(--roof);
+}
+
+.panel-block > .btn-game {
+    margin-top: 12px;
 }
 
 .upgrade-row {

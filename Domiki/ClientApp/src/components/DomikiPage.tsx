@@ -20,6 +20,7 @@ import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
 import ChevronLeftIcon from 'pixelarticons/svg/chevron-left.svg?react';
 import ChevronRightIcon from 'pixelarticons/svg/chevron-right.svg?react';
 import RepeatIcon from 'pixelarticons/svg/repeat.svg?react';
+import InfoBoxIcon from 'pixelarticons/svg/info-box.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toast';
 import { disablePush, enablePush, getPushState } from '../services/push';
@@ -351,6 +352,9 @@ export const DomikiPage = () => {
                 ? { plodderDelta, manufactureDelta, newReceiptNames }
                 : null;
         })();
+    const maxManufactures = selected?.domikType.levels.find(level => level.value === selected.domik.level)?.maxManufactureCount ?? 0;
+    const runningManufactures = selected?.domik.manufactures?.length ?? 0;
+    const atManufactureCap = maxManufactures > 0 && runningManufactures >= maxManufactures;
     const currentWeather = weather?.current ?? null;
     const hudCollapsed = hudAway && !hudPinnedOpen;
     const coinType = resourceTypes.find(t => t.id === COIN_RESOURCE_TYPE_ID);
@@ -936,12 +940,17 @@ export const DomikiPage = () => {
                     {selected != null &&
                         <div>
                             <div className="actions-heading">
-                                <h3 className="panel-title">{domikDisplayName(selected.domik.typeId, selected.domik.id, selected.domikType.name, selected.domikType.logicName)}</h3>
-                                <span className="domik-level">ур. {selected.domik.level}</span>
+                                <h3 className="panel-title">
+                                    {domikDisplayName(selected.domik.typeId, selected.domik.id, selected.domikType.name, selected.domikType.logicName)}
+                                    <span className="domik-level">ур. {selected.domik.level}</span>
+                                    {domikLore[selected.domikType.logicName] != null &&
+                                        <span className="lore-tip" tabIndex={0} aria-label="Описание постройки">
+                                            <InfoBoxIcon className="lore-tip-ico" aria-hidden="true" />
+                                            <span className="lore-tip-pop" role="tooltip">{domikLore[selected.domikType.logicName]}</span>
+                                        </span>
+                                    }
+                                </h3>
                             </div>
-                            {domikLore[selected.domikType.logicName] != null &&
-                                <p className="domik-lore">{domikLore[selected.domikType.logicName]}</p>
-                            }
                             {selected.upgrade != null &&
                                 <div className="panel-block">
                                     <div className="upgrade-row">
@@ -950,7 +959,6 @@ export const DomikiPage = () => {
                                     </div>
                                     {upgradeBenefits != null &&
                                         <div className="upgrade-benefits">
-                                            <span className="panel-label">Что даст ур. {selected.upgrade.nextLevel}</span>
                                             <div className="upgrade-benefits-chips">
                                                 {upgradeBenefits.plodderDelta > 0 &&
                                                     <StatChip icon={<img className="stat-chip-ico" src="/images/modificatorTypes/plodder.png" alt="" />} title="Вместимость трудяг">
@@ -1010,7 +1018,15 @@ export const DomikiPage = () => {
                             }
                             {selected.receipts.length > 0 &&
                                 <div className="panel-block">
-                                    <span className="panel-label">Запустить производство</span>
+                                    <div className="panel-block-head">
+                                        <span className="panel-label">Запустить производство</span>
+                                        {maxManufactures > 0 &&
+                                            <span className={'manufacture-slots' + (atManufactureCap ? ' manufacture-slots-full' : '')}
+                                                title="Одновременно идущих производств">
+                                                слоты {runningManufactures} / {maxManufactures}
+                                            </span>
+                                        }
+                                    </div>
                                     <div className="receipt-list">
                                         {selected.receipts.map(receipt => {
                                             const hasOptional = receipt.optionalInputResources.length > 0;
@@ -1029,15 +1045,17 @@ export const DomikiPage = () => {
                                             const missingResources = resourceShortfall(view.inputs, resources);
                                             const missingResourcesText = formatShortfall(view.inputs);
                                             const automaticWorkerShortfall = Math.max(0, receipt.plodderCount - plodder.free);
-                                            const canRun = isManual
+                                            const capReason = atManufactureCap ? `Все слоты заняты: ${runningManufactures} / ${maxManufactures}` : null;
+                                            const canRun = (isManual
                                                 ? view.hasResources && validSelectedIds.length === receipt.plodderCount
-                                                : view.canRun;
+                                                : view.canRun) && !atManufactureCap;
                                             const workerBlockReason = isManual
                                                 ? validSelectedIds.length !== receipt.plodderCount
                                                     ? `Выберите ровно ${receipt.plodderCount} трудяг (сейчас ${validSelectedIds.length})`
                                                     : null
                                                 : !view.hasPlodders ? `Не хватает свободных трудяг: ${automaticWorkerShortfall}` : null;
                                             const blockTitle = [
+                                                capReason,
                                                 !view.hasResources ? `Не хватает: ${missingResourcesText}` : null,
                                                 workerBlockReason,
                                             ].filter(reason => reason != null).join('; ');
@@ -1126,7 +1144,7 @@ export const DomikiPage = () => {
                                                                         return (
                                                                             <button key={worker.id} type="button"
                                                                                 className={'worker-chip worker-chip-pick' + (isSelected ? ' worker-chip-selected' : '')}
-                                                                                onClick={() => receipt.plodderCount === 1 && view.hasResources
+                                                                                onClick={() => receipt.plodderCount === 1 && view.hasResources && !atManufactureCap
                                                                                     ? startManufacture(selected.domik.id, receipt.id, hasOptional && useOptional, autoRepeat, [worker.id])
                                                                                     : toggleSelectedWorker(receipt.id, worker.id, receipt.plodderCount)}>
                                                                                 <WorkerSprite name={worker.name} skilled={isSkilledWorker(worker)} className="worker-avatar" aria-hidden="true" />
@@ -1147,6 +1165,7 @@ export const DomikiPage = () => {
                                                              {!canRun &&
                                                                 <div className="note-warn resource-shortfall">
                                                                     <img src="/images/upgrade_no_resources.png" alt="" />
+                                                                    {capReason != null && <span>{capReason}</span>}
                                                                     {!view.hasResources
                                                                         ? <><span>Не хватает</span><ResourcesBox resources={missingResources} resourceTypes={resourceTypes} showNames /></>
                                                                         : null}
@@ -1163,7 +1182,7 @@ export const DomikiPage = () => {
                             }
                             {selected.domik.manufactures != null && selected.domik.manufactures.length > 0 &&
                                 <div className="panel-block">
-                                    <span className="panel-label">Сейчас производится</span>
+                                    <span className="panel-label">Сейчас производится {runningManufactures} / {maxManufactures}</span>
                                     {selected.domik.manufactures.map(manufacture => {
                                         const receipt = receipts.find(x => x.id === manufacture.receiptId);
                                         if (receipt == null) {
