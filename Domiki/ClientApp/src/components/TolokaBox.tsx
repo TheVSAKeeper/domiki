@@ -6,6 +6,7 @@ import { formatDuration, remainingSeconds } from '../utils/time';
 import { NumberStepper } from './NumberStepper';
 import { ProgressBar } from './ProgressBar';
 import { ResourcesBox } from './ResourcesBox';
+import { ActionButton } from './ActionButton';
 import { StatChip } from './StatChip';
 import { MechanicSprite, ResourceSprite, TolokaSprite } from './sprites';
 
@@ -82,10 +83,10 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute 
             <div className="toloka-form">
                 <NumberStepper value={amount} onChange={setAmount} />
                 <ResourcesBox resources={cost} resourceTypes={resourceTypes} have={resources} />
-                <button className="btn-game" disabled={!canAfford} title={canAfford ? undefined : 'Не хватает ресурсов'} onClick={submit}>
+                <ActionButton className="btn-game" disabled={!canAfford} title={canAfford ? undefined : 'Не хватает ресурсов'} onClick={submit}>
                     <HandIcon className="btn-ico" aria-hidden="true" />
                     Вложить
-                </button>
+                </ActionButton>
             </div>
 
             {toloka.activeBuffs.length > 0 &&

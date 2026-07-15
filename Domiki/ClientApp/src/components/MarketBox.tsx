@@ -12,6 +12,7 @@ import { hasResourcesFor, resourceShortfall, tradeDeal, tradeRatio, type TradeDe
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { NumberStepper } from './NumberStepper';
 import { ResourcesBox } from './ResourcesBox';
+import { ActionButton } from './ActionButton';
 
 interface MarketBoxProps {
     market: MarketStateDto | null;
@@ -199,11 +200,12 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                     </div>
                     {invalidPair && <p className="note-warn">Нужны разные ресурсы</p>}
                     {lotsFull && <p className="note-warn">Все места на прилавке заняты – качайте Торговый двор</p>}
-                    <button className="btn-game" disabled={!canPost}
-                        title={lotsFull ? 'Все места на прилавке заняты' : canAffordPost ? undefined : 'Не хватает ресурсов'}>
+                    <ActionButton className="btn-game" disabled={!canPost}
+                        title={lotsFull ? 'Все места на прилавке заняты' : canAffordPost ? undefined : 'Не хватает ресурсов'}
+                        onClick={submitPost}>
                         <StoreIcon className="btn-ico" aria-hidden="true" />
                         Выставить лот
-                    </button>
+                    </ActionButton>
                 </form>
                 <div className="market-column">
                     <div className="market-column-head">
@@ -235,12 +237,12 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                                             <ResourcesBox resources={shortfall} resourceTypes={resourceTypes} />
                                         </p>
                                     )}
-                                    <button className="btn-game" disabled={!canAccept}
+                                    <ActionButton className="btn-game" disabled={!canAccept}
                                         title={affordable ? undefined : 'Не хватает ' + getResourceName(resourceTypes, lot.wantResourceTypeId)}
-                                        onClick={() => { void onAccept(lot.id); }}>
+                                        onClick={() => onAccept(lot.id)}>
                                         <HandIcon className="btn-ico" aria-hidden="true" />
                                         Принять
-                                    </button>
+                                    </ActionButton>
                                 </div>
                             );
                         })}
@@ -258,10 +260,10 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                                         deal={dealFor(lot.giveResourceTypeId, lot.giveValue, lot.wantResourceTypeId, lot.wantValue)} />
                                     <span className="timer">{formatDuration(remainingSeconds(lot.expireDate, now))}</span>
                                 </div>
-                                <button className="btn-game btn-ghost" onClick={() => { void onCancel(lot.id); }}>
+                                <ActionButton className="btn-game btn-ghost" onClick={() => onCancel(lot.id)}>
                                     <TrashIcon className="btn-ico" aria-hidden="true" />
                                     Отменить
-                                </button>
+                                </ActionButton>
                             </div>
                         ))}
                     </div>

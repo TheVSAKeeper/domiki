@@ -4,6 +4,7 @@ import type { DecorStateDto, DecorTypeDto, NeighborReputationDto, PlayerDecorDto
 import { hasResourcesFor } from '../utils/game';
 import { ProgressBar } from './ProgressBar';
 import { ResourcesBox } from './ResourcesBox';
+import { ActionButton } from './ActionButton';
 import { DecorSprite, MechanicSprite, NeighborSprite } from './sprites';
 
 interface DecorBoxProps {
@@ -65,12 +66,12 @@ export const DecorBox =({ decor, resourceTypes, resources, reputations, onBuy }:
                                 </div>
                                 : <>
                                     <ResourcesBox resources={type.cost} resourceTypes={resourceTypes} have={resources} />
-                                    <button className="btn-game" disabled={!canBuy}
+                                    <ActionButton className="btn-game" disabled={!canBuy}
                                         title={canBuy ? undefined : 'Не хватает ресурсов'}
                                         onClick={() => onBuy(type.id)}>
                                         <PlusIcon className="btn-ico" aria-hidden="true" />
                                         Поставить
-                                    </button>
+                                    </ActionButton>
                                 </>}
                         </div>
                     );

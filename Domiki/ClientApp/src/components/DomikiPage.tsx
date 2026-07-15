@@ -33,6 +33,7 @@ import { formatDuration, remainingSeconds } from '../utils/time';
 import { domikLore } from '../utils/domikLore';
 import { pluralRu } from '../utils/plural';
 import { ManufactureBox } from './ManufactureBox';
+import { ActionButton, ActionBusyProvider } from './ActionButton';
 import { StatChip } from './StatChip';
 import { ProgressBar } from './ProgressBar';
 import { ResourcesBox } from './ResourcesBox';
@@ -390,7 +391,10 @@ export const DomikiPage = () => {
         setIdentityOpen(false);
     };
 
+    const actionBusy = useRef(false);
     const runAction = async (action: () => Promise<void>, successMessage?: string) => {
+        if (actionBusy.current) return;
+        actionBusy.current = true;
         try {
             await action();
             if (successMessage != null) {
@@ -402,6 +406,8 @@ export const DomikiPage = () => {
                 return;
             }
             throw err;
+        } finally {
+            actionBusy.current = false;
         }
     };
 
@@ -569,6 +575,7 @@ export const DomikiPage = () => {
 
     return (
         <ResourceInfoProvider resourceTypes={resourceTypes} domikTypes={domikTypes} receipts={receipts}>
+        <ActionBusyProvider>
         <div className="game" style={{ '--hud-sticky-offset': `${hudStickyOffset}px` } as React.CSSProperties}>
             {loading &&
                 <div className="game-loading">
@@ -811,10 +818,10 @@ export const DomikiPage = () => {
                         Мир
                     </Link>
                     {purchaseDomikTypes != null &&
-                        <button className="btn-game" onClick={() => toggleShop()}>
+                        <ActionButton className="btn-game" onClick={() => toggleShop()}>
                             <StoreIcon className="btn-ico" aria-hidden="true" />
                             {shopVisible ? 'Закрыть' : 'Плотник'}
-                        </button>
+                        </ActionButton>
                     }
                 </div>
             </div>
@@ -979,13 +986,13 @@ export const DomikiPage = () => {
                                             </div>
                                         </div>
                                     }
-                                    <button className="btn-game"
+                                    <ActionButton className="btn-game"
                                         disabled={!selected.upgrade.hasResources}
                                         title={selected.upgrade.hasResources ? undefined : `Не хватает: ${formatShortfall(selected.upgrade.resources)}`}
                                         onClick={() => upgrade(selected.domik.id)}>
                                         <ArrowUpIcon className="btn-ico" aria-hidden="true" />
                                         Улучшить
-                                    </button>
+                                    </ActionButton>
                                 </div>
                             }
                             {selected.domik.finishDate != null &&
@@ -1001,7 +1008,7 @@ export const DomikiPage = () => {
                                         return (
                                             <>
                                                 <ProgressBar value={progressPercent(selected.domik.finishDate, selected.domik.upgradeSeconds ?? 0, now)} max={100} label={selected.remainingText ?? ''} />
-                                                <button type="button" className="btn-game"
+                                                <ActionButton className="btn-game"
                                                     disabled={tooFar || notEnoughGold}
                                                     title={hurryTitle}
                                                     onClick={() => hurryDomikAction(selected.domik.id)}>
@@ -1010,7 +1017,7 @@ export const DomikiPage = () => {
                                                     {goldType != null &&
                                                         <ResourceSprite logicName={goldType.logicName} className="hurry-cost-ico" aria-hidden="true" />
                                                     }
-                                                </button>
+                                                </ActionButton>
                                             </>
                                         );
                                     })()}
@@ -1155,13 +1162,13 @@ export const DomikiPage = () => {
                                                                     })}
                                                                 </div>
                                                             }
-                                                            <button className="btn-game"
+                                                            <ActionButton className="btn-game"
                                                                 disabled={!canRun}
                                                                 title={!canRun ? blockTitle : undefined}
                                                                 onClick={() => startManufacture(selected.domik.id, receipt.id, hasOptional && useOptional, autoRepeat, isManual ? validSelectedIds : undefined)}>
                                                                 <PlayIcon className="btn-ico" aria-hidden="true" />
                                                                 Запустить
-                                                            </button>
+                                                            </ActionButton>
                                                              {!canRun &&
                                                                 <div className="note-warn resource-shortfall">
                                                                     <img src="/images/upgrade_no_resources.png" alt="" />
@@ -1238,6 +1245,7 @@ export const DomikiPage = () => {
                 {activeGameTab?.node}
             </div>
         </div>
+        </ActionBusyProvider>
         </ResourceInfoProvider>
     );
 };

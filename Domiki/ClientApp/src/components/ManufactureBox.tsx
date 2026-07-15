@@ -5,6 +5,7 @@ import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import type { ManufactureDto, ReceiptDto, ResourceTypeDto } from '../types/api';
 import { canInstaFinish, instaFinishCost, manufactureProgressPercent } from '../utils/game';
 import { ProgressBar } from './ProgressBar';
+import { ActionButton } from './ActionButton';
 import { ResourceSprite } from './sprites';
 
 interface ManufactureBoxProps {
@@ -44,7 +45,7 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
                     <span className="resource-value">{manufacture.plodderCount}</span>
                 </span>
             </div>
-            <button type="button" className="btn-game"
+            <ActionButton className="btn-game"
                 disabled={tooFar || notEnoughGold}
                 title={hurryTitle}
                 onClick={() => onHurry(manufacture.id)}>
@@ -53,7 +54,7 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
                 {goldType != null &&
                     <ResourceSprite logicName={goldType.logicName} className="hurry-cost-ico" aria-hidden="true" />
                 }
-            </button>
+            </ActionButton>
             <div className={'manufacture-repeat' + (manufacture.autoRepeat ? ' manufacture-repeat-on' : '')}>
                 <button type="button" className="manufacture-repeat-toggle"
                     aria-expanded={repeatExpanded}
@@ -70,10 +71,10 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
                                 ? <>Следующая попытка — {repeatAt}: снова запустится «{receipt.name}», если хватит ресурсов и трудяги смогут продолжить.</>
                                 : <>После завершения «{receipt.name}» новая смена сама не запустится.</>}
                         </p>
-                        <button type="button" className="btn-game btn-ghost manufacture-repeat-action"
+                        <ActionButton className="btn-game btn-ghost manufacture-repeat-action"
                             onClick={() => onToggleAutoRepeat(manufacture.id, !manufacture.autoRepeat)}>
                             {manufacture.autoRepeat ? 'Остановить повторы' : 'Повторять эту смену'}
-                        </button>
+                        </ActionButton>
                         {manufacture.autoRepeat &&
                             <span className="manufacture-repeat-note">Текущая смена завершится как обычно</span>
                         }

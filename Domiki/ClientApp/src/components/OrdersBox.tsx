@@ -4,6 +4,7 @@ import type { NeighborReputationDto, OrderDto, ResourceDto, ResourceTypeDto } fr
 import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ResourcesBox } from './ResourcesBox';
+import { ActionButton } from './ActionButton';
 import { AbstractSprite, MechanicSprite, NeighborSprite } from './sprites';
 
 interface OrdersBoxProps {
@@ -121,11 +122,11 @@ export const OrdersBox = ({ orders, reputation, resourceTypes, resources, now, o
                                         </span>
                                     </div>
                                 </div>
-                                <button className="btn-game" disabled={!canComplete}
+                                <ActionButton className="btn-game" disabled={!canComplete}
                                     title={canComplete ? undefined : 'Не хватает ресурсов'}
                                     onClick={() => onComplete(order.id)}>
                                     Сдать заказ
-                                </button>
+                                </ActionButton>
                             </div>
                         );
                     })}

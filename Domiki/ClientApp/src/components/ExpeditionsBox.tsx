@@ -12,6 +12,7 @@ import { formatDuration, remainingSeconds } from '../utils/time';
 import { ResourceChip } from './ResourceChip';
 import { StatChip } from './StatChip';
 import { ProgressBar } from './ProgressBar';
+import { ActionButton } from './ActionButton';
 import { AbstractSprite, DecorSprite, MechanicSprite, ResourceSprite, WorkerSprite } from './sprites';
 
 const durationBetween = (startDate: string, finishDate: string) =>
@@ -254,11 +255,11 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                     ))}
                                 </div>
                             }
-                            <button className="btn-game" disabled={!canStart} title={blockedTitle}
+                            <ActionButton className="btn-game" disabled={!canStart} title={blockedTitle}
                                 onClick={() => onStart(type.id, isManual ? picked : undefined, useProvisions)}>
                                 <ExpeditionEmblem logicName={type.logicName} size={24} className="btn-ico" />
                                 Отправить
-                            </button>
+                            </ActionButton>
                         </div>
                     );
                 })}

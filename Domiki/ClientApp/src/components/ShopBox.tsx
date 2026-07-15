@@ -8,6 +8,7 @@ import { hasResourcesFor, resourceShortfall, resourceSourceMap } from '../utils/
 import { resourceLore } from '../utils/resourceLore';
 import { DomikSprite, ResourceSprite } from './sprites';
 import { ResourcesBox } from './ResourcesBox';
+import { ActionButton } from './ActionButton';
 
 interface ShopBoxProps {
     purchaseDomikTypes: DomikTypeDto[];
@@ -117,13 +118,13 @@ export const ShopBox = ({ purchaseDomikTypes, domikTypes, receipts, resourceType
                                         );
                                     })}
                                 </div>}
-                            <button type="button" className="btn-game shop-card-buy"
+                            <ActionButton className="btn-game shop-card-buy"
                                 disabled={!canBuild} title={buyTitle} onClick={() => onBuy(domikType.id)}>
                                 {isLocked
                                     ? <LockIcon className="btn-ico" aria-hidden="true" />
                                     : <BuildingIcon className="btn-ico" aria-hidden="true" />}
                                 Построить
-                            </button>
+                            </ActionButton>
                         </article>
                     );
                 })}
