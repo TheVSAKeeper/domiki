@@ -17,11 +17,10 @@ public class WorkerController : GameControllerBase
 
     [HttpGet]
     [Route("/Domiki/GetWorkers")]
-    public Response<WorkerDto[]> GetWorkers()
+    public WorkerDto[] GetWorkers()
     {
         var playerId = GetPlayerId();
 
-        var content = _workerManager.GetWorkers(playerId).Select(x => x.ToDto()).ToArray();
-        return new(content);
+        return _workerManager.GetWorkers(playerId).Select(x => x.ToDto()).ToArray();
     }
 }

@@ -1,16 +1,5 @@
 import { z } from 'zod';
 
-export enum ResponseType {
-    Success = 1,
-    ErrorMessage = 2,
-}
-
-export const responseEnvelopeSchema = z.object({
-    type: z.number(),
-    content: z.unknown().optional(),
-});
-export type ResponseEnvelope = z.infer<typeof responseEnvelopeSchema>;
-
 export const problemDetailsSchema = z.object({
     type: z.string().optional(),
     title: z.string().optional(),

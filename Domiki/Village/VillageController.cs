@@ -30,95 +30,82 @@ public class VillageController : GameControllerBase
 
     [HttpGet]
     [Route("/Domiki/GetVillage")]
-    public Response<VillageDto> GetVillage()
+    public VillageDto GetVillage()
     {
         var playerId = GetPlayerId();
 
-        var content = _domikManager.GetVillage(playerId).ToDto();
-        return new(content);
+        return _domikManager.GetVillage(playerId).ToDto();
     }
 
     [HttpPost]
     [Route("/Domiki/SetVillage")]
-    public Response SetVillage([FromBody] SetVillageDto request)
+    public void SetVillage([FromBody] SetVillageDto request)
     {
         var playerId = GetPlayerId();
         _domikManager.SetVillageIdentity(playerId, request?.Name, request?.CrestIcon ?? -1, request?.CrestColor ?? -1);
-        return new()
-            { Type = ResponseType.Success };
     }
 
     [HttpPost]
     [Route("/Domiki/SetFeedWorkers")]
-    public Response SetFeedWorkers([FromBody] SetFeedWorkersDto request)
+    public void SetFeedWorkers([FromBody] SetFeedWorkersDto request)
     {
         var playerId = GetPlayerId();
         _domikManager.SetFeedWorkers(playerId, request?.Enabled ?? false);
-        return new()
-            { Type = ResponseType.Success };
     }
 
     [HttpGet]
     [Route("/Domiki/GetVillageLevel")]
-    public Response<VillageLevelDto> GetVillageLevel()
+    public VillageLevelDto GetVillageLevel()
     {
         var playerId = GetPlayerId();
 
-        var content = _villageLevelCalculator.GetLevel(playerId).ToDto();
-        return new(content);
+        return _villageLevelCalculator.GetLevel(playerId).ToDto();
     }
 
     [HttpGet]
     [Route("/Domiki/GetWorld")]
-    public Response<WorldDto> GetWorld()
+    public WorldDto GetWorld()
     {
         var playerId = GetPlayerId();
 
-        var content = _worldManager.GetWorld(playerId).ToDto();
-        return new(content);
+        return _worldManager.GetWorld(playerId).ToDto();
     }
 
     [HttpGet]
     [Route("/Domiki/VisitVillage/{playerId}")]
-    public Response<VillageVisitDto> VisitVillage(int playerId)
+    public VillageVisitDto VisitVillage(int playerId)
     {
-        var content = _worldManager.VisitVillage(playerId).ToDto();
-        return new(content);
+        return _worldManager.VisitVillage(playerId).ToDto();
     }
 
     [HttpGet]
     [Route("/Domiki/GetSeason")]
-    public Response<SeasonDto> GetSeason()
+    public SeasonDto GetSeason()
     {
-        var content = _seasonManager.GetCurrentSeason(DateTimeHelper.GetNowDate()).ToDto();
-        return new(content);
+        return _seasonManager.GetCurrentSeason(DateTimeHelper.GetNowDate()).ToDto();
     }
 
     [HttpGet]
     [Route("/Domiki/GetWeather")]
-    public Response<WeatherStateDto> GetWeather()
+    public WeatherStateDto GetWeather()
     {
-        var content = _weatherManager.GetWeather(DateTimeHelper.GetNowDate()).ToDto();
-        return new(content);
+        return _weatherManager.GetWeather(DateTimeHelper.GetNowDate()).ToDto();
     }
 
     [HttpGet]
     [Route("/Domiki/GetDecor")]
-    public Response<DecorStateDto> GetDecor()
+    public DecorStateDto GetDecor()
     {
         var playerId = GetPlayerId();
 
-        var content = _decorManager.GetDecor(playerId).ToDto(_resourceManager.GetNeighbors());
-        return new(content);
+        return _decorManager.GetDecor(playerId).ToDto(_resourceManager.GetNeighbors());
     }
 
     [HttpPost]
     [Route("/Domiki/BuyDecor/{decorTypeId}")]
-    public Response BuyDecor(int decorTypeId)
+    public void BuyDecor(int decorTypeId)
     {
         var playerId = GetPlayerId();
         _decorManager.BuyDecor(playerId, decorTypeId);
-        return new()
-            { Type = ResponseType.Success };
     }
 }

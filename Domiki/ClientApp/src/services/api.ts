@@ -6,7 +6,6 @@ import {
     marketStateSchema,
     gameStateSchema,
     problemDetailsSchema,
-    responseEnvelopeSchema,
     villageSchema,
     worldSchema,
     villageVisitSchema,
@@ -57,6 +56,10 @@ async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType
         throw new ApiError(problem.success && problem.data.detail != null ? problem.data.detail : 'Неизвестная ошибка сервера.');
     }
 
+    if (schema == null) {
+        return undefined as T;
+    }
+
     let json: unknown;
     try {
         json = await res.json();
@@ -64,16 +67,7 @@ async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType
         throw new ApiError('Некорректный ответ сервера.');
     }
 
-    const envelope = responseEnvelopeSchema.safeParse(json);
-    if (!envelope.success) {
-        throw new ApiError('Некорректный ответ сервера.');
-    }
-
-    if (schema == null) {
-        return undefined as T;
-    }
-
-    const parsed = schema.safeParse(envelope.data.content);
+    const parsed = schema.safeParse(json);
     if (!parsed.success) {
         throw new ApiError('Сервер вернул данные в неожиданном формате.');
     }

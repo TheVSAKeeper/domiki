@@ -1,5 +1,4 @@
-﻿using Domiki.Web.Infrastructure;
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 
 namespace Domiki.Web.Tests;
@@ -32,10 +31,11 @@ public sealed class HttpSmokeTests
     }
 
     /// <summary>
-    /// Демо-вход выдаёт куку аутентификации, и авторизованный запрос состояния игры возвращает конверт { type = Success }.
+    /// Демо-вход выдаёт куку аутентификации, и авторизованный запрос состояния игры возвращает 200 с телом-DTO без
+    /// конверта.
     /// </summary>
     [Test]
-    public async Task DemoLoginThenGetGameStateReturnsSuccessEnvelopeTest()
+    public async Task DemoLoginThenGetGameStateReturnsStateTest()
     {
         var client = App.Client();
 
@@ -46,7 +46,7 @@ public sealed class HttpSmokeTests
         Assert.That(gameStateResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
         using var json = JsonDocument.Parse(await gameStateResponse.Content.ReadAsStringAsync());
-        Assert.That(json.RootElement.GetProperty("type").GetInt32(), Is.EqualTo((int)ResponseType.Success));
+        Assert.That(json.RootElement.GetProperty("domikTypes").GetArrayLength(), Is.GreaterThan(0));
     }
 
     /// <summary>

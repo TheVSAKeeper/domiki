@@ -51,7 +51,7 @@ public class GameStateController : GameControllerBase
 
     [HttpGet]
     [Route("/Domiki/GetGameState")]
-    public Response<GameStateDto> GetGameState()
+    public GameStateDto GetGameState()
     {
         var playerId = GetPlayerId();
         var goals = _goalManager.GetGoalsState(playerId);
@@ -81,6 +81,6 @@ public class GameStateController : GameControllerBase
             Goals = goals.ToDto(),
         };
 
-        return new(content);
+        return content;
     }
 }

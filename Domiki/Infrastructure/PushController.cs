@@ -18,28 +18,24 @@ public class PushController : GameControllerBase
 
     [HttpGet]
     [Route("/Push/PublicKey")]
-    public Response<string> PublicKey()
+    public string PublicKey()
     {
-        return new(_pushSender.PublicKey);
+        return _pushSender.PublicKey;
     }
 
     [HttpPost]
     [Route("/Push/Subscribe")]
-    public Response Subscribe([FromBody] PushSubscribeDto request)
+    public void Subscribe([FromBody] PushSubscribeDto request)
     {
         var playerId = GetPlayerId();
         _pushManager.Subscribe(playerId, request?.Endpoint, request?.P256dh, request?.Auth);
-        return new()
-            { Type = ResponseType.Success };
     }
 
     [HttpPost]
     [Route("/Push/Unsubscribe")]
-    public Response Unsubscribe([FromBody] PushUnsubscribeDto request)
+    public void Unsubscribe([FromBody] PushUnsubscribeDto request)
     {
         var playerId = GetPlayerId();
         _pushManager.Unsubscribe(playerId, request?.Endpoint);
-        return new()
-            { Type = ResponseType.Success };
     }
 }

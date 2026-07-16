@@ -15,21 +15,22 @@ function mockFetch(body: unknown, init: { ok?: boolean; status?: number } = {}) 
     });
 }
 
-describe('api envelope', () => {
+describe('api', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it.each<[string, unknown]>([
-        ['без ключа content (не-дженерик Response)', { type: 1 }],
-        ['с content=null', { type: 1, content: null }],
-    ])('apiPost принимает Success-конверт %s', async (_label, body) => {
-        mockFetch(body);
+    it('apiPost резолвится в undefined на пустое тело 200-ответа', async () => {
+        globalThis.fetch = vi.fn().mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: () => Promise.reject(new SyntaxError('Unexpected end of JSON input')),
+        });
         await expect(apiPost('Domiki/BuyDomik/1')).resolves.toBeUndefined();
     });
 
-    it('apiGet возвращает провалидированный content', async () => {
-        mockFetch({ type: 1, content: [{ typeId: 1, value: 100 }] });
+    it('apiGet возвращает провалидированное тело ответа', async () => {
+        mockFetch([{ typeId: 1, value: 100 }]);
         const schema = z.array(z.object({ typeId: z.number(), value: z.number() }));
         await expect(apiGet('Domiki/GetResources', schema)).resolves.toEqual([{ typeId: 1, value: 100 }]);
     });
@@ -61,12 +62,13 @@ describe('api envelope', () => {
         await expect(apiPost('Domiki/BuyDomik/1')).rejects.toThrow('Неизвестная ошибка сервера.');
     });
 
-    it('нераспарсиваемое тело бросает ApiError', async () => {
+    it('нераспарсиваемое тело успешного ответа со схемой бросает ApiError', async () => {
         globalThis.fetch = vi.fn().mockResolvedValue({
             ok: true,
             status: 200,
             json: () => Promise.reject(new SyntaxError('bad json')),
         });
-        await expect(apiPost('Domiki/BuyDomik/1')).rejects.toBeInstanceOf(ApiError);
+        const schema = z.array(z.object({ typeId: z.number(), value: z.number() }));
+        await expect(apiGet('Domiki/GetResources', schema)).rejects.toBeInstanceOf(ApiError);
     });
 });

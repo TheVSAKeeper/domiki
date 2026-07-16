@@ -1,5 +1,4 @@
 ﻿using Domiki.Web.Core.Dto;
-using Domiki.Web.Infrastructure;
 using Domiki.Web.Reference.Dto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,43 +18,38 @@ public class ReferenceController : ControllerBase
 
     [HttpGet]
     [Route("/Domiki/GetDomikTypes")] // todo разобраться с роут префиксом
-    public Response<DomikTypeDto[]> GetDomikTypes()
+    public DomikTypeDto[] GetDomikTypes()
     {
         var blueprints = _resourceManager.GetBlueprints();
-        var content = _resourceManager.GetDomikTypes().Select(x => x.ToDto(blueprintId: blueprints.FirstOrDefault(b => b.DomikTypeId == x.Id)?.Id)).ToArray();
-        return new(content);
+        return _resourceManager.GetDomikTypes().Select(x => x.ToDto(blueprintId: blueprints.FirstOrDefault(b => b.DomikTypeId == x.Id)?.Id)).ToArray();
     }
 
     [HttpGet]
     [Route("/Domiki/GetModificatorTypes")] // todo объеденить системные методы в один GetData, где возвращать системную инфу о домиках ресурсах и прочем
-    public Response<ModificatorTypeDto[]> GetModificatorTypes()
+    public ModificatorTypeDto[] GetModificatorTypes()
     {
-        var content = _resourceManager.GetModificatorTypes().Select(x => x.ToDto()).ToArray();
-        return new(content);
+        return _resourceManager.GetModificatorTypes().Select(x => x.ToDto()).ToArray();
     }
 
     [HttpGet]
     [Route("/Domiki/GetResourceTypes")]
-    public Response<ResourceTypeDto[]> GetResourceTypes()
+    public ResourceTypeDto[] GetResourceTypes()
     {
-        var content = _resourceManager.GetResourceTypes().Select(x => x.ToDto()).ToArray();
-        return new(content);
+        return _resourceManager.GetResourceTypes().Select(x => x.ToDto()).ToArray();
     }
 
     [HttpGet]
     [Route("/Domiki/GetReceipts")]
-    public Response<ReceiptDto[]> GetReceipts()
+    public ReceiptDto[] GetReceipts()
     {
-        var content = _resourceManager.GetReceipts().Select(x => x.ToDto()).ToArray();
-        return new(content);
+        return _resourceManager.GetReceipts().Select(x => x.ToDto()).ToArray();
     }
 
     [AllowAnonymous]
     [HttpGet]
     [Route("/System/Test")]
-    public Response<DomikTypeDto[]> Test()
+    public DomikTypeDto[] Test()
     {
-        var content = _resourceManager.GetDomikTypes().Select(x => x.ToDto()).ToArray();
-        return new(content);
+        return _resourceManager.GetDomikTypes().Select(x => x.ToDto()).ToArray();
     }
 }

@@ -19,71 +19,60 @@ public class EconomyController : GameControllerBase
 
     [HttpGet]
     [Route("/Domiki/GetOrders")]
-    public Response<OrderDto[]> GetOrders()
+    public OrderDto[] GetOrders()
     {
         var playerId = GetPlayerId();
 
-        var content = _orderManager.GetOrders(playerId).Select(x => x.ToDto()).ToArray();
-        return new(content);
+        return _orderManager.GetOrders(playerId).Select(x => x.ToDto()).ToArray();
     }
 
     [HttpPost]
     [Route("/Domiki/CompleteOrder/{orderId}")]
-    public Response CompleteOrder(int orderId)
+    public void CompleteOrder(int orderId)
     {
         var playerId = GetPlayerId();
         _orderManager.CompleteOrder(playerId, orderId);
-        return new()
-            { Type = ResponseType.Success };
     }
 
     [HttpGet]
     [Route("/Domiki/GetReputation")]
-    public Response<NeighborReputationDto[]> GetReputation()
+    public NeighborReputationDto[] GetReputation()
     {
         var playerId = GetPlayerId();
 
-        var content = _orderManager.GetReputation(playerId).Select(x => x.ToDto()).ToArray();
-        return new(content);
+        return _orderManager.GetReputation(playerId).Select(x => x.ToDto()).ToArray();
     }
 
     [HttpGet]
     [Route("/Domiki/GetMarket")]
-    public Response<MarketStateDto> GetMarket()
+    public MarketStateDto GetMarket()
     {
         var playerId = GetPlayerId();
 
-        var content = _marketManager.GetMarket(playerId)?.ToDto();
-        return new(content);
+        return _marketManager.GetMarket(playerId)?.ToDto();
     }
 
     [HttpPost]
     [Route("/Domiki/PostLot")]
-    public Response PostLot([FromQuery] int giveResourceTypeId, [FromQuery] int giveValue, [FromQuery] int wantResourceTypeId, [FromQuery] int wantValue)
+    public void PostLot([FromQuery] int giveResourceTypeId, [FromQuery] int giveValue, [FromQuery] int wantResourceTypeId, [FromQuery] int wantValue)
     {
         var playerId = GetPlayerId();
         _marketManager.PostLot(playerId, giveResourceTypeId, giveValue, wantResourceTypeId, wantValue, DateTimeHelper.GetNowDate());
-        return new()
-            { Type = ResponseType.Success };
     }
 
     [HttpPost]
     [Route("/Domiki/AcceptLot/{lotId}")]
-    public Response AcceptLot(int lotId)
+    public void AcceptLot(int lotId)
     {
         var playerId = GetPlayerId();
         _marketManager.AcceptLot(playerId, lotId, DateTimeHelper.GetNowDate());
-        return new()
-            { Type = ResponseType.Success };
     }
 
     [HttpPost]
     [Route("/Domiki/CancelLot/{lotId}")]
-    public Response CancelLot(int lotId)
+    public void CancelLot(int lotId)
     {
         var playerId = GetPlayerId();
         _marketManager.CancelLot(playerId, lotId, DateTimeHelper.GetNowDate());
-        return new()
-            { Type = ResponseType.Success };
     }
 }
