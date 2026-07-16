@@ -1,305 +1,298 @@
-﻿using Domiki.Web.Activities.Models;
-using Domiki.Web.Core.Models;
+﻿using Domiki.Web.Core.Models;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Reference.Models;
 using Domiki.Web.Workers.Models;
+using Manufacture = Domiki.Web.Data.Entities.Manufacture;
 
-namespace Domiki.Web.Tests
+namespace Domiki.Web.Tests;
+
+public class BalanceRecalibrationTests : TestBase
 {
-    public class BalanceRecalibrationTests : TestBase
+    /// <summary>
+    /// Черта характера и наработанный навык рабочего множат длительность производства уже после применения бонуса инструмента.
+    /// </summary>
+    [Test]
+    public void DurationMultiplierUsesTraitsAndSkillAfterToolTest()
     {
-        /// <summary>
-        /// После рекалибровки золотая шахта сохраняет рецепт добычи золота, но теряет рецепты 17 и 21, а рынок теряет рецепты 8 и 12.
-        /// </summary>
-        [Test]
-        public void GoldMineAndMarketReceiptsAreRecalibratedTest()
+        var playerId = GetPlayerId();
+        GrantDomik(playerId, 3, 5);
+        GrantResource(playerId, 8, 1);
+        var worker = GetWorkers(playerId).Single();
+        SetWorkerTrait(worker.Id, 3);
+        SetWorkerSkill(worker.Id, 5, 100);
+        var start = DateTimeHelper.GetNowDate();
+
+        StartManufacture(playerId, 3, 14, false, true, [worker.Id]);
+
+        var manufacture = GetManufactures(playerId).Single();
+        var durationSeconds = (manufacture.FinishDate - start).TotalSeconds;
+        Assert.That(durationSeconds, Is.EqualTo(19584).Within(1));
+    }
+
+    /// <summary>
+    /// После рекалибровки золотая шахта сохраняет рецепт добычи золота, но теряет рецепты 17 и 21, а рынок теряет рецепты 8 и
+    /// 12.
+    /// </summary>
+    [Test]
+    public void GoldMineAndMarketReceiptsAreRecalibratedTest()
+    {
+        var types = GetDomikTypes();
+
+        var goldMineReceiptIds = types.Single(x => x.Id == 4)
+            .Levels
+            .SelectMany(x => x.Receipts)
+            .Select(x => x.Id)
+            .ToArray();
+
+        var marketReceiptIds = types.Single(x => x.Id == 7)
+            .Levels
+            .SelectMany(x => x.Receipts)
+            .Select(x => x.Id)
+            .ToArray();
+
+        Assert.That(goldMineReceiptIds, Does.Contain(3));
+        Assert.That(goldMineReceiptIds, Does.Not.Contain(17));
+        using (Assert.EnterMultipleScope())
         {
-            var types = GetDomikTypes();
-
-            var goldMineReceiptIds = types.Single(x => x.Id == 4).Levels
-                .SelectMany(x => x.Receipts)
-                .Select(x => x.Id)
-                .ToArray();
-            var marketReceiptIds = types.Single(x => x.Id == 7).Levels
-                .SelectMany(x => x.Receipts)
-                .Select(x => x.Id)
-                .ToArray();
-
-            Assert.That(goldMineReceiptIds, Does.Contain(3));
-            Assert.That(goldMineReceiptIds, Does.Not.Contain(17));
             Assert.That(goldMineReceiptIds, Does.Not.Contain(21));
             Assert.That(marketReceiptIds, Does.Not.Contain(8));
-            Assert.That(marketReceiptIds, Does.Not.Contain(12));
         }
 
-        /// <summary>
-        /// Стоимость улучшения до заданного уровня в монетах одинакова для всех обычных построек (кроме золотой шахты, рынка и построек 9–11).
-        /// </summary>
-        /// <param name="level">Целевой уровень постройки.</param>
-        /// <param name="expectedCoins">Ожидаемая стоимость улучшения в монетах.</param>
-        [TestCase(4, 1500)]
-        [TestCase(5, 9000)]
-        public void UpgradeCoinCostsAreRecalibratedTest(int level, int expectedCoins)
+        Assert.That(marketReceiptIds, Does.Not.Contain(12));
+    }
+
+    /// <summary>
+    /// Рецепт обжига кирпича в гончарной мастерской тратит 16 глины и выдаёт 8 кирпичей за смену.
+    /// </summary>
+    [Test]
+    public void PotteryBrickShiftConsumesClayAndProducesBricksTest()
+    {
+        var playerId = GetPlayerId();
+        GrantResource(playerId, 1, 700);
+        GrantBlueprint(playerId, 3);
+        GrantDomik(playerId, 3, 2);
+        GrantDomik(playerId, 4, 2);
+        GrantDomik(playerId, 5, 2);
+        BuyDomik(playerId, 13);
+        UpgradeDomik(playerId, 6);
+        GrantResource(playerId, 4, 16);
+        var before = GetResources(playerId);
+
+        StartManufacture(playerId, 6, 27, true);
+
+        var after = GetResources(playerId);
+        using (Assert.EnterMultipleScope())
         {
-            var types = GetDomikTypes();
-
-            foreach (var type in types)
-            {
-                var typeLevel = type.Levels.SingleOrDefault(x => x.Value == level);
-                if (typeLevel == null)
-                {
-                    continue;
-                }
-
-                if (type.Id is 9 or 10 or 11)
-                {
-                    continue;
-                }
-
-                if (type.Id is 4 or 7)
-                {
-                    continue;
-                }
-
-                var coinCost = typeLevel.Resources.Single(x => x.Type.Id == 1).Value;
-                Assert.That(coinCost, Is.EqualTo(expectedCoins), $"domik type {type.Id}");
-            }
-        }
-
-        /// <summary>
-        /// Золотая шахта и рынок улучшаются по собственной, отличной от прочих построек, кривой стоимости в монетах.
-        /// </summary>
-        /// <param name="level">Целевой уровень постройки.</param>
-        /// <param name="expectedCoins">Ожидаемая стоимость улучшения в монетах.</param>
-        [TestCase(2, 150)]
-        [TestCase(3, 450)]
-        [TestCase(4, 2200)]
-        [TestCase(5, 13000)]
-        public void GoldMineAndMarketUpgradeCoinCostsAreReshapedTest(int level, int expectedCoins)
-        {
-            var types = GetDomikTypes();
-
-            foreach (var typeId in new[] { 4, 7 })
-            {
-                var typeLevel = types.Single(x => x.Id == typeId).Levels.Single(x => x.Value == level);
-                var coinCost = typeLevel.Resources.Single(x => x.Type.Id == 1).Value;
-                Assert.That(coinCost, Is.EqualTo(expectedCoins), $"domik type {typeId}");
-            }
-        }
-
-        /// <summary>
-        /// Рецепт обжига кирпича в гончарной мастерской тратит 16 глины и выдаёт 8 кирпичей за смену.
-        /// </summary>
-        [Test]
-        public void PotteryBrickShiftConsumesClayAndProducesBricksTest()
-        {
-            var playerId = GetPlayerId();
-            GrantResource(playerId, 1, 700);
-            GrantBlueprint(playerId, 3);
-            GrantDomik(playerId, 3, 2);
-            GrantDomik(playerId, 4, 2);
-            GrantDomik(playerId, 5, 2);
-            BuyDomik(playerId, 13);
-            UpgradeDomik(playerId, 6);
-            GrantResource(playerId, 4, 16);
-            var before = GetResources(playerId);
-
-            StartManufacture(playerId, 6, 27, true);
-
-            var after = GetResources(playerId);
             Assert.That(ResourceValue(before, 4) - ResourceValue(after, 4), Is.EqualTo(16));
             Assert.That(ResourceValue(after, 6) - ResourceValue(before, 6), Is.EqualTo(8));
         }
+    }
 
-        /// <summary>
-        /// Черта характера и наработанный навык рабочего множат длительность производства уже после применения бонуса инструмента.
-        /// </summary>
-        [Test]
-        public void DurationMultiplierUsesTraitsAndSkillAfterToolTest()
+    /// <summary>
+    /// Имена трудяг уникальны в пределах одного игрока – при найме не выдаются повторы.
+    /// </summary>
+    [Test]
+    public void WorkerNamesAreUniquePerPlayerTest()
+    {
+        var playerId = GetPlayerId();
+        for (var i = 0; i < 4; i++)
         {
-            var playerId = GetPlayerId();
-            GrantDomik(playerId, 3, 5);
-            GrantResource(playerId, 8, 1);
-            var worker = GetWorkers(playerId).Single();
-            SetWorkerTrait(worker.Id, 3);
-            SetWorkerSkill(worker.Id, 5, 100);
-            var start = DateTimeHelper.GetNowDate();
-
-            StartManufacture(playerId, 3, 14, false, true, new[] { worker.Id });
-
-            var manufacture = GetManufactures(playerId).Single();
-            var durationSeconds = (manufacture.FinishDate - start).TotalSeconds;
-            Assert.That(durationSeconds, Is.EqualTo(19584).Within(1));
+            GrantDomik(playerId, 3 + i, 2);
         }
 
-        /// <summary>
-        /// Имена трудяг уникальны в пределах одного игрока – при найме не выдаются повторы.
-        /// </summary>
-        [Test]
-        public void WorkerNamesAreUniquePerPlayerTest()
+        var workers = GetWorkers(playerId);
+
+        Assert.That(workers.Select(x => x.Name).Distinct().Count(), Is.EqualTo(workers.Length));
+    }
+
+    /// <summary>
+    /// Стоимость улучшения до заданного уровня в монетах одинакова для всех обычных построек (кроме золотой шахты, рынка и
+    /// построек 9–11).
+    /// </summary>
+    /// <param name="level">Целевой уровень постройки.</param>
+    /// <param name="expectedCoins">Ожидаемая стоимость улучшения в монетах.</param>
+    [TestCase(4, 1500)]
+    [TestCase(5, 9000)]
+    public void UpgradeCoinCostsAreRecalibratedTest(int level, int expectedCoins)
+    {
+        var types = GetDomikTypes();
+
+        foreach (var type in types)
         {
-            var playerId = GetPlayerId();
-            for (var i = 0; i < 4; i++)
+            var typeLevel = type.Levels.SingleOrDefault(x => x.Value == level);
+            if (typeLevel == null)
             {
-                GrantDomik(playerId, 3 + i, 2);
+                continue;
             }
 
-            var workers = GetWorkers(playerId);
-
-            Assert.That(workers.Select(x => x.Name).Distinct().Count(), Is.EqualTo(workers.Length));
-        }
-
-        private DomikType[] GetDomikTypes()
-        {
-            using (var uow = GetUow())
+            if (type.Id is 9 or 10 or 11)
             {
-                var resourceManager = GetResourceManager(uow);
-                var result = resourceManager.GetDomikTypes();
-                uow.Commit();
-                return result;
+                continue;
             }
-        }
 
-        private int GetPlayerId()
-        {
-            using (var uow = GetUow())
+            if (type.Id is 4 or 7)
             {
-                var domikManager = GetDomikManager(uow);
-                var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
-                uow.Commit();
-                return playerId;
+                continue;
             }
-        }
 
-        private Worker[] GetWorkers(int playerId)
+            var coinCost = typeLevel.Resources.Single(x => x.Type.Id == 1).Value;
+            Assert.That(coinCost, Is.EqualTo(expectedCoins), $"domik type {type.Id}");
+        }
+    }
+
+    /// <summary>
+    /// Золотая шахта и рынок улучшаются по собственной, отличной от прочих построек, кривой стоимости в монетах.
+    /// </summary>
+    /// <param name="level">Целевой уровень постройки.</param>
+    /// <param name="expectedCoins">Ожидаемая стоимость улучшения в монетах.</param>
+    [TestCase(2, 150)]
+    [TestCase(3, 450)]
+    [TestCase(4, 2200)]
+    [TestCase(5, 13000)]
+    public void GoldMineAndMarketUpgradeCoinCostsAreReshapedTest(int level, int expectedCoins)
+    {
+        var types = GetDomikTypes();
+
+        foreach (var typeId in new[] { 4, 7 })
         {
-            using (var uow = GetUow())
+            var typeLevel = types.Single(x => x.Id == typeId).Levels.Single(x => x.Value == level);
+            var coinCost = typeLevel.Resources.Single(x => x.Type.Id == 1).Value;
+            Assert.That(coinCost, Is.EqualTo(expectedCoins), $"domik type {typeId}");
+        }
+    }
+
+    private DomikType[] GetDomikTypes()
+    {
+        using var uow = GetUow();
+        var resourceManager = GetResourceManager(uow);
+        var result = resourceManager.GetDomikTypes();
+        uow.Commit();
+        return result;
+    }
+
+    private int GetPlayerId()
+    {
+        using var uow = GetUow();
+        var domikManager = GetDomikManager(uow);
+        var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
+        uow.Commit();
+        return playerId;
+    }
+
+    private Worker[] GetWorkers(int playerId)
+    {
+        using var uow = GetUow();
+        var workerManager = GetWorkerManager(uow);
+        var workers = workerManager.GetWorkers(playerId).ToArray();
+        uow.Commit();
+        return workers;
+    }
+
+    private Resource[] GetResources(int playerId)
+    {
+        using var uow = GetUow();
+        var domikManager = GetDomikManager(uow);
+        var resources = domikManager.GetResources(playerId).ToArray();
+        uow.Commit();
+        return resources;
+    }
+
+    private Manufacture[] GetManufactures(int playerId)
+    {
+        using var uow = GetUow();
+        var manufactures = uow.Context.Manufactures.Where(x => x.DomikPlayerId == playerId).ToArray();
+        uow.Commit();
+        return manufactures;
+    }
+
+    private void BuyDomik(int playerId, int domikTypeId)
+    {
+        using var uow = GetUow();
+        var domikManager = GetDomikManager(uow);
+        domikManager.BuyDomik(playerId, domikTypeId);
+        uow.Commit();
+    }
+
+    private void UpgradeDomik(int playerId, int domikId)
+    {
+        using var uow = GetUow();
+        var domikManager = GetDomikManager(uow);
+        domikManager.UpgradeDomik(playerId, domikId);
+        uow.Commit();
+    }
+
+    private void StartManufacture(int playerId, int domikId, int receiptId, bool calculatorJustFinishMode, bool useOptional = false, int[]? workerIds = null)
+    {
+        using var uow = GetUow();
+        var domikManager = GetDomikManager(uow, calculatorJustFinishMode);
+        domikManager.StartManufacture(playerId, domikId, receiptId, useOptional, workerIds);
+        uow.Commit();
+    }
+
+    private void GrantResource(int playerId, int resourceTypeId, int value)
+    {
+        using var uow = GetUow();
+        var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
+        if (resource == null)
+        {
+            resource = new()
             {
-                var workerManager = GetWorkerManager(uow);
-                var workers = workerManager.GetWorkers(playerId).ToArray();
-                uow.Commit();
-                return workers;
-            }
+                PlayerId = playerId,
+                TypeId = resourceTypeId,
+            };
+
+            uow.Context.Resources.Add(resource);
         }
 
-        private Resource[] GetResources(int playerId)
+        resource.Value += value;
+        uow.Context.SaveChanges();
+        uow.Commit();
+    }
+
+    private void GrantBlueprint(int playerId, int blueprintId)
+    {
+        using var uow = GetUow();
+        uow.Context.PlayerBlueprints.Add(new()
         {
-            using (var uow = GetUow())
+            PlayerId = playerId,
+            BlueprintId = blueprintId,
+        });
+
+        uow.Context.SaveChanges();
+        uow.Commit();
+    }
+
+    private void SetWorkerTrait(int workerId, int traitId)
+    {
+        using var uow = GetUow();
+        var worker = uow.Context.Workers.Single(x => x.Id == workerId);
+        worker.TraitId = traitId;
+        uow.Commit();
+    }
+
+    private void SetWorkerSkill(int workerId, int domikTypeId, int uses)
+    {
+        using var uow = GetUow();
+        var skill = uow.Context.WorkerSkills.SingleOrDefault(x => x.WorkerId == workerId && x.DomikTypeId == domikTypeId);
+        if (skill == null)
+        {
+            uow.Context.WorkerSkills.Add(new()
             {
-                var domikManager = GetDomikManager(uow);
-                var resources = domikManager.GetResources(playerId).ToArray();
-                uow.Commit();
-                return resources;
-            }
+                WorkerId = workerId,
+                DomikTypeId = domikTypeId,
+                Uses = uses,
+            });
         }
-
-        private Data.Entities.Manufacture[] GetManufactures(int playerId)
+        else
         {
-            using (var uow = GetUow())
-            {
-                var manufactures = uow.Context.Manufactures.Where(x => x.DomikPlayerId == playerId).ToArray();
-                uow.Commit();
-                return manufactures;
-            }
+            skill.Uses = uses;
         }
 
-        private void BuyDomik(int playerId, int domikTypeId)
-        {
-            using (var uow = GetUow())
-            {
-                var domikManager = GetDomikManager(uow);
-                domikManager.BuyDomik(playerId, domikTypeId);
-                uow.Commit();
-            }
-        }
+        uow.Commit();
+    }
 
-        private void UpgradeDomik(int playerId, int domikId)
-        {
-            using (var uow = GetUow())
-            {
-                var domikManager = GetDomikManager(uow);
-                domikManager.UpgradeDomik(playerId, domikId);
-                uow.Commit();
-            }
-        }
-
-        private void StartManufacture(int playerId, int domikId, int receiptId, bool calculatorJustFinishMode, bool useOptional = false, int[]? workerIds = null)
-        {
-            using (var uow = GetUow())
-            {
-                var domikManager = GetDomikManager(uow, calculatorJustFinishMode);
-                domikManager.StartManufacture(playerId, domikId, receiptId, useOptional, workerIds);
-                uow.Commit();
-            }
-        }
-
-        private void GrantResource(int playerId, int resourceTypeId, int value)
-        {
-            using (var uow = GetUow())
-            {
-                var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
-                if (resource == null)
-                {
-                    resource = new Data.Entities.Resource
-                    {
-                        PlayerId = playerId,
-                        TypeId = resourceTypeId,
-                    };
-                    uow.Context.Resources.Add(resource);
-                }
-
-                resource.Value += value;
-                uow.Context.SaveChanges();
-                uow.Commit();
-            }
-        }
-
-        private void GrantBlueprint(int playerId, int blueprintId)
-        {
-            using (var uow = GetUow())
-            {
-                uow.Context.PlayerBlueprints.Add(new Data.Entities.PlayerBlueprint { PlayerId = playerId, BlueprintId = blueprintId });
-                uow.Context.SaveChanges();
-                uow.Commit();
-            }
-        }
-
-        private void SetWorkerTrait(int workerId, int traitId)
-        {
-            using (var uow = GetUow())
-            {
-                var worker = uow.Context.Workers.Single(x => x.Id == workerId);
-                worker.TraitId = traitId;
-                uow.Commit();
-            }
-        }
-
-        private void SetWorkerSkill(int workerId, int domikTypeId, int uses)
-        {
-            using (var uow = GetUow())
-            {
-                var skill = uow.Context.WorkerSkills.SingleOrDefault(x => x.WorkerId == workerId && x.DomikTypeId == domikTypeId);
-                if (skill == null)
-                {
-                    uow.Context.WorkerSkills.Add(new Data.Entities.WorkerSkill
-                    {
-                        WorkerId = workerId,
-                        DomikTypeId = domikTypeId,
-                        Uses = uses,
-                    });
-                }
-                else
-                {
-                    skill.Uses = uses;
-                }
-
-                uow.Commit();
-            }
-        }
-
-        private int ResourceValue(Resource[] resources, int typeId)
-        {
-            return resources.FirstOrDefault(x => x.Type.Id == typeId)?.Value ?? 0;
-        }
+    private int ResourceValue(Resource[] resources, int typeId)
+    {
+        return resources.FirstOrDefault(x => x.Type.Id == typeId)?.Value ?? 0;
     }
 }

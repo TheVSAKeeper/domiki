@@ -1,47 +1,44 @@
 ﻿using Domiki.Web.Core.Scheduling;
-using Domiki.Web.Data.Entities;
 using Domiki.Web.Infrastructure;
 
-namespace Domiki.Web.Tests
+namespace Domiki.Web.Tests;
+
+public class TestCalculator : ICalculator
 {
-    public class TestCalculator : ICalculator
+    private readonly Func<UnitOfWork> _uowFactory;
+    private readonly Func<UnitOfWork, CalculatorTick> _calculatorTickFactory;
+
+    /// <summary>
+    /// Все события обсчитываются моментально.
+    /// </summary>
+    private readonly bool _justFinishMode;
+
+    public TestCalculator(Func<UnitOfWork> uowFactory, Func<UnitOfWork, CalculatorTick> calculatorTickFactory, bool justFinishMode = true)
     {
-        private Func<UnitOfWork> _uowFactory;
-        private Func<UnitOfWork, CalculatorTick> _calculatorTickFactory;
-        /// <summary>
-        /// Все события обсчитываются моментально.
-        /// </summary>
-        private bool _justFinishMode;
+        _uowFactory = uowFactory;
+        _calculatorTickFactory = calculatorTickFactory;
+        _justFinishMode = justFinishMode;
+    }
 
-        public TestCalculator(Func<UnitOfWork> uowFactory, Func<UnitOfWork, CalculatorTick> calculatorTickFactory, bool justFinishMode = true)
+    public void Insert(CalculateInfo calcDate)
+    {
+        if (!_justFinishMode)
         {
-            _uowFactory = uowFactory;
-            _calculatorTickFactory = calculatorTickFactory;
-            _justFinishMode = justFinishMode;
+            return;
         }
 
-        public void Insert(CalculateInfo calcDate)
-        {
-            if (!_justFinishMode)
-            {
-                return;
-            }
+        using var uow = _uowFactory();
+        var calculatorTick = _calculatorTickFactory(uow);
+        calculatorTick.Calculate(DateTimeHelper.GetNowDate().AddYears(217), calcDate);
+        uow.Context.SaveChanges();
+        uow.Commit();
+    }
 
-            using (var uow = _uowFactory())
-            {
-                CalculatorTick calculatorTick = _calculatorTickFactory(uow);
-                calculatorTick.Calculate(DateTimeHelper.GetNowDate().AddYears(217), calcDate);
-                uow.Context.SaveChanges();
-                uow.Commit();
-            }
-        }
+    public void Remove(int playerId, long objectId, CalculateTypes type)
+    {
+    }
 
-        public void Remove(int playerId, long objectId, CalculateTypes type)
-        {
-        }
-
-        public void CheckInit()
-        {
-        }
+    public void CheckInit()
+    {
     }
 }

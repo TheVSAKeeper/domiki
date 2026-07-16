@@ -1,12 +1,11 @@
-﻿namespace Domiki.Web.Tests
-{
-    public class Settings
-    {
-        public ConnectionStringsValue ConnectionStrings { get; set; }
+﻿namespace Domiki.Web.Tests;
 
-        public class ConnectionStringsValue
-        {
-            public string DefaultConnection { get; set; }
-        }
+public class Settings
+{
+    public ConnectionStringsValue ConnectionStrings { get; set; }
+
+    public class ConnectionStringsValue
+    {
+        public string DefaultConnection { get; set; }
     }
 }
