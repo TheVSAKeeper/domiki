@@ -1,6 +1,7 @@
-﻿using System.Text.Json;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Data;
+﻿using Domiki.Web.Activities;
+using Domiki.Web.Data.Entities;
+using Domiki.Web.Infrastructure;
+using System.Text.Json;
 
 namespace Domiki.Web.Tests
 {
@@ -260,7 +261,7 @@ namespace Domiki.Web.Tests
             return playerId;
         }
 
-        private Domiki.Web.Business.Models.GoalsState GetGoalsState(int playerId)
+        private Domiki.Web.Activities.Models.GoalsState GetGoalsState(int playerId)
         {
             using var uow = GetUow();
             var resourceManager = GetResourceManager(uow);
@@ -294,7 +295,7 @@ namespace Domiki.Web.Tests
             uow.Commit();
         }
 
-        private Domiki.Web.Business.Models.Order[] GetOrders(int playerId)
+        private Domiki.Web.Economy.Models.Order[] GetOrders(int playerId)
         {
             using var uow = GetUow();
             var orders = GetOrderManager(uow).GetOrders(playerId).ToArray();
@@ -357,7 +358,7 @@ namespace Domiki.Web.Tests
         {
             using var uow = GetUow();
             var id = (uow.Context.Domiks.Where(x => x.PlayerId == playerId).Max(x => (int?)x.Id) ?? 0) + 1;
-            uow.Context.Domiks.Add(new Domiki.Web.Data.Domik { PlayerId = playerId, Id = id, TypeId = typeId, Level = level });
+            uow.Context.Domiks.Add(new Data.Entities.Domik { PlayerId = playerId, Id = id, TypeId = typeId, Level = level });
             uow.Commit();
         }
 
@@ -369,7 +370,7 @@ namespace Domiki.Web.Tests
                 var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
                 if (resource == null)
                 {
-                    resource = new Domiki.Web.Data.Resource { PlayerId = playerId, TypeId = typeId };
+                    resource = new Data.Entities.Resource { PlayerId = playerId, TypeId = typeId };
                     uow.Context.Resources.Add(resource);
                 }
                 resource.Value += value;
@@ -383,7 +384,7 @@ namespace Domiki.Web.Tests
             var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
             if (resource == null)
             {
-                resource = new Domiki.Web.Data.Resource { PlayerId = playerId, TypeId = typeId };
+                resource = new Data.Entities.Resource { PlayerId = playerId, TypeId = typeId };
                 uow.Context.Resources.Add(resource);
             }
             resource.Value += value;

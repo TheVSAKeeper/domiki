@@ -1,6 +1,10 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Core.Models;
+using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Village;
+using Domiki.Web.Workers.Models;
 
 namespace Domiki.Web.Tests
 {
@@ -384,7 +388,7 @@ namespace Domiki.Web.Tests
                 var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
                 if (resource == null)
                 {
-                    resource = new Domiki.Web.Data.Resource { PlayerId = playerId, TypeId = resourceTypeId };
+                    resource = new Data.Entities.Resource { PlayerId = playerId, TypeId = resourceTypeId };
                     uow.Context.Resources.Add(resource);
                 }
 
@@ -411,7 +415,7 @@ namespace Domiki.Web.Tests
                 var decor = uow.Context.PlayerDecors.SingleOrDefault(x => x.PlayerId == playerId && x.DecorTypeId == decorTypeId);
                 if (decor == null)
                 {
-                    decor = new Domiki.Web.Data.PlayerDecor { PlayerId = playerId, DecorTypeId = decorTypeId };
+                    decor = new Data.Entities.PlayerDecor { PlayerId = playerId, DecorTypeId = decorTypeId };
                     uow.Context.PlayerDecors.Add(decor);
                 }
 

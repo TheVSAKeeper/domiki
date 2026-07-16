@@ -1,6 +1,6 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Infrastructure.Models;
 
-namespace Domiki.Web.Models
+namespace Domiki.Web.Infrastructure.Dto
 {
     public static class RecapDtoExtensions
     {

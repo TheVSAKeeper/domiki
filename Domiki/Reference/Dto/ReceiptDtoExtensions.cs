@@ -1,6 +1,6 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Reference.Models;
 
-namespace Domiki.Web.Models
+namespace Domiki.Web.Reference.Dto
 {
     public static class ReceiptDtoExtensions
     {
@@ -11,7 +11,7 @@ namespace Domiki.Web.Models
                 Id = res.Id,
                 Name = res.Name,
                 LogicName = res.LogicName,
-                InputResources = res.InputResources.Select(x=> x.ToDto()).ToArray(),
+                InputResources = res.InputResources.Select(x => x.ToDto()).ToArray(),
                 OptionalInputResources = (res.OptionalInputResources ?? []).Select(x => x.ToDto()).ToArray(),
                 DurationSeconds = res.DurationSeconds,
                 OutputBonusPercent = res.OutputBonusPercent,

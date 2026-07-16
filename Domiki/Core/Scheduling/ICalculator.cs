@@ -1,4 +1,5 @@
-﻿namespace Domiki.Web.Business
+﻿
+namespace Domiki.Web.Core.Scheduling
 {
     public interface ICalculator
     {

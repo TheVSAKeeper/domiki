@@ -1,8 +1,10 @@
-﻿using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
-using Domiki.Web.Business;
+﻿using Domiki.Web.Core.Models;
+using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Workers.Models;
 using System.Text.Json;
-using PlayerEventType = Domiki.Web.Data.PlayerEventType;
+using PlayerEventType = Domiki.Web.Data.Entities.PlayerEventType;
 
 namespace Domiki.Web.Tests
 {
@@ -108,7 +110,7 @@ namespace Domiki.Web.Tests
             int manufactureId;
             using (var uow = GetUow())
             {
-                var manufacture = new Domiki.Web.Data.Manufacture
+                var manufacture = new Data.Entities.Manufacture
                 {
                     DomikId = 4,
                     DomikPlayerId = playerId,
@@ -156,8 +158,8 @@ namespace Domiki.Web.Tests
         {
             using (var uow = GetUow())
             {
-                uow.Context.Domiks.Add(new Domiki.Web.Data.Domik { PlayerId = playerId, Id = 3, TypeId = 2, Level = 1 });
-                uow.Context.Domiks.Add(new Domiki.Web.Data.Domik
+                uow.Context.Domiks.Add(new Data.Entities.Domik { PlayerId = playerId, Id = 3, TypeId = 2, Level = 1 });
+                uow.Context.Domiks.Add(new Data.Entities.Domik
                 {
                     PlayerId = playerId,
                     Id = 4,
@@ -172,8 +174,8 @@ namespace Domiki.Web.Tests
         {
             using (var uow = GetUow())
             {
-                uow.Context.Domiks.Add(new Domiki.Web.Data.Domik { PlayerId = playerId, Id = 3, TypeId = 2, Level = 1 });
-                uow.Context.Domiks.Add(new Domiki.Web.Data.Domik
+                uow.Context.Domiks.Add(new Data.Entities.Domik { PlayerId = playerId, Id = 3, TypeId = 2, Level = 1 });
+                uow.Context.Domiks.Add(new Data.Entities.Domik
                 {
                     PlayerId = playerId,
                     Id = 4,
@@ -239,7 +241,7 @@ namespace Domiki.Web.Tests
                 var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
                 if (resource == null)
                 {
-                    resource = new Domiki.Web.Data.Resource
+                    resource = new Data.Entities.Resource
                     {
                         PlayerId = playerId,
                         TypeId = resourceTypeId,

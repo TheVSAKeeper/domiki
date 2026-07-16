@@ -1,6 +1,6 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Reference.Models;
 
-namespace Domiki.Web.Models
+namespace Domiki.Web.Reference.Dto
 {
     public static class ResourceDtoExtentions
     {

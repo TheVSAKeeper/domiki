@@ -1,7 +1,15 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Activities;
+using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Economy.Models;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Reference;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Village;
+using Domiki.Web.Workers;
 using Microsoft.EntityFrameworkCore;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Economy
 {
     public class OrderManager
     {
@@ -12,7 +20,7 @@ namespace Domiki.Web.Business.Core
 
         private Data.ApplicationDbContext _context;
         private ICalculator _calculator;
-        private Data.UnitOfWork _uow;
+        private UnitOfWork _uow;
         private ResourceManager _resourceManager;
         private PlayerResourceManager _playerResourceManager;
         private WorkerManager _workerManager;
@@ -41,7 +49,7 @@ namespace Domiki.Web.Business.Core
         }
 
         public OrderManager(
-            Data.UnitOfWork uow,
+            UnitOfWork uow,
             Data.ApplicationDbContext context,
             ICalculator calculator,
             ResourceManager resourceManager,
@@ -255,7 +263,7 @@ namespace Domiki.Web.Business.Core
             var quantity = GetEffectiveQuantity(tier, resourceTypeId, capacity);
             var rewardCoins = (int)Math.Round(quantity * ResourceManager.GetMarketValue(resourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero);
 
-            var order = new Data.Order
+            var order = new Data.Entities.Order
             {
                 PlayerId = playerId,
                 NeighborId = neighbor.Id,
@@ -268,7 +276,7 @@ namespace Domiki.Web.Business.Core
             _context.Orders.Add(order);
             _context.SaveChanges();
 
-            _context.OrderResources.Add(new Data.OrderResource
+            _context.OrderResources.Add(new Data.Entities.OrderResource
             {
                 OrderId = order.Id,
                 ResourceTypeId = resourceTypeId,

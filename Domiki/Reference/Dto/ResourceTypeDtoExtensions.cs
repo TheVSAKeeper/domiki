@@ -1,7 +1,7 @@
-﻿using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Reference.Models;
+using Domiki.Web.Reference;
 
-namespace Domiki.Web.Models
+namespace Domiki.Web.Reference.Dto
 {
     public static class ResourceTypeDtoExtentions
     {

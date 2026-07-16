@@ -1,6 +1,10 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Core.Models;
+using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Core;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Village;
+using Domiki.Web.Workers.Models;
 
 namespace Domiki.Web.Tests
 {
@@ -306,7 +310,7 @@ namespace Domiki.Web.Tests
         {
             using (var uow = GetUow())
             {
-                var worker = new Domiki.Web.Data.Worker { PlayerId = playerId, Name = name, TraitId = OrdinaryTraitId };
+                var worker = new Data.Entities.Worker { PlayerId = playerId, Name = name, TraitId = OrdinaryTraitId };
                 uow.Context.Workers.Add(worker);
                 uow.Context.SaveChanges();
                 uow.Commit();
@@ -320,7 +324,7 @@ namespace Domiki.Web.Tests
             var now = DateTimeHelper.GetNowDate();
             using (var uow = GetUow())
             {
-                uow.Context.WeatherPeriods.Add(new Domiki.Web.Data.WeatherPeriod
+                uow.Context.WeatherPeriods.Add(new Data.Entities.WeatherPeriod
                 {
                     WeatherTypeId = weatherTypeId,
                     StartDate = now,

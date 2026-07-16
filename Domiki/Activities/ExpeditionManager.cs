@@ -1,6 +1,14 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Reference;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Village;
+using Domiki.Web.Workers.Models;
+using Domiki.Web.Workers;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Activities
 {
     public class ExpeditionManager
     {
@@ -9,7 +17,7 @@ namespace Domiki.Web.Business.Core
         private const int GoldResourceTypeId = 5;
 
         private Data.ApplicationDbContext _context;
-        private Data.UnitOfWork _uow;
+        private UnitOfWork _uow;
         private ICalculator _calculator;
         private ResourceManager _resourceManager;
         private PlayerResourceManager _playerResourceManager;
@@ -20,7 +28,7 @@ namespace Domiki.Web.Business.Core
         private BlueprintManager _blueprintManager;
 
         public ExpeditionManager(
-            Data.UnitOfWork uow,
+            UnitOfWork uow,
             Data.ApplicationDbContext context,
             ICalculator calculator,
             ResourceManager resourceManager,
@@ -102,7 +110,7 @@ namespace Domiki.Web.Business.Core
                 throw new BusinessException("Недостаточно трудяг");
             }
 
-            Data.Worker[] selectedWorkers;
+            Data.Entities.Worker[] selectedWorkers;
             if (workerIds == null || workerIds.Length == 0)
             {
                 selectedWorkers = freeWorkers.Take(type.WorkerCount).ToArray();
@@ -138,7 +146,7 @@ namespace Domiki.Web.Business.Core
             })).ToArray();
             _playerResourceManager.WriteOffResources(playerId, writeOffResources);
 
-            var expedition = new Data.Expedition
+            var expedition = new Data.Entities.Expedition
             {
                 PlayerId = playerId,
                 ExpeditionTypeId = type.Id,
@@ -208,7 +216,7 @@ namespace Domiki.Web.Business.Core
             }
 
             dbPlayer.ExpeditionsSincePity = gotRare ? 0 : dbPlayer.ExpeditionsSincePity + 1;
-            _playerEventManager.Record(calcInfo.PlayerId, Data.PlayerEventType.ExpeditionReturned, new { expeditionTypeId = dbExpedition.ExpeditionTypeId, loot });
+            _playerEventManager.Record(calcInfo.PlayerId, Data.Entities.PlayerEventType.ExpeditionReturned, new { expeditionTypeId = dbExpedition.ExpeditionTypeId, loot });
             _seasonManager.IncrementCounter(calcInfo.PlayerId, SeasonMetric.Expeditions, 1, date);
 
             foreach (var worker in assignedWorkers)
@@ -248,34 +256,34 @@ namespace Domiki.Web.Business.Core
             return true;
         }
 
-        public object ApplyLootEntry(int playerId, ExpeditionType type, ExpeditionLoot entry, Data.Worker[] squadWorkers, Dictionary<int, Trait> traits, int groupLuck)
+        public object ApplyLootEntry(int playerId, ExpeditionType type, ExpeditionLoot entry, Data.Entities.Worker[] squadWorkers, Dictionary<int, Trait> traits, int groupLuck)
         {
             switch (entry.Kind)
             {
-                case Data.ExpeditionLootKind.Decor:
+                case Data.Entities.ExpeditionLootKind.Decor:
                     _decorManager.GrantDecor(playerId, entry.DecorTypeId.Value, 1);
-                    return new { kind = (int)Data.ExpeditionLootKind.Decor, decorTypeId = entry.DecorTypeId, isRare = entry.IsRare };
+                    return new { kind = (int)Data.Entities.ExpeditionLootKind.Decor, decorTypeId = entry.DecorTypeId, isRare = entry.IsRare };
 
-                case Data.ExpeditionLootKind.TraitUpgrade:
+                case Data.Entities.ExpeditionLootKind.TraitUpgrade:
                     return ApplyTraitUpgrade(playerId, type, squadWorkers, traits, groupLuck, entry.IsRare);
 
-                case Data.ExpeditionLootKind.Blueprint:
+                case Data.Entities.ExpeditionLootKind.Blueprint:
                     return ApplyBlueprintLoot(playerId, type, entry, squadWorkers, traits, groupLuck, entry.IsRare);
 
                 default:
                     var value = Random.Shared.Next(entry.MinValue, entry.MaxValue + 1);
                     _playerResourceManager.GrantResource(playerId, entry.ResourceTypeId.Value, value);
-                    return new { kind = (int)Data.ExpeditionLootKind.Resource, resourceTypeId = entry.ResourceTypeId, value, isRare = entry.IsRare };
+                    return new { kind = (int)Data.Entities.ExpeditionLootKind.Resource, resourceTypeId = entry.ResourceTypeId, value, isRare = entry.IsRare };
             }
         }
 
-        private object ApplyTraitUpgrade(int playerId, ExpeditionType type, Data.Worker[] squadWorkers, Dictionary<int, Trait> traits, int groupLuck, bool isRare)
+        private object ApplyTraitUpgrade(int playerId, ExpeditionType type, Data.Entities.Worker[] squadWorkers, Dictionary<int, Trait> traits, int groupLuck, bool isRare)
         {
             var ordinaryTrait = traits.Values.First(x => x.LogicName == "ordinary");
             var candidates = squadWorkers.Where(x => x.TraitId == ordinaryTrait.Id).ToArray();
             if (candidates.Length == 0)
             {
-                var fallbackPool = type.Loot.Where(x => x.IsRare && x.Kind != Data.ExpeditionLootKind.TraitUpgrade).ToArray();
+                var fallbackPool = type.Loot.Where(x => x.IsRare && x.Kind != Data.Entities.ExpeditionLootKind.TraitUpgrade).ToArray();
                 var fallbackEntry = PickLoot(fallbackPool, groupLuck);
                 return ApplyLootEntry(playerId, type, fallbackEntry, squadWorkers, traits, groupLuck);
             }
@@ -284,10 +292,10 @@ namespace Domiki.Web.Business.Core
             var nonOrdinaryTraits = traits.Values.Where(x => x.LogicName != "ordinary").ToArray();
             var newTrait = nonOrdinaryTraits[Random.Shared.Next(nonOrdinaryTraits.Length)];
             worker.TraitId = newTrait.Id;
-            return new { kind = (int)Data.ExpeditionLootKind.TraitUpgrade, workerName = worker.Name, workerGender = (int)NameGrammar.GenderOf(worker.Name), newTrait = newTrait.Name, newTraitLogicName = newTrait.LogicName, isRare };
+            return new { kind = (int)Data.Entities.ExpeditionLootKind.TraitUpgrade, workerName = worker.Name, workerGender = (int)NameGrammar.GenderOf(worker.Name), newTrait = newTrait.Name, newTraitLogicName = newTrait.LogicName, isRare };
         }
 
-        private object ApplyBlueprintLoot(int playerId, ExpeditionType type, ExpeditionLoot entry, Data.Worker[] squadWorkers, Dictionary<int, Trait> traits, int groupLuck, bool isRare)
+        private object ApplyBlueprintLoot(int playerId, ExpeditionType type, ExpeditionLoot entry, Data.Entities.Worker[] squadWorkers, Dictionary<int, Trait> traits, int groupLuck, bool isRare)
         {
             var owned = _context.PlayerBlueprints.Where(x => x.PlayerId == playerId).Select(x => x.BlueprintId).ToArray();
             var candidates = _resourceManager.GetBlueprints()
@@ -296,7 +304,7 @@ namespace Domiki.Web.Business.Core
             if (candidates.Length == 0)
             {
                 var fallbackPool = type.Loot
-                    .Where(x => x.IsRare && x.Kind != Data.ExpeditionLootKind.Blueprint && x.Kind != Data.ExpeditionLootKind.TraitUpgrade)
+                    .Where(x => x.IsRare && x.Kind != Data.Entities.ExpeditionLootKind.Blueprint && x.Kind != Data.Entities.ExpeditionLootKind.TraitUpgrade)
                     .ToArray();
                 var fallbackEntry = PickLoot(fallbackPool, groupLuck);
                 return ApplyLootEntry(playerId, type, fallbackEntry, squadWorkers, traits, groupLuck);
@@ -304,7 +312,7 @@ namespace Domiki.Web.Business.Core
 
             var blueprint = candidates[Random.Shared.Next(candidates.Length)];
             _blueprintManager.GrantBlueprint(playerId, blueprint.Id);
-            return new { kind = (int)Data.ExpeditionLootKind.Blueprint, blueprintId = blueprint.Id, blueprintName = blueprint.Name, isRare };
+            return new { kind = (int)Data.Entities.ExpeditionLootKind.Blueprint, blueprintId = blueprint.Id, blueprintName = blueprint.Name, isRare };
         }
 
         private static ExpeditionLoot PickLoot(ExpeditionLoot[] loot, int luckPercent)

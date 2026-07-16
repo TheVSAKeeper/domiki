@@ -1,7 +1,6 @@
-﻿using Domiki.Web.Business.Core;
-using System.Timers;
+﻿using System.Timers;
 
-namespace Domiki.Web.Business
+namespace Domiki.Web.Core.Scheduling
 {
     public class CalculatorBackgroundService : BackgroundService
     {

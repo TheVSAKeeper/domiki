@@ -1,4 +1,4 @@
-﻿using Domiki.Web.Business.Core;
+﻿using Domiki.Web.Reference;
 using System.Globalization;
 using System.Text;
 
@@ -19,7 +19,7 @@ public sealed class BalanceReport
     public string Render()
     {
         var output = new StringBuilder();
-        output.AppendLine($"Баланс-симулятор: домиков { _data.DomikTypes.Length }, рецептов { _data.Receipts.Length }, соседей { _data.Neighbors.Length }, экспедиций { _data.ExpeditionTypes.Length }");
+        output.AppendLine($"Баланс-симулятор: домиков {_data.DomikTypes.Length}, рецептов {_data.Receipts.Length}, соседей {_data.Neighbors.Length}, экспедиций {_data.ExpeditionTypes.Length}");
         output.AppendLine("Горизонт: 45 суток, по 7 прогонов на сценарий, сиды 1–7.");
         foreach (var scenario in new[] { ScenarioKind.Casual, ScenarioKind.Optimal, ScenarioKind.Extreme })
         {

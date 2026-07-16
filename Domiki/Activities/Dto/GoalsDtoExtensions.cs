@@ -1,6 +1,6 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Activities.Models;
 
-namespace Domiki.Web.Models
+namespace Domiki.Web.Activities.Dto
 {
     public static class GoalsDtoExtensions
     {

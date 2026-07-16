@@ -1,6 +1,6 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Village.Models;
 
-namespace Domiki.Web.Models
+namespace Domiki.Web.Village.Dto
 {
     public static class WorldDtoExtensions
     {

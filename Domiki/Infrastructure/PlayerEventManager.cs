@@ -1,10 +1,11 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Data.Entities;
 using Domiki.Web.Data;
+using Domiki.Web.Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Infrastructure
 {
     public class PlayerEventManager
     {

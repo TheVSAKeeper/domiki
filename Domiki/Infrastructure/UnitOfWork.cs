@@ -1,7 +1,8 @@
-﻿using Domiki.Web.Data;
+﻿using Domiki.Web.Data.Entities;
+using Domiki.Web.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace Domiki.Web.Data
+namespace Domiki.Web.Infrastructure
 {
     public class UnitOfWork : IDisposable
     {

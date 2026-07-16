@@ -1,5 +1,6 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
+﻿using Domiki.Web.Economy;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference;
 
 namespace Domiki.Web.Tests
 {
@@ -138,7 +139,7 @@ namespace Domiki.Web.Tests
         {
             using var uow = GetUow();
             var now = DateTimeHelper.GetNowDate();
-            var order = new Domiki.Web.Data.Order
+            var order = new Data.Entities.Order
             {
                 PlayerId = playerId,
                 NeighborId = 1,
@@ -150,7 +151,7 @@ namespace Domiki.Web.Tests
             };
             uow.Context.Orders.Add(order);
             uow.Context.SaveChanges();
-            uow.Context.OrderResources.Add(new Domiki.Web.Data.OrderResource
+            uow.Context.OrderResources.Add(new Data.Entities.OrderResource
             {
                 OrderId = order.Id,
                 ResourceTypeId = resourceTypeId,
@@ -163,7 +164,7 @@ namespace Domiki.Web.Tests
         private void GrantBlueprint(int playerId, int blueprintId)
         {
             using var uow = GetUow();
-            uow.Context.PlayerBlueprints.Add(new Domiki.Web.Data.PlayerBlueprint { PlayerId = playerId, BlueprintId = blueprintId });
+            uow.Context.PlayerBlueprints.Add(new Data.Entities.PlayerBlueprint { PlayerId = playerId, BlueprintId = blueprintId });
             uow.Context.SaveChanges();
             uow.Commit();
         }
@@ -174,7 +175,7 @@ namespace Domiki.Web.Tests
             var decor = uow.Context.PlayerDecors.SingleOrDefault(candidate => candidate.PlayerId == playerId && candidate.DecorTypeId == decorTypeId);
             if (decor == null)
             {
-                decor = new Domiki.Web.Data.PlayerDecor { PlayerId = playerId, DecorTypeId = decorTypeId };
+                decor = new Data.Entities.PlayerDecor { PlayerId = playerId, DecorTypeId = decorTypeId };
                 uow.Context.PlayerDecors.Add(decor);
             }
 
@@ -198,7 +199,7 @@ namespace Domiki.Web.Tests
             uow.Commit();
         }
 
-        private (Domiki.Web.Data.Order Order, Domiki.Web.Data.OrderResource Resource)[] LoadOrders(int playerId)
+        private (Data.Entities.Order Order, Data.Entities.OrderResource Resource)[] LoadOrders(int playerId)
         {
             using var uow = GetUow();
             var orders = uow.Context.Orders.Where(candidate => candidate.PlayerId == playerId)
@@ -228,7 +229,7 @@ namespace Domiki.Web.Tests
             var resource = uow.Context.Resources.SingleOrDefault(candidate => candidate.PlayerId == playerId && candidate.TypeId == resourceTypeId);
             if (resource == null)
             {
-                resource = new Domiki.Web.Data.Resource { PlayerId = playerId, TypeId = resourceTypeId };
+                resource = new Data.Entities.Resource { PlayerId = playerId, TypeId = resourceTypeId };
                 uow.Context.Resources.Add(resource);
             }
 

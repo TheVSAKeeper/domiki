@@ -1,4 +1,5 @@
-﻿namespace Domiki.Web.Extentions
+﻿
+namespace Domiki.Web.Infrastructure
 {
     public static class StringExtensions
     {

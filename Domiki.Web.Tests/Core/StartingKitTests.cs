@@ -1,6 +1,7 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Core.Models;
+using Domiki.Web.Core;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Village.Models;
 
 namespace Domiki.Web.Tests
 {

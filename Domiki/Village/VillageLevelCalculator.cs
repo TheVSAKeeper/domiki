@@ -1,6 +1,10 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Core.Models;
+using Domiki.Web.Economy.Models;
+using Domiki.Web.Reference;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Workers;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Village
 {
     public class VillageLevelCalculator
     {

@@ -1,6 +1,7 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Core.Models;
+using Domiki.Web.Economy.Models;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
 
 namespace Domiki.Web.Tests
 {
@@ -89,7 +90,7 @@ namespace Domiki.Web.Tests
         {
             using (var uow = GetUow())
             {
-                uow.Context.Domiks.Add(new Domiki.Web.Data.Domik
+                uow.Context.Domiks.Add(new Data.Entities.Domik
                 {
                     PlayerId = playerId,
                     Id = GoldMineDomikId,
@@ -145,7 +146,7 @@ namespace Domiki.Web.Tests
             using (var uow = GetUow())
             {
                 var now = DateTimeHelper.GetNowDate();
-                var order = new Domiki.Web.Data.Order
+                var order = new Data.Entities.Order
                 {
                     PlayerId = playerId,
                     NeighborId = neighborId,
@@ -157,7 +158,7 @@ namespace Domiki.Web.Tests
                 };
                 uow.Context.Orders.Add(order);
                 uow.Context.SaveChanges();
-                uow.Context.OrderResources.Add(new Domiki.Web.Data.OrderResource
+                uow.Context.OrderResources.Add(new Data.Entities.OrderResource
                 {
                     OrderId = order.Id,
                     ResourceTypeId = resourceTypeId,

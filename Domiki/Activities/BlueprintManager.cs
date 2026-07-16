@@ -1,6 +1,9 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Economy.Models;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Activities
 {
     public class BlueprintManager
     {
@@ -31,7 +34,7 @@ namespace Domiki.Web.Business.Core
                 var points = reputations.FirstOrDefault(x => x.NeighborId == blueprint.NeighborId)?.Points ?? 0;
                 if (points >= blueprint.ReputationThreshold)
                 {
-                    _context.PlayerBlueprints.Add(new Data.PlayerBlueprint { PlayerId = playerId, BlueprintId = blueprint.Id });
+                    _context.PlayerBlueprints.Add(new Data.Entities.PlayerBlueprint { PlayerId = playerId, BlueprintId = blueprint.Id });
                 }
             }
 
@@ -68,7 +71,7 @@ namespace Domiki.Web.Business.Core
                 return false;
             }
 
-            _context.PlayerBlueprints.Add(new Data.PlayerBlueprint { PlayerId = playerId, BlueprintId = blueprintId });
+            _context.PlayerBlueprints.Add(new Data.Entities.PlayerBlueprint { PlayerId = playerId, BlueprintId = blueprintId });
             _context.SaveChanges();
             return true;
         }

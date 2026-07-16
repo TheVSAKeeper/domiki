@@ -1,11 +1,11 @@
-﻿using Domiki.Web;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Models;
+﻿using Domiki.Web.Core;
+using Domiki.Web.Infrastructure.Dto;
+using Domiki.Web.Infrastructure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace Domiki.Controllers
+namespace Domiki.Web.Controllers
 {
     [Authorize]
     [ApiController]

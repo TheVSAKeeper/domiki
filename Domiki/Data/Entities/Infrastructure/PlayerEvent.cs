@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Domiki.Web.Data
+namespace Domiki.Web.Data.Entities
 {
     public class PlayerEvent
     {

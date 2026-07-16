@@ -1,6 +1,9 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Core.Models;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Village;
 
 namespace Domiki.Web.Tests
 {
@@ -466,7 +469,7 @@ namespace Domiki.Web.Tests
                 var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
                 if (resource == null)
                 {
-                    resource = new Domiki.Web.Data.Resource { PlayerId = playerId, TypeId = resourceTypeId };
+                    resource = new Data.Entities.Resource { PlayerId = playerId, TypeId = resourceTypeId };
                     uow.Context.Resources.Add(resource);
                 }
 
@@ -483,7 +486,7 @@ namespace Domiki.Web.Tests
                 var decor = uow.Context.PlayerDecors.SingleOrDefault(x => x.PlayerId == playerId && x.DecorTypeId == decorTypeId);
                 if (decor == null)
                 {
-                    decor = new Domiki.Web.Data.PlayerDecor { PlayerId = playerId, DecorTypeId = decorTypeId };
+                    decor = new Data.Entities.PlayerDecor { PlayerId = playerId, DecorTypeId = decorTypeId };
                     uow.Context.PlayerDecors.Add(decor);
                 }
 
@@ -493,7 +496,7 @@ namespace Domiki.Web.Tests
             }
         }
 
-        private Domiki.Web.Data.Toloka GetActiveToloka()
+        private Data.Entities.Toloka GetActiveToloka()
         {
             using (var uow = GetUow())
             {
@@ -530,13 +533,13 @@ namespace Domiki.Web.Tests
                 active.Collected = 2000;
                 active.Goal = 2000;
                 active.CompletedDate = completedDate;
-                uow.Context.TolokaContributions.Add(new Domiki.Web.Data.TolokaContribution
+                uow.Context.TolokaContributions.Add(new Data.Entities.TolokaContribution
                 {
                     TolokaId = active.Id,
                     PlayerId = playerId,
                     Value = 1,
                 });
-                uow.Context.Tolokas.Add(new Domiki.Web.Data.Toloka
+                uow.Context.Tolokas.Add(new Data.Entities.Toloka
                 {
                     TolokaTypeId = BridgeTolokaTypeId,
                     Collected = 0,
@@ -556,7 +559,7 @@ namespace Domiki.Web.Tests
                 uow.Context.TolokaContributions.RemoveRange(uow.Context.TolokaContributions);
                 uow.Context.Tolokas.RemoveRange(uow.Context.Tolokas);
                 uow.Context.SaveChanges();
-                uow.Context.Tolokas.Add(new Domiki.Web.Data.Toloka
+                uow.Context.Tolokas.Add(new Data.Entities.Toloka
                 {
                     TolokaTypeId = BridgeTolokaTypeId,
                     Collected = 0,
@@ -598,7 +601,7 @@ namespace Domiki.Web.Tests
         {
             using (var uow = GetUow())
             {
-                uow.Context.WeatherPeriods.Add(new Domiki.Web.Data.WeatherPeriod
+                uow.Context.WeatherPeriods.Add(new Data.Entities.WeatherPeriod
                 {
                     WeatherTypeId = weatherTypeId,
                     StartDate = startDate,

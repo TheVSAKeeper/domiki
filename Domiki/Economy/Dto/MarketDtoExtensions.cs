@@ -1,6 +1,6 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Economy.Models;
 
-namespace Domiki.Web.Models
+namespace Domiki.Web.Economy.Dto
 {
     public static class MarketDtoExtensions
     {

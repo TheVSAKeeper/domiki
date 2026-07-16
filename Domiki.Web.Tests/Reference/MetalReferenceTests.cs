@@ -1,4 +1,4 @@
-﻿using Domiki.Web.Business.Core;
+﻿using Domiki.Web.Reference;
 
 namespace Domiki.Web.Tests
 {
@@ -197,7 +197,7 @@ namespace Domiki.Web.Tests
             using var uow = GetUow();
             var expedition = GetResourceManager(uow).GetExpeditionTypes().Single(x => x.Id == expeditionTypeId);
 
-            Assert.That(expedition.Loot.Any(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.Resource && x.ResourceTypeId == OreResourceTypeId), Is.True);
+            Assert.That(expedition.Loot.Any(x => x.Kind == Data.Entities.ExpeditionLootKind.Resource && x.ResourceTypeId == OreResourceTypeId), Is.True);
         }
 
         private void AssertBinding(int domikTypeId, int level, int receiptId, bool expected)

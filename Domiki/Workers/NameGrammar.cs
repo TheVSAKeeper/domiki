@@ -1,4 +1,5 @@
-﻿namespace Domiki.Web.Business.Core
+﻿
+namespace Domiki.Web.Workers
 {
     public enum WorkerGender
     {

@@ -1,4 +1,11 @@
-﻿namespace Domiki.Web.Models
+﻿using Domiki.Web.Activities.Dto;
+using Domiki.Web.Core.Dto;
+using Domiki.Web.Economy.Dto;
+using Domiki.Web.Reference.Dto;
+using Domiki.Web.Village.Dto;
+using Domiki.Web.Workers.Dto;
+
+namespace Domiki.Web.Infrastructure.Dto
 {
     public class GameStateDto
     {

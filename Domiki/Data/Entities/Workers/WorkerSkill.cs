@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Domiki.Web.Data
+namespace Domiki.Web.Data.Entities
 {
     [Table("WorkerSkills")]
     public class WorkerSkill

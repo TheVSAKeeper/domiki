@@ -23,7 +23,7 @@ namespace Domiki.Web.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Domiki.Models.ApplicationUser", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -87,7 +87,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Domik", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Domik", b =>
                 {
                     b.Property<int>("PlayerId")
                         .HasColumnType("integer")
@@ -114,7 +114,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("Domiks");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.DomikType", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.DomikType", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -136,7 +136,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("DomikTypes");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.DomikTypeLevel", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.DomikTypeLevel", b =>
                 {
                     b.Property<int>("DomikTypeId")
                         .HasColumnType("integer")
@@ -157,7 +157,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("DomikTypeLevels");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.DomikTypeLevelModificator", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.DomikTypeLevelModificator", b =>
                 {
                     b.Property<int>("DomikTypeLevelDomikTypeId")
                         .HasColumnType("integer")
@@ -181,7 +181,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("DomikTypeLevelModificators");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.DomikTypeLevelReceipt", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.DomikTypeLevelReceipt", b =>
                 {
                     b.Property<int>("DomikTypeLevelDomikTypeId")
                         .HasColumnType("integer")
@@ -202,7 +202,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("DomikTypeLevelReceipts");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.DomikTypeLevelResource", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.DomikTypeLevelResource", b =>
                 {
                     b.Property<int>("DomikTypeLevelDomikTypeId")
                         .HasColumnType("integer")
@@ -226,7 +226,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("DomikTypeLevelResources");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Manufacture", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Manufacture", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -259,7 +259,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("Manufactures");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.ModificatorType", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.ModificatorType", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -278,7 +278,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("ModificatorTypes");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Neighbor", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Neighbor", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -338,7 +338,7 @@ namespace Domiki.Web.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.NeighborReputation", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.NeighborReputation", b =>
                 {
                     b.Property<int>("PlayerId")
                         .HasColumnType("integer")
@@ -358,7 +358,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("NeighborReputations");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Order", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Order", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -396,7 +396,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.OrderResource", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.OrderResource", b =>
                 {
                     b.Property<int>("OrderId")
                         .HasColumnType("integer")
@@ -416,7 +416,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("OrderResources");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Player", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Player", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -460,7 +460,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("Players");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Receipt", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Receipt", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -488,7 +488,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("Receipts");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.ReceiptResource", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.ReceiptResource", b =>
                 {
                     b.Property<int>("ReceiptId")
                         .HasColumnType("integer")
@@ -515,7 +515,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("ReceiptResources");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Resource", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Resource", b =>
                 {
                     b.Property<int>("PlayerId")
                         .HasColumnType("integer")
@@ -533,7 +533,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("Resources");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.ResourceType", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.ResourceType", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -552,7 +552,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("ResourceTypes");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Trait", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Trait", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -615,7 +615,7 @@ namespace Domiki.Web.Data.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.WeatherPeriod", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.WeatherPeriod", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -639,7 +639,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("WeatherPeriods");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.WeatherType", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.WeatherType", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -662,7 +662,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("WeatherTypes");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.WeatherTypeEffect", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.WeatherTypeEffect", b =>
                 {
                     b.Property<int>("WeatherTypeId")
                         .HasColumnType("integer")
@@ -680,7 +680,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("WeatherTypeEffects");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Worker", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Worker", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -719,7 +719,7 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("Workers");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.WorkerSkill", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.WorkerSkill", b =>
                 {
                     b.Property<int>("WorkerId")
                         .HasColumnType("integer");
@@ -871,9 +871,9 @@ namespace Domiki.Web.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.DomikTypeLevel", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.DomikTypeLevel", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.DomikType", "DomikType")
+                    b.HasOne("Domiki.Web.Data.Entities.DomikType", "DomikType")
                         .WithMany("Levels")
                         .HasForeignKey("DomikTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -882,15 +882,15 @@ namespace Domiki.Web.Data.Migrations
                     b.Navigation("DomikType");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.DomikTypeLevelModificator", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.DomikTypeLevelModificator", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.ModificatorType", "ModificatorType")
+                    b.HasOne("Domiki.Web.Data.Entities.ModificatorType", "ModificatorType")
                         .WithMany()
                         .HasForeignKey("ModificatorTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domiki.Web.Data.DomikTypeLevel", "DomikTypeLevel")
+                    b.HasOne("Domiki.Web.Data.Entities.DomikTypeLevel", "DomikTypeLevel")
                         .WithMany()
                         .HasForeignKey("DomikTypeLevelDomikTypeId", "DomikTypeLevelValue")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -901,15 +901,15 @@ namespace Domiki.Web.Data.Migrations
                     b.Navigation("ModificatorType");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.DomikTypeLevelReceipt", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.DomikTypeLevelReceipt", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.Receipt", "Receipt")
+                    b.HasOne("Domiki.Web.Data.Entities.Receipt", "Receipt")
                         .WithMany()
                         .HasForeignKey("ReceiptId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domiki.Web.Data.DomikTypeLevel", "DomikTypeLevel")
+                    b.HasOne("Domiki.Web.Data.Entities.DomikTypeLevel", "DomikTypeLevel")
                         .WithMany()
                         .HasForeignKey("DomikTypeLevelDomikTypeId", "DomikTypeLevelValue")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -920,15 +920,15 @@ namespace Domiki.Web.Data.Migrations
                     b.Navigation("Receipt");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.DomikTypeLevelResource", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.DomikTypeLevelResource", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.ResourceType", "ResourceType")
+                    b.HasOne("Domiki.Web.Data.Entities.ResourceType", "ResourceType")
                         .WithMany()
                         .HasForeignKey("ResourceTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domiki.Web.Data.DomikTypeLevel", "DomikTypeLevel")
+                    b.HasOne("Domiki.Web.Data.Entities.DomikTypeLevel", "DomikTypeLevel")
                         .WithMany()
                         .HasForeignKey("DomikTypeLevelDomikTypeId", "DomikTypeLevelValue")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -939,9 +939,9 @@ namespace Domiki.Web.Data.Migrations
                     b.Navigation("ResourceType");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Manufacture", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Manufacture", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.Domik", "Domik")
+                    b.HasOne("Domiki.Web.Data.Entities.Domik", "Domik")
                         .WithMany("Manufactures")
                         .HasForeignKey("DomikPlayerId", "DomikId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -950,15 +950,15 @@ namespace Domiki.Web.Data.Migrations
                     b.Navigation("Domik");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.NeighborReputation", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.NeighborReputation", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.Neighbor", "Neighbor")
+                    b.HasOne("Domiki.Web.Data.Entities.Neighbor", "Neighbor")
                         .WithMany()
                         .HasForeignKey("NeighborId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domiki.Web.Data.Player", "Player")
+                    b.HasOne("Domiki.Web.Data.Entities.Player", "Player")
                         .WithMany()
                         .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -969,15 +969,15 @@ namespace Domiki.Web.Data.Migrations
                     b.Navigation("Player");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Order", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Order", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.Neighbor", "Neighbor")
+                    b.HasOne("Domiki.Web.Data.Entities.Neighbor", "Neighbor")
                         .WithMany()
                         .HasForeignKey("NeighborId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domiki.Web.Data.Player", "Player")
+                    b.HasOne("Domiki.Web.Data.Entities.Player", "Player")
                         .WithMany()
                         .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -988,15 +988,15 @@ namespace Domiki.Web.Data.Migrations
                     b.Navigation("Player");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.OrderResource", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.OrderResource", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.Order", "Order")
+                    b.HasOne("Domiki.Web.Data.Entities.Order", "Order")
                         .WithMany("Resources")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domiki.Web.Data.ResourceType", "ResourceType")
+                    b.HasOne("Domiki.Web.Data.Entities.ResourceType", "ResourceType")
                         .WithMany()
                         .HasForeignKey("ResourceTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1007,15 +1007,15 @@ namespace Domiki.Web.Data.Migrations
                     b.Navigation("ResourceType");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.ReceiptResource", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.ReceiptResource", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.Receipt", "Receipt")
+                    b.HasOne("Domiki.Web.Data.Entities.Receipt", "Receipt")
                         .WithMany("Resources")
                         .HasForeignKey("ReceiptId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domiki.Web.Data.ResourceType", "ResourceType")
+                    b.HasOne("Domiki.Web.Data.Entities.ResourceType", "ResourceType")
                         .WithMany()
                         .HasForeignKey("ResourceTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1026,9 +1026,9 @@ namespace Domiki.Web.Data.Migrations
                     b.Navigation("ResourceType");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Resource", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Resource", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.Player", "Player")
+                    b.HasOne("Domiki.Web.Data.Entities.Player", "Player")
                         .WithMany("Resources")
                         .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1037,9 +1037,9 @@ namespace Domiki.Web.Data.Migrations
                     b.Navigation("Player");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.WeatherPeriod", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.WeatherPeriod", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.WeatherType", "WeatherType")
+                    b.HasOne("Domiki.Web.Data.Entities.WeatherType", "WeatherType")
                         .WithMany()
                         .HasForeignKey("WeatherTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1048,9 +1048,9 @@ namespace Domiki.Web.Data.Migrations
                     b.Navigation("WeatherType");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.WeatherTypeEffect", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.WeatherTypeEffect", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.WeatherType", "WeatherType")
+                    b.HasOne("Domiki.Web.Data.Entities.WeatherType", "WeatherType")
                         .WithMany()
                         .HasForeignKey("WeatherTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1059,19 +1059,19 @@ namespace Domiki.Web.Data.Migrations
                     b.Navigation("WeatherType");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Worker", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Worker", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.Manufacture", "Manufacture")
+                    b.HasOne("Domiki.Web.Data.Entities.Manufacture", "Manufacture")
                         .WithMany()
                         .HasForeignKey("ManufactureId");
 
-                    b.HasOne("Domiki.Web.Data.Player", "Player")
+                    b.HasOne("Domiki.Web.Data.Entities.Player", "Player")
                         .WithMany()
                         .HasForeignKey("PlayerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domiki.Web.Data.Trait", "Trait")
+                    b.HasOne("Domiki.Web.Data.Entities.Trait", "Trait")
                         .WithMany()
                         .HasForeignKey("TraitId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1084,9 +1084,9 @@ namespace Domiki.Web.Data.Migrations
                     b.Navigation("Trait");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.WorkerSkill", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.WorkerSkill", b =>
                 {
-                    b.HasOne("Domiki.Web.Data.Worker", "Worker")
+                    b.HasOne("Domiki.Web.Data.Entities.Worker", "Worker")
                         .WithMany("Skills")
                         .HasForeignKey("WorkerId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1106,7 +1106,7 @@ namespace Domiki.Web.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("Domiki.Models.ApplicationUser", null)
+                    b.HasOne("Domiki.Web.Data.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1115,7 +1115,7 @@ namespace Domiki.Web.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("Domiki.Models.ApplicationUser", null)
+                    b.HasOne("Domiki.Web.Data.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1130,7 +1130,7 @@ namespace Domiki.Web.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domiki.Models.ApplicationUser", null)
+                    b.HasOne("Domiki.Web.Data.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1139,39 +1139,39 @@ namespace Domiki.Web.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("Domiki.Models.ApplicationUser", null)
+                    b.HasOne("Domiki.Web.Data.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Domik", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Domik", b =>
                 {
                     b.Navigation("Manufactures");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.DomikType", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.DomikType", b =>
                 {
                     b.Navigation("Levels");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Order", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Order", b =>
                 {
                     b.Navigation("Resources");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Player", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Player", b =>
                 {
                     b.Navigation("Resources");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Receipt", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Receipt", b =>
                 {
                     b.Navigation("Resources");
                 });
 
-            modelBuilder.Entity("Domiki.Web.Data.Worker", b =>
+            modelBuilder.Entity("Domiki.Web.Data.Entities.Worker", b =>
                 {
                     b.Navigation("Skills");
                 });

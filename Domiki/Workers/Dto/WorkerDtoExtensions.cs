@@ -1,6 +1,6 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Workers.Models;
 
-namespace Domiki.Web.Models
+namespace Domiki.Web.Workers.Dto
 {
     public static class WorkerDtoExtensions
     {
@@ -10,7 +10,7 @@ namespace Domiki.Web.Models
             {
                 Id = worker.Id,
                 Name = worker.Name,
-                Gender = (int)Domiki.Web.Business.Core.NameGrammar.GenderOf(worker.Name),
+                Gender = (int)Domiki.Web.Workers.NameGrammar.GenderOf(worker.Name),
                 TraitId = worker.Trait.Id,
                 TraitName = worker.Trait.Name,
                 TraitLogicName = worker.Trait.LogicName,

@@ -1,6 +1,6 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Village.Models;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Village
 {
     public static class DecorCalculator
     {

@@ -1,8 +1,9 @@
-﻿using Domiki.Web.Business.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using Domiki.Web.Economy.Models;
+using Domiki.Web.Reference.Models;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace Domiki.Web.Data
+namespace Domiki.Web.Data.Entities
 {
     [Table("DomikTypeLevelReceipts")]
     public class DomikTypeLevelReceipt

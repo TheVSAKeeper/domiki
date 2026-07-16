@@ -1,4 +1,6 @@
-﻿namespace Domiki.Web.Business.Models
+﻿using Domiki.Web.Reference.Models;
+
+namespace Domiki.Web.Village.Models
 {
     public class DecorType
     {

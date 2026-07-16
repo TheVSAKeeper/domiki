@@ -1,6 +1,4 @@
-﻿using Domiki.Web.Business.Core;
-using Domiki.Web.Data;
-
+﻿
 namespace Domiki.Web.Tests
 {
     public class SoftlockInvariantTests : TestBase
@@ -47,7 +45,7 @@ namespace Domiki.Web.Tests
             uow.Commit();
         }
 
-        private Domiki.Web.Business.Models.Order[] GetOrders(int playerId)
+        private Domiki.Web.Economy.Models.Order[] GetOrders(int playerId)
         {
             using var uow = GetUow();
             var orders = GetOrderManager(uow).GetOrders(playerId).ToArray();

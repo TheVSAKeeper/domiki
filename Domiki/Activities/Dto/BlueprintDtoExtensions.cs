@@ -1,6 +1,7 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Economy.Models;
 
-namespace Domiki.Web.Models
+namespace Domiki.Web.Activities.Dto
 {
     public static class BlueprintDtoExtensions
     {

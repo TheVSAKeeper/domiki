@@ -1,6 +1,9 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Core.Models;
+using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Village;
 
 namespace Domiki.Web.Tests
 {
@@ -267,7 +270,7 @@ namespace Domiki.Web.Tests
             using (var uow = GetUow())
             {
                 var nextId = (uow.Context.Domiks.Where(x => x.PlayerId == playerId).Max(x => (int?)x.Id) ?? 0) + 1;
-                uow.Context.Domiks.Add(new Domiki.Web.Data.Domik { PlayerId = playerId, Id = nextId, TypeId = domikTypeId, Level = 1 });
+                uow.Context.Domiks.Add(new Data.Entities.Domik { PlayerId = playerId, Id = nextId, TypeId = domikTypeId, Level = 1 });
                 uow.Commit();
             }
         }
@@ -338,7 +341,7 @@ namespace Domiki.Web.Tests
         {
             using (var uow = GetUow())
             {
-                uow.Context.WeatherPeriods.Add(new Domiki.Web.Data.WeatherPeriod
+                uow.Context.WeatherPeriods.Add(new Data.Entities.WeatherPeriod
                 {
                     WeatherTypeId = weatherTypeId,
                     StartDate = startDate,
@@ -349,7 +352,7 @@ namespace Domiki.Web.Tests
             }
         }
 
-        private Domiki.Web.Data.WeatherPeriod[] GetWeatherPeriods()
+        private Data.Entities.WeatherPeriod[] GetWeatherPeriods()
         {
             using (var uow = GetUow())
             {

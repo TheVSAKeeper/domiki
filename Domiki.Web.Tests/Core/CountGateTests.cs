@@ -1,6 +1,6 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Core.Models;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
 
 namespace Domiki.Web.Tests
 {
@@ -177,7 +177,7 @@ namespace Domiki.Web.Tests
             var resource = uow.Context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
             if (resource == null)
             {
-                resource = new Domiki.Web.Data.Resource { PlayerId = playerId, TypeId = typeId };
+                resource = new Data.Entities.Resource { PlayerId = playerId, TypeId = typeId };
                 uow.Context.Resources.Add(resource);
             }
 

@@ -1,7 +1,6 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
-using Domiki.Web.Models;
+﻿using Domiki.Web.Infrastructure;
+using Domiki.Web.Village.Dto;
+using Domiki.Web.Village.Models;
 using System.Text.Json;
 
 namespace Domiki.Web.Tests

@@ -1,8 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 
-namespace Domiki.Web.Data
+namespace Domiki.Web.Data.Entities
 {
     [Table("ReceiptResources")]
     public class ReceiptResource
@@ -17,7 +17,7 @@ namespace Domiki.Web.Data
 
         [Key]
         [Column(Order = 3)]
-        public bool IsInput { get; set; } 
+        public bool IsInput { get; set; }
 
         public bool IsOptional { get; set; }
 

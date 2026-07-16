@@ -1,8 +1,7 @@
-﻿using Domiki.Web.Business.Core;
-using Domiki.Web.Data;
+﻿using Domiki.Web.Data.Entities;
 using System.Timers;
 
-namespace Domiki.Web.Business
+namespace Domiki.Web.Core.Scheduling
 {
     public class CalculateInfo
     {

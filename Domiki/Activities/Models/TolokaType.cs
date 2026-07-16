@@ -1,4 +1,5 @@
-﻿namespace Domiki.Web.Business.Models
+﻿
+namespace Domiki.Web.Activities.Models
 {
     public class TolokaType
     {
@@ -8,6 +9,6 @@
         public int ResourceTypeId { get; set; }
         public int Goal { get; set; }
         public int RotationWeight { get; set; }
-        public Data.TolokaTypeEffect[] Effects { get; set; }
+        public Data.Entities.TolokaTypeEffect[] Effects { get; set; }
     }
 }

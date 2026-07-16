@@ -1,13 +1,15 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference;
+using Domiki.Web.Workers.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Workers
 {
     public class WorkerManager
     {
         private const int PlodderModificatorId = 1;
 
-        public static bool IsFree(Data.Worker worker, DateTime now)
+        public static bool IsFree(Data.Entities.Worker worker, DateTime now)
         {
             return worker.ManufactureId == null && worker.ExpeditionId == null && (worker.RestUntil == null || worker.RestUntil <= now);
         }
@@ -37,7 +39,7 @@ namespace Domiki.Web.Business.Core
             return MapWorkers(playerId);
         }
 
-        public Data.Worker[] EnsureWorkers(int playerId)
+        public Data.Entities.Worker[] EnsureWorkers(int playerId)
         {
             var capacity = GetCapacity(playerId);
             var currentWorkers = _context.Workers.Where(x => x.PlayerId == playerId).OrderBy(x => x.Id).ToArray();
@@ -54,7 +56,7 @@ namespace Domiki.Web.Business.Core
             var traits = _resourceManager.GetTraits();
             while (currentWorkers.Length < capacity)
             {
-                var worker = new Data.Worker
+                var worker = new Data.Entities.Worker
                 {
                     PlayerId = playerId,
                     Name = GetWorkerName(usedNames, currentWorkers.Length),
@@ -108,7 +110,7 @@ namespace Domiki.Web.Business.Core
             return $"Трудяга {suffix}";
         }
 
-        private void ReconcileManufactures(int playerId, Data.Worker[] currentWorkers, DateTime now)
+        private void ReconcileManufactures(int playerId, Data.Entities.Worker[] currentWorkers, DateTime now)
         {
             var manufactures = _context.Manufactures.Where(x => x.DomikPlayerId == playerId).OrderBy(x => x.Id).ToArray();
             foreach (var manufacture in manufactures)

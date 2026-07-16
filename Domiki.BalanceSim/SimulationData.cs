@@ -1,6 +1,11 @@
-﻿using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
-using StarterGoal = Domiki.Web.Data.StarterGoal;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Core.Models;
+using Domiki.Web.Economy.Models;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Reference;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Workers.Models;
+using StarterGoal = Domiki.Web.Data.Entities.StarterGoal;
 
 namespace Domiki.BalanceSim;
 

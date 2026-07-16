@@ -1,6 +1,11 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Activities;
+using Domiki.Web.Core.Models;
+using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Workers.Models;
 
 namespace Domiki.Web.Tests
 {
@@ -461,9 +466,9 @@ namespace Domiki.Web.Tests
                 var manager = GetExpeditionManager(uow);
                 var type = resourceManager.GetExpeditionTypes().Single(x => x.Id == ShortScoutId);
                 var traits = resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
-                var entry = type.Loot.First(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.Decor);
+                var entry = type.Loot.First(x => x.Kind == Data.Entities.ExpeditionLootKind.Decor);
 
-                manager.ApplyLootEntry(playerId, type, entry, Array.Empty<Domiki.Web.Data.Worker>(), traits, 0);
+                manager.ApplyLootEntry(playerId, type, entry, Array.Empty<Data.Entities.Worker>(), traits, 0);
                 uow.Commit();
             }
 
@@ -489,7 +494,7 @@ namespace Domiki.Web.Tests
                 var manager = GetExpeditionManager(uow);
                 var type = resourceManager.GetExpeditionTypes().Single(x => x.Id == LongJourneyId);
                 var traits = resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
-                var entry = type.Loot.First(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.TraitUpgrade);
+                var entry = type.Loot.First(x => x.Kind == Data.Entities.ExpeditionLootKind.TraitUpgrade);
                 var squad = uow.Context.Workers.Where(x => workerIds.Contains(x.Id)).ToArray();
 
                 manager.ApplyLootEntry(playerId, type, entry, squad, traits, 0);
@@ -518,7 +523,7 @@ namespace Domiki.Web.Tests
                 var manager = GetExpeditionManager(uow);
                 var type = resourceManager.GetExpeditionTypes().Single(x => x.Id == LongJourneyId);
                 var traits = resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
-                var entry = type.Loot.First(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.TraitUpgrade);
+                var entry = type.Loot.First(x => x.Kind == Data.Entities.ExpeditionLootKind.TraitUpgrade);
                 var squad = uow.Context.Workers.Where(x => workerIds.Contains(x.Id)).ToArray();
 
                 manager.ApplyLootEntry(playerId, type, entry, squad, traits, 0);
@@ -546,10 +551,10 @@ namespace Domiki.Web.Tests
                 var manager = GetExpeditionManager(uow);
                 var blueprintManager = GetBlueprintManager(uow);
                 var type = resourceManager.GetExpeditionTypes().First(x => x.Id == ShortScoutId);
-                var entry = type.Loot.First(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.Blueprint);
+                var entry = type.Loot.First(x => x.Kind == Data.Entities.ExpeditionLootKind.Blueprint);
                 var traits = resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
 
-                var result = manager.ApplyLootEntry(playerId, type, entry, Array.Empty<Domiki.Web.Data.Worker>(), traits, 0);
+                var result = manager.ApplyLootEntry(playerId, type, entry, Array.Empty<Data.Entities.Worker>(), traits, 0);
                 uow.Commit();
 
                 Assert.That(blueprintManager.GetBlueprints(playerId).Count(x => x.Owned), Is.EqualTo(1));
@@ -575,10 +580,10 @@ namespace Domiki.Web.Tests
 
                 var manager = GetExpeditionManager(uow);
                 var type = resourceManager.GetExpeditionTypes().First(x => x.Id == ShortScoutId);
-                var entry = type.Loot.First(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.Blueprint);
+                var entry = type.Loot.First(x => x.Kind == Data.Entities.ExpeditionLootKind.Blueprint);
                 var traits = resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
 
-                var result = manager.ApplyLootEntry(playerId, type, entry, Array.Empty<Domiki.Web.Data.Worker>(), traits, 0);
+                var result = manager.ApplyLootEntry(playerId, type, entry, Array.Empty<Data.Entities.Worker>(), traits, 0);
                 uow.Commit();
 
                 Assert.That(result, Is.Not.Null);
@@ -671,7 +676,7 @@ namespace Domiki.Web.Tests
             using (var uow = GetUow())
             {
                 var nextId = (uow.Context.Domiks.Where(x => x.PlayerId == playerId).Max(x => (int?)x.Id) ?? 0) + 1;
-                uow.Context.Domiks.Add(new Domiki.Web.Data.Domik { PlayerId = playerId, Id = nextId, TypeId = typeId, Level = 1 });
+                uow.Context.Domiks.Add(new Data.Entities.Domik { PlayerId = playerId, Id = nextId, TypeId = typeId, Level = 1 });
                 uow.Commit();
             }
         }
@@ -692,7 +697,7 @@ namespace Domiki.Web.Tests
             {
                 if (!uow.Context.Domiks.Any(x => x.PlayerId == playerId && x.TypeId == typeId))
                 {
-                    uow.Context.Domiks.Add(new Domiki.Web.Data.Domik
+                    uow.Context.Domiks.Add(new Data.Entities.Domik
                     {
                         PlayerId = playerId,
                         Id = -typeId,
@@ -778,7 +783,7 @@ namespace Domiki.Web.Tests
                 var resource = uow.Context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
                 if (resource == null)
                 {
-                    resource = new Domiki.Web.Data.Resource { PlayerId = playerId, TypeId = typeId };
+                    resource = new Data.Entities.Resource { PlayerId = playerId, TypeId = typeId };
                     uow.Context.Resources.Add(resource);
                 }
 

@@ -1,14 +1,24 @@
-﻿using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
-using Domiki.Web.Data;
-using DomikType = Domiki.Web.Business.Models.DomikType;
-using ExpeditionLoot = Domiki.Web.Business.Models.ExpeditionLoot;
-using ExpeditionType = Domiki.Web.Business.Models.ExpeditionType;
-using Neighbor = Domiki.Web.Business.Models.Neighbor;
-using Receipt = Domiki.Web.Business.Models.Receipt;
-using Resource = Domiki.Web.Business.Models.Resource;
-using Trait = Domiki.Web.Business.Models.Trait;
-using WeatherType = Domiki.Web.Business.Models.WeatherType;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Activities;
+using Domiki.Web.Core.Models;
+using Domiki.Web.Core;
+using Domiki.Web.Data.Entities;
+using Domiki.Web.Economy.Models;
+using Domiki.Web.Economy;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Reference;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Village;
+using Domiki.Web.Workers.Models;
+using Domiki.Web.Workers;
+using DomikType = Domiki.Web.Core.Models.DomikType;
+using ExpeditionLoot = Domiki.Web.Activities.Models.ExpeditionLoot;
+using ExpeditionType = Domiki.Web.Activities.Models.ExpeditionType;
+using Neighbor = Domiki.Web.Economy.Models.Neighbor;
+using Receipt = Domiki.Web.Reference.Models.Receipt;
+using Resource = Domiki.Web.Reference.Models.Resource;
+using Trait = Domiki.Web.Workers.Models.Trait;
+using WeatherType = Domiki.Web.Village.Models.WeatherType;
 
 namespace Domiki.BalanceSim;
 
@@ -939,7 +949,7 @@ internal sealed class SimulationRun
 
             var loot = PickLoot(pool, groupLuck);
             gotRare |= loot.IsRare;
-            if (loot.Kind == Domiki.Web.Data.ExpeditionLootKind.Resource)
+            if (loot.Kind == Domiki.Web.Data.Entities.ExpeditionLootKind.Resource)
             {
                 AddResource(loot.ResourceTypeId.Value, _random.Next(loot.MinValue, loot.MaxValue + 1));
             }
@@ -990,7 +1000,7 @@ internal sealed class SimulationRun
     private static double GetLootEv(ExpeditionLoot[] loot, int luckPercent)
     {
         var totalWeight = loot.Sum(x => ExpeditionManager.ScaleWeight(x.IsRare, x.Weight, luckPercent));
-        return loot.Where(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.Resource).Sum(x => ExpeditionManager.ScaleWeight(x.IsRare, x.Weight, luckPercent) / (double)totalWeight
+        return loot.Where(x => x.Kind == Domiki.Web.Data.Entities.ExpeditionLootKind.Resource).Sum(x => ExpeditionManager.ScaleWeight(x.IsRare, x.Weight, luckPercent) / (double)totalWeight
                                                                                                * ((x.MinValue + x.MaxValue) / 2.0) * ResourceManager.GetMarketValue(x.ResourceTypeId.Value));
     }
 

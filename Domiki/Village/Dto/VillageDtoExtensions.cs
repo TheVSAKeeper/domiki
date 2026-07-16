@@ -1,10 +1,10 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Village.Models;
 
-namespace Domiki.Web.Models
+namespace Domiki.Web.Village.Dto
 {
     public static class VillageDtoExtensions
     {
-        public static VillageDto ToDto(this Village village)
+        public static VillageDto ToDto(this VillageState village)
         {
             return new VillageDto
             {

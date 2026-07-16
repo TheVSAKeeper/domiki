@@ -1,4 +1,4 @@
-﻿using Domiki.Web.Business.Core;
+﻿using Domiki.Web.Economy;
 
 namespace Domiki.Web.Tests
 {

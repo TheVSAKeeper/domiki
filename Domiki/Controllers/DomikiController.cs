@@ -1,12 +1,22 @@
-﻿using Domiki.Web;
-using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Models;
+﻿using Domiki.Web.Activities.Dto;
+using Domiki.Web.Activities;
+using Domiki.Web.Core.Dto;
+using Domiki.Web.Core;
+using Domiki.Web.Economy.Dto;
+using Domiki.Web.Economy;
+using Domiki.Web.Infrastructure.Dto;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Dto;
+using Domiki.Web.Reference;
+using Domiki.Web.Village.Dto;
+using Domiki.Web.Village;
+using Domiki.Web.Workers.Dto;
+using Domiki.Web.Workers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace Domiki.Controllers
+namespace Domiki.Web.Controllers
 {
     [Authorize]
     [ApiController]

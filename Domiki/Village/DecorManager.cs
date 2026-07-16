@@ -1,6 +1,8 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference;
+using Domiki.Web.Village.Models;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Village
 {
     public class DecorManager
     {
@@ -8,7 +10,7 @@ namespace Domiki.Web.Business.Core
         private readonly ResourceManager _resourceManager;
         private readonly PlayerResourceManager _playerResourceManager;
 
-        public DecorManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager)
+        public DecorManager(UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager)
         {
             _context = context;
             _resourceManager = resourceManager;
@@ -67,7 +69,7 @@ namespace Domiki.Web.Business.Core
                 ?? _context.PlayerDecors.FirstOrDefault(x => x.PlayerId == playerId && x.DecorTypeId == decorTypeId);
             if (decor == null)
             {
-                decor = new Data.PlayerDecor { PlayerId = playerId, DecorTypeId = decorTypeId };
+                decor = new Data.Entities.PlayerDecor { PlayerId = playerId, DecorTypeId = decorTypeId };
                 _context.PlayerDecors.Add(decor);
             }
 

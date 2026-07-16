@@ -1,6 +1,9 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference;
+using Domiki.Web.Village.Models;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Village
 {
     public class WeatherManager
     {
@@ -9,11 +12,11 @@ namespace Domiki.Web.Business.Core
         private const int ForecastCount = 4;
 
         private Data.ApplicationDbContext _context;
-        private Data.UnitOfWork _uow;
+        private UnitOfWork _uow;
         private ICalculator _calculator;
         private ResourceManager _resourceManager;
 
-        public WeatherManager(Data.ApplicationDbContext context, Data.UnitOfWork uow, ICalculator calculator, ResourceManager resourceManager)
+        public WeatherManager(Data.ApplicationDbContext context, UnitOfWork uow, ICalculator calculator, ResourceManager resourceManager)
         {
             _context = context;
             _uow = uow;
@@ -93,10 +96,10 @@ namespace Domiki.Web.Business.Core
             return effect?.OutputPercent ?? 100;
         }
 
-        private Data.WeatherPeriod CreatePeriod(WeatherType[] weatherTypes, DateTime start)
+        private Data.Entities.WeatherPeriod CreatePeriod(WeatherType[] weatherTypes, DateTime start)
         {
             var weatherType = PickWeatherType(weatherTypes);
-            var period = new Data.WeatherPeriod
+            var period = new Data.Entities.WeatherPeriod
             {
                 WeatherTypeId = weatherType.Id,
                 StartDate = start,
@@ -124,7 +127,7 @@ namespace Domiki.Web.Business.Core
             return weatherTypes[^1];
         }
 
-        private static WeatherPeriod ToModel(Data.WeatherPeriod dbPeriod, WeatherType[] weatherTypes)
+        private static WeatherPeriod ToModel(Data.Entities.WeatherPeriod dbPeriod, WeatherType[] weatherTypes)
         {
             return new WeatherPeriod
             {

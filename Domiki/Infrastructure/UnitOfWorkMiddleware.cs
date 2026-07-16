@@ -1,6 +1,5 @@
-﻿using Domiki.Web.Data;
-
-namespace Domiki.Web
+﻿
+namespace Domiki.Web.Infrastructure
 {
     public class UnitOfWorkMiddleware
     {

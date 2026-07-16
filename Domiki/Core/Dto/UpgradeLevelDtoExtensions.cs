@@ -1,6 +1,8 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Core.Models;
+using Domiki.Web.Reference.Dto;
+using Domiki.Web.Reference.Models;
 
-namespace Domiki.Web.Models
+namespace Domiki.Web.Core.Dto
 {
     public static class UpgradeLevelDtoExtensions
     {

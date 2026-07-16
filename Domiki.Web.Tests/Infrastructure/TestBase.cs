@@ -1,8 +1,15 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
+﻿using Domiki.Web.Activities;
+using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Core;
+using Domiki.Web.Data.Entities;
 using Domiki.Web.Data;
-using Microsoft.EntityFrameworkCore;
+using Domiki.Web.Economy;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference;
+using Domiki.Web.Village;
+using Domiki.Web.Workers;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace Domiki.Web.Tests

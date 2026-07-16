@@ -1,4 +1,6 @@
-﻿namespace Domiki.Web.Models
+﻿using Domiki.Web.Reference.Dto;
+
+namespace Domiki.Web.Village.Dto
 {
     public class DecorStateDto
     {

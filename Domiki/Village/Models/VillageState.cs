@@ -1,6 +1,7 @@
-﻿namespace Domiki.Web.Business.Models
+﻿
+namespace Domiki.Web.Village.Models
 {
-    public class Village
+    public class VillageState
     {
         public string VillageName { get; set; }
         public int CrestIcon { get; set; }

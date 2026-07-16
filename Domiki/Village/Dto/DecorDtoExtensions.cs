@@ -1,6 +1,9 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Economy.Models;
+using Domiki.Web.Reference.Dto;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Village.Models;
 
-namespace Domiki.Web.Models
+namespace Domiki.Web.Village.Dto
 {
     public static class DecorDtoExtensions
     {

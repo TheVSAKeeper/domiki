@@ -1,4 +1,5 @@
-﻿namespace Domiki.Web.Models
+﻿
+namespace Domiki.Web.Core.Dto
 {
     public class DomikTypeDto
     {

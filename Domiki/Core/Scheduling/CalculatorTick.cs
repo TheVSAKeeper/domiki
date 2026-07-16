@@ -1,4 +1,9 @@
-﻿namespace Domiki.Web.Business.Core
+﻿using Domiki.Web.Activities;
+using Domiki.Web.Core;
+using Domiki.Web.Economy;
+using Domiki.Web.Village;
+
+namespace Domiki.Web.Core.Scheduling
 {
     public class CalculatorTick
     {

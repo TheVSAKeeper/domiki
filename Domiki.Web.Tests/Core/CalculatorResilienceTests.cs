@@ -1,4 +1,4 @@
-﻿using Domiki.Web.Business;
+﻿using Domiki.Web.Core.Scheduling;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Domiki.Web.Tests

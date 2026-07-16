@@ -1,4 +1,5 @@
-﻿namespace Domiki.Web.Business
+﻿
+namespace Domiki.Web.Infrastructure
 {
     public static class DateTimeHelper
     {

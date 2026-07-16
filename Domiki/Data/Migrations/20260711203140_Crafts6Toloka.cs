@@ -4,8 +4,8 @@
 
 namespace Domiki.Web.Data.Migrations
 {
-        public partial class Crafts6Toloka : Migration
-        {
+    public partial class Crafts6Toloka : Migration
+    {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<int>(

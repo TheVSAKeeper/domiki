@@ -1,6 +1,6 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Village.Models;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Village
 {
     public class SeasonManager
     {
@@ -41,7 +41,7 @@ namespace Domiki.Web.Business.Core
                 ?? _context.SeasonCounters.FirstOrDefault(x => x.SeasonId == seasonId && x.PlayerId == playerId && x.Metric == metricValue);
             if (counter == null)
             {
-                counter = new Data.SeasonCounter { SeasonId = seasonId, PlayerId = playerId, Metric = metricValue };
+                counter = new Data.Entities.SeasonCounter { SeasonId = seasonId, PlayerId = playerId, Metric = metricValue };
                 _context.SeasonCounters.Add(counter);
             }
 

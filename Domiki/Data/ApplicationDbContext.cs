@@ -1,4 +1,4 @@
-﻿using Domiki.Models;
+﻿using Domiki.Web.Data.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -165,7 +165,7 @@ namespace Domiki.Web.Data
             modelBuilder.Entity<Manufacture>()
                 .HasOne(s => s.Domik)
                 .WithMany(x => x.Manufactures)
-                .HasForeignKey(e => new { e.DomikPlayerId, e.DomikId});
+                .HasForeignKey(e => new { e.DomikPlayerId, e.DomikId });
 
             modelBuilder.Entity<Order>()
                 .HasOne(s => s.Player)

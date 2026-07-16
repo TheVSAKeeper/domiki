@@ -1,6 +1,7 @@
 ﻿using Domiki.BalanceSim;
-using Domiki.Web.Business.Core;
+using Domiki.Web.Data.Entities;
 using Domiki.Web.Data;
+using Domiki.Web.Reference;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 

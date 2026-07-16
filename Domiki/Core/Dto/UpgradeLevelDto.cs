@@ -1,6 +1,6 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Reference.Dto;
 
-namespace Domiki.Web.Models
+namespace Domiki.Web.Core.Dto
 {
     public class UpgradeLevelDto
     {

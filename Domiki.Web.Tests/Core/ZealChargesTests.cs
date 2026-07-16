@@ -1,5 +1,5 @@
-﻿using Domiki.Web.Business.Core;
-using Domiki.Web.Data;
+﻿using Domiki.Web.Core;
+using Domiki.Web.Data.Entities;
 
 namespace Domiki.Web.Tests
 {

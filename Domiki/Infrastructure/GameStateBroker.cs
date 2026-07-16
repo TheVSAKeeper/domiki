@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Threading.Channels;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Infrastructure
 {
     public static class GameStateScopes
     {

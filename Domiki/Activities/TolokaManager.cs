@@ -1,7 +1,12 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Reference;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Village;
 using Microsoft.EntityFrameworkCore;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Activities
 {
     public class TolokaManager
     {
@@ -9,7 +14,7 @@ namespace Domiki.Web.Business.Core
         private const string BridgeLogicName = "bridge";
         public static int GetBuffSeconds(int level) => (6 + 2 * level) * 3600;
 
-        private readonly Data.UnitOfWork _uow;
+        private readonly UnitOfWork _uow;
         private readonly Data.ApplicationDbContext _context;
         private readonly ResourceManager _resourceManager;
         private readonly PlayerResourceManager _playerResourceManager;
@@ -17,7 +22,7 @@ namespace Domiki.Web.Business.Core
         private readonly PlayerEventManager _playerEventManager;
         private readonly GameStateBroker _broker;
 
-        public TolokaManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, SeasonManager seasonManager, PlayerEventManager playerEventManager, GameStateBroker broker)
+        public TolokaManager(UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, SeasonManager seasonManager, PlayerEventManager playerEventManager, GameStateBroker broker)
         {
             _uow = uow;
             _context = context;
@@ -92,7 +97,7 @@ namespace Domiki.Web.Business.Core
                 ?? _context.TolokaContributions.FirstOrDefault(x => x.TolokaId == dbToloka.Id && x.PlayerId == playerId);
             if (contribution == null)
             {
-                contribution = new Data.TolokaContribution { TolokaId = dbToloka.Id, PlayerId = playerId };
+                contribution = new Data.Entities.TolokaContribution { TolokaId = dbToloka.Id, PlayerId = playerId };
                 _context.TolokaContributions.Add(contribution);
             }
 
@@ -106,11 +111,11 @@ namespace Domiki.Web.Business.Core
                 _context.SaveChanges();
                 foreach (var contributor in _context.TolokaContributions.Where(x => x.TolokaId == dbToloka.Id).Select(x => x.PlayerId).ToArray())
                 {
-                    _playerEventManager.Record(contributor, Data.PlayerEventType.TolokaCompleted, new { tolokaTypeId = dbToloka.TolokaTypeId });
+                    _playerEventManager.Record(contributor, Data.Entities.PlayerEventType.TolokaCompleted, new { tolokaTypeId = dbToloka.TolokaTypeId });
                 }
                 var prevContributors = _context.TolokaContributions.Count(x => x.TolokaId == dbToloka.Id);
                 var picked = PickTolokaType(tolokaTypes);
-                _context.Tolokas.Add(new Data.Toloka
+                _context.Tolokas.Add(new Data.Entities.Toloka
                 {
                     TolokaTypeId = picked.Id,
                     Collected = 0,
@@ -156,7 +161,7 @@ namespace Domiki.Web.Business.Core
             return GetActiveBuffs(playerId, date).Any(x => x.TolokaTypeId == bridgeTypeId) ? BridgeOrderBonusPercent : 0;
         }
 
-        private Data.Toloka LockActiveToloka()
+        private Data.Entities.Toloka LockActiveToloka()
         {
             for (var attempt = 0; attempt < 5; attempt++)
             {
@@ -225,7 +230,7 @@ namespace Domiki.Web.Business.Core
             return tolokaTypes[^1];
         }
 
-        private static Toloka ToModel(Data.Toloka dbToloka, TolokaType[] tolokaTypes)
+        private static Toloka ToModel(Data.Entities.Toloka dbToloka, TolokaType[] tolokaTypes)
         {
             return new Toloka
             {

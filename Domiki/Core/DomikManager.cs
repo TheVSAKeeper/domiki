@@ -1,10 +1,19 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Activities;
+using Domiki.Web.Core.Models;
+using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Reference;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Village;
+using Domiki.Web.Workers.Models;
+using Domiki.Web.Workers;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Core
 {
     public class DomikManager
     {
@@ -50,7 +59,7 @@ namespace Domiki.Web.Business.Core
 
         private Data.ApplicationDbContext _context;
         private ICalculator _calculator;
-        private Data.UnitOfWork _uow;
+        private UnitOfWork _uow;
         private ResourceManager _resourceManager;
         private PlayerResourceManager _playerResourceManager;
         private WorkerManager _workerManager;
@@ -61,7 +70,7 @@ namespace Domiki.Web.Business.Core
         private PlayerEventManager _playerEventManager;
         private GoalManager _goalManager;
 
-        public DomikManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, TolokaManager tolokaManager, PlayerEventManager playerEventManager, GoalManager goalManager)
+        public DomikManager(UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, TolokaManager tolokaManager, PlayerEventManager playerEventManager, GoalManager goalManager)
         {
             _context = context;
             _calculator = calculator;
@@ -82,25 +91,25 @@ namespace Domiki.Web.Business.Core
             var dbPlayer = _context.Players.FirstOrDefault(x => x.AspNetUserId == aspNetUserId);
             if (dbPlayer == null)
             {
-                dbPlayer = new Data.Player();
+                dbPlayer = new Data.Entities.Player();
                 dbPlayer.AspNetUserId = aspNetUserId;
                 dbPlayer.Name = "Держатель домиков";
                 _context.Players.Add(dbPlayer);
-                _context.Resources.Add(new Data.Resource { TypeId = 1, Player = dbPlayer, Value = StartingCoins });
+                _context.Resources.Add(new Data.Entities.Resource { TypeId = 1, Player = dbPlayer, Value = StartingCoins });
 
                 _context.SaveChanges();
 
-                _context.Domiks.Add(new Data.Domik { PlayerId = dbPlayer.Id, Id = 1, TypeId = StartingBarracksTypeId, Level = 1 });
-                _context.Domiks.Add(new Data.Domik { PlayerId = dbPlayer.Id, Id = 2, TypeId = StartingClayMineTypeId, Level = 1 });
+                _context.Domiks.Add(new Data.Entities.Domik { PlayerId = dbPlayer.Id, Id = 1, TypeId = StartingBarracksTypeId, Level = 1 });
+                _context.Domiks.Add(new Data.Entities.Domik { PlayerId = dbPlayer.Id, Id = 2, TypeId = StartingClayMineTypeId, Level = 1 });
                 _context.SaveChanges();
             }
             return dbPlayer.Id;
         }
 
-        public Village GetVillage(int playerId)
+        public VillageState GetVillage(int playerId)
         {
             var dbPlayer = _context.Players.Single(x => x.Id == playerId);
-            return new Village
+            return new VillageState
             {
                 VillageName = dbPlayer.VillageName,
                 CrestIcon = dbPlayer.CrestIcon,
@@ -233,7 +242,7 @@ namespace Domiki.Web.Business.Core
                 var currentId = _context.Domiks.Where(x => x.PlayerId == playerId).Max(x => (int?)x.Id) ?? 0;
                 var nextId = currentId + 1;
                 var date = DateTimeHelper.GetNowDate();
-                _context.Domiks.Add(new Data.Domik { PlayerId = playerId, TypeId = typeId, Level = 0, Id = nextId, UpgradeSeconds = domikLevel.UpgradeSeconds, UpgradeCalculateDate = date });
+                _context.Domiks.Add(new Data.Entities.Domik { PlayerId = playerId, TypeId = typeId, Level = 0, Id = nextId, UpgradeSeconds = domikLevel.UpgradeSeconds, UpgradeCalculateDate = date });
 
                 _uow.AfterEventAction = () =>
                 {
@@ -318,7 +327,7 @@ namespace Domiki.Web.Business.Core
                     dbDomik.UpgradeCalculateDate = null;
                     dbDomik.UpgradeSeconds = null;
                     dbDomik.Level++;
-                    _playerEventManager.Record(calcInfo.PlayerId, Data.PlayerEventType.DomikUpgraded, new { domikTypeId = dbDomik.TypeId, level = dbDomik.Level });
+                    _playerEventManager.Record(calcInfo.PlayerId, Data.Entities.PlayerEventType.DomikUpgraded, new { domikTypeId = dbDomik.TypeId, level = dbDomik.Level });
 
                     var domikName = _resourceManager.GetDomikTypes().First(x => x.Id == dbDomik.TypeId).Name;
                     (calcInfo.PushTitle, calcInfo.PushBody) = (dbDomik.Level % 3) switch
@@ -384,7 +393,7 @@ namespace Domiki.Web.Business.Core
             var workers = _workerManager.EnsureWorkers(playerId);
             var freeWorkers = workers.Where(x => WorkerManager.IsFree(x, date)).OrderBy(x => x.Id).ToArray();
 
-            var domiks = _context.Domiks.Where(x=>x.PlayerId == playerId).ToArray();
+            var domiks = _context.Domiks.Where(x => x.PlayerId == playerId).ToArray();
             var domikTypes = _resourceManager.GetDomikTypes();
 
             var dbDomik = domiks.First(x => x.PlayerId == playerId && x.Id == domikId);
@@ -421,7 +430,7 @@ namespace Domiki.Web.Business.Core
                 writeOffResources = writeOffResources.Concat(receipt.OptionalInputResources).ToArray();
             }
 
-            Data.Worker[] selectedWorkers;
+            Data.Entities.Worker[] selectedWorkers;
             if (workerIds == null || workerIds.Length == 0)
             {
                 var autoWorkers = freeWorkers.AsEnumerable();
@@ -488,7 +497,7 @@ namespace Domiki.Web.Business.Core
 
             _playerResourceManager.WriteOffResources(playerId, writeOffResources);
 
-            var manufacture = new Data.Manufacture
+            var manufacture = new Data.Entities.Manufacture
             {
                 DomikId = domikId,
                 DomikPlayerId = playerId,
@@ -729,7 +738,7 @@ namespace Domiki.Web.Business.Core
             var skill = _context.WorkerSkills.SingleOrDefault(x => x.WorkerId == workerId && x.DomikTypeId == domikTypeId);
             if (skill == null)
             {
-                _context.WorkerSkills.Add(new Data.WorkerSkill
+                _context.WorkerSkills.Add(new Data.Entities.WorkerSkill
                 {
                     WorkerId = workerId,
                     DomikTypeId = domikTypeId,

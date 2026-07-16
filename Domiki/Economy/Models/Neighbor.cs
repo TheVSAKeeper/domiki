@@ -1,4 +1,5 @@
-﻿namespace Domiki.Web.Business.Models
+﻿
+namespace Domiki.Web.Economy.Models
 {
     public class Neighbor
     {

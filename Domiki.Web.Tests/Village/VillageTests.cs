@@ -1,5 +1,5 @@
-﻿using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Infrastructure;
+using Domiki.Web.Village.Models;
 
 namespace Domiki.Web.Tests
 {
@@ -98,7 +98,7 @@ namespace Domiki.Web.Tests
         {
             yield return new TestCaseData("Аб").SetName("TooShortVillageName");
             yield return new TestCaseData("1234567890123456789012345").SetName("TooLongVillageName");
-            yield return new TestCaseData("   " ).SetName("BlankVillageName");
+            yield return new TestCaseData("   ").SetName("BlankVillageName");
         }
 
         public static IEnumerable<TestCaseData> InvalidCharacterNames()
@@ -129,7 +129,7 @@ namespace Domiki.Web.Tests
             }
         }
 
-        private Village GetVillage(int playerId)
+        private VillageState GetVillage(int playerId)
         {
             using (var uow = GetUow())
             {

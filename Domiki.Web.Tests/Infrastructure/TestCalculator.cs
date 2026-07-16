@@ -1,6 +1,6 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Data;
+﻿using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Data.Entities;
+using Domiki.Web.Infrastructure;
 
 namespace Domiki.Web.Tests
 {

@@ -1,4 +1,5 @@
-﻿namespace Domiki.Web.Business.Core
+﻿
+namespace Domiki.Web.Infrastructure
 {
     public class BusinessException : Exception
     {

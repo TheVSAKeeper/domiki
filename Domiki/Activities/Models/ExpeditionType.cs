@@ -1,6 +1,6 @@
-﻿using Domiki.Web.Data;
+﻿using Domiki.Web.Data.Entities;
 
-namespace Domiki.Web.Business.Models
+namespace Domiki.Web.Activities.Models
 {
     public class ExpeditionType
     {

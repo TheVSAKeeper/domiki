@@ -1,9 +1,10 @@
-﻿using Domiki.Web;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Models;
+﻿using Domiki.Web.Core.Dto;
+using Domiki.Web.Core;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Domiki.Controllers
+namespace Domiki.Web.Controllers
 {
     [ApiController]
     public class SystemController : ControllerBase

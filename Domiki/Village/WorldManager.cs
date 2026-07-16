@@ -1,7 +1,12 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Core;
+using Domiki.Web.Data.Entities;
 using Domiki.Web.Data;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference;
+using Domiki.Web.Village.Models;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Village
 {
     public class WorldManager
     {

@@ -1,6 +1,9 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Economy.Models;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Village;
 
 namespace Domiki.Web.Tests
 {
@@ -331,7 +334,7 @@ namespace Domiki.Web.Tests
                 var reputation = uow.Context.NeighborReputations.SingleOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId);
                 if (reputation == null)
                 {
-                    reputation = new Domiki.Web.Data.NeighborReputation { PlayerId = playerId, NeighborId = neighborId };
+                    reputation = new Data.Entities.NeighborReputation { PlayerId = playerId, NeighborId = neighborId };
                     uow.Context.NeighborReputations.Add(reputation);
                 }
 
@@ -370,7 +373,7 @@ namespace Domiki.Web.Tests
                 var resource = uow.Context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
                 if (resource == null)
                 {
-                    resource = new Domiki.Web.Data.Resource { PlayerId = playerId, TypeId = typeId };
+                    resource = new Data.Entities.Resource { PlayerId = playerId, TypeId = typeId };
                     uow.Context.Resources.Add(resource);
                 }
 
@@ -385,7 +388,7 @@ namespace Domiki.Web.Tests
             using (var uow = GetUow())
             {
                 var now = DateTimeHelper.GetNowDate();
-                var order = new Domiki.Web.Data.Order
+                var order = new Data.Entities.Order
                 {
                     PlayerId = playerId,
                     NeighborId = neighborId,
@@ -397,7 +400,7 @@ namespace Domiki.Web.Tests
                 };
                 uow.Context.Orders.Add(order);
                 uow.Context.SaveChanges();
-                uow.Context.OrderResources.Add(new Domiki.Web.Data.OrderResource
+                uow.Context.OrderResources.Add(new Data.Entities.OrderResource
                 {
                     OrderId = order.Id,
                     ResourceTypeId = resourceTypeId,

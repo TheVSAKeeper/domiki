@@ -1,6 +1,8 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Economy.Models;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Village;
+using Domiki.Web.Workers.Models;
 
 namespace Domiki.Web.Tests
 {
@@ -211,7 +213,7 @@ namespace Domiki.Web.Tests
                 var reputation = uow.Context.NeighborReputations.SingleOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId);
                 if (reputation == null)
                 {
-                    reputation = new Domiki.Web.Data.NeighborReputation { PlayerId = playerId, NeighborId = neighborId };
+                    reputation = new Data.Entities.NeighborReputation { PlayerId = playerId, NeighborId = neighborId };
                     uow.Context.NeighborReputations.Add(reputation);
                 }
 

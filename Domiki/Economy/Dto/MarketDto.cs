@@ -1,4 +1,5 @@
-﻿namespace Domiki.Web.Models
+﻿
+namespace Domiki.Web.Economy.Dto
 {
     public class TradeLotDto
     {

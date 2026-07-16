@@ -1,7 +1,11 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Economy.Models;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Reference;
 using Microsoft.EntityFrameworkCore;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Economy
 {
     public class MarketManager
     {
@@ -12,7 +16,7 @@ namespace Domiki.Web.Business.Core
         public const int MarketLotDurationSeconds = 24 * 3600;
         public const int CoinResourceTypeId = 1;
 
-        private readonly Data.UnitOfWork _uow;
+        private readonly UnitOfWork _uow;
         private readonly Data.ApplicationDbContext _context;
         private readonly ICalculator _calculator;
         private readonly ResourceManager _resourceManager;
@@ -20,7 +24,7 @@ namespace Domiki.Web.Business.Core
         private readonly PlayerEventManager _playerEventManager;
         private readonly GameStateBroker _broker;
 
-        public MarketManager(Data.UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, PlayerEventManager playerEventManager, GameStateBroker broker)
+        public MarketManager(UnitOfWork uow, Data.ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, PlayerEventManager playerEventManager, GameStateBroker broker)
         {
             _uow = uow;
             _context = context;
@@ -82,7 +86,7 @@ namespace Domiki.Web.Business.Core
                 new Resource { Type = new ResourceType { Id = CoinResourceTypeId }, Value = commission },
             });
 
-            var lot = new Data.TradeLot
+            var lot = new Data.Entities.TradeLot
             {
                 SellerId = playerId,
                 GiveResourceTypeId = giveResourceTypeId,
@@ -155,7 +159,7 @@ namespace Domiki.Web.Business.Core
             });
             _playerResourceManager.GrantResource(buyerId, lot.GiveResourceTypeId, lot.GiveValue);
             _playerResourceManager.GrantResource(lot.SellerId, lot.WantResourceTypeId, lot.WantValue);
-            _playerEventManager.Record(lot.SellerId, Data.PlayerEventType.LotSold, new { giveResourceTypeId = lot.GiveResourceTypeId, giveValue = lot.GiveValue, wantResourceTypeId = lot.WantResourceTypeId, wantValue = lot.WantValue });
+            _playerEventManager.Record(lot.SellerId, Data.Entities.PlayerEventType.LotSold, new { giveResourceTypeId = lot.GiveResourceTypeId, giveValue = lot.GiveValue, wantResourceTypeId = lot.WantResourceTypeId, wantValue = lot.WantValue });
 
             _context.TradeLots.Remove(lot);
             _context.SaveChanges();
@@ -205,7 +209,7 @@ namespace Domiki.Web.Business.Core
             if (date >= lot.ExpireDate)
             {
                 _playerResourceManager.GrantResource(calcInfo.PlayerId, lot.GiveResourceTypeId, lot.GiveValue);
-                _playerEventManager.Record(calcInfo.PlayerId, Data.PlayerEventType.LotExpired, new { giveResourceTypeId = lot.GiveResourceTypeId, giveValue = lot.GiveValue });
+                _playerEventManager.Record(calcInfo.PlayerId, Data.Entities.PlayerEventType.LotExpired, new { giveResourceTypeId = lot.GiveResourceTypeId, giveValue = lot.GiveValue });
                 _context.TradeLots.Remove(lot);
                 _context.SaveChanges();
                 return true;
@@ -233,7 +237,7 @@ namespace Domiki.Web.Business.Core
             }
         }
 
-        private Data.TradeLot LockTradeLot(int lotId)
+        private Data.Entities.TradeLot LockTradeLot(int lotId)
         {
             _context.Database.ExecuteSqlRaw(@"SELECT 1 FROM ""TradeLots"" WHERE ""Id"" = {0} FOR UPDATE", lotId);
             return _context.TradeLots.FirstOrDefault(x => x.Id == lotId);
@@ -266,7 +270,7 @@ namespace Domiki.Web.Business.Core
                 .Max() ?? 0;
         }
 
-        private static TradeLot ToModel(Data.TradeLot lot)
+        private static TradeLot ToModel(Data.Entities.TradeLot lot)
         {
             return new TradeLot
             {

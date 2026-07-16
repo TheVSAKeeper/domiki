@@ -1,7 +1,12 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Data.Entities;
 using Domiki.Web.Data;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Reference;
+using Domiki.Web.Village;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Activities
 {
     public class GoalManager
     {
@@ -48,7 +53,7 @@ namespace Domiki.Web.Business.Core
             };
         }
 
-        public void OnManufactureStarted(int playerId, Business.Models.Receipt receipt)
+        public void OnManufactureStarted(int playerId, Domiki.Web.Reference.Models.Receipt receipt)
         {
             Advance(playerId, goal => goal.ConditionType switch
             {

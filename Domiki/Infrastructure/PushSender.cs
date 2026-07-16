@@ -1,10 +1,11 @@
-﻿using Domiki.Web.Data;
+﻿using Domiki.Web.Data.Entities;
+using Domiki.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Text.Json;
 using WebPush;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Infrastructure
 {
     public class PushSender
     {

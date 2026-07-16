@@ -1,7 +1,7 @@
-﻿using Domiki.Web.Data;
+﻿using Domiki.Web.Data.Entities;
 using System.Text.Json;
 
-namespace Domiki.Web.Business.Models
+namespace Domiki.Web.Infrastructure.Models
 {
     public class RecapModel
     {

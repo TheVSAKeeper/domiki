@@ -1,6 +1,9 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Core.Models;
+using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Workers.Models;
+using Domiki.Web.Workers;
 
 namespace Domiki.Web.Tests
 {
@@ -613,7 +616,7 @@ namespace Domiki.Web.Tests
                 var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
                 if (resource == null)
                 {
-                    resource = new Domiki.Web.Data.Resource
+                    resource = new Data.Entities.Resource
                     {
                         PlayerId = playerId,
                         TypeId = resourceTypeId,
@@ -664,7 +667,7 @@ namespace Domiki.Web.Tests
                 var skill = uow.Context.WorkerSkills.SingleOrDefault(x => x.WorkerId == workerId && x.DomikTypeId == domikTypeId);
                 if (skill == null)
                 {
-                    uow.Context.WorkerSkills.Add(new Domiki.Web.Data.WorkerSkill
+                    uow.Context.WorkerSkills.Add(new Data.Entities.WorkerSkill
                     {
                         WorkerId = workerId,
                         DomikTypeId = domikTypeId,

@@ -1,6 +1,10 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Core.Models;
+using Domiki.Web.Core;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Village;
 
 namespace Domiki.Web.Tests
 {
@@ -614,7 +618,7 @@ namespace Domiki.Web.Tests
                 var resource = uow.Context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
                 if (resource == null)
                 {
-                    resource = new Domiki.Web.Data.Resource { PlayerId = playerId, TypeId = typeId };
+                    resource = new Data.Entities.Resource { PlayerId = playerId, TypeId = typeId };
                     uow.Context.Resources.Add(resource);
                 }
 
@@ -628,7 +632,7 @@ namespace Domiki.Web.Tests
         {
             using (var uow = GetUow())
             {
-                uow.Context.PlayerBlueprints.Add(new Domiki.Web.Data.PlayerBlueprint { PlayerId = playerId, BlueprintId = blueprintId });
+                uow.Context.PlayerBlueprints.Add(new Data.Entities.PlayerBlueprint { PlayerId = playerId, BlueprintId = blueprintId });
                 uow.Context.SaveChanges();
                 uow.Commit();
             }
@@ -654,7 +658,7 @@ namespace Domiki.Web.Tests
             var now = DateTimeHelper.GetNowDate();
             using (var uow = GetUow())
             {
-                uow.Context.WeatherPeriods.Add(new Domiki.Web.Data.WeatherPeriod
+                uow.Context.WeatherPeriods.Add(new Data.Entities.WeatherPeriod
                 {
                     WeatherTypeId = weatherTypeId,
                     StartDate = now,

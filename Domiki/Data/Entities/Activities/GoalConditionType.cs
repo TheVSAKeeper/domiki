@@ -1,4 +1,4 @@
-﻿namespace Domiki.Web.Data
+﻿namespace Domiki.Web.Data.Entities
 {
     public enum GoalConditionType
     {

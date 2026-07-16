@@ -1,7 +1,12 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Core.Models;
+using Domiki.Web.Economy.Models;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Workers.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Reference
 {
     public class ResourceManager
     {
@@ -21,7 +26,7 @@ namespace Domiki.Web.Business.Core
         private static ExpeditionType[] _expeditionTypes;
         private static DecorType[] _decorTypes;
         private static TolokaType[] _tolokaTypes;
-        private static Data.StarterGoal[] _starterGoals;
+        private static Data.Entities.StarterGoal[] _starterGoals;
 
         public ResourceManager(Data.ApplicationDbContext context)
         {
@@ -87,7 +92,7 @@ namespace Domiki.Web.Business.Core
             return _resourceTypes;
         }
 
-        public Data.StarterGoal[] GetStarterGoals()
+        public Data.Entities.StarterGoal[] GetStarterGoals()
         {
             if (_starterGoals == null)
             {
@@ -260,7 +265,7 @@ namespace Domiki.Web.Business.Core
                 {
                     tolokaType.Effects = effects
                         .Where(x => x.TolokaTypeId == tolokaType.Id)
-                        .Select(x => new Data.TolokaTypeEffect { DomikTypeId = x.DomikTypeId, OutputPercent = x.OutputPercent })
+                        .Select(x => new Data.Entities.TolokaTypeEffect { DomikTypeId = x.DomikTypeId, OutputPercent = x.OutputPercent })
                         .ToArray();
                 }
 

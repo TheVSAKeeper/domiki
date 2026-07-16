@@ -1,7 +1,6 @@
-﻿using Domiki.Web.Business.Core;
-using Microsoft.AspNetCore.Diagnostics;
+﻿using Microsoft.AspNetCore.Diagnostics;
 
-namespace Domiki.Web
+namespace Domiki.Web.Infrastructure
 {
     public class BusinessExceptionHandler : IExceptionHandler
     {

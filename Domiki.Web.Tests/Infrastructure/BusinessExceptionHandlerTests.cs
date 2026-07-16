@@ -1,8 +1,7 @@
-﻿using System.Text;
-using System.Text.Json;
-using Domiki.Web;
-using Domiki.Web.Business.Core;
+﻿using Domiki.Web.Infrastructure;
 using Microsoft.AspNetCore.Http;
+using System.Text.Json;
+using System.Text;
 
 namespace Domiki.Web.Tests
 {

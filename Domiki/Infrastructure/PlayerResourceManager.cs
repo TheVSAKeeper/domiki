@@ -1,7 +1,9 @@
-﻿using Domiki.Web.Business.Models;
+﻿using Domiki.Web.Economy.Models;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Reference;
 using Microsoft.EntityFrameworkCore;
 
-namespace Domiki.Web.Business.Core
+namespace Domiki.Web.Infrastructure
 {
     public class PlayerResourceManager
     {
@@ -46,7 +48,7 @@ namespace Domiki.Web.Business.Core
                 ?? _context.NeighborReputations.FirstOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId);
             if (reputation == null)
             {
-                reputation = new Data.NeighborReputation { PlayerId = playerId, NeighborId = neighborId };
+                reputation = new Data.Entities.NeighborReputation { PlayerId = playerId, NeighborId = neighborId };
                 _context.NeighborReputations.Add(reputation);
             }
 
@@ -64,7 +66,7 @@ namespace Domiki.Web.Business.Core
                 ?? _context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
             if (dbResource == null)
             {
-                dbResource = new Data.Resource { PlayerId = playerId, TypeId = typeId };
+                dbResource = new Data.Entities.Resource { PlayerId = playerId, TypeId = typeId };
                 _context.Resources.Add(dbResource);
             }
 

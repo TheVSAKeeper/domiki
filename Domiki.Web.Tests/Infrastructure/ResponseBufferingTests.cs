@@ -1,6 +1,6 @@
-﻿using System.Text;
-using Domiki.Web;
+﻿using Domiki.Web.Infrastructure;
 using Microsoft.AspNetCore.Http;
+using System.Text;
 
 namespace Domiki.Web.Tests
 {

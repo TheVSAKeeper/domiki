@@ -1,7 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace Domiki.Web.Data
+namespace Domiki.Web.Data.Entities
 {
     [Table("NeighborReputations")]
     public class NeighborReputation

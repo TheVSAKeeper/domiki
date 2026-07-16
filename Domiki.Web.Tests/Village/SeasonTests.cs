@@ -1,7 +1,12 @@
-﻿using Domiki.Web.Business;
-using Domiki.Web.Business.Core;
-using Domiki.Web.Business.Models;
-using Domiki.Web.Models;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Core.Models;
+using Domiki.Web.Core.Scheduling;
+using Domiki.Web.Economy.Models;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Village.Dto;
+using Domiki.Web.Village.Models;
+using Domiki.Web.Village;
 using System.Text.Json;
 
 namespace Domiki.Web.Tests
@@ -281,7 +286,7 @@ namespace Domiki.Web.Tests
                 var decor = uow.Context.PlayerDecors.SingleOrDefault(x => x.PlayerId == playerId && x.DecorTypeId == decorTypeId);
                 if (decor == null)
                 {
-                    decor = new Domiki.Web.Data.PlayerDecor { PlayerId = playerId, DecorTypeId = decorTypeId };
+                    decor = new Data.Entities.PlayerDecor { PlayerId = playerId, DecorTypeId = decorTypeId };
                     uow.Context.PlayerDecors.Add(decor);
                 }
 
@@ -298,7 +303,7 @@ namespace Domiki.Web.Tests
                 var resource = uow.Context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
                 if (resource == null)
                 {
-                    resource = new Domiki.Web.Data.Resource { PlayerId = playerId, TypeId = typeId };
+                    resource = new Data.Entities.Resource { PlayerId = playerId, TypeId = typeId };
                     uow.Context.Resources.Add(resource);
                 }
 
@@ -315,7 +320,7 @@ namespace Domiki.Web.Tests
                 var nextId = (uow.Context.Domiks.Where(x => x.PlayerId == playerId).Max(x => (int?)x.Id) ?? 0) + 1;
                 for (var i = 0; i < count; i++)
                 {
-                    uow.Context.Domiks.Add(new Domiki.Web.Data.Domik { PlayerId = playerId, Id = nextId + i, TypeId = BarracksTypeId, Level = 1 });
+                    uow.Context.Domiks.Add(new Data.Entities.Domik { PlayerId = playerId, Id = nextId + i, TypeId = BarracksTypeId, Level = 1 });
                 }
                 uow.Commit();
             }
@@ -337,7 +342,7 @@ namespace Domiki.Web.Tests
             {
                 if (!uow.Context.Domiks.Any(x => x.PlayerId == playerId && x.TypeId == typeId))
                 {
-                    uow.Context.Domiks.Add(new Domiki.Web.Data.Domik
+                    uow.Context.Domiks.Add(new Data.Entities.Domik
                     {
                         PlayerId = playerId,
                         Id = -typeId,
@@ -407,7 +412,7 @@ namespace Domiki.Web.Tests
                 var counter = uow.Context.SeasonCounters.SingleOrDefault(x => x.SeasonId == seasonId && x.PlayerId == playerId && x.Metric == (int)metric);
                 if (counter == null)
                 {
-                    counter = new Domiki.Web.Data.SeasonCounter { SeasonId = seasonId, PlayerId = playerId, Metric = (int)metric };
+                    counter = new Data.Entities.SeasonCounter { SeasonId = seasonId, PlayerId = playerId, Metric = (int)metric };
                     uow.Context.SeasonCounters.Add(counter);
                 }
 
@@ -461,7 +466,7 @@ namespace Domiki.Web.Tests
                 uow.Context.TolokaContributions.RemoveRange(uow.Context.TolokaContributions);
                 uow.Context.Tolokas.RemoveRange(uow.Context.Tolokas);
                 uow.Context.SaveChanges();
-                uow.Context.Tolokas.Add(new Domiki.Web.Data.Toloka
+                uow.Context.Tolokas.Add(new Data.Entities.Toloka
                 {
                     TolokaTypeId = BridgeTolokaTypeId,
                     Collected = 0,
