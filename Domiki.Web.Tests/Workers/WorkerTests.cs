@@ -41,14 +41,14 @@ public sealed class WorkerTests
     public void ConcurrentGetWorkersDoesNotThrowTest()
     {
         var player = TestPlayer.Create();
-        Assert.That(player.Workers().Length, Is.EqualTo(1));
+        Assert.That(player.Workers().Count, Is.EqualTo(1));
 
         var errorCount = 0;
         Parallel.ForEach(Enumerable.Range(0, 16), _ =>
         {
             try
             {
-                Assert.That(player.Workers().Length, Is.EqualTo(1));
+                Assert.That(player.Workers().Count, Is.EqualTo(1));
             }
             catch (Exception)
             {
@@ -131,12 +131,12 @@ public sealed class WorkerTests
     public void GetWorkersMatchesBedCapacityTest()
     {
         var player = TestPlayer.Create();
-        Assert.That(player.Workers().Length, Is.EqualTo(1));
+        Assert.That(player.Workers().Count, Is.EqualTo(1));
 
         player.WithDomik(DomikIds.Barrack);
 
         var workers = player.Workers();
-        Assert.That(workers.Length, Is.EqualTo(2));
+        Assert.That(workers.Count, Is.EqualTo(2));
         Assert.That(workers.All(x => x.ManufactureId == null), Is.True);
     }
 
@@ -241,7 +241,7 @@ public sealed class WorkerTests
             player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, [busyWorkerId]);
         }
 
-        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(4, ReceiptIds.ClayDig, [busyWorkerId]));
+        var ex = Throws.Business(() => player.StartManufacture(4, ReceiptIds.ClayDig, [busyWorkerId]));
         Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
     }
 
@@ -262,7 +262,7 @@ public sealed class WorkerTests
         var workerId = player.Workers().First().Id;
         var workerIds = Enumerable.Repeat(workerId, chosenCount).ToArray();
 
-        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(7, ReceiptIds.ClayDigTogether, workerIds));
+        var ex = Throws.Business(() => player.StartManufacture(7, ReceiptIds.ClayDigTogether, workerIds));
         Assert.That(ex.Message, Is.EqualTo("Дублирующиеся трудяги"));
     }
 
@@ -276,7 +276,7 @@ public sealed class WorkerTests
         var other = TestPlayer.Create();
         var foreignWorkerId = other.Workers().Single().Id;
 
-        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, [foreignWorkerId]));
+        var ex = Throws.Business(() => player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, [foreignWorkerId]));
         Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
     }
 
@@ -292,7 +292,7 @@ public sealed class WorkerTests
         var restingWorkerId = player.Workers()[0].Id;
         player.SetWorkerRest(restingWorkerId, DateTimeHelper.GetNowDate().AddHours(1));
 
-        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, [restingWorkerId]));
+        var ex = Throws.Business(() => player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, [restingWorkerId]));
         Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
     }
 
@@ -309,7 +309,7 @@ public sealed class WorkerTests
 
         var workerIds = player.Workers().Select(x => x.Id).ToArray();
 
-        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(4, ReceiptIds.ClayDig, workerIds));
+        var ex = Throws.Business(() => player.StartManufacture(4, ReceiptIds.ClayDig, workerIds));
         Assert.That(ex.Message, Is.EqualTo("Неверное число трудяг"));
     }
 
@@ -371,7 +371,7 @@ public sealed class WorkerTests
             player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig);
         }
 
-        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(3, ReceiptIds.ClayDig));
+        var ex = Throws.Business(() => player.StartManufacture(3, ReceiptIds.ClayDig));
         Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
     }
 
@@ -407,11 +407,11 @@ public sealed class WorkerTests
         var player = TestPlayer.Create()
             .WithDomik(DomikIds.Barrack);
 
-        Assert.That(player.Workers().Length, Is.EqualTo(2));
+        Assert.That(player.Workers().Count, Is.EqualTo(2));
 
         player.Upgrade(StartingDomikIds.Barrack);
 
-        Assert.That(player.Workers().Length, Is.EqualTo(3));
+        Assert.That(player.Workers().Count, Is.EqualTo(3));
     }
 
     /// <summary>
@@ -562,7 +562,7 @@ public sealed class WorkerTests
         var worker = player.Workers().Single();
         player.SetWorkerRest(worker.Id, DateTimeHelper.GetNowDate().AddHours(1));
 
-        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(StartingDomikIds.ClayMine, receiptId));
+        var ex = Throws.Business(() => player.StartManufacture(StartingDomikIds.ClayMine, receiptId));
         Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
     }
 

@@ -107,11 +107,11 @@ public sealed class TolokaTests
         var player = TestPlayer.Create()
             .WithResource(ResourceIds.Stone, startStone);
 
-        var ex = Assert.Throws<BusinessException>(() => player.Contribute(50));
+        var ex = Throws.Business(() => player.Contribute(50));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex!.Message, Is.EqualTo("Нужна Сходня"));
+            Assert.That(ex.Message, Is.EqualTo("Нужна Сходня"));
             Assert.That(GetActiveToloka().Collected, Is.Zero);
             Assert.That(player.Resource(ResourceIds.Stone), Is.EqualTo(startStone));
         }
@@ -126,11 +126,11 @@ public sealed class TolokaTests
         var player = TestPlayer.Create()
             .WithTolokaUnlocked();
 
-        var ex = Assert.Throws<BusinessException>(() => player.Contribute(50));
+        var ex = Throws.Business(() => player.Contribute(50));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex!.Message, Does.StartWith("Недостаточно "));
+            Assert.That(ex.Message, Does.StartWith("Недостаточно "));
             Assert.That(GetActiveToloka().Collected, Is.Zero);
         }
     }
@@ -380,11 +380,11 @@ public sealed class TolokaTests
             .WithTolokaUnlocked()
             .WithResource(ResourceIds.Stone, 100);
 
-        var ex = Assert.Throws<BusinessException>(() => player.Contribute(amount));
+        var ex = Throws.Business(() => player.Contribute(amount));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex!.Message, Is.EqualTo("Неверное количество"));
+            Assert.That(ex.Message, Is.EqualTo("Неверное количество"));
             Assert.That(GetActiveToloka().Collected, Is.Zero);
         }
     }

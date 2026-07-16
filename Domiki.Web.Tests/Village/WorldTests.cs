@@ -89,8 +89,8 @@ public sealed class WorldTests
     {
         var unnamed = TestPlayer.Create();
 
-        var missingEx = Assert.Throws<BusinessException>(() => VillageActs.VisitPlayer(int.MaxValue));
-        var unnamedEx = Assert.Throws<BusinessException>(() => unnamed.Visit());
+        var missingEx = Throws.Business(() => VillageActs.VisitPlayer(int.MaxValue));
+        var unnamedEx = Throws.Business(() => unnamed.Visit());
 
         using (Assert.EnterMultipleScope())
         {

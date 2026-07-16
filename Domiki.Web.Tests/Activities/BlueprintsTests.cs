@@ -17,9 +17,9 @@ public sealed class BlueprintsTests
         var player = TestPlayer.Create()
             .WithResource(ResourceIds.Coin, 1000);
 
-        var ex = Assert.Throws<BusinessException>(() => player.Buy(DomikIds.Stonecutter));
+        var ex = Throws.Business(() => player.Buy(DomikIds.Stonecutter));
 
-        Assert.That(ex!.Message, Does.Contain("чертёж"));
+        Assert.That(ex.Message, Does.Contain("чертёж"));
     }
 
     /// <summary>
@@ -73,11 +73,11 @@ public sealed class BlueprintsTests
             .WithReputation(BorovoeId, 29);
 
         var before = player.Resources();
-        var ex = Assert.Throws<BusinessException>(() => player.Buy(DomikIds.Workshop));
+        var ex = Throws.Business(() => player.Buy(DomikIds.Workshop));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex!.Message, Is.EqualTo("Нужен чертёж (репутация Боровое 30)"));
+            Assert.That(ex.Message, Is.EqualTo("Нужен чертёж (репутация Боровое 30)"));
             Assert.That(player.Resources().Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo(before.Select(x => (x.Type.Id, x.Value))));
             Assert.That(player.Domiks().Count(x => x.Type.Id == DomikIds.Workshop), Is.Zero);
         }
@@ -181,9 +181,9 @@ public sealed class BlueprintsTests
 
 file static class BlueprintsTestsActs
 {
-    public static PlayerBlueprint[] Blueprints(this TestPlayer p)
+    public static IReadOnlyList<PlayerBlueprint> Blueprints(this TestPlayer p)
     {
-        return App.Act<BlueprintManager, PlayerBlueprint[]>(m => m.GetBlueprints(p.Id).ToArray());
+        return App.Act<BlueprintManager, IReadOnlyList<PlayerBlueprint>>(m => m.GetBlueprints(p.Id).ToList());
     }
 
     public static bool GrantBlueprint(this TestPlayer p, int blueprintId)

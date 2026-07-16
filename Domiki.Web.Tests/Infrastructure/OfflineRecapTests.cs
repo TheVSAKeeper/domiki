@@ -57,8 +57,8 @@ file static class OfflineRecapTestsActs
         return App.Act<PlayerEventManager, RecapModel>(m => m.TakeRecap(p.Id, now));
     }
 
-    public static List<RecapEventModel> RecentEvents(this TestPlayer p)
+    public static IReadOnlyList<RecapEventModel> RecentEvents(this TestPlayer p)
     {
-        return App.Act<PlayerEventManager, List<RecapEventModel>>(m => m.GetRecentEvents(p.Id));
+        return App.Act<PlayerEventManager, IReadOnlyList<RecapEventModel>>(m => m.GetRecentEvents(p.Id).ToList());
     }
 }

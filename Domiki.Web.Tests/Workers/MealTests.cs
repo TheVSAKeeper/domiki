@@ -73,7 +73,7 @@ public sealed class MealTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(worker.RestUntil, Is.Not.Null);
-            Assert.That((worker.RestUntil!.Value - finishDate).TotalSeconds, Is.EqualTo(expectedRestSeconds).Within(2));
+            Assert.That((worker.RestUntilValue() - finishDate).TotalSeconds, Is.EqualTo(expectedRestSeconds).Within(2));
             Assert.That(player.Resource(ResourceIds.Bread), Is.EqualTo(expectedBread));
         }
     }

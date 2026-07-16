@@ -8,9 +8,21 @@ namespace Domiki.Web.Tests;
 
 public static class WorkersActs
 {
-    public static Worker[] Workers(this TestPlayer p)
+    public static IReadOnlyList<Worker> Workers(this TestPlayer p)
     {
-        return App.Act<WorkerManager, Worker[]>(m => m.GetWorkers(p.Id).ToArray());
+        return App.Act<WorkerManager, IReadOnlyList<Worker>>(m => m.GetWorkers(p.Id).ToList());
+    }
+
+    public static DateTime RestUntilValue(this Worker worker)
+    {
+        Assert.That(worker.RestUntil, Is.Not.Null);
+        return worker.RestUntil!.Value;
+    }
+
+    public static DateTime SickUntilValue(this Worker worker)
+    {
+        Assert.That(worker.SickUntil, Is.Not.Null);
+        return worker.SickUntil!.Value;
     }
 
     public static TestPlayer StartManufacture(this TestPlayer p, int domikId, int receiptId, int[]? workerIds, bool useOptional = false)

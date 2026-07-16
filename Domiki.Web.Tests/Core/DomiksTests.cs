@@ -297,7 +297,7 @@ public sealed class DomiksTests
     {
         var player = TestPlayer.Create();
         player.WithDomik(DomikIds.ClayMine, 0);
-        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(3, ReceiptIds.ClayDig));
+        var ex = Throws.Business(() => player.StartManufacture(3, ReceiptIds.ClayDig));
         Assert.That(ex.Message, Is.EqualTo("Домик ещё строится"));
     }
 

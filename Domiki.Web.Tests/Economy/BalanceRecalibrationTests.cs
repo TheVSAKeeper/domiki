@@ -108,7 +108,7 @@ public sealed class BalanceRecalibrationTests
 
         var workers = player.Workers();
 
-        Assert.That(workers.Select(x => x.Name).Distinct().Count(), Is.EqualTo(workers.Length));
+        Assert.That(workers.Select(x => x.Name).Distinct().Count(), Is.EqualTo(workers.Count));
     }
 
     /// <summary>

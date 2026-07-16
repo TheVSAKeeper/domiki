@@ -81,7 +81,7 @@ public sealed class ProvisionsTests
                 using (Assert.EnterMultipleScope())
                 {
                     Assert.That(worker.RestUntil, Is.Not.Null);
-                    Assert.That((worker.RestUntil!.Value - expedition.FinishDate).TotalSeconds,
+                    Assert.That((worker.RestUntilValue() - expedition.FinishDate).TotalSeconds,
                         Is.EqualTo(ExpeditionManager.ExpeditionRestSeconds).Within(2));
                 }
             }

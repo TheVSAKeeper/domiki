@@ -3,7 +3,6 @@ using Domiki.Web.Core.Scheduling;
 using Domiki.Web.Data.Entities;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Infrastructure.Models;
-using Domiki.Web.Workers;
 using System.Text.Json;
 using PlayerEventType = Domiki.Web.Data.Entities.PlayerEventType;
 
@@ -55,7 +54,7 @@ public sealed class AutoRepeatTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(player.ManufactureCount(4), Is.Zero);
-            Assert.That(player.WorkerList().All(x => x.ManufactureId == null), Is.True);
+            Assert.That(player.Workers().All(x => x.ManufactureId == null), Is.True);
             Assert.That(player.Resource(ResourceIds.Clay), Is.Zero);
             Assert.That(player.Resource(ResourceIds.Dishes), Is.EqualTo(2));
         }
@@ -116,7 +115,7 @@ public sealed class AutoRepeatTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(player.ManufactureCount(4), Is.Zero);
-            Assert.That(player.WorkerList().All(x => x.ManufactureId == null), Is.True);
+            Assert.That(player.Workers().All(x => x.ManufactureId == null), Is.True);
             Assert.That(player.Resource(ResourceIds.Iron), Is.EqualTo(1));
             Assert.That(player.Resource(ResourceIds.Board), Is.Zero);
             Assert.That(player.Resource(ResourceIds.Tool), Is.EqualTo(1));
@@ -164,11 +163,6 @@ file static class AutoRepeatTestsActs
     public static int ManufactureCount(this TestPlayer p, int domikId)
     {
         return App.Read(context => context.Manufactures.Count(x => x.DomikPlayerId == p.Id && x.DomikId == domikId));
-    }
-
-    public static IReadOnlyList<Domiki.Web.Workers.Models.Worker> WorkerList(this TestPlayer p)
-    {
-        return App.Act<WorkerManager, IReadOnlyList<Domiki.Web.Workers.Models.Worker>>(m => m.GetWorkers(p.Id).ToList());
     }
 
     public static TestPlayer RecordManufactureFinished(this TestPlayer p, int domikTypeId)

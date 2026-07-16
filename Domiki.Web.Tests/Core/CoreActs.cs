@@ -37,9 +37,9 @@ public static class CoreActs
         return p;
     }
 
-    public static IEnumerable<(DomikType Type, int AvailableCount, int? NextCountGateLevel)> PurchaseAvailableDomiks(this TestPlayer p)
+    public static IReadOnlyList<(DomikType Type, int AvailableCount, int? NextCountGateLevel)> PurchaseAvailableDomiks(this TestPlayer p)
     {
-        return App.Act<DomikManager, IEnumerable<(DomikType Type, int AvailableCount, int? NextCountGateLevel)>>(m => m.GetPurchaseAvailableDomiks(p.Id).ToList());
+        return App.Act<DomikManager, IReadOnlyList<(DomikType Type, int AvailableCount, int? NextCountGateLevel)>>(m => m.GetPurchaseAvailableDomiks(p.Id).ToList());
     }
 
     public static VillageLevel GetVillageLevel(this TestPlayer p)

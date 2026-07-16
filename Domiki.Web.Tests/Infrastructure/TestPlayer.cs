@@ -10,7 +10,7 @@ using Resource = Domiki.Web.Reference.Models.Resource;
 
 namespace Domiki.Web.Tests;
 
-public class TestPlayer
+public sealed class TestPlayer
 {
     private TestPlayer(int id)
     {

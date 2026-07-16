@@ -31,12 +31,12 @@ public sealed class GoalsTests
         var coinsBeforeGoalsRead = player.Resource(ResourceIds.Coin);
         var state = player.Goals();
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(player.CompletedGoalIds(), Is.EqualTo([1, 2, 3, 4, 5]));
-            Assert.That(state.ActiveGoal!.Ordinal, Is.EqualTo(6));
+            Assert.That(state.ActiveGoal().Ordinal, Is.EqualTo(6));
             Assert.That(player.Resource(ResourceIds.Coin) - coinsBeforeGoalsRead, Is.EqualTo(fifthGoalReward));
-        });
+        }
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ public sealed class GoalsTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(player.CompletedGoalIds(), Does.Contain(6));
-            Assert.That(state.ActiveGoal!.Ordinal, Is.EqualTo(7));
+            Assert.That(state.ActiveGoal().Ordinal, Is.EqualTo(7));
         }
     }
 
@@ -71,12 +71,12 @@ public sealed class GoalsTests
         SeedCompletedGoals(player.Id, 1, 2, 3, 4, 5, 6);
 
         player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig);
-        Assert.That(player.Goals().ActiveGoal!.Ordinal, Is.EqualTo(7));
+        Assert.That(player.Goals().ActiveGoal().Ordinal, Is.EqualTo(7));
 
         player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(player.Goals().ActiveGoal!.Ordinal, Is.EqualTo(8));
+            Assert.That(player.Goals().ActiveGoal().Ordinal, Is.EqualTo(8));
             Assert.That(player.CompletedGoalIds(), Does.Contain(7));
         }
     }
@@ -95,16 +95,16 @@ public sealed class GoalsTests
         player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig);
         var state = player.Goals();
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
-            Assert.That(initial.ActiveGoal!.Ordinal, Is.EqualTo(1));
+            Assert.That(initial.ActiveGoal().Ordinal, Is.EqualTo(1));
             Assert.That(initial.CompletedCount, Is.Zero);
             Assert.That(initial.TotalCount, Is.EqualTo(9));
             Assert.That(player.CompletedGoalIds(), Is.EqualTo([1]));
-            Assert.That(state.ActiveGoal!.Ordinal, Is.EqualTo(2));
+            Assert.That(state.ActiveGoal().Ordinal, Is.EqualTo(2));
             Assert.That(state.CompletedCount, Is.EqualTo(1));
             Assert.That(player.Resource(ResourceIds.Coin), Is.EqualTo(DomikManager.StartingCoins + firstGoalRewardCoins));
-        });
+        }
 
         var entry = player.GoalEvent(1);
         using var data = JsonDocument.Parse(entry.Data);
@@ -132,12 +132,12 @@ public sealed class GoalsTests
 
         var coinsBeforeGoalsRead = player.Resource(ResourceIds.Coin);
         var state = player.Goals();
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
-            Assert.That(state.ActiveGoal!.Ordinal, Is.EqualTo(3));
+            Assert.That(state.ActiveGoal().Ordinal, Is.EqualTo(3));
             Assert.That(state.CompletedCount, Is.EqualTo(2));
             Assert.That(player.Resource(ResourceIds.Coin) - coinsBeforeGoalsRead, Is.EqualTo(secondGoalReward));
-        });
+        }
     }
 
     /// <summary>
@@ -158,11 +158,11 @@ public sealed class GoalsTests
         player.StartManufacture(marketId, ReceiptIds.SellClay);
         var afterFirstSale = player.Goals();
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(player.CompletedGoalIds(), Is.EqualTo([1, 2]));
-            Assert.That(afterFirstSale.ActiveGoal!.Ordinal, Is.EqualTo(3));
-        });
+            Assert.That(afterFirstSale.ActiveGoal().Ordinal, Is.EqualTo(3));
+        }
 
         var coinsBeforeSecondSale = player.Resource(ResourceIds.Coin);
         using (App.PendingEvents())
@@ -174,7 +174,7 @@ public sealed class GoalsTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(afterSecondSale.ActiveGoal!.Ordinal, Is.EqualTo(4));
+            Assert.That(afterSecondSale.ActiveGoal().Ordinal, Is.EqualTo(4));
             Assert.That(player.CompletedGoalIds(), Is.EqualTo([1, 2, 3]));
             Assert.That(player.Resource(ResourceIds.Coin) - coinsBeforeSecondSale, Is.EqualTo(thirdGoalReward));
         }
@@ -196,11 +196,11 @@ public sealed class GoalsTests
         player.StartManufacture(player.DomikId(DomikIds.Market), ReceiptIds.SellClay);
         var state = player.Goals();
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(player.CompletedGoalIds(), Is.EqualTo([1, 2, 3]));
-            Assert.That(state.ActiveGoal!.Ordinal, Is.EqualTo(4));
-        });
+            Assert.That(state.ActiveGoal().Ordinal, Is.EqualTo(4));
+        }
     }
 
     /// <summary>
@@ -221,12 +221,12 @@ public sealed class GoalsTests
 
         var state = player.Goals();
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
-            Assert.That(state.ActiveGoal!.Ordinal, Is.EqualTo(3));
+            Assert.That(state.ActiveGoal().Ordinal, Is.EqualTo(3));
             Assert.That(state.CompletedCount, Is.EqualTo(2));
             Assert.That(player.Resource(ResourceIds.Coin), Is.EqualTo(firstAndSecondGoalReward));
-        });
+        }
     }
 
     /// <summary>
@@ -247,12 +247,12 @@ public sealed class GoalsTests
         var coinsBeforeGoalsRead = player.Resource(ResourceIds.Coin);
         var state = player.Goals();
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
-            Assert.That(state.ActiveGoal!.Ordinal, Is.EqualTo(9));
+            Assert.That(state.ActiveGoal().Ordinal, Is.EqualTo(9));
             Assert.That(player.CompletedGoalIds(), Does.Contain(8));
             Assert.That(player.Resource(ResourceIds.Coin) - coinsBeforeGoalsRead, Is.EqualTo(eighthGoalReward));
-        });
+        }
     }
 
     /// <summary>
@@ -272,12 +272,12 @@ public sealed class GoalsTests
         Assert.That(player.GetVillageLevel().Level, Is.GreaterThanOrEqualTo(10));
         var state = player.Goals();
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(state.ActiveGoal, Is.Null);
             Assert.That(state.CompletedCount, Is.EqualTo(9));
             Assert.That(player.Resource(ResourceIds.Coin), Is.EqualTo(allGoalsRewardCoins));
-        });
+        }
     }
 
     private static void SeedCompletedGoals(int playerId, params int[] goalIds)
@@ -331,9 +331,15 @@ file static class GoalsTestsActs
         return App.Act<GoalManager, GoalsState>(m => m.GetGoalsState(p.Id));
     }
 
-    public static int[] CompletedGoalIds(this TestPlayer p)
+    public static ActiveGoal ActiveGoal(this GoalsState state)
     {
-        return App.Read(context => context.PlayerGoals.Where(x => x.PlayerId == p.Id).OrderBy(x => x.GoalId).Select(x => x.GoalId).ToArray());
+        Assert.That(state.ActiveGoal, Is.Not.Null);
+        return state.ActiveGoal!;
+    }
+
+    public static IReadOnlyList<int> CompletedGoalIds(this TestPlayer p)
+    {
+        return App.Read(context => context.PlayerGoals.Where(x => x.PlayerId == p.Id).OrderBy(x => x.GoalId).Select(x => x.GoalId).ToList());
     }
 
     public static PlayerEvent GoalEvent(this TestPlayer p, int goalId)

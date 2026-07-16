@@ -1,5 +1,4 @@
 ﻿using Domiki.Web.Infrastructure;
-using Domiki.Web.Workers;
 
 namespace Domiki.Web.Tests;
 
@@ -52,7 +51,7 @@ public sealed class InstaFinishTests
     {
         var player = TestPlayer.Create();
 
-        var ex = Assert.Throws<BusinessException>(() => player.HurryDomik(StartingDomikIds.Barrack));
+        var ex = Throws.Business(() => player.HurryDomik(StartingDomikIds.Barrack));
 
         Assert.That(ex.Message, Is.EqualTo("Домик не улучшается"));
     }
@@ -74,7 +73,7 @@ public sealed class InstaFinishTests
             Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(2));
             Assert.That(player.Resource(ResourceIds.Clay), Is.EqualTo(1));
             Assert.That(player.Domiks().Single(x => x.Id == StartingDomikIds.ClayMine).Manufactures, Is.Null.Or.Empty);
-            Assert.That(player.WorkerList().Single().ManufactureId, Is.Null);
+            Assert.That(player.Workers().Single().ManufactureId, Is.Null);
         }
     }
 
@@ -101,7 +100,7 @@ public sealed class InstaFinishTests
         player.WithResource(ResourceIds.Gold, 10);
         SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddHours(6).AddSeconds(1));
 
-        var ex = Assert.Throws<BusinessException>(() => player.HurryManufacture(manufactureId));
+        var ex = Throws.Business(() => player.HurryManufacture(manufactureId));
 
         using (Assert.EnterMultipleScope())
         {
@@ -137,7 +136,7 @@ public sealed class InstaFinishTests
         player.WithResource(ResourceIds.Gold, 1);
         SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddHours(2));
 
-        var ex = Assert.Throws<BusinessException>(() => player.HurryManufacture(manufactureId));
+        var ex = Throws.Business(() => player.HurryManufacture(manufactureId));
 
         using (Assert.EnterMultipleScope())
         {
@@ -200,13 +199,5 @@ public sealed class InstaFinishTests
         Assert.That(domik.UpgradeSeconds, Is.Not.Null);
         domik.UpgradeCalculateDate = finishDate.AddSeconds(-domik.UpgradeSeconds!.Value);
         scope.Commit();
-    }
-}
-
-file static class InstaFinishTestsActs
-{
-    public static IReadOnlyList<Domiki.Web.Workers.Models.Worker> WorkerList(this TestPlayer p)
-    {
-        return App.Act<WorkerManager, IReadOnlyList<Domiki.Web.Workers.Models.Worker>>(m => m.GetWorkers(p.Id).ToList());
     }
 }

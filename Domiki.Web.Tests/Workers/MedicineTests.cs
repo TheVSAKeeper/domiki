@@ -140,7 +140,7 @@ public sealed class MedicineTests
             {
                 Assert.That(worker.SickUntil, Is.Not.Null);
                 Assert.That(worker.RestUntil, Is.EqualTo(worker.SickUntil));
-                Assert.That((worker.SickUntil!.Value - finishDate).TotalSeconds, Is.EqualTo(DomikManager.SickDurationSeconds).Within(2));
+                Assert.That((worker.SickUntilValue() - finishDate).TotalSeconds, Is.EqualTo(DomikManager.SickDurationSeconds).Within(2));
             }
         }
         else

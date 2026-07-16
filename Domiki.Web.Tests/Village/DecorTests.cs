@@ -17,7 +17,7 @@ public sealed class DecorTests
     {
         var player = TestPlayer.Create();
 
-        var ex = Assert.Throws<BusinessException>(() => player.BuyDecor(DecorIds.Fence));
+        var ex = Throws.Business(() => player.BuyDecor(DecorIds.Fence));
 
         Assert.That(ex.Message, Does.StartWith("Недостаточно "));
         var decor = player.Decor();
@@ -38,7 +38,7 @@ public sealed class DecorTests
             .WithResource(ResourceIds.Brick, 20)
             .WithResource(ResourceIds.Block, 10);
 
-        var ex = Assert.Throws<BusinessException>(() => player.BuyDecor(DecorIds.BrickArch));
+        var ex = Throws.Business(() => player.BuyDecor(DecorIds.BrickArch));
 
         Assert.That(ex.Message, Does.Contain("репутац"));
     }
@@ -68,7 +68,7 @@ public sealed class DecorTests
     {
         var player = TestPlayer.Create();
 
-        var ex = Assert.Throws<BusinessException>(() => player.BuyDecor(DecorIds.TrailIdol));
+        var ex = Throws.Business(() => player.BuyDecor(DecorIds.TrailIdol));
 
         using (Assert.EnterMultipleScope())
         {
@@ -85,7 +85,7 @@ public sealed class DecorTests
     {
         var player = TestPlayer.Create();
 
-        var ex = Assert.Throws<BusinessException>(() => player.BuyDecor(999));
+        var ex = Throws.Business(() => player.BuyDecor(999));
 
         Assert.That(ex.Message, Is.EqualTo("Декор не найден"));
     }

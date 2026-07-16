@@ -244,7 +244,7 @@ public sealed class ExpeditionTests
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(worker.RestUntil, Is.Not.Null);
-                Assert.That((worker.RestUntil!.Value - finishDate.AddSeconds(ExpeditionManager.ExpeditionRestSeconds)).TotalSeconds, Is.Zero.Within(2));
+                Assert.That((worker.RestUntilValue() - finishDate.AddSeconds(ExpeditionManager.ExpeditionRestSeconds)).TotalSeconds, Is.Zero.Within(2));
             }
         }
     }
@@ -410,8 +410,8 @@ public sealed class ExpeditionTests
 
         StartExpedition(player, ShortScoutId);
 
-        var ex = Assert.Throws<BusinessException>(() => StartExpedition(player, ShortScoutId));
-        Assert.That(ex!.Message, Is.EqualTo("Все отряды в походе – улучшите Сторожку"));
+        var ex = Throws.Business(() => StartExpedition(player, ShortScoutId));
+        Assert.That(ex.Message, Is.EqualTo("Все отряды в походе – улучшите Сторожку"));
     }
 
     /// <summary>
@@ -432,9 +432,9 @@ public sealed class ExpeditionTests
             player.StartManufacture(6, ReceiptIds.ClayDig, [workerIds[0]]);
         }
 
-        var ex = Assert.Throws<BusinessException>(() => StartExpedition(player, ShortScoutId, [workerIds[0], workerIds[1]]));
+        var ex = Throws.Business(() => StartExpedition(player, ShortScoutId, [workerIds[0], workerIds[1]]));
 
-        Assert.That(ex!.Message, Is.EqualTo("Трудяга недоступен"));
+        Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
     }
 
     /// <summary>
@@ -471,9 +471,9 @@ public sealed class ExpeditionTests
 
         var workerId = player.Workers().First().Id;
 
-        var ex = Assert.Throws<BusinessException>(() => StartExpedition(player, ShortScoutId, [workerId, workerId]));
+        var ex = Throws.Business(() => StartExpedition(player, ShortScoutId, [workerId, workerId]));
 
-        Assert.That(ex!.Message, Is.EqualTo("Дублирующиеся трудяги"));
+        Assert.That(ex.Message, Is.EqualTo("Дублирующиеся трудяги"));
     }
 
     /// <summary>
@@ -484,9 +484,9 @@ public sealed class ExpeditionTests
     {
         var player = TestPlayer.Create();
 
-        var ex = Assert.Throws<BusinessException>(() => player.StartExpedition(ShortScoutId));
+        var ex = Throws.Business(() => player.StartExpedition(ShortScoutId));
 
-        Assert.That(ex!.Message, Is.EqualTo("Нужна Сторожка"));
+        Assert.That(ex.Message, Is.EqualTo("Нужна Сторожка"));
     }
 
     /// <summary>
@@ -499,11 +499,11 @@ public sealed class ExpeditionTests
             .WithDomiks(DomikIds.Barrack, 2)
             .WithResource(ResourceIds.Board, 2);
 
-        var ex = Assert.Throws<BusinessException>(() => StartExpedition(player, ShortScoutId));
+        var ex = Throws.Business(() => StartExpedition(player, ShortScoutId));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex!.Message, Is.EqualTo("Недостаточно Золото"));
+            Assert.That(ex.Message, Is.EqualTo("Недостаточно Золото"));
             Assert.That(player.Expeditions().Active, Is.Empty);
             Assert.That(player.Workers().All(x => x.ExpeditionId == null), Is.True);
             Assert.That(player.Resource(ResourceIds.Board), Is.EqualTo(2));
@@ -521,11 +521,11 @@ public sealed class ExpeditionTests
             .WithDomiks(DomikIds.Barrack, 2)
             .WithResource(ResourceIds.Gold, 1);
 
-        var ex = Assert.Throws<BusinessException>(() => StartExpedition(player, ShortScoutId));
+        var ex = Throws.Business(() => StartExpedition(player, ShortScoutId));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex!.Message, Is.EqualTo("Недостаточно Доска"));
+            Assert.That(ex.Message, Is.EqualTo("Недостаточно Доска"));
             Assert.That(player.Expeditions().Active, Is.Empty);
             Assert.That(player.Workers().All(x => x.ExpeditionId == null), Is.True);
             Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(1));
@@ -559,11 +559,11 @@ public sealed class ExpeditionTests
 
         var oneWorker = player.Workers().Select(x => x.Id).Take(1).ToArray();
 
-        var ex = Assert.Throws<BusinessException>(() => StartExpedition(player, ShortScoutId, oneWorker));
+        var ex = Throws.Business(() => StartExpedition(player, ShortScoutId, oneWorker));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex!.Message, Is.EqualTo("Неверное число трудяг"));
+            Assert.That(ex.Message, Is.EqualTo("Неверное число трудяг"));
             Assert.That(player.Expeditions().Active, Is.Empty);
             Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(1));
         }
@@ -583,8 +583,8 @@ public sealed class ExpeditionTests
 
         StartExpedition(player, ShortScoutId);
 
-        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(4, ReceiptIds.ClayDig));
-        Assert.That(ex!.Message, Is.EqualTo("Недостаточно трудяг"));
+        var ex = Throws.Business(() => player.StartManufacture(4, ReceiptIds.ClayDig));
+        Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
     }
 
     /// <summary>
@@ -642,8 +642,8 @@ public sealed class ExpeditionTests
 
         occupy(player, workerIds);
 
-        var ex = Assert.Throws<BusinessException>(() => StartExpedition(player, ShortScoutId));
-        Assert.That(ex!.Message, Is.EqualTo("Недостаточно трудяг"));
+        var ex = Throws.Business(() => StartExpedition(player, ShortScoutId));
+        Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
     }
 
     /// <summary>
@@ -657,7 +657,7 @@ public sealed class ExpeditionTests
         using var scope = App.Scope();
         var type = scope.Get<ResourceManager>().GetExpeditionTypes().Single(x => x.Id == expeditionTypeId);
 
-        Assert.That(type.Equipment.Select(x => x.ResourceTypeId).Intersect(type.Loot.Where(x => x.ResourceTypeId.HasValue).Select(x => x.ResourceTypeId!.Value)), Is.Empty);
+        Assert.That(type.Equipment.Select(x => x.ResourceTypeId).Intersect(type.Loot.Where(x => x.ResourceTypeId.HasValue).Select(x => x.ResourceTypeId ?? 0)), Is.Empty);
         scope.Commit();
     }
 

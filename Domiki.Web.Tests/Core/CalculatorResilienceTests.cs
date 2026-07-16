@@ -119,8 +119,17 @@ public sealed class CalculatorResilienceTests
         }
 
         var deferred = calc.PendingForTest.SingleOrDefault(x => x.ObjectId == 100);
-        Assert.That(deferred, Is.Not.Null, "ядовитое событие отложено, а не потеряно");
-        Assert.That(deferred!.Date, Is.GreaterThan(now), "ядовитое событие перенесено в будущее для повторной попытки");
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(deferred, Is.Not.Null, "ядовитое событие отложено, а не потеряно");
+            Assert.That(DeferredDate(deferred), Is.GreaterThan(now), "ядовитое событие перенесено в будущее для повторной попытки");
+        }
+    }
+
+    private static DateTime DeferredDate(CalculateInfo? calculateInfo)
+    {
+        Assert.That(calculateInfo, Is.Not.Null);
+        return calculateInfo!.Date;
     }
 
     private sealed class PoisonCalculator : Calculator
