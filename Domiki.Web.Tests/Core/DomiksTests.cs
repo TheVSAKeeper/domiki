@@ -1,12 +1,12 @@
 ﻿using Domiki.Web.Core;
 using Domiki.Web.Core.Models;
 using Domiki.Web.Infrastructure;
-using Domiki.Web.Reference.Models;
+using Domiki.Web.Reference;
 using Domiki.Web.Village;
 
 namespace Domiki.Web.Tests;
 
-public class DomiksTests : TestBase
+public class DomiksTests
 {
     private const int ClearWeatherTypeId = 1;
     private const int MarketTypeId = 7;
@@ -29,15 +29,14 @@ public class DomiksTests : TestBase
     [Test]
     public void BuyDomikTest()
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 3, MarketTypeId);
-        var beforeResources = GetResources(playerId);
-        var types = GetDomikTypes();
+        var player = TestPlayer.Create().WithDomik(MarketTypeId);
+        var beforeResources = player.Resources();
+        var types = player.DomikTypes();
         var buyType = types.First(x => x.UnlockLevel == 0);
-        BuyDomik(playerId, buyType.Id);
+        player.Buy(buyType.Id);
 
-        var afterResources = GetResources(playerId);
-        var domiks = GetDomiks(playerId);
+        var afterResources = player.Resources();
+        var domiks = player.Domiks();
         var domiksCount = domiks.Count();
         Assert.That(domiksCount, Is.EqualTo(4));
         var level = domiks.First().Level;
@@ -59,8 +58,8 @@ public class DomiksTests : TestBase
     [Test]
     public void CheckBaseResourcesTest()
     {
-        var playerId = GetPlayerId();
-        var resources = GetResources(playerId);
+        var player = TestPlayer.Create();
+        var resources = player.Resources();
         Assert.That(resources.Count, Is.EqualTo(1));
         using (Assert.EnterMultipleScope())
         {
@@ -77,8 +76,8 @@ public class DomiksTests : TestBase
     {
         for (var i = 1; i <= 217; i++)
         {
-            var playerId = GetPlayerId();
-            var types = GetDomikTypes();
+            var player = TestPlayer.Create();
+            var types = player.DomikTypes();
             var domikType = types.First(x => x.UnlockLevel == 0 && x.MaxCount == 1);
             Assert.That(domikType.MaxCount, Is.EqualTo(1));
             var domikTypeId = domikType.Id;
@@ -88,14 +87,14 @@ public class DomiksTests : TestBase
             {
                 try
                 {
-                    BuyDomik(playerId, domikTypeId);
+                    player.Buy(domikTypeId);
                 }
                 catch (Exception ex)
                 {
                 }
             });
 
-            var domiks = GetDomiks(playerId);
+            var domiks = player.Domiks();
             var domiksCount = domiks.Count();
             Assert.That(domiksCount, Is.EqualTo(3), "iterarion number " + i);
         }
@@ -109,12 +108,12 @@ public class DomiksTests : TestBase
     {
         for (var i = 1; i <= 217; i++)
         {
-            var playerId = GetPlayerId();
-            var types = GetDomikTypes();
+            var player = TestPlayer.Create();
+            var types = player.DomikTypes();
             var domikType = types.First(x => x.UnlockLevel == 0 && x.MaxCount == 1);
             Assert.That(domikType.MaxCount, Is.EqualTo(1));
             var domikTypeId = domikType.Id;
-            BuyDomik(playerId, domikTypeId);
+            player.Buy(domikTypeId);
 
             var actionCount = 4;
             var numbers = Enumerable.Range(0, actionCount).ToList();
@@ -123,7 +122,7 @@ public class DomiksTests : TestBase
             {
                 try
                 {
-                    UpgradeDomik(playerId, 1);
+                    player.Upgrade(1);
                 }
                 catch (Exception ex)
                 {
@@ -131,7 +130,7 @@ public class DomiksTests : TestBase
                 }
             });
 
-            var domiks = GetDomiks(playerId);
+            var domiks = player.Domiks();
             var level = domiks.First().Level;
             var checkValue = level + errorCount;
             var expected = 1 + actionCount;
@@ -150,8 +149,8 @@ public class DomiksTests : TestBase
     [Test]
     public void GetPlayerIdTest()
     {
-        var playerId = GetPlayerId();
-        Assert.Greater(playerId, 0);
+        var player = TestPlayer.Create();
+        Assert.Greater(player.Id, 0);
     }
 
     /// <summary>
@@ -160,23 +159,16 @@ public class DomiksTests : TestBase
     [Test]
     public void GroupRecipeOutputPremiumTest()
     {
-        var playerId = GetPlayerId();
-        GrantResource(playerId, 1, 100);
+        var player = TestPlayer.Create().WithResource(1, 100);
         var barakTypeId = 2;
         var clayMineTypeId = 5;
         var groupReceiptId = 2;
         var coinResourceTypeId = 1;
         var clayResourceTypeId = 4;
-        for (var i = 0; i < 4; i++)
-        {
-            GrantDomik(playerId, 3 + i, barakTypeId);
-        }
-
-        GrantDomik(playerId, 7, clayMineTypeId);
-        UpgradeDomik(playerId, 7);
-        var beforeCoin = GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value;
-        StartManufacture(playerId, 7, groupReceiptId);
-        var after = GetResources(playerId);
+        player.WithDomiks(barakTypeId, 4).WithDomik(clayMineTypeId).Upgrade(7);
+        var beforeCoin = player.Resource(coinResourceTypeId);
+        player.StartManufacture(7, groupReceiptId);
+        var after = player.Resources();
         var clay = after.First(x => x.Type.Id == clayResourceTypeId).Value;
         var coinDiff = after.First(x => x.Type.Id == coinResourceTypeId).Value - beforeCoin;
         using (Assert.EnterMultipleScope())
@@ -192,14 +184,14 @@ public class DomiksTests : TestBase
     [Test]
     public void LevelZeroDomikDoesNotBreakManufactureTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
         var clayMineTypeId = 5;
         var clayDigReceiptId = 1;
         var clayResourceTypeId = 4;
         var startingClayMineId = 2;
-        GrantDomik(playerId, 3, clayMineTypeId, 0);
-        Assert.DoesNotThrow(() => StartManufacture(playerId, startingClayMineId, clayDigReceiptId));
-        var clay = GetResources(playerId).First(x => x.Type.Id == clayResourceTypeId).Value;
+        player.WithDomik(clayMineTypeId, 0);
+        Assert.DoesNotThrow(() => player.StartManufacture(startingClayMineId, clayDigReceiptId));
+        var clay = player.Resource(clayResourceTypeId);
         Assert.That(clay, Is.EqualTo(1));
     }
 
@@ -209,18 +201,16 @@ public class DomiksTests : TestBase
     [Test]
     public void ManufactureTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
         var clayMineId = 5;
         var barakTypeId = 2;
-        GrantDomik(playerId, 3, clayMineId);
-        GrantDomik(playerId, 4, barakTypeId);
+        player.WithDomik(clayMineId).WithDomik(barakTypeId);
         var coinResourceTypeId = 1;
         var clayResourceTypeId = 4;
         var clayDigReceiptId = 1;
-        var beforeResources = GetResources(playerId);
-        var beforeCointResourceValue = beforeResources.First(x => x.Type.Id == coinResourceTypeId).Value;
-        StartManufacture(playerId, 3, clayDigReceiptId);
-        var afterResources = GetResources(playerId);
+        var beforeCointResourceValue = player.Resource(coinResourceTypeId);
+        player.StartManufacture(3, clayDigReceiptId);
+        var afterResources = player.Resources();
         var afterClayResourceValue = afterResources.First(x => x.Type.Id == clayResourceTypeId).Value;
         var afterCointResourceValue = afterResources.First(x => x.Type.Id == coinResourceTypeId).Value;
         var coinDiff = afterCointResourceValue - beforeCointResourceValue;
@@ -237,14 +227,17 @@ public class DomiksTests : TestBase
     [Test]
     public void MaxWorkerCountTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
         var clayMineTypeId = 5;
-        GrantDomik(playerId, 3, clayMineTypeId);
+        player.WithDomik(clayMineTypeId);
         var clayDigReceiptId = 1;
         var startingClayMineId = 2;
         var boughtClayMineId = 3;
-        StartManufacture(playerId, boughtClayMineId, clayDigReceiptId, false);
-        Assert.Throws<BusinessException>(() => StartManufacture(playerId, startingClayMineId, clayDigReceiptId, false), "Exception not throw");
+        using (TestCalculator.Defer())
+        {
+            player.StartManufacture(boughtClayMineId, clayDigReceiptId);
+            Assert.Throws<BusinessException>(() => player.StartManufacture(startingClayMineId, clayDigReceiptId), "Exception not throw");
+        }
     }
 
     /// <summary>
@@ -253,15 +246,15 @@ public class DomiksTests : TestBase
     [Test]
     public void OptionalToolIgnoredWhenReceiptHasNoOptionalTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
         var clayResourceTypeId = 4;
         var toolResourceTypeId = 8;
         var clayDigReceiptId = 1;
-        GrantResource(playerId, toolResourceTypeId, 3);
+        player.WithResource(toolResourceTypeId, 3);
 
-        StartManufacture(playerId, 2, clayDigReceiptId, useOptional: true);
+        player.StartManufacture(2, clayDigReceiptId, true);
 
-        var resources = GetResources(playerId);
+        var resources = player.Resources();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(resources.First(x => x.Type.Id == clayResourceTypeId).Value, Is.EqualTo(1));
@@ -275,10 +268,10 @@ public class DomiksTests : TestBase
     [Test]
     public void OptionalToolRequiresToolTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
         var clayDig8hReceiptId = 14;
 
-        Assert.Throws<BusinessException>(() => StartManufacture(playerId, 2, clayDig8hReceiptId, useOptional: true));
+        Assert.Throws<BusinessException>(() => player.StartManufacture(2, clayDig8hReceiptId, true));
     }
 
     /// <summary>
@@ -287,10 +280,9 @@ public class DomiksTests : TestBase
     [Test]
     public void PotteryDishesAndSellTest()
     {
-        var playerId = GetPlayerId();
-        GrantResource(playerId, 1, 700);
+        var player = TestPlayer.Create().WithResource(1, 700);
         var potteryBlueprintId = 3;
-        GrantBlueprint(playerId, potteryBlueprintId);
+        player.WithBlueprint(potteryBlueprintId);
         var barakTypeId = 2;
         var clayMineTypeId = 5;
         var potteryTypeId = 13;
@@ -301,15 +293,10 @@ public class DomiksTests : TestBase
         var clayDig8hReceiptId = 14;
         var makeDishesReceiptId = 43;
         var sellDishesReceiptId = 45;
-        GrantDomik(playerId, 3, barakTypeId);
-        GrantDomik(playerId, 4, clayMineTypeId);
-        GrantDomik(playerId, 5, barakTypeId);
-        GrantDomik(playerId, 6, barakTypeId);
-        BuyDomik(playerId, potteryTypeId);
-        BuyDomik(playerId, marketTypeId);
-        StartManufacture(playerId, 4, clayDig8hReceiptId);
-        StartManufacture(playerId, 7, makeDishesReceiptId);
-        var afterDishes = GetResources(playerId);
+        player.WithDomik(barakTypeId).WithDomik(clayMineTypeId).WithDomik(barakTypeId).WithDomik(barakTypeId).Buy(potteryTypeId).Buy(marketTypeId);
+        player.StartManufacture(4, clayDig8hReceiptId);
+        player.StartManufacture(7, makeDishesReceiptId);
+        var afterDishes = player.Resources();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(afterDishes.First(x => x.Type.Id == dishesResourceTypeId).Value, Is.EqualTo(1));
@@ -317,8 +304,8 @@ public class DomiksTests : TestBase
         }
 
         var beforeSellCoin = afterDishes.First(x => x.Type.Id == coinResourceTypeId).Value;
-        StartManufacture(playerId, 8, sellDishesReceiptId);
-        var afterSell = GetResources(playerId);
+        player.StartManufacture(8, sellDishesReceiptId);
+        var afterSell = player.Resources();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(afterSell.First(x => x.Type.Id == dishesResourceTypeId).Value, Is.Zero);
@@ -332,11 +319,11 @@ public class DomiksTests : TestBase
     [Test]
     public void StartManufactureOnUnbuiltDomikThrowsTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
         var clayMineTypeId = 5;
         var clayDigReceiptId = 1;
-        GrantDomik(playerId, 3, clayMineTypeId, 0);
-        var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 3, clayDigReceiptId));
+        player.WithDomik(clayMineTypeId, 0);
+        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(3, clayDigReceiptId));
         Assert.That(ex.Message, Is.EqualTo("Домик ещё строится"));
     }
 
@@ -346,19 +333,18 @@ public class DomiksTests : TestBase
     [Test]
     public void StartManufactureWithZeroCoinsDoesNotThrowTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
         var clayMineTypeId = 5;
         var barakTypeId = 2;
         var coinResourceTypeId = 1;
         var clayDigReceiptId = 1;
-        GrantDomik(playerId, 3, clayMineTypeId);
-        GrantDomik(playerId, 4, barakTypeId);
+        player.WithDomik(clayMineTypeId).WithDomik(barakTypeId);
 
-        var coins = GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value;
-        GrantResource(playerId, coinResourceTypeId, -coins);
-        Assert.That(GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value, Is.Zero);
+        var coins = player.Resource(coinResourceTypeId);
+        player.WithResource(coinResourceTypeId, -coins);
+        Assert.That(player.Resource(coinResourceTypeId), Is.Zero);
 
-        Assert.DoesNotThrow(() => StartManufacture(playerId, 3, clayDigReceiptId));
+        Assert.DoesNotThrow(() => player.StartManufacture(3, clayDigReceiptId));
     }
 
     /// <summary>
@@ -367,17 +353,17 @@ public class DomiksTests : TestBase
     [Test]
     public void UpgradeDomikTest()
     {
-        var playerId = GetPlayerId();
-        var types = GetDomikTypes();
+        var player = TestPlayer.Create();
+        var types = player.DomikTypes();
         var buyType = types.First(x => x.UnlockLevel == 0);
-        var beforeResources = GetResources(playerId);
-        UpgradeDomik(playerId, 1);
+        var beforeResources = player.Resources();
+        player.Upgrade(1);
 
-        var domiks = GetDomiks(playerId);
+        var domiks = player.Domiks();
         var level = domiks.First().Level;
         Assert.That(level, Is.EqualTo(2));
 
-        var afterResources = GetResources(playerId);
+        var afterResources = player.Resources();
 
         foreach (var resource in buyType.Levels.First(x => x.Value == 2).Resources)
         {
@@ -395,12 +381,9 @@ public class DomiksTests : TestBase
     [Test]
     public void UpgradeToLevel3RequiresMaterialsTest()
     {
-        var playerId = GetPlayerId();
-        GrantResource(playerId, 1, 70);
-        GrantDomik(playerId, 3, 2);
-        GrantDomik(playerId, 4, 2);
-        UpgradeDomik(playerId, 3);
-        Assert.Throws<BusinessException>(() => UpgradeDomik(playerId, 3));
+        var player = TestPlayer.Create().WithResource(1, 70);
+        player.WithDomik(2).WithDomik(2).Upgrade(3);
+        Assert.Throws<BusinessException>(() => player.Upgrade(3));
     }
 
     /// <summary>
@@ -413,15 +396,13 @@ public class DomiksTests : TestBase
     [TestCase(6, 5, 3)]
     public void DigProducesCorrectResourceTest(int mineTypeId, int receiptId, int outResourceTypeId)
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
         var barakTypeId = 2;
         var coinResourceTypeId = 1;
-        GrantDomik(playerId, 3, barakTypeId);
-        GrantDomik(playerId, 4, barakTypeId);
-        GrantDomik(playerId, 5, mineTypeId);
-        var beforeCoin = GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value;
-        StartManufacture(playerId, 5, receiptId);
-        var after = GetResources(playerId);
+        player.WithDomik(barakTypeId).WithDomik(barakTypeId).WithDomik(mineTypeId);
+        var beforeCoin = player.Resource(coinResourceTypeId);
+        player.StartManufacture(5, receiptId);
+        var after = player.Resources();
         var outValue = after.First(x => x.Type.Id == outResourceTypeId).Value;
         var coinDiff = after.First(x => x.Type.Id == coinResourceTypeId).Value - beforeCoin;
         using (Assert.EnterMultipleScope())
@@ -441,27 +422,24 @@ public class DomiksTests : TestBase
     [TestCase(4, true)]
     public void GroupRecipePlodderCountHonoredTest(int barakCount, bool expectThrow)
     {
-        var playerId = GetPlayerId();
-        GrantResource(playerId, 1, 100);
+        var player = TestPlayer.Create().WithResource(1, 100);
         var barakTypeId = 2;
         var clayMineTypeId = 5;
         var groupReceiptId = 2;
         var additionalBarakCount = barakCount - 1;
-        for (var i = 0; i < additionalBarakCount; i++)
-        {
-            GrantDomik(playerId, 3 + i, barakTypeId);
-        }
-
-        GrantDomik(playerId, 3 + additionalBarakCount, clayMineTypeId);
+        player.WithDomiks(barakTypeId, additionalBarakCount).WithDomik(clayMineTypeId);
         var clayMineId = additionalBarakCount + 3;
-        UpgradeDomik(playerId, clayMineId);
-        if (expectThrow)
+        player.Upgrade(clayMineId);
+        using (TestCalculator.Defer())
         {
-            Assert.Throws<BusinessException>(() => StartManufacture(playerId, clayMineId, groupReceiptId, false));
-        }
-        else
-        {
-            Assert.DoesNotThrow(() => StartManufacture(playerId, clayMineId, groupReceiptId, false));
+            if (expectThrow)
+            {
+                Assert.Throws<BusinessException>(() => player.StartManufacture(clayMineId, groupReceiptId));
+            }
+            else
+            {
+                Assert.DoesNotThrow(() => player.StartManufacture(clayMineId, groupReceiptId));
+            }
         }
     }
 
@@ -477,15 +455,13 @@ public class DomiksTests : TestBase
     [TestCase(3, 15, 2, 8)]
     public void LongDigProducesCorrectAmountTest(int mineTypeId, int receiptId, int outResourceTypeId, int amount)
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
         var barakTypeId = 2;
         var coinResourceTypeId = 1;
-        GrantDomik(playerId, 3, barakTypeId);
-        GrantDomik(playerId, 4, barakTypeId);
-        GrantDomik(playerId, 5, mineTypeId);
-        var beforeCoin = GetResources(playerId).First(x => x.Type.Id == coinResourceTypeId).Value;
-        StartManufacture(playerId, 5, receiptId);
-        var after = GetResources(playerId);
+        player.WithDomik(barakTypeId).WithDomik(barakTypeId).WithDomik(mineTypeId);
+        var beforeCoin = player.Resource(coinResourceTypeId);
+        player.StartManufacture(5, receiptId);
+        var after = player.Resources();
         var outValue = after.First(x => x.Type.Id == outResourceTypeId).Value;
         var coinDiff = after.First(x => x.Type.Id == coinResourceTypeId).Value - beforeCoin;
         using (Assert.EnterMultipleScope())
@@ -505,20 +481,22 @@ public class DomiksTests : TestBase
     [TestCase(true, 28800, 2)]
     public void OptionalToolPreservesDurationAndConsumesToolTest(bool useOptional, int expectedDuration, int expectedToolLeft)
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
         var toolResourceTypeId = 8;
         var clayDig8hReceiptId = 14;
-        GrantResource(playerId, toolResourceTypeId, 3);
-        ResetWorkerTraits(playerId);
+        player.WithResource(toolResourceTypeId, 3).WithWorkerTraits();
 
         var start = DateTimeHelper.GetNowDate();
-        StartManufacture(playerId, 2, clayDig8hReceiptId, false, useOptional);
+        using (TestCalculator.Defer())
+        {
+            player.StartManufacture(2, clayDig8hReceiptId, useOptional);
+        }
 
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+        var manufacture = player.Manufacture(2);
         using (Assert.EnterMultipleScope())
         {
             Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(expectedDuration).Within(2));
-            Assert.That(GetResources(playerId).First(x => x.Type.Id == toolResourceTypeId).Value, Is.EqualTo(expectedToolLeft));
+            Assert.That(player.Resource(toolResourceTypeId), Is.EqualTo(expectedToolLeft));
         }
     }
 
@@ -531,17 +509,15 @@ public class DomiksTests : TestBase
     [TestCase(true, 11)]
     public void OptionalToolBoostsOutputTest(bool useOptional, int expectedClay)
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
         var toolResourceTypeId = 8;
         var clayResourceTypeId = 4;
         var clayDig8hReceiptId = 14;
-        GrantResource(playerId, toolResourceTypeId, 1);
-        ResetWorkerTraits(playerId);
+        player.WithResource(toolResourceTypeId, 1).WithWorkerTraits();
 
-        StartManufacture(playerId, 2, clayDig8hReceiptId, true, useOptional);
+        player.StartManufacture(2, clayDig8hReceiptId, useOptional);
 
-        var clay = GetResources(playerId).Single(x => x.Type.Id == clayResourceTypeId);
-        Assert.That(clay.Value, Is.EqualTo(expectedClay));
+        Assert.That(player.Resource(clayResourceTypeId), Is.EqualTo(expectedClay));
     }
 
     /// <summary>
@@ -579,132 +555,30 @@ public class DomiksTests : TestBase
         Assert.That(levelData.Resources.Length, Is.EqualTo(expectedResourceCount));
     }
 
-    private int GetPlayerId()
+    private static IEnumerable<DomikType> GetDomikTypes()
     {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        MuteFtue(playerId);
-        return playerId;
+        return App.Act<ResourceManager, DomikType[]>(m => m.GetDomikTypes());
     }
 
-    private IEnumerable<Resource> GetResources(int playerId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var resources = domikManager.GetResources(playerId);
-        uow.Commit();
-        return resources;
-    }
-
-    private IEnumerable<Domik> GetDomiks(int playerId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var domiks = domikManager.GetDomiks(playerId);
-        return domiks;
-    }
-
-    private IEnumerable<DomikType> GetDomikTypes()
-    {
-        using var uow = GetUow();
-        var domikManager = GetResourceManager(uow);
-        var types = domikManager.GetDomikTypes();
-        return types;
-    }
-
-    private void UpgradeDomik(int playerId, int domikId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        domikManager.UpgradeDomik(playerId, domikId);
-        uow.Commit();
-    }
-
-    private void BuyDomik(int playerId, int domikTypeId, bool calculatorJustFinishMod = true)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow, calculatorJustFinishMod);
-        domikManager.BuyDomik(playerId, domikTypeId);
-        uow.Commit();
-    }
-
-    private void GrantResource(int playerId, int typeId, int value)
-    {
-        using var uow = GetUow();
-        var resource = uow.Context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
-        if (resource == null)
-        {
-            resource = new()
-            {
-                PlayerId = playerId,
-                TypeId = typeId,
-            };
-
-            uow.Context.Resources.Add(resource);
-        }
-
-        resource.Value += value;
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void GrantBlueprint(int playerId, int blueprintId)
-    {
-        using var uow = GetUow();
-        uow.Context.PlayerBlueprints.Add(new()
-        {
-            PlayerId = playerId,
-            BlueprintId = blueprintId,
-        });
-
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void ResetWorkerTraits(int playerId)
-    {
-        using var uow = GetUow();
-        GetWorkerManager(uow).EnsureWorkers(playerId);
-        foreach (var worker in uow.Context.Workers.Where(x => x.PlayerId == playerId).ToArray())
-        {
-            worker.TraitId = 1;
-        }
-
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void SetWeather(int weatherTypeId)
+    private static void SetWeather(int weatherTypeId)
     {
         ClearWeatherSchedule();
         var now = DateTimeHelper.GetNowDate();
-        using var uow = GetUow();
-        uow.Context.WeatherPeriods.Add(new()
+        using var scope = App.Scope();
+        scope.Context.WeatherPeriods.Add(new()
         {
             WeatherTypeId = weatherTypeId,
             StartDate = now,
             EndDate = now.AddSeconds(WeatherManager.WeatherPeriodSeconds),
         });
 
-        uow.Context.SaveChanges();
-        uow.Commit();
+        scope.Commit();
     }
 
-    private void ClearWeatherSchedule()
+    private static void ClearWeatherSchedule()
     {
-        using var uow = GetUow();
-        uow.Context.WeatherPeriods.RemoveRange(uow.Context.WeatherPeriods);
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void StartManufacture(int playerId, int domikId, int receiptId, bool calculatorJustFinishMod = true, bool useOptional = false)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow, calculatorJustFinishMod);
-        domikManager.StartManufacture(playerId, domikId, receiptId, useOptional);
-        uow.Commit();
+        using var scope = App.Scope();
+        scope.Context.WeatherPeriods.RemoveRange(scope.Context.WeatherPeriods);
+        scope.Commit();
     }
 }

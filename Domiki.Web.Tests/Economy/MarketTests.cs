@@ -1,12 +1,11 @@
-﻿using Domiki.Web.Core.Scheduling;
+﻿using Domiki.Web.Core;
 using Domiki.Web.Economy;
-using Domiki.Web.Economy.Models;
 using Domiki.Web.Infrastructure;
 
 namespace Domiki.Web.Tests;
 
 [NonParallelizable]
-public class MarketTests : TestBase
+public class MarketTests
 {
     private const int CoinResourceTypeId = 1;
     private const int StoneResourceTypeId = 2;
@@ -35,24 +34,22 @@ public class MarketTests : TestBase
     [Test]
     public void AcceptLotInvalidCasesDoNotTransferTest()
     {
-        var sellerId = GetUnlockedPlayerId();
-        var buyerId = GetUnlockedPlayerId();
-        var lockedBuyerId = GetPlayerId();
-        GrantResource(sellerId, ClayResourceTypeId, 100);
-        GrantResource(buyerId, GoldResourceTypeId, 1);
-        GrantResource(lockedBuyerId, GoldResourceTypeId, 10);
-        var lotId = PostLot(sellerId, ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        var seller = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100);
+        var buyer = GetUnlockedPlayer().WithResource(GoldResourceTypeId, 1);
+        var lockedBuyer = TestPlayer.Create().WithResource(GoldResourceTypeId, 10);
+        seller.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        var lotId = seller.LastLot().Id;
 
-        Assert.Throws<BusinessException>(() => AcceptLot(sellerId, lotId));
-        Assert.Throws<BusinessException>(() => AcceptLot(lockedBuyerId, lotId));
-        Assert.Throws<BusinessException>(() => AcceptLot(buyerId, lotId));
-        Assert.Throws<BusinessException>(() => AcceptLot(buyerId, 987654));
+        Assert.Throws<BusinessException>(() => seller.AcceptLot(lotId));
+        Assert.Throws<BusinessException>(() => lockedBuyer.AcceptLot(lotId));
+        Assert.Throws<BusinessException>(() => buyer.AcceptLot(lotId));
+        Assert.Throws<BusinessException>(() => buyer.AcceptLot(987654));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(GetMarket(sellerId)!.MyLots.Single().Id, Is.EqualTo(lotId));
-            Assert.That(GetResourceValue(sellerId, ClayResourceTypeId), Is.EqualTo(80));
-            Assert.That(GetResourceValue(buyerId, GoldResourceTypeId), Is.EqualTo(1));
+            Assert.That(seller.Market()!.MyLots.Single().Id, Is.EqualTo(lotId));
+            Assert.That(seller.Resource(ClayResourceTypeId), Is.EqualTo(80));
+            Assert.That(buyer.Resource(GoldResourceTypeId), Is.EqualTo(1));
         }
     }
 
@@ -62,24 +59,23 @@ public class MarketTests : TestBase
     [Test]
     public void AcceptLotTransfersResourcesAndDeletesLotTest()
     {
-        var sellerId = GetUnlockedPlayerId();
-        var buyerId = GetUnlockedPlayerId();
-        GrantResource(sellerId, ClayResourceTypeId, 100);
-        GrantResource(buyerId, GoldResourceTypeId, 10);
-        var sellerCoins = GetResourceValue(sellerId, CoinResourceTypeId);
-        var lotId = PostLot(sellerId, ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        var seller = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100);
+        var buyer = GetUnlockedPlayer().WithResource(GoldResourceTypeId, 10);
+        var sellerCoins = seller.Resource(CoinResourceTypeId);
+        seller.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        var lotId = seller.LastLot().Id;
 
-        AcceptLot(buyerId, lotId);
+        buyer.AcceptLot(lotId);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(GetResourceValue(buyerId, GoldResourceTypeId), Is.EqualTo(7));
-            Assert.That(GetResourceValue(buyerId, ClayResourceTypeId), Is.EqualTo(20));
-            Assert.That(GetResourceValue(sellerId, GoldResourceTypeId), Is.EqualTo(3));
-            Assert.That(GetResourceValue(sellerId, ClayResourceTypeId), Is.EqualTo(80));
-            Assert.That(GetResourceValue(sellerId, CoinResourceTypeId), Is.EqualTo(sellerCoins - Commission(ClayResourceTypeId, 20)));
-            Assert.That(GetMarket(sellerId)!.MyLots, Is.Empty);
-            Assert.That(GetMarket(buyerId)!.Lots, Is.Empty);
+            Assert.That(buyer.Resource(GoldResourceTypeId), Is.EqualTo(7));
+            Assert.That(buyer.Resource(ClayResourceTypeId), Is.EqualTo(20));
+            Assert.That(seller.Resource(GoldResourceTypeId), Is.EqualTo(3));
+            Assert.That(seller.Resource(ClayResourceTypeId), Is.EqualTo(80));
+            Assert.That(seller.Resource(CoinResourceTypeId), Is.EqualTo(sellerCoins - Commission(ClayResourceTypeId, 20)));
+            Assert.That(seller.Market()!.MyLots, Is.Empty);
+            Assert.That(buyer.Market()!.Lots, Is.Empty);
         }
     }
 
@@ -89,20 +85,20 @@ public class MarketTests : TestBase
     [Test]
     public void CancelLotReturnsEscrowButNotCommissionTest()
     {
-        var sellerId = GetUnlockedPlayerId();
-        var otherId = GetUnlockedPlayerId();
-        GrantResource(sellerId, ClayResourceTypeId, 100);
-        var sellerCoins = GetResourceValue(sellerId, CoinResourceTypeId);
-        var lotId = PostLot(sellerId, ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        var seller = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100);
+        var other = GetUnlockedPlayer();
+        var sellerCoins = seller.Resource(CoinResourceTypeId);
+        seller.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        var lotId = seller.LastLot().Id;
 
-        Assert.Throws<BusinessException>(() => CancelLot(otherId, lotId));
-        CancelLot(sellerId, lotId);
+        Assert.Throws<BusinessException>(() => other.CancelLot(lotId));
+        seller.CancelLot(lotId);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(GetResourceValue(sellerId, ClayResourceTypeId), Is.EqualTo(100));
-            Assert.That(GetResourceValue(sellerId, CoinResourceTypeId), Is.EqualTo(sellerCoins - Commission(ClayResourceTypeId, 20)));
-            Assert.That(GetMarket(sellerId)!.MyLots, Is.Empty);
+            Assert.That(seller.Resource(ClayResourceTypeId), Is.EqualTo(100));
+            Assert.That(seller.Resource(CoinResourceTypeId), Is.EqualTo(sellerCoins - Commission(ClayResourceTypeId, 20)));
+            Assert.That(seller.Market()!.MyLots, Is.Empty);
         }
     }
 
@@ -112,23 +108,21 @@ public class MarketTests : TestBase
     [Test]
     public async Task ConcurrentAcceptOneLotAllowsOneSuccessTest()
     {
-        var sellerId = GetUnlockedPlayerId();
-        var firstBuyerId = GetUnlockedPlayerId();
-        var secondBuyerId = GetUnlockedPlayerId();
-        GrantResource(sellerId, ClayResourceTypeId, 100);
-        GrantResource(firstBuyerId, GoldResourceTypeId, 10);
-        GrantResource(secondBuyerId, GoldResourceTypeId, 10);
-        var lotId = PostLot(sellerId, ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        var seller = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100);
+        var firstBuyer = GetUnlockedPlayer().WithResource(GoldResourceTypeId, 10);
+        var secondBuyer = GetUnlockedPlayer().WithResource(GoldResourceTypeId, 10);
+        seller.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        var lotId = seller.LastLot().Id;
 
-        var results = await Task.WhenAll(Task.Run(() => TryAcceptLot(firstBuyerId, lotId)),
-            Task.Run(() => TryAcceptLot(secondBuyerId, lotId)));
+        var results = await Task.WhenAll(Task.Run(() => TryAcceptLot(firstBuyer, lotId)),
+            Task.Run(() => TryAcceptLot(secondBuyer, lotId)));
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(results.Count(x => x), Is.EqualTo(1));
-            Assert.That(GetMarket(sellerId)!.MyLots, Is.Empty);
-            Assert.That(GetResourceValue(sellerId, GoldResourceTypeId), Is.EqualTo(3));
-            Assert.That(GetResourceValue(firstBuyerId, ClayResourceTypeId) + GetResourceValue(secondBuyerId, ClayResourceTypeId), Is.EqualTo(20));
+            Assert.That(seller.Market()!.MyLots, Is.Empty);
+            Assert.That(seller.Resource(GoldResourceTypeId), Is.EqualTo(3));
+            Assert.That(firstBuyer.Resource(ClayResourceTypeId) + secondBuyer.Resource(ClayResourceTypeId), Is.EqualTo(20));
         }
     }
 
@@ -138,23 +132,21 @@ public class MarketTests : TestBase
     [Test]
     public async Task CrossAcceptLotsDoesNotDeadlockTest()
     {
-        var firstId = GetUnlockedPlayerId();
-        var secondId = GetUnlockedPlayerId();
-        GrantResource(firstId, ClayResourceTypeId, 100);
-        GrantResource(firstId, WoodResourceTypeId, 100);
-        GrantResource(secondId, ClayResourceTypeId, 100);
-        GrantResource(secondId, WoodResourceTypeId, 100);
-        var firstLotId = PostLot(firstId, ClayResourceTypeId, 20, WoodResourceTypeId, 10);
-        var secondLotId = PostLot(secondId, WoodResourceTypeId, 10, ClayResourceTypeId, 20);
+        var first = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100).WithResource(WoodResourceTypeId, 100);
+        var second = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100).WithResource(WoodResourceTypeId, 100);
+        first.PostLot(ClayResourceTypeId, 20, WoodResourceTypeId, 10);
+        var firstLotId = first.LastLot().Id;
+        second.PostLot(WoodResourceTypeId, 10, ClayResourceTypeId, 20);
+        var secondLotId = second.LastLot().Id;
 
-        var results = await Task.WhenAll(Task.Run(() => TryAcceptLot(firstId, secondLotId)),
-            Task.Run(() => TryAcceptLot(secondId, firstLotId)));
+        var results = await Task.WhenAll(Task.Run(() => TryAcceptLot(first, secondLotId)),
+            Task.Run(() => TryAcceptLot(second, firstLotId)));
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(results, Is.All.True);
-            Assert.That(GetMarket(firstId)!.MyLots, Is.Empty);
-            Assert.That(GetMarket(secondId)!.MyLots, Is.Empty);
+            Assert.That(first.Market()!.MyLots, Is.Empty);
+            Assert.That(second.Market()!.MyLots, Is.Empty);
         }
     }
 
@@ -164,20 +156,20 @@ public class MarketTests : TestBase
     [Test]
     public void ExpiredLotReturnsEscrowButNotCommissionTest()
     {
-        var sellerId = GetUnlockedPlayerId();
-        GrantResource(sellerId, ClayResourceTypeId, 100);
-        var sellerCoins = GetResourceValue(sellerId, CoinResourceTypeId);
-        var lotId = PostLot(sellerId, ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        var seller = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100);
+        var sellerCoins = seller.Resource(CoinResourceTypeId);
+        seller.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        var lotId = seller.LastLot().Id;
         var expireDate = DateTimeHelper.GetNowDate().AddSeconds(-1);
         SetTradeLotExpire(lotId, expireDate);
 
-        FinishTradeLot(sellerId, lotId, expireDate);
+        seller.FinishTradeLot(lotId, expireDate);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(GetResourceValue(sellerId, ClayResourceTypeId), Is.EqualTo(100));
-            Assert.That(GetResourceValue(sellerId, CoinResourceTypeId), Is.EqualTo(sellerCoins - Commission(ClayResourceTypeId, 20)));
-            Assert.That(GetMarket(sellerId)!.MyLots, Is.Empty);
+            Assert.That(seller.Resource(ClayResourceTypeId), Is.EqualTo(100));
+            Assert.That(seller.Resource(CoinResourceTypeId), Is.EqualTo(sellerCoins - Commission(ClayResourceTypeId, 20)));
+            Assert.That(seller.Market()!.MyLots, Is.Empty);
         }
     }
 
@@ -187,9 +179,9 @@ public class MarketTests : TestBase
     [Test]
     public void GetMarketForNewPlayerReturnsNullTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
 
-        var market = GetMarket(playerId);
+        var market = player.Market();
 
         Assert.That(market, Is.Null);
     }
@@ -201,9 +193,9 @@ public class MarketTests : TestBase
     [Test]
     public void GetMarketWithBuildingReturnsEmptyTest()
     {
-        var playerId = GetUnlockedPlayerId();
+        var player = GetUnlockedPlayer();
 
-        var market = GetMarket(playerId)!;
+        var market = player.Market()!;
 
         using (Assert.EnterMultipleScope())
         {
@@ -223,13 +215,12 @@ public class MarketTests : TestBase
     [Test]
     public void MarketYardLevelOneAllowsTwoActiveLotsOnlyTest()
     {
-        var playerId = GetUnlockedPlayerId();
-        GrantResource(playerId, ClayResourceTypeId, 3);
+        var player = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 3);
 
-        PostLot(playerId, ClayResourceTypeId, 1, GoldResourceTypeId, 1);
-        PostLot(playerId, ClayResourceTypeId, 1, GoldResourceTypeId, 1);
+        player.PostLot(ClayResourceTypeId, 1, GoldResourceTypeId, 1);
+        player.PostLot(ClayResourceTypeId, 1, GoldResourceTypeId, 1);
 
-        var ex = Assert.Throws<BusinessException>(() => PostLot(playerId, ClayResourceTypeId, 1, GoldResourceTypeId, 1));
+        var ex = Assert.Throws<BusinessException>(() => player.PostLot(ClayResourceTypeId, 1, GoldResourceTypeId, 1));
         Assert.That(ex!.Message, Is.EqualTo("Все места на прилавке заняты – улучшите Торговый двор"));
     }
 
@@ -240,19 +231,19 @@ public class MarketTests : TestBase
     [Test]
     public void PostLotInvalidOrInsufficientDoesNotCreateLotTest()
     {
-        var playerId = GetUnlockedPlayerId();
+        var player = GetUnlockedPlayer();
 
-        Assert.Throws<BusinessException>(() => PostLot(playerId, ClayResourceTypeId, 1, GoldResourceTypeId, 1));
-        Assert.Throws<BusinessException>(() => PostLot(playerId, ClayResourceTypeId, 0, GoldResourceTypeId, 1));
-        GrantResource(playerId, ClayResourceTypeId, 10);
-        Assert.Throws<BusinessException>(() => PostLot(playerId, ClayResourceTypeId, 1, ClayResourceTypeId, 1));
-        SetResource(playerId, CoinResourceTypeId, 0);
-        Assert.Throws<BusinessException>(() => PostLot(playerId, ClayResourceTypeId, 1, GoldResourceTypeId, 1));
+        Assert.Throws<BusinessException>(() => player.PostLot(ClayResourceTypeId, 1, GoldResourceTypeId, 1));
+        Assert.Throws<BusinessException>(() => player.PostLot(ClayResourceTypeId, 0, GoldResourceTypeId, 1));
+        player.WithResource(ClayResourceTypeId, 10);
+        Assert.Throws<BusinessException>(() => player.PostLot(ClayResourceTypeId, 1, ClayResourceTypeId, 1));
+        SetResource(player.Id, CoinResourceTypeId, 0);
+        Assert.Throws<BusinessException>(() => player.PostLot(ClayResourceTypeId, 1, GoldResourceTypeId, 1));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(GetMarket(playerId)!.MyLots, Is.Empty);
-            Assert.That(GetResourceValue(playerId, ClayResourceTypeId), Is.EqualTo(10));
+            Assert.That(player.Market()!.MyLots, Is.Empty);
+            Assert.That(player.Resource(ClayResourceTypeId), Is.EqualTo(10));
         }
     }
 
@@ -262,17 +253,16 @@ public class MarketTests : TestBase
     [Test]
     public void PostLotWithoutBuildingThrowsAndDoesNotWriteOffTest()
     {
-        var playerId = GetPlayerId();
-        GrantResource(playerId, ClayResourceTypeId, 100);
-        var before = GetResourceValue(playerId, ClayResourceTypeId);
+        var player = TestPlayer.Create().WithResource(ClayResourceTypeId, 100);
+        var before = player.Resource(ClayResourceTypeId);
 
-        var ex = Assert.Throws<BusinessException>(() => PostLot(playerId, ClayResourceTypeId, 20, GoldResourceTypeId, 3))!;
+        var ex = Assert.Throws<BusinessException>(() => player.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3))!;
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(ex.Message, Is.EqualTo("Нужен Торговый двор"));
-            Assert.That(GetMarket(playerId), Is.Null);
-            Assert.That(GetResourceValue(playerId, ClayResourceTypeId), Is.EqualTo(before));
+            Assert.That(player.Market(), Is.Null);
+            Assert.That(player.Resource(ClayResourceTypeId), Is.EqualTo(before));
         }
     }
 
@@ -283,24 +273,25 @@ public class MarketTests : TestBase
     [Test]
     public void PostLotWritesOffEscrowAndCommissionAndVisibleToOtherPlayerTest()
     {
-        var sellerId = GetUnlockedPlayerId();
-        var buyerId = GetUnlockedPlayerId();
-        var villageName = TestVillageName();
-        SetVillage(sellerId, villageName, 2, 3);
-        GrantResource(sellerId, ClayResourceTypeId, 100);
-        var coinBefore = GetResourceValue(sellerId, CoinResourceTypeId);
+        var seller = GetUnlockedPlayer();
+        var buyer = GetUnlockedPlayer();
+        var villageName = "TestVillage-" + Guid.NewGuid().ToString("N")[..8];
+        SetVillage(seller.Id, villageName, 2, 3);
+        seller.WithResource(ClayResourceTypeId, 100);
+        var coinBefore = seller.Resource(CoinResourceTypeId);
 
-        var lotId = PostLot(sellerId, ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        seller.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        var lotId = seller.LastLot().Id;
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(GetResourceValue(sellerId, ClayResourceTypeId), Is.EqualTo(80));
-            Assert.That(GetResourceValue(sellerId, CoinResourceTypeId), Is.EqualTo(coinBefore - Commission(ClayResourceTypeId, 20)));
+            Assert.That(seller.Resource(ClayResourceTypeId), Is.EqualTo(80));
+            Assert.That(seller.Resource(CoinResourceTypeId), Is.EqualTo(coinBefore - Commission(ClayResourceTypeId, 20)));
         }
 
-        var sellerMarket = GetMarket(sellerId)!;
+        var sellerMarket = seller.Market()!;
         Assert.That(sellerMarket.MyLots.Single().Id, Is.EqualTo(lotId));
-        var buyerLot = GetMarket(buyerId)!.Lots.Single();
+        var buyerLot = buyer.Market()!.Lots.Single();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(buyerLot.Id, Is.EqualTo(lotId));
@@ -333,55 +324,16 @@ public class MarketTests : TestBase
         return MarketManager.ComputeCommission(1, giveResourceTypeId, giveValue);
     }
 
-    private int GetPlayerId()
+    private static TestPlayer GetUnlockedPlayer()
     {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
+        return TestPlayer.Create().WithDecor(FountainDecorTypeId, 4).WithResource(CoinResourceTypeId, 800).Buy(MarketYardDomikTypeId);
     }
 
-    private int GetUnlockedPlayerId()
-    {
-        var playerId = GetPlayerId();
-        GrantDecor(playerId, FountainDecorTypeId, 4);
-        GrantResource(playerId, CoinResourceTypeId, 800);
-        BuyDomik(playerId, MarketYardDomikTypeId);
-        return playerId;
-    }
-
-    private MarketState? GetMarket(int playerId)
-    {
-        using var uow = GetUow();
-        var manager = GetMarketManager(uow);
-        var market = manager.GetMarket(playerId);
-        uow.Commit();
-        return market;
-    }
-
-    private int PostLot(int playerId, int giveResourceTypeId, int giveValue, int wantResourceTypeId, int wantValue)
-    {
-        using var uow = GetUow();
-        var manager = GetMarketManager(uow);
-        manager.PostLot(playerId, giveResourceTypeId, giveValue, wantResourceTypeId, wantValue, DateTimeHelper.GetNowDate());
-        uow.Commit();
-        return uow.Context.TradeLots.OrderByDescending(x => x.Id).First().Id;
-    }
-
-    private void AcceptLot(int playerId, int lotId)
-    {
-        using var uow = GetUow();
-        var manager = GetMarketManager(uow);
-        manager.AcceptLot(playerId, lotId, DateTimeHelper.GetNowDate());
-        uow.Commit();
-    }
-
-    private bool TryAcceptLot(int playerId, int lotId)
+    private static bool TryAcceptLot(TestPlayer player, int lotId)
     {
         try
         {
-            AcceptLot(playerId, lotId);
+            player.AcceptLot(lotId);
             return true;
         }
         catch (BusinessException)
@@ -390,50 +342,23 @@ public class MarketTests : TestBase
         }
     }
 
-    private void CancelLot(int playerId, int lotId)
+    private static void SetVillage(int playerId, string name, int crestIcon, int crestColor)
     {
-        using var uow = GetUow();
-        var manager = GetMarketManager(uow);
-        manager.CancelLot(playerId, lotId, DateTimeHelper.GetNowDate());
-        uow.Commit();
+        App.Act<DomikManager>(m => m.SetVillageIdentity(playerId, name, crestIcon, crestColor));
     }
 
-    private void FinishTradeLot(int playerId, int lotId, DateTime date)
+    private static void SetTradeLotExpire(int lotId, DateTime expireDate)
     {
-        using var uow = GetUow();
-        var manager = GetMarketManager(uow);
-        var result = manager.FinishTradeLot(date, new()
-        {
-            PlayerId = playerId,
-            ObjectId = lotId,
-            Date = date,
-            Type = CalculateTypes.TradeLotExpire,
-        });
-
-        Assert.That(result, Is.True);
-        uow.Commit();
-    }
-
-    private void SetVillage(int playerId, string name, int crestIcon, int crestColor)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        domikManager.SetVillageIdentity(playerId, name, crestIcon, crestColor);
-        uow.Commit();
-    }
-
-    private void SetTradeLotExpire(int lotId, DateTime expireDate)
-    {
-        using var uow = GetUow();
-        var lot = uow.Context.TradeLots.Single(x => x.Id == lotId);
+        using var scope = App.Scope();
+        var lot = scope.Context.TradeLots.Single(x => x.Id == lotId);
         lot.ExpireDate = expireDate;
-        uow.Commit();
+        scope.Commit();
     }
 
-    private void GrantResource(int playerId, int resourceTypeId, int value)
+    private static void SetResource(int playerId, int resourceTypeId, int value)
     {
-        using var uow = GetUow();
-        var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
+        using var scope = App.Scope();
+        var resource = scope.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
         if (resource == null)
         {
             resource = new()
@@ -442,73 +367,17 @@ public class MarketTests : TestBase
                 TypeId = resourceTypeId,
             };
 
-            uow.Context.Resources.Add(resource);
-        }
-
-        resource.Value += value;
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void SetResource(int playerId, int resourceTypeId, int value)
-    {
-        using var uow = GetUow();
-        var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
-        if (resource == null)
-        {
-            resource = new()
-            {
-                PlayerId = playerId,
-                TypeId = resourceTypeId,
-            };
-
-            uow.Context.Resources.Add(resource);
+            scope.Context.Resources.Add(resource);
         }
 
         resource.Value = value;
-        uow.Context.SaveChanges();
-        uow.Commit();
+        scope.Commit();
     }
 
-    private void BuyDomik(int playerId, int typeId)
+    private static void ClearTradeLots()
     {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        domikManager.BuyDomik(playerId, typeId);
-        uow.Commit();
-    }
-
-    private void GrantDecor(int playerId, int decorTypeId, int count)
-    {
-        using var uow = GetUow();
-        var decor = uow.Context.PlayerDecors.SingleOrDefault(x => x.PlayerId == playerId && x.DecorTypeId == decorTypeId);
-        if (decor == null)
-        {
-            decor = new()
-            {
-                PlayerId = playerId,
-                DecorTypeId = decorTypeId,
-            };
-
-            uow.Context.PlayerDecors.Add(decor);
-        }
-
-        decor.Count += count;
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private int GetResourceValue(int playerId, int resourceTypeId)
-    {
-        using var uow = GetUow();
-        return uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId)?.Value ?? 0;
-    }
-
-    private void ClearTradeLots()
-    {
-        using var uow = GetUow();
-        uow.Context.TradeLots.RemoveRange(uow.Context.TradeLots);
-        uow.Context.SaveChanges();
-        uow.Commit();
+        using var scope = App.Scope();
+        scope.Context.TradeLots.RemoveRange(scope.Context.TradeLots);
+        scope.Commit();
     }
 }
