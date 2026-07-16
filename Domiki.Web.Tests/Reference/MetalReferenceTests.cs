@@ -2,7 +2,7 @@
 
 namespace Domiki.Web.Tests
 {
-    public class Crafts9MetalReferenceTests : TestBase
+    public class MetalReferenceTests : TestBase
     {
         private const int ForgeTypeId = 1;
         private const int MineTypeId = 4;

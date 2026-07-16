@@ -38,7 +38,7 @@ namespace Domiki.Web.Tests
         }
 
         /// <summary>
-        /// �������� ����� � ���������, ��� � ��� 1 ����� ������� ������.
+        /// Покупаем домик и проверяем, что у нас 1 домик первого уровня.
         /// </summary>
         [Test]
         public void BuyDomikTest()
@@ -68,7 +68,7 @@ namespace Domiki.Web.Tests
         }
 
         /// <summary>
-        /// �������� �� ��, ��� ������������� ������� �� ����� ��������� �����
+        /// Проверка на то, что конкурирующие запросы не могут превысить лимит.
         /// </summary>
         [Test]
         public void ConcurrencyBuyDomikTest()
@@ -125,7 +125,7 @@ namespace Domiki.Web.Tests
         }
 
         /// <summary>
-        /// �������� �� ��, ��� ������������� ������� ��������� �������� �����
+        /// Проверка на то, что конкурирующие запросы корректно улучшают домик.
         /// </summary>
         [Test]
         public void ConcurrencyUpgradeDomikTest()
@@ -159,16 +159,16 @@ namespace Domiki.Web.Tests
                 var checkValue = level + errorCount;
                 var expected = 1 + actionCount;
 
-                // ������� ���� ����� ��������
+                // минимум один будет успешный
                 Assert.That(checkValue, Is.GreaterThan(1));
 
-                // ���������� �������� �������� + 1 ������� ������� + ���������� ������ ����� = 1 ������� ������� + ���������� �������
+                // количество успешных улучшений + 1 базовый уровень + количество ошибок равно = 1 базовый уровень + количество действий
                 Assert.That(checkValue, Is.EqualTo(expected), "iterarion number " + i + ", checkValue " + checkValue + ",  error count " + errorCount);
             }
         }
 
         /// <summary>
-        /// ������� ���� ����� � �������� �������.
+        /// Добудем одну глину в глиняном карьере.
         /// </summary>
         [Test]
         public void ManufactureTest()
@@ -211,7 +211,7 @@ namespace Domiki.Web.Tests
         }
 
         /// <summary>
-        /// ���� ����� ��� ����� ������ ��������, ������ ��������� ��� ������������ � ����� �������.
+        /// Один барак даёт место одному рабочему, нельзя запустить два производства с одним рабочим.
         /// </summary>
         [Test]
         public void MaxWorkerCountTest()

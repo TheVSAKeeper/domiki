@@ -4,7 +4,7 @@ using Domiki.Web.Business.Models;
 
 namespace Domiki.Web.Tests
 {
-    public class Stage1BalanceRecalibrationTests : TestBase
+    public class BalanceRecalibrationTests : TestBase
     {
         [Test]
         public void GoldMineAndMarketReceiptsAreRecalibratedTest()

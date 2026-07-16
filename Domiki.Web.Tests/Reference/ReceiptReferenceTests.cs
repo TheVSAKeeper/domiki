@@ -2,7 +2,7 @@
 
 namespace Domiki.Web.Tests
 {
-    public class Crafts7ReferenceTests : TestBase
+    public class ReceiptReferenceTests : TestBase
     {
         private const int ForgeTypeId = 1;
         private const int MarketTypeId = 7;

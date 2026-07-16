@@ -3,7 +3,7 @@ using Domiki.Web.Business.Models;
 
 namespace Domiki.Web.Tests
 {
-    public class Crafts8ReferenceTests : TestBase
+    public class FoodReferenceTests : TestBase
     {
         [Test]
         public void BreadReceiptResourcesTest()
