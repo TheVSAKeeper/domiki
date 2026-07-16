@@ -9,7 +9,7 @@ import HeartIcon from 'pixelarticons/svg/heart.svg?react';
 import CalendarIcon from 'pixelarticons/svg/calendar.svg?react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import { ApiError, getWorld, visitVillage } from '../services/api';
-import { useToast } from '../services/toast';
+import { useToast } from '../services/toastContext';
 import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { StatChip } from './StatChip';

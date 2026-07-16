@@ -78,6 +78,8 @@ interface Ledger {
 const COIN_PER_TICK = 9;
 const awayLines = ['+18 досок пока вкладка спала', '2 экспедиции вернулись за ночь', '+240 монет, пока ты отходил', 'толока закрыта – всем бафф'];
 
+const num = (value: number) => value.toLocaleString('ru-RU');
+
 const LiveTreasury = () => {
     const reduce = usePrefersReducedMotion();
     const [ledger, setLedger] = useState<Ledger>({ coins: 12480, wood: 340, stone: 210, tick: 0 });
@@ -98,8 +100,6 @@ const LiveTreasury = () => {
         const rotate = setInterval(() => setAwayIndex(i => (i + 1) % awayLines.length), 3800);
         return () => { clearInterval(tick); clearInterval(rotate); };
     }, [reduce]);
-
-    const num = (value: number) => value.toLocaleString('ru-RU');
 
     return (
         <div className="treasury">
@@ -292,6 +292,13 @@ const SharedWorld = () => (
     </section>
 );
 
+const loginDemo = async () => {
+    const ok = await authService.loginDemo();
+    if (ok) {
+        window.location.assign('/domiki-page');
+    }
+};
+
 export const Home = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
 
@@ -299,22 +306,15 @@ export const Home = () => {
         const update = () => {
             void authService.isAuthenticated().then(setIsAuthenticated);
         };
-        const subscription = authService.subscribe(update);
+        const unsubscribe = authService.subscribe(update);
         update();
-        return () => { authService.unsubscribe(subscription); };
+        return unsubscribe;
     }, []);
-
-    const loginDemo = async () => {
-        const ok = await authService.loginDemo();
-        if (ok) {
-            window.location.assign('/domiki-page');
-        }
-    };
 
     const cta = isAuthenticated
         ? <Link className="btn-game" to="/domiki-page"><BuildingIcon className="btn-ico" aria-hidden="true" />В деревню</Link>
         : <>
-            <button className="btn-game" onClick={() => void loginDemo()}><PlayIcon className="btn-ico" aria-hidden="true" />Играть демо</button>
+            <button type="button" className="btn-game" onClick={() => void loginDemo()}><PlayIcon className="btn-ico" aria-hidden="true" />Играть демо</button>
             <a className="btn-ghost" href="/authentication/login"><LoginIcon className="btn-ico" aria-hidden="true" />Войти</a>
         </>;
 

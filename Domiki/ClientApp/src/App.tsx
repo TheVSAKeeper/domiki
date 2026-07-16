@@ -8,11 +8,11 @@ const App = () => {
     return (
         <Layout>
             <Routes>
-                {AppRoutes.map((route, index) => {
+                {AppRoutes.map(route => {
                     const { element, requireAuth, ...rest } = route;
                     return (
                         <Route
-                            key={index}
+                            key={route.path ?? '/'}
                             {...rest}
                             element={requireAuth ? <AuthorizeRoute {...rest} element={element} /> : element}
                         />

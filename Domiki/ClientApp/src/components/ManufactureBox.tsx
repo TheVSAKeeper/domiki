@@ -8,6 +8,13 @@ import { ProgressBar } from './ProgressBar';
 import { ActionButton } from './ActionButton';
 import { ResourceSprite } from './sprites';
 
+const REPEAT_AT_FORMAT = new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+});
+
 interface ManufactureBoxProps {
     manufacture: ManufactureDto;
     receipt: ReceiptDto;
@@ -28,12 +35,7 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
     const hurryTitle = tooFar
         ? `До конца ${remainingText}; ускорение доступно в последние 6 ч`
         : notEnoughGold ? `Не хватает золота: ${hurryCost - goldValue}` : undefined;
-    const repeatAt = new Intl.DateTimeFormat('ru-RU', {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit',
-    }).format(new Date(manufacture.finishDate));
+    const repeatAt = REPEAT_AT_FORMAT.format(new Date(manufacture.finishDate));
 
     return (
         <div className="manufacture-box">

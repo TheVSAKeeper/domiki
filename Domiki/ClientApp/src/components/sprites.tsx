@@ -231,15 +231,14 @@ const warnUnknownSprite = (kind: string, logicName: string) => {
     }
 };
 
-const makeIconSprite = (kind: string, sprites: Record<string, SpriteComponent>, fallback?: SpriteComponent) =>
-    ({ logicName, size = 32, ...props }: IconSpriteProps) => {
-        const mappedSprite = sprites[logicName];
-        if (mappedSprite == null) {
-            warnUnknownSprite(kind, logicName);
-        }
-        const Sprite = mappedSprite ?? fallback;
-        return Sprite == null ? null : <Sprite data-size={size} {...cleanSpriteProps(props)} />;
-    };
+const renderIconSprite = (kind: string, sprites: Record<string, SpriteComponent>, fallback: SpriteComponent | undefined, { logicName, size = 32, ...props }: IconSpriteProps) => {
+    const mappedSprite = sprites[logicName];
+    if (mappedSprite == null) {
+        warnUnknownSprite(kind, logicName);
+    }
+    const Sprite = mappedSprite ?? fallback;
+    return Sprite == null ? null : <Sprite data-size={size} {...cleanSpriteProps(props)} />;
+};
 
 const mechanicSprites: Record<string, SpriteComponent> = {
     obzhitost: MechObzhitostSprite,
@@ -253,13 +252,13 @@ const mechanicSprites: Record<string, SpriteComponent> = {
     decor: MechDecorSprite,
 };
 
-export const MechanicSprite = makeIconSprite('mechanic', mechanicSprites);
-export const WeatherSprite = makeIconSprite('weather', weatherSprites);
-export const DecorSprite = makeIconSprite('decor', decorSprites);
-export const TraitSprite = makeIconSprite('trait', traitSprites, TraitOrdinarySprite);
-export const NeighborSprite = makeIconSprite('neighbor', neighborSprites, NeighborGenericSprite);
-export const AbstractSprite = makeIconSprite('abstract', abstractSprites);
-export const ResourceSprite = makeIconSprite('resource', resourceSprites);
+export const MechanicSprite = (props: IconSpriteProps) => <>{renderIconSprite('mechanic', mechanicSprites, undefined, props)}</>;
+export const WeatherSprite = (props: IconSpriteProps) => <>{renderIconSprite('weather', weatherSprites, undefined, props)}</>;
+export const DecorSprite = (props: IconSpriteProps) => <>{renderIconSprite('decor', decorSprites, undefined, props)}</>;
+export const TraitSprite = (props: IconSpriteProps) => <>{renderIconSprite('trait', traitSprites, TraitOrdinarySprite, props)}</>;
+export const NeighborSprite = (props: IconSpriteProps) => <>{renderIconSprite('neighbor', neighborSprites, NeighborGenericSprite, props)}</>;
+export const AbstractSprite = (props: IconSpriteProps) => <>{renderIconSprite('abstract', abstractSprites, undefined, props)}</>;
+export const ResourceSprite = (props: IconSpriteProps) => <>{renderIconSprite('resource', resourceSprites, undefined, props)}</>;
 
 interface SpriteProps extends SVGProps<SVGSVGElement> {
     logicName: string;

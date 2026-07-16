@@ -1,4 +1,4 @@
-import { createContext, useContext, useId, useState } from 'react';
+import { createContext, useContext, useId, useMemo, useState } from 'react';
 import type { ComponentPropsWithoutRef, MouseEvent, ReactNode } from 'react';
 
 interface ActionBusyValue {
@@ -11,7 +11,8 @@ const ActionBusyContext = createContext<ActionBusyValue>({ busyKey: null, setBus
 // ponytail: single global busyKey locks every ActionButton while one action runs (backend serializes the player anyway); split per-key if two independent actions ever need to overlap
 export const ActionBusyProvider = ({ children }: { children: ReactNode }) => {
     const [busyKey, setBusyKey] = useState<string | null>(null);
-    return <ActionBusyContext.Provider value={{ busyKey, setBusyKey }}>{children}</ActionBusyContext.Provider>;
+    const value = useMemo(() => ({ busyKey, setBusyKey }), [busyKey]);
+    return <ActionBusyContext.Provider value={value}>{children}</ActionBusyContext.Provider>;
 };
 
 type ActionButtonProps = Omit<ComponentPropsWithoutRef<'button'>, 'onClick'> & {

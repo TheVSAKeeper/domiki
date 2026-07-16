@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
@@ -171,11 +171,10 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
                     const bestType = best == null ? undefined : domikTypes.find(t => t.id === best.domikTypeId);
                     const extra = ranked.slice(1);
                     const extraTitle = extra
-                        .map(skill => {
+                        .flatMap(skill => {
                             const type = domikTypes.find(t => t.id === skill.domikTypeId);
-                            return type == null ? null : `${type.name}: +${skill.bonusPercent} %`;
+                            return type == null ? [] : [`${type.name}: +${skill.bonusPercent} %`];
                         })
-                        .filter(Boolean)
                         .join(' · ');
                     return (
                         <article key={worker.id} className={`worker-card worker--${stateKey}`} tabIndex={0}

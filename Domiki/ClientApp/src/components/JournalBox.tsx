@@ -6,8 +6,9 @@ import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?reac
 import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
 import CheckboxOnIcon from 'pixelarticons/svg/checkbox-on.svg?react';
 import type { DecorTypeDto, DomikTypeDto, RecapEventDto, ResourceTypeDto } from '../types/api';
-import { isNumber, isRecord, readLootEntry, readResource } from '../utils/recap';
+import { isNumber, isRecord, lootEntryKey, readLootEntry, readResource } from '../utils/recap';
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
+import { withStableKeys } from '../utils/keys';
 import { formatRelativeTime } from '../utils/time';
 import { genderForm, traitLabel } from '../utils/gender';
 import { AbstractSprite, DomikSprite, MechanicSprite } from './sprites';
@@ -114,20 +115,20 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
                     <MechanicSprite logicName="expeditions" aria-hidden="true" />
                     <span className="journal-text">Экспедиция вернулась</span>
                     <span className="journal-chips">
-                        {loot.map((entry, index) => {
+                        {withStableKeys(loot, lootEntryKey).map(({ key, item: entry }) => {
                             if (entry.kind === EXPEDITION_LOOT_KIND_DECOR) {
                                 const decorType = decorTypes.find(x => x.id === entry.decorTypeId);
-                                return <span key={index} className="journal-loot-rare">Нашли {decorType?.name ?? 'декор'}</span>;
+                                return <span key={key} className="journal-loot-rare">Нашли {decorType?.name ?? 'декор'}</span>;
                             }
                             if (entry.kind === EXPEDITION_LOOT_KIND_TRAIT_UPGRADE) {
-                                return <span key={index} className="journal-loot-rare">{entry.workerName} {genderForm(entry.workerGender, 'закалился', 'закалилась')}: {traitLabel(entry.newTraitLogicName ?? '', entry.newTrait ?? '', entry.workerGender)}</span>;
+                                return <span key={key} className="journal-loot-rare">{entry.workerName} {genderForm(entry.workerGender, 'закалился', 'закалилась')}: {traitLabel(entry.newTraitLogicName ?? '', entry.newTrait ?? '', entry.workerGender)}</span>;
                             }
                             if (entry.kind === EXPEDITION_LOOT_KIND_BLUEPRINT) {
-                                return <span key={index} className="journal-loot-rare">Нашли {entry.blueprintName ?? 'чертёж'}</span>;
+                                return <span key={key} className="journal-loot-rare">Нашли {entry.blueprintName ?? 'чертёж'}</span>;
                             }
                             const resourceType = entry.typeId == null ? null : findResourceType(resourceTypes, entry.typeId);
                             return resourceType == null || entry.value == null ? null : (
-                                <span key={index} className={entry.isRare ? 'journal-loot-rare' : undefined}>
+                                <span key={key} className={entry.isRare ? 'journal-loot-rare' : undefined}>
                                     <ResourceChip resourceType={resourceType} value={entry.value} rare={entry.isRare} />
                                 </span>
                             );
@@ -202,19 +203,24 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
 };
 
 export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, now }: JournalBoxProps) => {
-    const entries = [...events]
-        .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
-        .map(event => ({ event, content: renderContent(event, resourceTypes, domikTypes, decorTypes) }))
-        .flatMap(entry => entry.content == null ? [] : [{ event: entry.event, content: entry.content }]);
+    const entries = withStableKeys(
+        [...events]
+            .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+            .flatMap(event => {
+                const content = renderContent(event, resourceTypes, domikTypes, decorTypes);
+                return content == null ? [] : [{ event, content }];
+            }),
+        entry => `${entry.event.type}-${entry.event.date}`,
+    );
 
-    const groups: { label: string; items: typeof entries }[] = [];
+    const groups: { key: string; label: string; items: typeof entries }[] = [];
     entries.forEach(entry => {
-        const label = dayLabel(entry.event.date, now);
+        const label = dayLabel(entry.item.event.date, now);
         const last = groups[groups.length - 1];
         if (last != null && last.label === label) {
             last.items.push(entry);
         } else {
-            groups.push({ label, items: [entry] });
+            groups.push({ key: entry.key, label, items: [entry] });
         }
     });
 
@@ -244,17 +250,17 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, now 
                 )
                 : (
                     <div className="journal-timeline">
-                        {groups.map((group, groupIndex) => (
-                            <div key={groupIndex} className="journal-group">
+                        {groups.map(group => (
+                            <div key={group.key} className="journal-group">
                                 <div className="journal-day"><span className="journal-day-label">{group.label}</span></div>
-                                {group.items.map((entry, index) => {
-                                    const { tone, Icon, body } = entry.content;
+                                {group.items.map(entry => {
+                                    const { tone, Icon, body } = entry.item.content;
                                     return (
-                                        <article key={`${entry.event.type}-${entry.event.date}-${index}`} className="journal-entry" data-tone={tone}>
+                                        <article key={entry.key} className="journal-entry" data-tone={tone}>
                                             <span className="journal-node" aria-hidden="true"><Icon /></span>
                                             <div className="journal-card">
                                                 {body}
-                                                <time className="journal-time">{formatRelativeTime(entry.event.date, now)}</time>
+                                                <time className="journal-time">{formatRelativeTime(entry.item.event.date, now)}</time>
                                             </div>
                                         </article>
                                     );

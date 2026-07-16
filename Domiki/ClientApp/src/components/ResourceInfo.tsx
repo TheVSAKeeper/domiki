@@ -1,20 +1,12 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { DomikTypeDto, ReceiptDto, ResourceTypeDto } from '../types/api';
 import { resourceSourceMap } from '../utils/game';
 import { resourceLore } from '../utils/resourceLore';
+import { ResourceInfoContext } from './resourceInfoContext';
 import { ResourceSprite } from './sprites';
 
 const FLYOUT_WIDTH = 260;
-
-interface ResourceInfoContextValue {
-    open: (typeId: number, el: HTMLElement) => void;
-    close: () => void;
-}
-
-const ResourceInfoContext = createContext<ResourceInfoContextValue | null>(null);
-
-export const useResourceInfo = () => useContext(ResourceInfoContext);
 
 interface ResourceInfoProviderProps {
     resourceTypes: ResourceTypeDto[];

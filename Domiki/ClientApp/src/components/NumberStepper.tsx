@@ -19,7 +19,7 @@ export const NumberStepper = ({ value, onChange, min = 1, max, step = 1, classNa
                 onClick={() => onChange(clamp(value - step))}>
                 <MinusIcon className="btn-ico" aria-hidden="true" />
             </button>
-            <input type="number" min={min} max={max} step={step} value={value}
+            <input type="number" aria-label="Количество" min={min} max={max} step={step} value={value}
                 onChange={event => onChange(clamp(Math.floor(Number(event.target.value) || min)))} />
             <button type="button" className="number-stepper-btn" aria-label="Увеличить значение" disabled={max != null && value >= max}
                 onClick={() => onChange(clamp(value + step))}>

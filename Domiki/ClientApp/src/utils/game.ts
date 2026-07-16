@@ -1,4 +1,4 @@
-﻿import type { DomikDto, DomikTypeDto, ManufactureDto, PlodderCount, ReceiptDto, ReceiptView, ResourceDto, SelectedDomikView, UpgradeView, WorkerDto } from '../types/api';
+import type { DomikDto, DomikTypeDto, ManufactureDto, PlodderCount, ReceiptDto, ReceiptView, ResourceDto, SelectedDomikView, UpgradeView, WorkerDto } from '../types/api';
 import { formatDuration, remainingSeconds } from './time';
 
 export const INSTA_FINISH_SECONDS_PER_GOLD = 3600;
@@ -296,4 +296,23 @@ export function sortDomiks(domiks: DomikDto[], domikTypes: DomikTypeDto[], resou
         return copy.sort((a, b) => b.level - a.level || a.typeId - b.typeId);
     }
     return copy.sort((a, b) => attentionRank(a, domikTypes, resources) - attentionRank(b, domikTypes, resources));
+}
+
+export function strongestWeatherEffect(effects: { domikTypeId: number; outputPercent: number }[], domikTypes: DomikTypeDto[]): { delta: number; domikType: DomikTypeDto } | null {
+    const typeById = new Map(domikTypes.map(type => [type.id, type]));
+    let best: { delta: number; domikType: DomikTypeDto } | null = null;
+    for (const effect of effects) {
+        if (effect.outputPercent === 100) {
+            continue;
+        }
+        const domikType = typeById.get(effect.domikTypeId);
+        if (domikType == null) {
+            continue;
+        }
+        const delta = effect.outputPercent - 100;
+        if (best == null || Math.abs(delta) > Math.abs(best.delta)) {
+            best = { delta, domikType };
+        }
+    }
+    return best;
 }

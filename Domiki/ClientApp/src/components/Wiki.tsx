@@ -1,10 +1,11 @@
 import { Fragment, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ApiError, getGameState } from '../services/api';
-import { useToast } from '../services/toast';
+import { useToast } from '../services/toastContext';
 import { formatDuration } from '../utils/time';
 import { domikLore } from '../utils/domikLore';
 import { resourceLore } from '../utils/resourceLore';
+import { strongestWeatherEffect } from '../utils/game';
 import type { DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, VillageLevelDto, WeatherStateDto } from '../types/api';
 import { DecorSprite, DomikSprite, MechanicSprite, ResourceSprite, WeatherSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
@@ -150,19 +151,11 @@ const RecipeCard = ({ receipt, resourceTypes }: RecipeCardProps) => (
     </div>
 );
 
-export const Wiki = () => {
-    const toast = useToast();
-    const [catalog, setCatalog] = useState<Catalog | null>(null);
-    const [openIds, setOpenIds] = useState<ReadonlySet<number>>(new Set());
-    const toggleBuilding = (id: number) => setOpenIds(prev => {
-        const next = new Set(prev);
-        if (next.has(id)) {
-            next.delete(id);
-        } else {
-            next.add(id);
-        }
-        return next;
-    });
+interface WikiResourcesSectionProps {
+    resourceTypes: ResourceTypeDto[];
+}
+
+const WikiResourcesSection = ({ resourceTypes }: WikiResourcesSectionProps) => {
     const [resFlyout, setResFlyout] = useState<{ type: ResourceTypeDto; top: number; left: number } | null>(null);
     const openResFlyout = (type: ResourceTypeDto, el: HTMLElement) => {
         if (resourceLore[type.logicName] == null) {
@@ -173,6 +166,155 @@ export const Wiki = () => {
         setResFlyout({ type, top: rect.bottom + 6, left });
     };
     const closeResFlyout = () => setResFlyout(null);
+
+    return (
+        <section className="wiki-section">
+            <h2 className="section-head">Ресурсы</h2>
+            <p className="wiki-res-hint">Наведи на ресурс – всплывёт карточка: что это, откуда берётся и зачем нужен.</p>
+            <div className="wiki-res-grid">
+                {resourceTypes.map(type => (
+                    <button
+                        key={type.id}
+                        type="button"
+                        className={'wiki-res-cell pixel-panel' + (resFlyout?.type.id === type.id ? ' active' : '')}
+                        onMouseEnter={e => { openResFlyout(type, e.currentTarget); }}
+                        onMouseLeave={closeResFlyout}
+                        onFocus={e => { openResFlyout(type, e.currentTarget); }}
+                        onBlur={closeResFlyout}
+                    >
+                        <ResourceSprite logicName={type.logicName} aria-hidden="true" />
+                        <span>{type.name}</span>
+                    </button>
+                ))}
+            </div>
+            {resFlyout != null && (() => {
+                const lore = resourceLore[resFlyout.type.logicName];
+                if (lore == null) {
+                    return null;
+                }
+                return createPortal(
+                    <div className="wiki-res-pop pixel-panel" role="tooltip" style={{ top: resFlyout.top, left: resFlyout.left, width: RES_POP_WIDTH }}>
+                        <div className="wiki-res-pop-head">
+                            <ResourceSprite logicName={resFlyout.type.logicName} size={40} aria-hidden="true" />
+                            <span className="wiki-res-pop-name">{resFlyout.type.name}</span>
+                        </div>
+                        <p className="wiki-res-pop-flavor">{lore.flavor}</p>
+                        <dl className="wiki-res-facts">
+                            <dt>Откуда</dt>
+                            <dd>{lore.source}</dd>
+                            <dt>Зачем</dt>
+                            <dd>{lore.use}</dd>
+                        </dl>
+                    </div>,
+                    document.body);
+            })()}
+        </section>
+    );
+};
+
+interface WikiBuildingsSectionProps {
+    domikTypes: DomikTypeDto[];
+    resourceTypes: ResourceTypeDto[];
+    receipts: ReceiptDto[];
+}
+
+const WikiBuildingsSection = ({ domikTypes, resourceTypes, receipts }: WikiBuildingsSectionProps) => {
+    const [openIds, setOpenIds] = useState<ReadonlySet<number>>(new Set());
+    const toggleBuilding = (id: number) => setOpenIds(prev => {
+        const next = new Set(prev);
+        if (next.has(id)) {
+            next.delete(id);
+        } else {
+            next.add(id);
+        }
+        return next;
+    });
+    const receiptById = (id: number) => receipts.find(x => x.id === id);
+    const buildings = [...domikTypes].sort((a, b) => a.unlockLevel - b.unlockLevel || a.id - b.id);
+
+    return (
+        <section className="wiki-section">
+            <h2 className="section-head">Постройки</h2>
+            <div className="wiki-buildings">
+                {buildings.map(type => {
+                    const open = openIds.has(type.id);
+                    const lore = domikLore[type.logicName];
+                    const outputTypeIds = new Set<number>();
+                    for (const level of type.levels) {
+                        for (const receiptId of level.receiptIds) {
+                            for (const output of receiptById(receiptId)?.outputResources ?? []) {
+                                outputTypeIds.add(output.typeId);
+                            }
+                        }
+                    }
+
+                    return (
+                        <div key={type.id} className={'wiki-building pixel-panel' + (open ? ' receipt-open' : '')}>
+                            <button type="button" className="wiki-building-head" aria-expanded={open} onClick={() => toggleBuilding(type.id)}>
+                                <AnimatedDomikSprite mode="loop" logicName={type.logicName} maxLevel={type.levels.length} active={open} />
+                                <span className="wiki-building-titles">
+                                    <span className="wiki-building-name">{type.name}</span>
+                                    <span className="wiki-building-meta">
+                                        до {type.maxLevel} ур. · макс. {type.maxCount} шт.
+                                        {type.unlockLevel > 0 && ` · с ${type.unlockLevel} ур. деревни`}
+                                        {type.blueprintId != null && ' · по чертежу'}
+                                    </span>
+                                </span>
+                                <span className="wiki-building-aside">
+                                    {outputTypeIds.size > 0 && (
+                                        <span className="wiki-building-teaser">
+                                            {[...outputTypeIds].map(tid => {
+                                                const rt = resourceTypes.find(x => x.id === tid);
+                                                if (rt == null) {
+                                                    return null;
+                                                }
+                                                return <ResourceSprite key={tid} logicName={rt.logicName} aria-label={rt.name} />;
+                                            })}
+                                        </span>
+                                    )}
+                                    <ChevronDownIcon className="receipt-caret" aria-hidden="true" />
+                                </span>
+                            </button>
+                            {open && (
+                                <div className="wiki-levels">
+                                    {lore != null && <p className="wiki-building-lore">{lore}</p>}
+                                    {type.levels.map(level => {
+                                        const levelReceipts = level.receiptIds.map(receiptById).filter((r): r is ReceiptDto => r != null);
+                                        if (level.resources.length === 0 && levelReceipts.length === 0) {
+                                            return null;
+                                        }
+                                        return (
+                                            <div key={level.value} className="wiki-level">
+                                                <div className="wiki-level-head">
+                                                    <span className="wiki-level-badge">Ур. {level.value}</span>
+                                                    {level.resources.length > 0 && (
+                                                        <span className="wiki-level-cost">{level.value === 1 ? 'постройка' : 'апгрейд'}: <ResChips items={level.resources} resourceTypes={resourceTypes} /></span>
+                                                    )}
+                                                </div>
+                                                {levelReceipts.map(receipt => (
+                                                    <RecipeCard key={receipt.id} receipt={receipt} resourceTypes={resourceTypes} />
+                                                ))}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </section>
+    );
+};
+
+interface WikiMechanicsSectionProps {
+    villageLevel: VillageLevelDto;
+    weather: WeatherStateDto;
+    decor: DecorStateDto;
+    domikTypes: DomikTypeDto[];
+}
+
+const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes }: WikiMechanicsSectionProps) => {
     const [openMechanics, setOpenMechanics] = useState<ReadonlySet<string>>(new Set());
     const toggleMechanic = (key: string) => setOpenMechanics(prev => {
         const next = new Set(prev);
@@ -183,6 +325,145 @@ export const Wiki = () => {
         }
         return next;
     });
+
+    return (
+        <section className="wiki-section">
+            <h2 className="section-head">Механики</h2>
+            <div className="wiki-buildings">
+                {MECHANICS.map(m => {
+                    const open = openMechanics.has(m.key);
+                    const effectChips = m.key === 'weather' && weather.current != null
+                        ? weather.current.effects.flatMap(effect => {
+                            if (effect.outputPercent === 100) {
+                                return [];
+                            }
+                            const domikType = domikTypes.find(t => t.id === effect.domikTypeId);
+                            if (domikType == null) {
+                                return [];
+                            }
+                            const buff = effect.outputPercent > 100;
+                            const delta = effect.outputPercent - 100;
+                            return [
+                                <span key={effect.domikTypeId} className={'weather-effect' + (buff ? ' weather-effect-buff' : ' weather-effect-nerf')} title={domikType.logicName}>
+                                    <DomikSprite className="weather-effect-ico" logicName={domikType.logicName} />
+                                    {buff ? '+' : ''}{delta}%
+                                </span>,
+                            ];
+                        })
+                        : [];
+
+                    return (
+                        <div key={m.key} className={'wiki-building pixel-panel' + (open ? ' receipt-open' : '')}>
+                            <button type="button" className="wiki-building-head" aria-expanded={open} onClick={() => toggleMechanic(m.key)}>
+                                <MechanicSprite logicName={m.logic} size={24} className="wiki-mech-ico" aria-hidden="true" />
+                                <span className="wiki-building-titles">
+                                    <span className="wiki-building-name">{m.name}</span>
+                                    <span className="wiki-building-meta">{m.teaser}</span>
+                                </span>
+                                <span className="wiki-building-aside">
+                                    <ChevronDownIcon className="receipt-caret" aria-hidden="true" />
+                                </span>
+                            </button>
+                            {open && (
+                                <div className="wiki-mechanic-body">
+                                    <p>{m.description}</p>
+                                    {m.key === 'village' && (
+                                        <div className="wiki-mechanic-live">
+                                            <span className="wiki-mechanic-live-label wiki-village-level">
+                                                <MechanicSprite logicName="obzhitost" size={32} className="weather-chip-ico" aria-hidden="true" />
+                                                Текущая обжитость: {villageLevel.level}
+                                            </span>
+                                            <dl className="wiki-res-facts">
+                                                <dt>Постройки</dt>
+                                                <dd>{villageLevel.buildings} × 1 = {villageLevel.buildings}</dd>
+                                                <dt>Жители</dt>
+                                                <dd>{villageLevel.residents} × 2 = {villageLevel.residents * 2}</dd>
+                                                <dt>Вехи репутации</dt>
+                                                <dd>{villageLevel.reputation} × 5 = {villageLevel.reputation * 5}</dd>
+                                                <dt>Уют</dt>
+                                                <dd>{Math.min(villageLevel.comfort, 50)} × 1 = {Math.min(villageLevel.comfort, 50)}</dd>
+                                                <dt>Итого</dt>
+                                                <dd>{villageLevel.level}</dd>
+                                            </dl>
+                                            {villageLevel.upcomingUnlocks.length > 0 && (
+                                                <>
+                                                    <span className="wiki-mechanic-live-label">Ближайшие открытия:</span>
+                                                    <dl className="wiki-res-facts">
+                                                        {villageLevel.upcomingUnlocks.slice(0, 5).map(unlock => (
+                                                            <Fragment key={`${unlock.label}-${unlock.level ?? unlock.requirement}`}>
+                                                                <dt>{unlock.label}</dt>
+                                                                <dd>{unlock.level != null ? `при обжитости ${unlock.level}` : unlock.requirement}</dd>
+                                                            </Fragment>
+                                                        ))}
+                                                    </dl>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+                                    {m.key === 'weather' && (
+                                        <div className="wiki-mechanic-live">
+                                            {weather.current != null && (
+                                                <>
+                                                    <span className="wiki-mechanic-live-label">
+                                                        <WeatherSprite logicName={weather.current.logicName} size={24} className="weather-chip-ico" aria-hidden="true" />
+                                                        Сейчас: {weather.current.weatherName}
+                                                    </span>
+                                                    {effectChips.length > 0 && (
+                                                        <div className="weather-effects">
+                                                            {effectChips}
+                                                        </div>
+                                                    )}
+                                                </>
+                                            )}
+                                            {weather.forecast.length > 0 && (
+                                                <>
+                                                    <span className="wiki-mechanic-live-label">Прогноз:</span>
+                                                    <div className="weather-effects">
+                                                        {weather.forecast.map(period => {
+                                                            const hint = strongestWeatherEffect(period.effects, domikTypes);
+                                                            return (
+                                                                <span key={period.startDate} className="weather-chip" title={period.weatherName}>
+                                                                    <WeatherSprite logicName={period.logicName} size={24} className="weather-chip-ico" aria-hidden="true" />
+                                                                    {period.weatherName}
+                                                                    {hint != null && (
+                                                                        <span className={'weather-effect' + (hint.delta > 0 ? ' weather-effect-buff' : ' weather-effect-nerf')} title={`${hint.domikType.name}: ${hint.delta > 0 ? '+' : ''}${hint.delta}% выход`}>
+                                                                            <DomikSprite className="weather-effect-ico" logicName={hint.domikType.logicName} />
+                                                                            {hint.delta > 0 ? '+' : ''}{hint.delta}%
+                                                                        </span>
+                                                                    )}
+                                                                </span>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+                                    {m.key === 'decor' && decor.types.length > 0 && (
+                                        <div className="wiki-res-grid">
+                                            {decor.types.map(type => {
+                                                return (
+                                                    <div key={type.id} className="wiki-res-cell pixel-panel" title={type.name}>
+                                                        <DecorSprite logicName={type.logicName} size={32} aria-hidden="true" />
+                                                        <span>{type.name} · уют +{type.comfortPoints}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </section>
+    );
+};
+
+export const Wiki = () => {
+    const toast = useToast();
+    const [catalog, setCatalog] = useState<Catalog | null>(null);
 
     useEffect(() => {
         const controller = new AbortController();
@@ -216,8 +497,6 @@ export const Wiki = () => {
     }
 
     const { domikTypes, resourceTypes, receipts, weather, decor, villageLevel } = catalog;
-    const receiptById = (id: number) => receipts.find(x => x.id === id);
-    const buildings = [...domikTypes].sort((a, b) => a.unlockLevel - b.unlockLevel || a.id - b.id);
 
     return (
         <div className="wiki">
@@ -227,116 +506,9 @@ export const Wiki = () => {
                 <p>Ниже – ресурсы, постройки, рецепты и обзор механик. Данные живые, прямо из игры, так что не устаревают.</p>
             </section>
 
-            <section className="wiki-section">
-                <h2 className="section-head">Ресурсы</h2>
-                <p className="wiki-res-hint">Наведи на ресурс – всплывёт карточка: что это, откуда берётся и зачем нужен.</p>
-                <div className="wiki-res-grid">
-                    {resourceTypes.map(type => (
-                        <button
-                            key={type.id}
-                            type="button"
-                            className={'wiki-res-cell pixel-panel' + (resFlyout?.type.id === type.id ? ' active' : '')}
-                            onMouseEnter={e => { openResFlyout(type, e.currentTarget); }}
-                            onMouseLeave={closeResFlyout}
-                            onFocus={e => { openResFlyout(type, e.currentTarget); }}
-                            onBlur={closeResFlyout}
-                        >
-                            <ResourceSprite logicName={type.logicName} aria-hidden="true" />
-                            <span>{type.name}</span>
-                        </button>
-                    ))}
-                </div>
-                {resFlyout != null && (() => {
-                    const lore = resourceLore[resFlyout.type.logicName];
-                    if (lore == null) {
-                        return null;
-                    }
-                    return createPortal(
-                        <div className="wiki-res-pop pixel-panel" role="tooltip" style={{ top: resFlyout.top, left: resFlyout.left, width: RES_POP_WIDTH }}>
-                            <div className="wiki-res-pop-head">
-                                <ResourceSprite logicName={resFlyout.type.logicName} size={40} aria-hidden="true" />
-                                <span className="wiki-res-pop-name">{resFlyout.type.name}</span>
-                            </div>
-                            <p className="wiki-res-pop-flavor">{lore.flavor}</p>
-                            <dl className="wiki-res-facts">
-                                <dt>Откуда</dt>
-                                <dd>{lore.source}</dd>
-                                <dt>Зачем</dt>
-                                <dd>{lore.use}</dd>
-                            </dl>
-                        </div>,
-                        document.body);
-                })()}
-            </section>
+            <WikiResourcesSection resourceTypes={resourceTypes} />
 
-            <section className="wiki-section">
-                <h2 className="section-head">Постройки</h2>
-                <div className="wiki-buildings">
-                    {buildings.map(type => {
-                        const open = openIds.has(type.id);
-                        const lore = domikLore[type.logicName];
-                        const outputTypeIds = [...new Set(
-                            type.levels.flatMap(l => l.receiptIds)
-                                .map(receiptById).filter((r): r is ReceiptDto => r != null)
-                                .flatMap(r => r.outputResources.map(o => o.typeId))
-                        )];
-
-                        return (
-                            <div key={type.id} className={'wiki-building pixel-panel' + (open ? ' receipt-open' : '')}>
-                                <button type="button" className="wiki-building-head" aria-expanded={open} onClick={() => toggleBuilding(type.id)}>
-                                    <AnimatedDomikSprite mode="loop" logicName={type.logicName} maxLevel={type.levels.length} active={open} />
-                                    <span className="wiki-building-titles">
-                                        <span className="wiki-building-name">{type.name}</span>
-                                        <span className="wiki-building-meta">
-                                            до {type.maxLevel} ур. · макс. {type.maxCount} шт.
-                                            {type.unlockLevel > 0 && ` · с ${type.unlockLevel} ур. деревни`}
-                                            {type.blueprintId != null && ' · по чертежу'}
-                                        </span>
-                                    </span>
-                                    <span className="wiki-building-aside">
-                                        {outputTypeIds.length > 0 && (
-                                            <span className="wiki-building-teaser">
-                                                {outputTypeIds.map(tid => {
-                                                    const rt = resourceTypes.find(x => x.id === tid);
-                                                    if (rt == null) {
-                                                        return null;
-                                                    }
-                                                    return <ResourceSprite key={tid} logicName={rt.logicName} aria-label={rt.name} />;
-                                                })}
-                                            </span>
-                                        )}
-                                        <ChevronDownIcon className="receipt-caret" aria-hidden="true" />
-                                    </span>
-                                </button>
-                                {open && (
-                                    <div className="wiki-levels">
-                                        {lore != null && <p className="wiki-building-lore">{lore}</p>}
-                                        {type.levels.map(level => {
-                                            const levelReceipts = level.receiptIds.map(receiptById).filter((r): r is ReceiptDto => r != null);
-                                            if (level.resources.length === 0 && levelReceipts.length === 0) {
-                                                return null;
-                                            }
-                                            return (
-                                                <div key={level.value} className="wiki-level">
-                                                    <div className="wiki-level-head">
-                                                        <span className="wiki-level-badge">Ур. {level.value}</span>
-                                                        {level.resources.length > 0 && (
-                                                            <span className="wiki-level-cost">{level.value === 1 ? 'постройка' : 'апгрейд'}: <ResChips items={level.resources} resourceTypes={resourceTypes} /></span>
-                                                        )}
-                                                    </div>
-                                                    {levelReceipts.map(receipt => (
-                                                        <RecipeCard key={receipt.id} receipt={receipt} resourceTypes={resourceTypes} />
-                                                    ))}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            </section>
+            <WikiBuildingsSection domikTypes={domikTypes} resourceTypes={resourceTypes} receipts={receipts} />
 
             <section className="wiki-section">
                 <h2 className="section-head">Переделы</h2>
@@ -357,137 +529,7 @@ export const Wiki = () => {
                 </div>
             </section>
 
-            <section className="wiki-section">
-                <h2 className="section-head">Механики</h2>
-                <div className="wiki-buildings">
-                    {MECHANICS.map(m => {
-                        const open = openMechanics.has(m.key);
-
-                        return (
-                            <div key={m.key} className={'wiki-building pixel-panel' + (open ? ' receipt-open' : '')}>
-                                <button type="button" className="wiki-building-head" aria-expanded={open} onClick={() => toggleMechanic(m.key)}>
-                                    <MechanicSprite logicName={m.logic} size={24} className="wiki-mech-ico" aria-hidden="true" />
-                                    <span className="wiki-building-titles">
-                                        <span className="wiki-building-name">{m.name}</span>
-                                        <span className="wiki-building-meta">{m.teaser}</span>
-                                    </span>
-                                    <span className="wiki-building-aside">
-                                        <ChevronDownIcon className="receipt-caret" aria-hidden="true" />
-                                    </span>
-                                </button>
-                                {open && (
-                                    <div className="wiki-mechanic-body">
-                                        <p>{m.description}</p>
-                                        {m.key === 'village' && (
-                                            <div className="wiki-mechanic-live">
-                                                <span className="wiki-mechanic-live-label wiki-village-level">
-                                                    <MechanicSprite logicName="obzhitost" size={32} className="weather-chip-ico" aria-hidden="true" />
-                                                    Текущая обжитость: {villageLevel.level}
-                                                </span>
-                                                <dl className="wiki-res-facts">
-                                                    <dt>Постройки</dt>
-                                                    <dd>{villageLevel.buildings} × 1 = {villageLevel.buildings}</dd>
-                                                    <dt>Жители</dt>
-                                                    <dd>{villageLevel.residents} × 2 = {villageLevel.residents * 2}</dd>
-                                                    <dt>Вехи репутации</dt>
-                                                    <dd>{villageLevel.reputation} × 5 = {villageLevel.reputation * 5}</dd>
-                                                    <dt>Уют</dt>
-                                                    <dd>{Math.min(villageLevel.comfort, 50)} × 1 = {Math.min(villageLevel.comfort, 50)}</dd>
-                                                    <dt>Итого</dt>
-                                                    <dd>{villageLevel.level}</dd>
-                                                </dl>
-                                                {villageLevel.upcomingUnlocks.length > 0 && (
-                                                    <>
-                                                        <span className="wiki-mechanic-live-label">Ближайшие открытия:</span>
-                                                        <dl className="wiki-res-facts">
-                                                            {villageLevel.upcomingUnlocks.slice(0, 5).map(unlock => (
-                                                                <Fragment key={`${unlock.label}-${unlock.level ?? unlock.requirement}`}>
-                                                                    <dt>{unlock.label}</dt>
-                                                                    <dd>{unlock.level != null ? `при обжитости ${unlock.level}` : unlock.requirement}</dd>
-                                                                </Fragment>
-                                                            ))}
-                                                        </dl>
-                                                    </>
-                                                )}
-                                            </div>
-                                        )}
-                                        {m.key === 'weather' && (
-                                            <div className="wiki-mechanic-live">
-                                                {weather.current != null && (
-                                                    <>
-                                                        <span className="wiki-mechanic-live-label">
-                                                            <WeatherSprite logicName={weather.current.logicName} size={24} className="weather-chip-ico" aria-hidden="true" />
-                                                            Сейчас: {weather.current.weatherName}
-                                                        </span>
-                                                        {weather.current.effects.some(e => e.outputPercent !== 100) && (
-                                                            <div className="weather-effects">
-                                                                {weather.current.effects.filter(e => e.outputPercent !== 100).map(e => {
-                                                                    const domikType = domikTypes.find(t => t.id === e.domikTypeId);
-                                                                    if (domikType == null) {
-                                                                        return null;
-                                                                    }
-                                                                    const buff = e.outputPercent > 100;
-                                                                    const delta = e.outputPercent - 100;
-                                                                    return (
-                                                                        <span key={e.domikTypeId} className={'weather-effect' + (buff ? ' weather-effect-buff' : ' weather-effect-nerf')} title={domikType.logicName}>
-                                                                            <DomikSprite className="weather-effect-ico" logicName={domikType.logicName} />
-                                                                            {buff ? '+' : ''}{delta}%
-                                                                        </span>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                )}
-                                                {weather.forecast.length > 0 && (
-                                                    <>
-                                                        <span className="wiki-mechanic-live-label">Прогноз:</span>
-                                                        <div className="weather-effects">
-                                                            {weather.forecast.map(period => {
-                                                                const hint = period.effects
-                                                                    .filter(e => e.outputPercent !== 100)
-                                                                    .flatMap(e => {
-                                                                        const domikType = domikTypes.find(t => t.id === e.domikTypeId);
-                                                                        return domikType != null ? [{ delta: e.outputPercent - 100, domikType }] : [];
-                                                                    })
-                                                                    .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))[0];
-                                                                return (
-                                                                    <span key={period.startDate} className="weather-chip" title={period.weatherName}>
-                                                                        <WeatherSprite logicName={period.logicName} size={24} className="weather-chip-ico" aria-hidden="true" />
-                                                                        {period.weatherName}
-                                                                        {hint != null && (
-                                                                            <span className={'weather-effect' + (hint.delta > 0 ? ' weather-effect-buff' : ' weather-effect-nerf')} title={`${hint.domikType.name}: ${hint.delta > 0 ? '+' : ''}${hint.delta}% выход`}>
-                                                                                <DomikSprite className="weather-effect-ico" logicName={hint.domikType.logicName} />
-                                                                                {hint.delta > 0 ? '+' : ''}{hint.delta}%
-                                                                            </span>
-                                                                        )}
-                                                                    </span>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
-                                        )}
-                                        {m.key === 'decor' && decor.types.length > 0 && (
-                                            <div className="wiki-res-grid">
-                                                {decor.types.map(type => {
-                                                    return (
-                                                        <div key={type.id} className="wiki-res-cell pixel-panel" title={type.name}>
-                                                            <DecorSprite logicName={type.logicName} size={32} aria-hidden="true" />
-                                                            <span>{type.name} · уют +{type.comfortPoints}</span>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            </section>
+            <WikiMechanicsSection villageLevel={villageLevel} weather={weather} decor={decor} domikTypes={domikTypes} />
         </div>
     );
 };

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, setFeedWorkers as setFeedWorkersApi, setManufactureAutoRepeat as setManufactureAutoRepeatApi, setVillage as setVillageApi, startExpedition as startExpeditionApi } from '../services/api';
-import { useToast } from '../services/toast';
+import { useToast } from '../services/toastContext';
 import {
     domikTypeSchema,
     resourceSchema,

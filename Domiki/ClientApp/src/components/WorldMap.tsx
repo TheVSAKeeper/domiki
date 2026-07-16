@@ -16,8 +16,11 @@ import {
     scatterTrees,
     scatterTufts,
     villageKey,
+    type MapRoad,
     type MapSpot,
     type MapTree,
+    type MapTuft,
+    type RiverSegment,
 } from '../utils/worldMap';
 import type { WorldVillageDto } from '../types/api';
 
@@ -154,8 +157,9 @@ const Hut = ({ cx, cy, w, style, smoke }: { cx: number; cy: number; w: number; s
     );
 };
 
+const s2 = (value: number) => Math.round(value / 2) * 2;
+
 const Clearing = ({ r }: { r: number }) => {
-    const s2 = (value: number) => Math.round(value / 2) * 2;
     return (
         <g>
             <rect x={s2(-r * 0.7)} y={s2(-r * 0.64)} width={s2(r * 1.4)} height={s2(r * 0.32)} fill={GRASS_CLEAR} />
@@ -330,6 +334,146 @@ const SettlementArt = memo(({ spot }: { spot: MapSpot }) => {
 });
 
 SettlementArt.displayName = 'SettlementArt';
+
+interface WorldSceneryProps {
+    river: RiverSegment[];
+    roads: MapRoad[];
+    trees: MapTree[];
+    tufts: MapTuft[];
+    bridge: RiverSegment | null;
+}
+
+const WorldScenery = memo(({ river, roads, trees, tufts, bridge }: WorldSceneryProps) => {
+    const shimmer: { segment: RiverSegment; offset: number }[] = [];
+    let n = 0;
+    river.forEach((segment, index) => {
+        if (index % 3 === 1) {
+            shimmer.push({ segment, offset: (n % 2) * 10 });
+            n += 1;
+        }
+    });
+
+    return (
+        <>
+            <defs>
+                <pattern id="wm-meadow" width="64" height="64" patternUnits="userSpaceOnUse">
+                    <rect width="64" height="64" fill="#90a878" />
+                    <rect width="32" height="32" fill="#8ba273" />
+                    <rect x="32" y="32" width="32" height="32" fill="#8ba273" />
+                </pattern>
+            </defs>
+            <rect x={-400} y={-400} width={WORLD_W + 800} height={WORLD_H + 800} fill="url(#wm-meadow)" />
+            <Field x={170} y={1370} w={190} h={120} />
+            <Field x={2140} y={1300} w={220} h={132} />
+            {REGIONS.map(region => (
+                <text key={region.label} className="wm-region-label" x={region.x} y={region.y} textAnchor="middle">
+                    {region.label}
+                </text>
+            ))}
+            {MOUNTAINS.map(mountain => (
+                <Mountain key={`${mountain.x}:${mountain.y}`} {...mountain} />
+            ))}
+            {tufts.map(tuft => (
+                <rect
+                    key={`${tuft.x}:${tuft.y}`}
+                    x={tuft.x}
+                    y={tuft.y}
+                    width={tuft.wide ? 10 : 6}
+                    height={4}
+                    fill={GRASS_SHADOW}
+                />
+            ))}
+            <g className="wm-roads" aria-hidden="true">
+                {roads.map(road => (
+                    <g key={road.key}>
+                        <polyline points={road.points} fill="none" stroke={ROAD_SHADOW} strokeWidth={14} />
+                        <polyline points={road.points} fill="none" stroke={ROAD} strokeWidth={8} />
+                    </g>
+                ))}
+            </g>
+            <g>
+                {river.map(segment => (
+                    <rect key={`b${segment.y}`} x={segment.x - 8} y={segment.y} width={segment.w + 16} height={segment.h} fill={BANK} />
+                ))}
+                {river.map(segment => (
+                    <rect key={`w${segment.y}`} x={segment.x} y={segment.y} width={segment.w} height={segment.h} fill={WATER} />
+                ))}
+                {shimmer.map(item => (
+                    <rect
+                        key={`s${item.segment.y}`}
+                        className="wm-water"
+                        x={item.segment.x + 6 + item.offset}
+                        y={item.segment.y + 14}
+                        width={8}
+                        height={4}
+                        fill={WATER_LIGHT}
+                    />
+                ))}
+            </g>
+            {bridge != null && (
+                <g>
+                    <rect x={bridge.x - 12} y={bridge.y + 10} width={bridge.w + 24} height={18} fill={WOOD} />
+                    <rect x={bridge.x - 12} y={bridge.y + 10} width={bridge.w + 24} height={2} fill={INK} />
+                    <rect x={bridge.x - 12} y={bridge.y + 26} width={bridge.w + 24} height={2} fill={TRUNK} />
+                </g>
+            )}
+            {trees.map(tree => (
+                <Tree key={`${tree.x}:${tree.y}`} tree={tree} />
+            ))}
+        </>
+    );
+});
+
+WorldScenery.displayName = 'WorldScenery';
+
+interface MapControlsProps {
+    onOverview: () => void;
+    onZoomIn: () => void;
+    onZoomOut: () => void;
+    onHome: (() => void) | null;
+}
+
+const MapControls = ({ onOverview, onZoomIn, onZoomOut, onHome }: MapControlsProps) => (
+    <div className="world-map-ctrl">
+        <button type="button" className="wm-btn" onClick={onOverview} aria-label="Показать весь мир" title="Показать весь мир">
+            <OverviewIcon className="wm-btn-ico" aria-hidden="true" />
+        </button>
+        <button type="button" className="wm-btn" onClick={onZoomIn} aria-label="Приблизить" title="Приблизить">
+            <ZoomInIcon className="wm-btn-ico" aria-hidden="true" />
+        </button>
+        <button type="button" className="wm-btn" onClick={onZoomOut} aria-label="Отдалить" title="Отдалить">
+            <ZoomOutIcon className="wm-btn-ico" aria-hidden="true" />
+        </button>
+        {onHome != null && (
+            <button type="button" className="wm-btn wm-btn-home" onClick={onHome} aria-label="К моей деревне" title="К моей деревне">
+                <HomeIcon className="wm-btn-ico" aria-hidden="true" />
+            </button>
+        )}
+    </div>
+);
+
+interface HoverTipProps {
+    hover: { spot: MapSpot; x: number; y: number } | null;
+    metricKey: WorldMetricKey;
+    metricLabel: string;
+}
+
+const HoverTip = ({ hover, metricKey, metricLabel }: HoverTipProps) => {
+    if (hover == null) {
+        return null;
+    }
+    return (
+        <div className="wm-tip" style={{ left: hover.x, top: hover.y }}>
+            <div className="wm-tip-name">{hover.spot.village.villageName}</div>
+            <div className="wm-tip-row">Обжитость {hover.spot.village.level}</div>
+            {metricKey !== 'level' && hover.spot.village[metricKey] > 0 && (
+                <div className="wm-tip-row">{metricLabel}: {hover.spot.village[metricKey]}</div>
+            )}
+            {hover.spot.village.isNpc && <div className="wm-tip-row wm-tip-npc">Торговое село соседей</div>}
+            {hover.spot.village.isMe && <div className="wm-tip-row wm-tip-me">Моя деревня</div>}
+        </div>
+    );
+};
 
 export const WorldMap = ({ villages, metricKey, metricLabel, selectedKey, onSelect, focus }: WorldMapProps) => {
     const svgRef = useRef<SVGSVGElement | null>(null);
@@ -525,71 +669,7 @@ export const WorldMap = ({ villages, metricKey, metricLabel, selectedKey, onSele
                 onPointerUp={onPointerUp}
                 onPointerCancel={onPointerUp}
             >
-                <defs>
-                    <pattern id="wm-meadow" width="64" height="64" patternUnits="userSpaceOnUse">
-                        <rect width="64" height="64" fill="#90a878" />
-                        <rect width="32" height="32" fill="#8ba273" />
-                        <rect x="32" y="32" width="32" height="32" fill="#8ba273" />
-                    </pattern>
-                </defs>
-                <rect x={-400} y={-400} width={WORLD_W + 800} height={WORLD_H + 800} fill="url(#wm-meadow)" />
-                <Field x={170} y={1370} w={190} h={120} />
-                <Field x={2140} y={1300} w={220} h={132} />
-                {REGIONS.map(region => (
-                    <text key={region.label} className="wm-region-label" x={region.x} y={region.y} textAnchor="middle">
-                        {region.label}
-                    </text>
-                ))}
-                {MOUNTAINS.map(mountain => (
-                    <Mountain key={`${mountain.x}:${mountain.y}`} {...mountain} />
-                ))}
-                {tufts.map(tuft => (
-                    <rect
-                        key={`${tuft.x}:${tuft.y}`}
-                        x={tuft.x}
-                        y={tuft.y}
-                        width={tuft.wide ? 10 : 6}
-                        height={4}
-                        fill={GRASS_SHADOW}
-                    />
-                ))}
-                <g className="wm-roads" aria-hidden="true">
-                    {roads.map(road => (
-                        <g key={road.key}>
-                            <polyline points={road.points} fill="none" stroke={ROAD_SHADOW} strokeWidth={14} />
-                            <polyline points={road.points} fill="none" stroke={ROAD} strokeWidth={8} />
-                        </g>
-                    ))}
-                </g>
-                <g>
-                    {river.map(segment => (
-                        <rect key={`b${segment.y}`} x={segment.x - 8} y={segment.y} width={segment.w + 16} height={segment.h} fill={BANK} />
-                    ))}
-                    {river.map(segment => (
-                        <rect key={`w${segment.y}`} x={segment.x} y={segment.y} width={segment.w} height={segment.h} fill={WATER} />
-                    ))}
-                    {river.filter((_, index) => index % 3 === 1).map((segment, index) => (
-                        <rect
-                            key={`s${segment.y}`}
-                            className="wm-water"
-                            x={segment.x + 6 + (index % 2) * 10}
-                            y={segment.y + 14}
-                            width={8}
-                            height={4}
-                            fill={WATER_LIGHT}
-                        />
-                    ))}
-                </g>
-                {bridge != null && (
-                    <g>
-                        <rect x={bridge.x - 12} y={bridge.y + 10} width={bridge.w + 24} height={18} fill={WOOD} />
-                        <rect x={bridge.x - 12} y={bridge.y + 10} width={bridge.w + 24} height={2} fill={INK} />
-                        <rect x={bridge.x - 12} y={bridge.y + 26} width={bridge.w + 24} height={2} fill={TRUNK} />
-                    </g>
-                )}
-                {trees.map(tree => (
-                    <Tree key={`${tree.x}:${tree.y}`} tree={tree} />
-                ))}
+                <WorldScenery river={river} roads={roads} trees={trees} tufts={tufts} bridge={bridge} />
                 {spots.map(spot => {
                     const rank = ranks.get(spot.key);
                     const selected = selectedKey === spot.key;
@@ -644,45 +724,13 @@ export const WorldMap = ({ villages, metricKey, metricLabel, selectedKey, onSele
             </svg>
             <div className="wm-title">Долина Домиков</div>
             <div className="wm-hint">Тяни карту · колесо — масштаб</div>
-            <div className="world-map-ctrl">
-                <button
-                    type="button"
-                    className="wm-btn"
-                    onClick={() => { flyTo(fitSpots(spots), 700); }}
-                    aria-label="Показать весь мир"
-                    title="Показать весь мир"
-                >
-                    <OverviewIcon className="wm-btn-ico" aria-hidden="true" />
-                </button>
-                <button type="button" className="wm-btn" onClick={() => { zoomBy(1.45); }} aria-label="Приблизить" title="Приблизить">
-                    <ZoomInIcon className="wm-btn-ico" aria-hidden="true" />
-                </button>
-                <button type="button" className="wm-btn" onClick={() => { zoomBy(1 / 1.45); }} aria-label="Отдалить" title="Отдалить">
-                    <ZoomOutIcon className="wm-btn-ico" aria-hidden="true" />
-                </button>
-                {mySpot != null && (
-                    <button
-                        type="button"
-                        className="wm-btn wm-btn-home"
-                        onClick={() => { flyTo({ cx: mySpot.x, cy: mySpot.y, k: 1.9 }, 700); }}
-                        aria-label="К моей деревне"
-                        title="К моей деревне"
-                    >
-                        <HomeIcon className="wm-btn-ico" aria-hidden="true" />
-                    </button>
-                )}
-            </div>
-            {hover != null && (
-                <div className="wm-tip" style={{ left: hover.x, top: hover.y }}>
-                    <div className="wm-tip-name">{hover.spot.village.villageName}</div>
-                    <div className="wm-tip-row">Обжитость {hover.spot.village.level}</div>
-                    {metricKey !== 'level' && hover.spot.village[metricKey] > 0 && (
-                        <div className="wm-tip-row">{metricLabel}: {hover.spot.village[metricKey]}</div>
-                    )}
-                    {hover.spot.village.isNpc && <div className="wm-tip-row wm-tip-npc">Торговое село соседей</div>}
-                    {hover.spot.village.isMe && <div className="wm-tip-row wm-tip-me">Моя деревня</div>}
-                </div>
-            )}
+            <MapControls
+                onOverview={() => { flyTo(fitSpots(spots), 700); }}
+                onZoomIn={() => { zoomBy(1.45); }}
+                onZoomOut={() => { zoomBy(1 / 1.45); }}
+                onHome={mySpot != null ? () => { flyTo({ cx: mySpot.x, cy: mySpot.y, k: 1.9 }, 700); } : null}
+            />
+            <HoverTip hover={hover} metricKey={metricKey} metricLabel={metricLabel} />
         </div>
     );
 };

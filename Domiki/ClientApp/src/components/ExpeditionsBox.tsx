@@ -70,6 +70,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
     }
 
     const freeWorkers = workers.filter(worker => isWorkerFree(worker, now));
+    const freeWorkerIds = new Set(freeWorkers.map(w => w.id));
     const untilPity = Math.max(0, expeditions.pityThreshold - expeditions.expeditionsSincePity);
     const goldType = resourceTypes.find(x => x.id === GOLD_RESOURCE_TYPE_ID);
     const allOut = expeditions.active.length >= expeditions.maxActive;
@@ -124,7 +125,8 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                     const canAffordEquipment = hasResourcesFor(equipmentReqs, resources);
                     const hasWorkers = freeWorkers.length >= type.workerCount;
                     const isManual = manualMode[type.id] ?? false;
-                    const picked = (picks[type.id] ?? []).filter(id => freeWorkers.some(worker => worker.id === id));
+                    const picked = (picks[type.id] ?? []).filter(id => freeWorkerIds.has(id));
+                    const pickedSet = new Set(picked);
                     const manualReady = picked.length === type.workerCount;
                     const canStart = !allOut && canAffordGold && canAffordEquipment && hasWorkers && (!isManual || manualReady);
                     const blockedTitle = allOut ? 'Все отряды в походе'
@@ -210,7 +212,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                             <span className="loot-tier-chance">· если повезёт</span>
                                         </span>
                                         <div className="rare-finds-row">
-                                            {rareLoot.map((entry, index) => {
+                                            {rareLoot.map(entry => {
                                                 if (entry.kind === EXPEDITION_LOOT_KIND_DECOR) {
                                                     const decorType = decorTypes.find(x => x.id === entry.decorTypeId);
                                                     return <RareFind key={`decor-${entry.decorTypeId}`}
@@ -228,7 +230,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
 
                                                 const resourceType = resourceTypes.find(x => x.id === entry.resourceTypeId);
                                                 return resourceType == null ? null : (
-                                                    <RareFind key={`rare-${entry.resourceTypeId}-${index}`}
+                                                    <RareFind key={`rare-${entry.resourceTypeId}-${entry.minValue}-${entry.maxValue}`}
                                                         icon={<ResourceSprite logicName={resourceType.logicName} aria-hidden="true" />}
                                                         label={`${entry.minValue}–${entry.maxValue}`} title={`Редкий ресурс: ${resourceType.name}`} />
                                                 );
@@ -247,7 +249,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                     {freeWorkers.length === 0 && <span className="hint">Нет свободных трудяг</span>}
                                     {freeWorkers.map(worker => (
                                         <button key={worker.id} type="button"
-                                            className={'worker-chip worker-chip-pick' + (picked.includes(worker.id) ? ' worker-chip-selected' : '')}
+                                            className={'worker-chip worker-chip-pick' + (pickedSet.has(worker.id) ? ' worker-chip-selected' : '')}
                                             onClick={() => toggleWorker(type.id, worker.id, type.workerCount)}>
                                             <WorkerSprite name={worker.name} skilled={isSkilledWorker(worker)} className="worker-avatar" aria-hidden="true" />
                                             <span className="worker-name">{worker.name}</span>

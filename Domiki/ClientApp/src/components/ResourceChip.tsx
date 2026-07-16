@@ -1,5 +1,5 @@
 import type { ResourceTypeDto } from '../types/api';
-import { useResourceInfo } from './ResourceInfo';
+import { useResourceInfo } from './resourceInfoContext';
 import { ResourceSprite } from './sprites';
 
 interface ResourceChipProps {

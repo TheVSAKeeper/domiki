@@ -1,20 +1,6 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
-
-interface ToastItem {
-    id: number;
-    message: string;
-    type: 'success' | 'error';
-}
-
-interface ToastContextValue {
-    success: (message: string) => void;
-    error: (message: string) => void;
-}
-
-const ToastContext = createContext<ToastContextValue | null>(null);
-const ToastItemsContext = createContext<ToastItem[]>([]);
-const ToastDismissContext = createContext<(id: number) => void>(() => {});
+import { ToastContext, ToastDismissContext, ToastItemsContext, type ToastItem } from './toastContext';
 
 export const ToastProvider = ({ children }: { children: ReactNode }) => {
     const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -45,14 +31,6 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
             </ToastItemsContext.Provider>
         </ToastContext.Provider>
     );
-};
-
-export const useToast = (): ToastContextValue => {
-    const context = useContext(ToastContext);
-    if (context == null) {
-        throw new Error('useToast должен использоваться внутри ToastProvider.');
-    }
-    return context;
 };
 
 export const Toaster = () => {

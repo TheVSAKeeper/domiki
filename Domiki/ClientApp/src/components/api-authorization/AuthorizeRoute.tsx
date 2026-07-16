@@ -21,7 +21,7 @@ export const AuthorizeRoute = ({ path, element }: AuthorizeRouteProps) => {
             }
         };
 
-        const subscription = authService.subscribe(() => {
+        const unsubscribe = authService.subscribe(() => {
             setReady(false);
             setAuthenticated(false);
             void populateAuthenticationState();
@@ -31,7 +31,7 @@ export const AuthorizeRoute = ({ path, element }: AuthorizeRouteProps) => {
 
         return () => {
             active = false;
-            authService.unsubscribe(subscription);
+            unsubscribe();
         };
     }, []);
 

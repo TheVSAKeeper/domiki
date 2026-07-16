@@ -5,6 +5,14 @@ import LogoutIcon from 'pixelarticons/svg/logout.svg?react';
 import UserIcon from 'pixelarticons/svg/user.svg?react';
 import { authService } from '../../services/auth';
 
+const loginDemo = async (e: MouseEvent) => {
+    e.preventDefault();
+    const ok = await authService.loginDemo();
+    if (ok) {
+        window.location.assign('/domiki-page');
+    }
+};
+
 export const LoginMenu = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userName, setUserName] = useState<string | null>(null);
@@ -16,19 +24,11 @@ export const LoginMenu = () => {
             setUserName(user ? user.name : null);
         };
 
-        const subscription = authService.subscribe(() => { void populateState(); });
+        const unsubscribe = authService.subscribe(() => { void populateState(); });
         void populateState();
 
-        return () => { authService.unsubscribe(subscription); };
+        return unsubscribe;
     }, []);
-
-    const loginDemo = async (e: MouseEvent) => {
-        e.preventDefault();
-        const ok = await authService.loginDemo();
-        if (ok) {
-            window.location.assign('/domiki-page');
-        }
-    };
 
     if (!isAuthenticated) {
         return (

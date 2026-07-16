@@ -35,12 +35,12 @@ const previousReputationMilestone = (points: number) =>
 
 const URGENT_SECONDS = 3600;
 
-export const OrdersBox = ({ orders, reputation, resourceTypes, resources, now, onComplete }: OrdersBoxProps) => {
-    const rewardResources = (order: OrderDto): ResourceDto[] => [
-        { typeId: 1, value: order.rewardCoins },
-        { typeId: 5, value: order.rewardGold },
-    ].filter(resource => resource.value > 0);
+const rewardResources = (order: OrderDto): ResourceDto[] => [
+    { typeId: 1, value: order.rewardCoins },
+    { typeId: 5, value: order.rewardGold },
+].filter(resource => resource.value > 0);
 
+export const OrdersBox = ({ orders, reputation, resourceTypes, resources, now, onComplete }: OrdersBoxProps) => {
     return (
         <section className="orders-panel pixel-panel">
             <div className="orders-hero">

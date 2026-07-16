@@ -2,22 +2,18 @@ import { z } from 'zod';
 import { authService } from './auth';
 import {
     decorStateSchema,
-    expeditionStateSchema,
     tolokaStateSchema,
     marketStateSchema,
     gameStateSchema,
     ResponseType,
     responseEnvelopeSchema,
-    seasonSchema,
     villageSchema,
     worldSchema,
     villageVisitSchema,
     type DecorStateDto,
-    type ExpeditionStateDto,
     type GameStateDto,
     type TolokaStateDto,
     type MarketStateDto,
-    type SeasonDto,
     type VillageDto,
     type VillageVisitDto,
     type WorldDto,
@@ -122,12 +118,6 @@ export const getWorld = (signal?: AbortSignal): Promise<WorldDto> =>
 
 export const visitVillage = (playerId: number, signal?: AbortSignal): Promise<VillageVisitDto> =>
     apiGet(`Domiki/VisitVillage/${playerId}`, villageVisitSchema, signal);
-
-export const getSeason = (signal?: AbortSignal): Promise<SeasonDto> =>
-    apiGet('Domiki/GetSeason', seasonSchema, signal);
-
-export const getExpeditions = (signal?: AbortSignal): Promise<ExpeditionStateDto | null> =>
-    apiGet('Domiki/GetExpeditions', expeditionStateSchema.nullable(), signal);
 
 export const startExpedition = (expeditionTypeId: number, workerIds?: number[], provisions?: boolean, signal?: AbortSignal): Promise<void> => {
     const query = [

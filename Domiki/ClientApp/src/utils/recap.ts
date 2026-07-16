@@ -34,6 +34,8 @@ export const readResource = (value: unknown): { typeId: number; value: number } 
     return { typeId: value.resourceTypeId, value: value.value };
 };
 
+export const lootEntryKey = (entry: RecapLootEntry) => `${entry.kind}:${entry.typeId ?? ''}:${entry.decorTypeId ?? ''}:${entry.workerName ?? ''}:${entry.blueprintName ?? ''}`;
+
 export const readLootEntry = (value: unknown): RecapLootEntry[] => {
     if (!isRecord(value) || typeof value.isRare !== 'boolean') {
         return [];

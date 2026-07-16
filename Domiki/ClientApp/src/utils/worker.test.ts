@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import type { DomikTypeDto, WorkerDto } from '../types/api';
 import { describeWorker } from './worker';
 

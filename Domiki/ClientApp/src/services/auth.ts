@@ -7,14 +7,8 @@ interface UserResponse {
     name: string;
 }
 
-interface Subscription {
-    callback: () => void;
-    subscription: number;
-}
-
 class AuthorizeService {
-    private _callbacks: Subscription[] = [];
-    private _nextSubscriptionId = 0;
+    private _callbacks: (() => void)[] = [];
     private _user: AuthUser | null = null;
 
     async isAuthenticated(): Promise<boolean> {
@@ -51,18 +45,14 @@ class AuthorizeService {
         return response.ok;
     }
 
-    subscribe(callback: () => void): number {
-        this._callbacks.push({ callback, subscription: this._nextSubscriptionId++ });
-        return this._nextSubscriptionId - 1;
-    }
-
-    unsubscribe(subscriptionId: number): void {
-        const index = this._callbacks.findIndex(element => element.subscription === subscriptionId);
-        if (index < 0) {
-            throw new Error('Found an invalid number of subscriptions 0');
-        }
-
-        this._callbacks.splice(index, 1);
+    subscribe(callback: () => void): () => void {
+        this._callbacks.push(callback);
+        return () => {
+            const index = this._callbacks.indexOf(callback);
+            if (index >= 0) {
+                this._callbacks.splice(index, 1);
+            }
+        };
     }
 }
 
