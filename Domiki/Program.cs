@@ -90,6 +90,8 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<BusinessExceptionHandler>();
 builder.Services.AddScoped<UnitOfWork>();
 builder.Services.AddScoped<DomikManager>();
 builder.Services.AddScoped<OrderManager>();
@@ -166,13 +168,13 @@ else
 
 app.Use(async (context, next) =>
 {
-    var headers = context.Response.Headers;
-    headers["X-Content-Type-Options"] = "nosniff";
-    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-    headers["X-Frame-Options"] = "DENY";
-    headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
     context.Response.OnStarting(() =>
     {
+        var headers = context.Response.Headers;
+        headers["X-Content-Type-Options"] = "nosniff";
+        headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+        headers["X-Frame-Options"] = "DENY";
+        headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
         if (context.Response.ContentType?.Contains("text/html", StringComparison.OrdinalIgnoreCase) == true
             && !headers.ContainsKey("Cache-Control"))
         {
@@ -364,7 +366,7 @@ app.MapGet("/Domiki/Stream", async (HttpContext http, GameStateBroker broker) =>
 
 app.MapFallbackToFile("index.html");
 
-app.UseMiddleware<ExceptionMiddleware>();
+app.UseExceptionHandler();
 app.UseWhen(
     context => !context.Request.Path.StartsWithSegments("/Domiki/Stream"),
     branch => branch.UseMiddleware<UnitOfWorkMiddleware>());
