@@ -6,6 +6,9 @@ namespace Domiki.Web.Tests
 {
     public class BalanceRecalibrationTests : TestBase
     {
+        /// <summary>
+        /// После рекалибровки золотая шахта сохраняет рецепт добычи золота, но теряет рецепты 17 и 21, а рынок теряет рецепты 8 и 12.
+        /// </summary>
         [Test]
         public void GoldMineAndMarketReceiptsAreRecalibratedTest()
         {
@@ -27,6 +30,11 @@ namespace Domiki.Web.Tests
             Assert.That(marketReceiptIds, Does.Not.Contain(12));
         }
 
+        /// <summary>
+        /// Стоимость улучшения до заданного уровня в монетах одинакова для всех обычных построек (кроме золотой шахты, рынка и построек 9–11).
+        /// </summary>
+        /// <param name="level">Целевой уровень постройки.</param>
+        /// <param name="expectedCoins">Ожидаемая стоимость улучшения в монетах.</param>
         [TestCase(4, 1500)]
         [TestCase(5, 9000)]
         public void UpgradeCoinCostsAreRecalibratedTest(int level, int expectedCoins)
@@ -56,6 +64,11 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Золотая шахта и рынок улучшаются по собственной, отличной от прочих построек, кривой стоимости в монетах.
+        /// </summary>
+        /// <param name="level">Целевой уровень постройки.</param>
+        /// <param name="expectedCoins">Ожидаемая стоимость улучшения в монетах.</param>
         [TestCase(2, 150)]
         [TestCase(3, 450)]
         [TestCase(4, 2200)]
@@ -72,6 +85,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Рецепт обжига кирпича в гончарной мастерской тратит 16 глины и выдаёт 8 кирпичей за смену.
+        /// </summary>
         [Test]
         public void PotteryBrickShiftConsumesClayAndProducesBricksTest()
         {
@@ -93,6 +109,9 @@ namespace Domiki.Web.Tests
             Assert.That(ResourceValue(after, 6) - ResourceValue(before, 6), Is.EqualTo(8));
         }
 
+        /// <summary>
+        /// Черта характера и наработанный навык рабочего множат длительность производства уже после применения бонуса инструмента.
+        /// </summary>
         [Test]
         public void DurationMultiplierUsesTraitsAndSkillAfterToolTest()
         {
@@ -111,6 +130,9 @@ namespace Domiki.Web.Tests
             Assert.That(durationSeconds, Is.EqualTo(19584).Within(1));
         }
 
+        /// <summary>
+        /// Имена трудяг уникальны в пределах одного игрока – при найме не выдаются повторы.
+        /// </summary>
         [Test]
         public void WorkerNamesAreUniquePerPlayerTest()
         {

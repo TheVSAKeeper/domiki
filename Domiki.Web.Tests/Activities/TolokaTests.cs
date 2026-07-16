@@ -31,6 +31,9 @@ namespace Domiki.Web.Tests
             ClearWeatherSchedule();
         }
 
+        /// <summary>
+        /// Без нужной постройки состояние толоки недоступно игроку.
+        /// </summary>
         [Test]
         public void GetTolokaForNewPlayerReturnsNullTest()
         {
@@ -41,6 +44,9 @@ namespace Domiki.Web.Tests
             Assert.That(toloka, Is.Null);
         }
 
+        /// <summary>
+        /// При наличии нужной постройки видна активная толока типа «мост» с нулевым личным взносом игрока.
+        /// </summary>
         [Test]
         public void GetTolokaWithBuildingReturnsActiveTest()
         {
@@ -53,6 +59,11 @@ namespace Domiki.Web.Tests
             Assert.That(toloka.MyContribution, Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Уровень площадки сбора управляет длительностью баффа толоки в часах; предпросмотр следующего уровня показывается только до максимального пятого.
+        /// </summary>
+        /// <param name="level">Уровень площадки сбора.</param>
+        /// <param name="expectedHours">Ожидаемая длительность баффа в часах.</param>
         [TestCase(1, 8)]
         [TestCase(2, 10)]
         [TestCase(5, 16)]
@@ -67,6 +78,9 @@ namespace Domiki.Web.Tests
             Assert.That(state.NextBuffHours, Is.EqualTo(level < 5 ? expectedHours + 2 : (int?)null));
         }
 
+        /// <summary>
+        /// Взнос в толоку без нужной постройки бросает исключение и не меняет собранное количество.
+        /// </summary>
         [Test]
         public void ContributeWithoutBuildingThrowsAndDoesNotChangeTolokaTest()
         {
@@ -80,6 +94,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetResources(playerId).Single(x => x.Type.Id == StoneResourceTypeId).Value, Is.EqualTo(100));
         }
 
+        /// <summary>
+        /// Взнос списывает ресурс у игрока и увеличивает и общее собранное толоки, и личный вклад игрока.
+        /// </summary>
         [Test]
         public void ContributeWritesOffResourceAndIncreasesCollectedAndMineTest()
         {
@@ -94,6 +111,10 @@ namespace Domiki.Web.Tests
             Assert.That(GetResources(playerId).Single(x => x.Type.Id == StoneResourceTypeId).Value, Is.EqualTo(60));
         }
 
+        /// <summary>
+        /// Неположительное количество взноса отклоняется исключением и не меняет собранное толоки.
+        /// </summary>
+        /// <param name="amount">Проверяемое количество взноса.</param>
         [TestCase(0)]
         [TestCase(-1)]
         public void ContributeInvalidAmountThrowsAndDoesNotChangeTolokaTest(int amount)
@@ -107,6 +128,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetActiveToloka().Collected, Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Взнос при нехватке ресурса у игрока бросает исключение и не меняет собранное толоки.
+        /// </summary>
         [Test]
         public void ContributeWithoutResourcesThrowsAndDoesNotChangeTolokaTest()
         {
@@ -118,6 +142,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetActiveToloka().Collected, Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Достижение цели завершает текущую толоку и сразу заводит новую активную взамен.
+        /// </summary>
         [Test]
         public void ContributeCompletesTolokaAndSeedsNextActiveTest()
         {
@@ -138,6 +165,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Бафф завершённой толоки повышает выпуск производства, пока действует внутри своего временного окна.
+        /// </summary>
         [Test]
         public void StartManufactureAppliesTolokaBuffInsideWindowTest()
         {
@@ -151,6 +181,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(140));
         }
 
+        /// <summary>
+        /// Бафф толоки перестаёт действовать на производство, когда его временное окно уже истекло.
+        /// </summary>
         [Test]
         public void StartManufactureDoesNotApplyTolokaBuffOutsideWindowTest()
         {
@@ -164,6 +197,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(100));
         }
 
+        /// <summary>
+        /// Бафф толоки перемножается с погодным бонусом, а не заменяет его: дождь (150%) вместе с толокой (140%) дают 210% выхода, а не 190%.
+        /// </summary>
         [Test]
         public void StartManufactureStacksTolokaBuffWithWeatherTest()
         {
@@ -177,6 +213,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(210));
         }
 
+        /// <summary>
+        /// Толока общая для всех игроков: взнос любого из них приближает завершение, и бафф после завершения получают все участники.
+        /// </summary>
         [Test]
         public void TwoPlayersContributeToOneTolokaAndBothGetBuffTest()
         {
@@ -198,6 +237,9 @@ namespace Domiki.Web.Tests
             Assert.That(HasActiveBuff(secondPlayerId), Is.True);
         }
 
+        /// <summary>
+        /// Одновременные взносы разных игроков не теряют обновления: итоговое собранное толоки равно точной сумме взносов.
+        /// </summary>
         [Test]
         public async Task ConcurrentContributesKeepExactCollectedSumTest()
         {
@@ -213,6 +255,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetActiveToloka().Collected, Is.EqualTo(150));
         }
 
+        /// <summary>
+        /// Цель следующей толоки растёт пропорционально числу участников предыдущей.
+        /// </summary>
         [Test]
         public void NextTolokaGoalScalesWithPreviousContributorsTest()
         {
@@ -234,6 +279,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Бафф толоки типа «амбар» не повышает выпуск кузницы, действует только на свою постройку.
+        /// </summary>
         [Test]
         public void GranaryBuffDoesNotBoostForgeTest()
         {
@@ -253,6 +301,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(100));
         }
 
+        /// <summary>
+        /// Бафф толоки типа «печь» повышает выпуск кузницы.
+        /// </summary>
         [Test]
         public void KilnBuffBoostsForgeTest()
         {
@@ -272,6 +323,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(140));
         }
 
+        /// <summary>
+        /// Бафф толоки типа «мост» добавляет процентный бонус к награде за заказы; у игрока без баффа бонус нулевой.
+        /// </summary>
         [Test]
         public void BridgeBuffAddsOrderRewardBonusPercentTest()
         {

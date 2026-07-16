@@ -6,6 +6,9 @@ namespace Domiki.Web.Tests
 {
     public class VillageLevelTests : TestBase
     {
+        /// <summary>
+        /// Уровень деревни растёт от числа построек, поселившихся трудяг и репутации у соседей – каждый фактор вносит свой вклад с собственным весом.
+        /// </summary>
         [Test]
         public void VillageLevelGrowsFromBuildingsResidentsAndReputationTest()
         {
@@ -28,6 +31,11 @@ namespace Domiki.Web.Tests
             Assert.That(withReputation.Level, Is.EqualTo(12));
         }
 
+        /// <summary>
+        /// Вклад уюта в уровень деревни ограничен потолком в 50 очков, сколько бы уюта игрок ни накопил.
+        /// </summary>
+        /// <param name="comfort">Накопленный уют.</param>
+        /// <param name="expectedContribution">Ожидаемый вклад уюта в уровень деревни.</param>
         [TestCase(49, 49)]
         [TestCase(50, 50)]
         [TestCase(80, 50)]
@@ -36,6 +44,9 @@ namespace Domiki.Web.Tests
             Assert.That(VillageLevelCalculator.ComputeLevel(0, 0, 0, comfort), Is.EqualTo(expectedContribution));
         }
 
+        /// <summary>
+        /// Постройка, открываемая по уровню обжитости деревни, недоступна для покупки до достижения порога и становится доступной после.
+        /// </summary>
         [Test]
         public void BuyDomikGateBlocksBeforeThresholdAndAllowsAfterTest()
         {
@@ -50,6 +61,9 @@ namespace Domiki.Web.Tests
             Assert.DoesNotThrow(() => BuyDomik(playerId, 3));
         }
 
+        /// <summary>
+        /// Пока порог уровня деревни не достигнут, доска заказов предлагает заказы только от соседей с нулевым уровнем открытия.
+        /// </summary>
         [Test]
         public void OrderBoardUsesOnlyUnlockedNeighborsBeforeThresholdTest()
         {
@@ -61,6 +75,9 @@ namespace Domiki.Web.Tests
             Assert.That(orders.All(x => x.Neighbor.UnlockLevel == 0), Is.True);
         }
 
+        /// <summary>
+        /// После достижения порога обжитости (8) доска заказов может использовать соседей, открытых вплоть до этого уровня, но не выше.
+        /// </summary>
         [Test]
         public void OrderBoardCanUseUnlockedNeighborsAfterThresholdTest()
         {
@@ -80,6 +97,9 @@ namespace Domiki.Web.Tests
             Assert.That(sawGatedNeighbor, Is.True);
         }
 
+        /// <summary>
+        /// До порога умного автоподбора автоматический выбор трудяги на производство берёт того, у кого меньше id, игнорируя пригодность черты характера.
+        /// </summary>
         [Test]
         public void AutoWorkerSelectionIsByIdBeforeSmartAutoThresholdTest()
         {
@@ -98,6 +118,9 @@ namespace Domiki.Web.Tests
             Assert.That(busyWorker.Id, Is.EqualTo(weakWorker.Id));
         }
 
+        /// <summary>
+        /// После порога умного автоподбора автоматический выбор трудяги на производство берёт того, чья черта характера лучше всего подходит под работу, а не с меньшим id.
+        /// </summary>
         [Test]
         public void AutoWorkerSelectionIsByFitnessAfterSmartAutoThresholdTest()
         {

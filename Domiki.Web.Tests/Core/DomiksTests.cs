@@ -20,6 +20,9 @@ namespace Domiki.Web.Tests
         {
             ClearWeatherSchedule();
         }
+        /// <summary>
+        /// Первое обращение по внешнему идентификатору заводит игрока и возвращает положительный id.
+        /// </summary>
         [Test]
         public void GetPlayerIdTest()
         {
@@ -27,6 +30,9 @@ namespace Domiki.Web.Tests
             Assert.Greater(playerId, 0);
         }
 
+        /// <summary>
+        /// Новый игрок стартует ровно с одним видом ресурса – монетами в размере стартового капитала.
+        /// </summary>
         [Test]
         public void CheckBaseResourcesTest()
         {
@@ -99,6 +105,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Улучшение домика поднимает его уровень и списывает ресурсы по стоимости достигнутого уровня.
+        /// </summary>
         [Test]
         public void UpgradeDomikTest()
         {
@@ -192,6 +201,9 @@ namespace Domiki.Web.Tests
             Assert.That(coinDiff, Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Запуск производства, не требующего монет по рецепту, не падает даже при нулевом балансе монет.
+        /// </summary>
         [Test]
         public void StartManufactureWithZeroCoinsDoesNotThrowTest()
         {
@@ -226,6 +238,12 @@ namespace Domiki.Web.Tests
             Assert.Throws<BusinessException>(() => StartManufacture(playerId, startingClayMineId, clayDigReceiptId, false), "Exception not throw");
         }
 
+        /// <summary>
+        /// Копка в карьере выдаёт именно тот ресурс, что привязан к рецепту месторождения, и не тратит монеты.
+        /// </summary>
+        /// <param name="mineTypeId">Тип карьера.</param>
+        /// <param name="receiptId">Рецепт копки.</param>
+        /// <param name="outResourceTypeId">Ожидаемый добываемый ресурс.</param>
         [TestCase(3, 4, 2)]
         [TestCase(6, 5, 3)]
         public void DigProducesCorrectResourceTest(int mineTypeId, int receiptId, int outResourceTypeId)
@@ -245,6 +263,11 @@ namespace Domiki.Web.Tests
             Assert.That(coinDiff, Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Групповой рецепт требует полного числа занятых рабочих мест: при нехватке бараков запуск производства падает исключением.
+        /// </summary>
+        /// <param name="barakCount">Количество бараков (занятых рабочих мест).</param>
+        /// <param name="expectThrow">Ожидается ли исключение при запуске.</param>
         [TestCase(5, false)]
         [TestCase(4, true)]
         public void GroupRecipePlodderCountHonoredTest(int barakCount, bool expectThrow)
@@ -272,6 +295,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Полный состав рабочих в групповом рецепте даёт премиальный выход ресурса, но требует доплаты монетами.
+        /// </summary>
         [Test]
         public void GroupRecipeOutputPremiumTest()
         {
@@ -297,6 +323,9 @@ namespace Domiki.Web.Tests
             Assert.That(coinDiff, Is.EqualTo(-5));
         }
 
+        /// <summary>
+        /// Домик нулевого уровня (ещё строящийся) не мешает вести производство на других постройках игрока.
+        /// </summary>
         [Test]
         public void LevelZeroDomikDoesNotBreakManufactureTest()
         {
@@ -311,6 +340,9 @@ namespace Domiki.Web.Tests
             Assert.That(clay, Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Нельзя запустить производство на домике, который ещё строится (уровень 0), – прилетает ошибка «Домик ещё строится».
+        /// </summary>
         [Test]
         public void StartManufactureOnUnbuiltDomikThrowsTest()
         {
@@ -322,6 +354,13 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Домик ещё строится"));
         }
 
+        /// <summary>
+        /// Долгие рецепты копки выдают больше ресурса за раз, но и тратят монет ровно столько же, сколько добыто.
+        /// </summary>
+        /// <param name="mineTypeId">Тип карьера.</param>
+        /// <param name="receiptId">Долгий рецепт копки.</param>
+        /// <param name="outResourceTypeId">Ожидаемый добываемый ресурс.</param>
+        /// <param name="amount">Ожидаемое количество ресурса и монетных затрат.</param>
         [TestCase(5, 14, 4, 8)]
         [TestCase(5, 18, 4, 24)]
         [TestCase(3, 15, 2, 8)]
@@ -342,6 +381,9 @@ namespace Domiki.Web.Tests
             Assert.That(coinDiff, Is.EqualTo(-amount));
         }
 
+        /// <summary>
+        /// Улучшение до следующего уровня требует не только монет, но и материалов – без них апгрейд падает исключением.
+        /// </summary>
         [Test]
         public void UpgradeToLevel3RequiresMaterialsTest()
         {
@@ -353,6 +395,9 @@ namespace Domiki.Web.Tests
             Assert.Throws<BusinessException>(() => UpgradeDomik(playerId, 3));
         }
 
+        /// <summary>
+        /// Полная гончарная цепочка: добытая глина превращается в посуду, а её продажа на рынке приносит монеты.
+        /// </summary>
         [Test]
         public void PotteryDishesAndSellTest()
         {
@@ -388,6 +433,12 @@ namespace Domiki.Web.Tests
             Assert.That(afterSell.First(x => x.Type.Id == coinResourceTypeId).Value - beforeSellCoin, Is.EqualTo(45));
         }
 
+        /// <summary>
+        /// Опциональный инструмент не меняет длительность производства, но при использовании расходует один инструмент со склада.
+        /// </summary>
+        /// <param name="useOptional">Используется ли опциональный инструмент.</param>
+        /// <param name="expectedDuration">Ожидаемая длительность производства в секундах.</param>
+        /// <param name="expectedToolLeft">Ожидаемый остаток инструментов после запуска.</param>
         [TestCase(false, 28800, 3)]
         [TestCase(true, 28800, 2)]
         public void OptionalToolPreservesDurationAndConsumesToolTest(bool useOptional, int expectedDuration, int expectedToolLeft)
@@ -406,6 +457,11 @@ namespace Domiki.Web.Tests
             Assert.That(GetResources(playerId).First(x => x.Type.Id == toolResourceTypeId).Value, Is.EqualTo(expectedToolLeft));
         }
 
+        /// <summary>
+        /// Применение опционального инструмента увеличивает выход ресурса производства.
+        /// </summary>
+        /// <param name="useOptional">Используется ли опциональный инструмент.</param>
+        /// <param name="expectedClay">Ожидаемое количество добытой глины.</param>
         [TestCase(false, 8)]
         [TestCase(true, 11)]
         public void OptionalToolBoostsOutputTest(bool useOptional, int expectedClay)
@@ -423,6 +479,9 @@ namespace Domiki.Web.Tests
             Assert.That(clay.Value, Is.EqualTo(expectedClay));
         }
 
+        /// <summary>
+        /// Нельзя запросить опциональный инструмент в производстве, если инструмента нет на складе – бросает исключение.
+        /// </summary>
         [Test]
         public void OptionalToolRequiresToolTest()
         {
@@ -432,6 +491,9 @@ namespace Domiki.Web.Tests
             Assert.Throws<BusinessException>(() => StartManufacture(playerId, 2, clayDig8hReceiptId, useOptional: true));
         }
 
+        /// <summary>
+        /// Если у рецепта нет опционального слота, флаг использования инструмента игнорируется, и инструмент не расходуется.
+        /// </summary>
         [Test]
         public void OptionalToolIgnoredWhenReceiptHasNoOptionalTest()
         {
@@ -448,6 +510,11 @@ namespace Domiki.Web.Tests
             Assert.That(resources.First(x => x.Type.Id == toolResourceTypeId).Value, Is.EqualTo(3));
         }
 
+        /// <summary>
+        /// Стоимость улучшения кузницы в монетах фиксирована по уровням и не должна дрейфовать при правках баланса.
+        /// </summary>
+        /// <param name="level">Проверяемый уровень постройки.</param>
+        /// <param name="expectedCoin">Ожидаемая стоимость улучшения в монетах.</param>
         [TestCase(1, 400)]
         [TestCase(2, 100)]
         [TestCase(3, 300)]
@@ -462,6 +529,11 @@ namespace Domiki.Web.Tests
             Assert.That(coin, Is.EqualTo(expectedCoin));
         }
 
+        /// <summary>
+        /// Число видов ресурсов, требуемых для улучшения кузницы, растёт с уровнем постройки.
+        /// </summary>
+        /// <param name="level">Проверяемый уровень постройки.</param>
+        /// <param name="expectedResourceCount">Ожидаемое число видов ресурсов в стоимости.</param>
         [TestCase(2, 1)]
         [TestCase(3, 3)]
         [TestCase(4, 5)]

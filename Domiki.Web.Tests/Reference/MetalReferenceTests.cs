@@ -15,6 +15,12 @@ namespace Domiki.Web.Tests
         private const int BrickResourceTypeId = 6;
         private const int LanternDecorTypeId = 9;
 
+        /// <summary>
+        /// У руды и железа закреплены логические имена и рыночная стоимость: руда – 10, железо – 35.
+        /// </summary>
+        /// <param name="resourceTypeId">Тип ресурса.</param>
+        /// <param name="logicName">Ожидаемое логическое имя ресурса.</param>
+        /// <param name="marketValue">Ожидаемая рыночная стоимость.</param>
         [TestCase(OreResourceTypeId, "ore", 10)]
         [TestCase(IronResourceTypeId, "iron", 35)]
         public void MetalResourceTypesAndMarketValuesTest(int resourceTypeId, string logicName, int marketValue)
@@ -26,6 +32,11 @@ namespace Domiki.Web.Tests
             Assert.That(ResourceManager.GetMarketValue(resourceTypeId), Is.EqualTo(marketValue));
         }
 
+        /// <summary>
+        /// Изготовление инструмента тратит железо и доски поровну, без кирпича на входе.
+        /// </summary>
+        /// <param name="receiptId">Проверяемый рецепт изготовления инструмента.</param>
+        /// <param name="value">Количество каждого входного ресурса и полученного инструмента.</param>
         [TestCase(24, 1)]
         [TestCase(49, 8)]
         public void ToolReceiptsRequireIronAndBoardsTest(int receiptId, int value)
@@ -38,6 +49,12 @@ namespace Domiki.Web.Tests
             Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo(new[] { (ToolResourceTypeId, value) }));
         }
 
+        /// <summary>
+        /// Плавка железа привязана к конкретным уровням кузницы: рецепт 62 доступен на 1 и 2 уровнях, рецепт 63 – только с 3 уровня.
+        /// </summary>
+        /// <param name="level">Уровень кузницы.</param>
+        /// <param name="receiptId">Проверяемый рецепт плавки железа.</param>
+        /// <param name="expected">Ожидается ли привязка.</param>
         [TestCase(1, 62, true)]
         [TestCase(2, 62, true)]
         [TestCase(3, 63, true)]
@@ -47,6 +64,11 @@ namespace Domiki.Web.Tests
             AssertBinding(ForgeTypeId, level, receiptId, expected);
         }
 
+        /// <summary>
+        /// Рецепты добычи руды в шахте не имеют уровневого гейта и доступны с первого уровня постройки.
+        /// </summary>
+        /// <param name="level">Проверяемый уровень шахты.</param>
+        /// <param name="receiptId">Проверяемый рецепт добычи руды.</param>
         [TestCase(1, 59)]
         [TestCase(5, 59)]
         [TestCase(1, 60)]
@@ -58,6 +80,11 @@ namespace Domiki.Web.Tests
             AssertBinding(MineTypeId, level, receiptId, true);
         }
 
+        /// <summary>
+        /// Долгие смены добычи руды дают опциональный вход инструмента с бонусом +40% к выходу.
+        /// </summary>
+        /// <param name="receiptId">Проверяемый рецепт долгой смены добычи руды.</param>
+        /// <param name="outputValue">Количество монет на входе и руды на выходе.</param>
         [TestCase(60, 8)]
         [TestCase(61, 24)]
         public void OreShiftsHaveOptionalToolTest(int receiptId, int outputValue)
@@ -71,6 +98,12 @@ namespace Domiki.Web.Tests
             Assert.That(receipt.OutputBonusPercent, Is.EqualTo(40));
         }
 
+        /// <summary>
+        /// Оптовая продажа руды открывается только на пятом уровне рынка.
+        /// </summary>
+        /// <param name="level">Уровень рынка.</param>
+        /// <param name="receiptId">Проверяемый рецепт оптовой продажи руды.</param>
+        /// <param name="expected">Ожидается ли привязка.</param>
         [TestCase(5, 67, true)]
         [TestCase(4, 67, false)]
         public void OreBulkSellIsBoundToMarketLevelFiveTest(int level, int receiptId, bool expected)
@@ -78,6 +111,14 @@ namespace Domiki.Web.Tests
             AssertBinding(MarketTypeId, level, receiptId, expected);
         }
 
+        /// <summary>
+        /// Цепочка переделов руда→железо и прямая продажа руды/железа на рынке идут по фиксированным курсам обмена.
+        /// </summary>
+        /// <param name="receiptId">Проверяемый рецепт.</param>
+        /// <param name="inputResourceTypeId">Тип входного ресурса.</param>
+        /// <param name="inputValue">Количество входного ресурса.</param>
+        /// <param name="outputResourceTypeId">Тип выходного ресурса.</param>
+        /// <param name="outputValue">Количество выходного ресурса.</param>
         [TestCase(62, OreResourceTypeId, 2, IronResourceTypeId, 1)]
         [TestCase(63, OreResourceTypeId, 16, IronResourceTypeId, 8)]
         [TestCase(64, OreResourceTypeId, 1, CoinResourceTypeId, 10)]
@@ -93,6 +134,9 @@ namespace Domiki.Web.Tests
             Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo(new[] { (outputResourceTypeId, outputValue) }));
         }
 
+        /// <summary>
+        /// Базовая добыча руды не требует ни обязательных, ни опциональных ресурсов на входе.
+        /// </summary>
         [Test]
         public void OreDigHasNoInputsTest()
         {
@@ -104,6 +148,9 @@ namespace Domiki.Web.Tests
             Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo(new[] { (OreResourceTypeId, 1) }));
         }
 
+        /// <summary>
+        /// Постройка добычи руды называется «Рудник».
+        /// </summary>
         [Test]
         public void MineIsRenamedTest()
         {
@@ -113,6 +160,9 @@ namespace Domiki.Web.Tests
             Assert.That(mine.Name, Is.EqualTo("Рудник"));
         }
 
+        /// <summary>
+        /// Фонарь даёт 5 очков уюта и стоит 10 железа и 4 доски.
+        /// </summary>
         [Test]
         public void LanternHasExpectedComfortAndCostTest()
         {
@@ -124,6 +174,9 @@ namespace Domiki.Web.Tests
             Assert.That(lantern.Cost.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo(new[] { (IronResourceTypeId, 10), (BoardResourceTypeId, 4) }));
         }
 
+        /// <summary>
+        /// Кузница открывается только с 20 уровня игрока.
+        /// </summary>
         [Test]
         public void ForgeUnlockLevelIsTwentyTest()
         {
@@ -133,6 +186,10 @@ namespace Domiki.Web.Tests
             Assert.That(forge.UnlockLevel, Is.EqualTo(20));
         }
 
+        /// <summary>
+        /// Руда входит в добычу обеих экспедиций.
+        /// </summary>
+        /// <param name="expeditionTypeId">Тип экспедиции.</param>
         [TestCase(1)]
         [TestCase(2)]
         public void OreIsInExpeditionResourceLootTest(int expeditionTypeId)

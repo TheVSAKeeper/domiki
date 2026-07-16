@@ -5,6 +5,9 @@ namespace Domiki.Web.Tests
 {
     public class VillageTests : TestBase
     {
+        /// <summary>
+        /// Деревня нового игрока стартует без имени и с гербом по умолчанию – иконка и цвет оба равны 0.
+        /// </summary>
         [Test]
         public void GetVillageNewPlayerReturnsEmptyNameAndDefaultCrestTest()
         {
@@ -17,6 +20,9 @@ namespace Domiki.Web.Tests
             Assert.That(village.CrestColor, Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Установка имени деревни нормализует пробелы (обрезка по краям, схлопывание повторов) и сохраняет выбранный герб.
+        /// </summary>
         [Test]
         public void SetVillageValidSavesNormalizedNameAndCrestTest()
         {
@@ -31,6 +37,9 @@ namespace Domiki.Web.Tests
             Assert.That(village.CrestColor, Is.EqualTo(3));
         }
 
+        /// <summary>
+        /// Имена деревень уникальны среди игроков: попытка занять уже занятое имя падает исключением и не меняет имя и герб второго игрока.
+        /// </summary>
         [Test]
         public void SetVillageDuplicateNameThrowsAndKeepsStateTest()
         {
@@ -49,6 +58,10 @@ namespace Domiki.Web.Tests
             Assert.That(village.CrestColor, Is.EqualTo(4));
         }
 
+        /// <summary>
+        /// Имя деревни должно соответствовать ограничениям по длине, набору символов и списку запрещённых/нецензурных слов – нарушение любого из них падает исключением, и деревня остаётся без имени.
+        /// </summary>
+        /// <param name="name">Проверяемое (некорректное) имя деревни.</param>
         [TestCaseSource(nameof(InvalidLengthNames))]
         [TestCaseSource(nameof(InvalidCharacterNames))]
         [TestCaseSource(nameof(BlacklistedNames))]
@@ -62,6 +75,11 @@ namespace Domiki.Web.Tests
             Assert.That(village.VillageName, Is.Null);
         }
 
+        /// <summary>
+        /// Индекс иконки и цвета герба должны попадать в допустимый диапазон [0, 7] – выход за него падает исключением, и деревня остаётся без имени.
+        /// </summary>
+        /// <param name="crestIcon">Проверяемый индекс иконки герба.</param>
+        /// <param name="crestColor">Проверяемый индекс цвета герба.</param>
         [TestCase(-1, 0)]
         [TestCase(8, 0)]
         [TestCase(0, -1)]

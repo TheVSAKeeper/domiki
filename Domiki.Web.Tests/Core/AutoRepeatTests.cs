@@ -8,6 +8,9 @@ namespace Domiki.Web.Tests
 {
     public class AutoRepeatTests : TestBase
     {
+        /// <summary>
+        /// Автоповтор перезапускает производство циклами, пока хватает сырья, и останавливается, когда сырьё заканчивается.
+        /// </summary>
         [Test]
         public void AutoRepeatRerunsUntilResourcesRunOutTest()
         {
@@ -23,6 +26,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetResourceValue(playerId, 12), Is.EqualTo(2));
         }
 
+        /// <summary>
+        /// Несколько циклов автоповтора одного производства схлопываются в одно событие завершения с суммарным выходом.
+        /// </summary>
         [Test]
         public void AutoRepeatMergesManufactureFinishedEventsTest()
         {
@@ -52,6 +58,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// События завершения производства от построек разного типа не схлопываются между собой, а остаются раздельными.
+        /// </summary>
         [Test]
         public void ManufactureFinishedEventsOfDifferentDomikTypesAreNotMergedTest()
         {
@@ -67,6 +76,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Если сырья хватает лишь частично на цикл автоповтора, недостающий ресурс не списывается вовсе.
+        /// </summary>
         [Test]
         public void PartialShortageDoesNotWriteOffTest()
         {
@@ -84,6 +96,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetResourceValue(playerId, 8), Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Завершение автоповторного производства не падает, даже если рецепт больше не привязан к текущему уровню домика.
+        /// </summary>
         [Test]
         public void AutoRepeatSurvivesRecipeMissingFromLevelTest()
         {

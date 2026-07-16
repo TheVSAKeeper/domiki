@@ -23,6 +23,14 @@ namespace Domiki.Web.Tests
         private const int SonyaTraitId = 4;
         private const int HardyTraitId = 6;
 
+        /// <summary>
+        /// Шанс заболевания фиксируется при старте производства и ненулевой только в дождь, при уровне деревни не ниже порога простуды и только для восприимчивого типа постройки (глинокарьер, а не лесопилка).
+        /// </summary>
+        /// <param name="weatherTypeId">Погода на момент старта производства.</param>
+        /// <param name="domikTypeId">Тип постройки, где запускается производство.</param>
+        /// <param name="receiptId">Рецепт производства.</param>
+        /// <param name="highVillage">Поднята ли деревня до порога простуды.</param>
+        /// <param name="expectedSickChance">Ожидаемый зафиксированный шанс заболеть.</param>
         [TestCase(RainWeatherTypeId, ClayMineDomikTypeId, ClayDig8hReceiptId, true, DomikManager.SickChancePercent)]
         [TestCase(ClearWeatherTypeId, ClayMineDomikTypeId, ClayDig8hReceiptId, true, 0)]
         [TestCase(RainWeatherTypeId, LumberMillDomikTypeId, WoodDig8hReceiptId, true, 0)]
@@ -47,6 +55,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetManufactureSickChance(manufacture.Id), Is.EqualTo(expectedSickChance));
         }
 
+        /// <summary>
+        /// Зафиксированный при старте производства шанс заболевания не пересчитывается при последующей смене погоды.
+        /// </summary>
         [Test]
         public void SickChanceStaysFixedAtStartWhenWeatherChangesTest()
         {
@@ -63,6 +74,11 @@ namespace Domiki.Web.Tests
             Assert.That(GetManufactureSickChance(manufacture.Id), Is.EqualTo(DomikManager.SickChancePercent));
         }
 
+        /// <summary>
+        /// Бросок по зафиксированному шансу при завершении производства решает, заболевает ли трудяга: заболевший получает совпадающие SickUntil и RestUntil длительностью SickDurationSeconds.
+        /// </summary>
+        /// <param name="sickChance">Зафиксированный шанс заболеть в процентах.</param>
+        /// <param name="expectSick">Ожидается ли, что трудяга заболеет.</param>
         [TestCase(100, true)]
         [TestCase(0, false)]
         public void FinishManufactureRollSendsWorkerToSickTest(int sickChance, bool expectSick)
@@ -90,6 +106,11 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// После выздоровления у трудяги есть временный иммунитет к повторному заболеванию: недавно истёкшая простуда защищает от 100%-го броска, а давно истёкшая – уже нет.
+        /// </summary>
+        /// <param name="priorSickOffsetHours">На сколько часов в прошлом истёк предыдущий SickUntil.</param>
+        /// <param name="expectResick">Ожидается ли повторное заболевание.</param>
         [TestCase(-1, false)]
         [TestCase(-25, true)]
         public void FinishManufactureRespectsSickImmunityTest(int priorSickOffsetHours, bool expectResick)
@@ -117,6 +138,10 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Черты «Соня» и «Здоровяк» дают полный иммунитет к простуде даже при 100%-м шансе заболевания.
+        /// </summary>
+        /// <param name="traitId">Черта трудяги, проверяемая на иммунитет к простуде.</param>
         [TestCase(SonyaTraitId)]
         [TestCase(HardyTraitId)]
         public void ImmuneTraitsDoNotGetSickTest(int traitId)
@@ -134,6 +159,9 @@ namespace Domiki.Web.Tests
             Assert.That(worker.SickUntil, Is.Null);
         }
 
+        /// <summary>
+        /// Число одновременно больных трудяг у игрока ограничено: при уже двух больных новый больной сверх лимита не добавляется.
+        /// </summary>
         [Test]
         public void FinishManufactureDoesNotExceedMaxSickPerPlayerTest()
         {

@@ -5,6 +5,11 @@ namespace Domiki.Web.Tests
     [TestFixture]
     public class NameGrammarTests
     {
+        /// <summary>
+        /// Грамматический род формы глагола определяется по имени трудяги: мужское имя даёт мужское окончание, женское – женское. Неизвестное имя считается мужским.
+        /// </summary>
+        /// <param name="name">Имя трудяги.</param>
+        /// <param name="expected">Ожидаемая форма глагола по роду имени.</param>
         [TestCase("Дарья", "сделала")]
         [TestCase("Злата", "сделала")]
         [TestCase("Пелагея", "сделала")]
@@ -19,6 +24,9 @@ namespace Domiki.Web.Tests
             Assert.That(NameGrammar.GenderForm(name, "сделал", "сделала"), Is.EqualTo(expected));
         }
 
+        /// <summary>
+        /// Каждое имя из женского списка NameGrammar.Names даёт женскую форму согласования без исключений.
+        /// </summary>
         [Test]
         public void GenderForm_RoutesEveryFeminineNameToFeminineForm()
         {

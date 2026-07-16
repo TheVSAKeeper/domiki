@@ -13,6 +13,13 @@ namespace Domiki.Web.Tests
         private const int OrdinaryTraitId = 1;
         private const int SonyaTraitId = 4;
 
+        /// <summary>
+        /// Кормление хлебом при включённой опции и наличии запаса сокращает отдых уставшего трудяги вдвое ценой одного хлеба; без опции или без хлеба отдых остаётся полным, а хлеб не тратится.
+        /// </summary>
+        /// <param name="feedWorkers">Включена ли опция кормления трудяг.</param>
+        /// <param name="bread">Сколько хлеба выдано игроку перед стартом.</param>
+        /// <param name="expectedRestSeconds">Ожидаемая длительность отдыха трудяги.</param>
+        /// <param name="expectedBread">Ожидаемый остаток хлеба после завершения производства.</param>
         [TestCase(true, 3, 3600, 2)]
         [TestCase(false, 3, 7200, 3)]
         [TestCase(true, 0, 7200, 0)]
@@ -38,6 +45,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetResource(playerId, BreadResourceTypeId), Is.EqualTo(expectedBread));
         }
 
+        /// <summary>
+        /// Трудяга с чертой «Соня» не устаёт и не ест хлеб при завершении производства, хлеб остаётся нетронутым.
+        /// </summary>
         [Test]
         public void SonyaDoesNotEatWhenFinishingManufactureTest()
         {

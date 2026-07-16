@@ -13,6 +13,12 @@ namespace Domiki.Web.Tests
         private const int MarketTypeId = 7;
         private const int CoinResourceTypeId = 1;
 
+        /// <summary>
+        /// Покупка очередного экземпляра постройки, привязанного к порогу обжитости, падает исключением, пока порог не достигнут.
+        /// </summary>
+        /// <param name="domikTypeId">Тип постройки.</param>
+        /// <param name="gateLevel">Обжитость, открывающая покупку.</param>
+        /// <param name="ownsFirstInstance">Есть ли у игрока предыдущий экземпляр постройки.</param>
         [TestCase(BarakTypeId, 5, true)]
         [TestCase(ClayMineTypeId, 8, true)]
         [TestCase(LumberMillTypeId, 8, false)]
@@ -30,6 +36,12 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo($"Постройка «{name}» откроется при обжитости {gateLevel}"));
         }
 
+        /// <summary>
+        /// По достижении требуемой обжитости покупка очередного экземпляра постройки проходит без ошибок.
+        /// </summary>
+        /// <param name="domikTypeId">Тип постройки.</param>
+        /// <param name="gateLevel">Обжитость, открывающая покупку.</param>
+        /// <param name="ownsFirstInstance">Есть ли у игрока предыдущий экземпляр постройки.</param>
         [TestCase(BarakTypeId, 5, true)]
         [TestCase(ClayMineTypeId, 8, true)]
         [TestCase(LumberMillTypeId, 8, false)]
@@ -45,6 +57,9 @@ namespace Domiki.Web.Tests
             Assert.DoesNotThrow(() => BuyDomik(playerId, domikTypeId));
         }
 
+        /// <summary>
+        /// Второй экземпляр каменоломни открывается только при обжитости 12, ниже – покупка запрещена с понятным сообщением.
+        /// </summary>
         [Test]
         public void StoneMineSecondInstanceGateTest()
         {
@@ -61,6 +76,9 @@ namespace Domiki.Web.Tests
             Assert.DoesNotThrow(() => BuyDomik(playerId, StoneMineTypeId));
         }
 
+        /// <summary>
+        /// Постройки, полученные сверх текущего лимита обжитости, у игрока не отбираются, а доступное для покупки количество не уходит в минус.
+        /// </summary>
         [Test]
         public void GrandfatheredOwnershipIsNotClippedAndAvailableCountNeverNegativeTest()
         {
@@ -85,6 +103,9 @@ namespace Domiki.Web.Tests
             Assert.That(ownedCount, Is.EqualTo(4));
         }
 
+        /// <summary>
+        /// Постройка без ворот обжитости ограничена только своим максимальным количеством и пропадает из списка доступных после покупки лимита.
+        /// </summary>
         [Test]
         public void DomikTypeWithoutGatesIsBoundedOnlyByMaxCountTest()
         {

@@ -12,6 +12,10 @@ namespace Domiki.Web.Tests
         private const int GoldDigReceiptId = 3;
         private const int GoldResourceTypeId = 5;
 
+        /// <summary>
+        /// Золотая шахта выдаёт не больше уровня шахты золота в сутки, сколько бы раз её ни запускали.
+        /// </summary>
+        /// <param name="mineLevel">Уровень золотой шахты.</param>
         [TestCase(1)]
         [TestCase(3)]
         [TestCase(5)]
@@ -30,6 +34,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetGoldMinedToday(playerId), Is.EqualTo(mineLevel));
         }
 
+        /// <summary>
+        /// Суточный лимит добычи золота сбрасывается с наступлением следующего дня.
+        /// </summary>
         [Test]
         public void GoldMineResetsCapOnNextDayTest()
         {
@@ -43,6 +50,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetGoldMinedToday(playerId), Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Золото за выполнение заказов не ограничено суточным лимитом золотой шахты.
+        /// </summary>
         [Test]
         public void OrderGoldIsNotLimitedByGoldMineCapTest()
         {

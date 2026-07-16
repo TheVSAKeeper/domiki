@@ -24,6 +24,9 @@ namespace Domiki.Web.Tests
         private const int TrailIdolDecorTypeId = 6;
         private const int WandererBannerDecorTypeId = 7;
 
+        /// <summary>
+        /// У нового игрока без Сторожки состояние экспедиций отсутствует – возвращается null.
+        /// </summary>
         [Test]
         public void GetExpeditionsNewPlayerReturnsNullTest()
         {
@@ -34,6 +37,9 @@ namespace Domiki.Web.Tests
             Assert.That(state, Is.Null);
         }
 
+        /// <summary>
+        /// С построенной Сторожкой доступны все типы экспедиций, активных походов ещё нет, счётчик жалости на нуле, а его порог равен глобальной константе.
+        /// </summary>
         [Test]
         public void GetExpeditionsWithBuildingListsTypesWithNoActiveTest()
         {
@@ -49,6 +55,9 @@ namespace Domiki.Web.Tests
             Assert.That(state.PityThreshold, Is.EqualTo(ExpeditionManager.ExpeditionPityThreshold));
         }
 
+        /// <summary>
+        /// Сторожка первого уровня держит только один активный отряд, вторая экспедиция отклоняется с подсказкой прокачать Сторожку.
+        /// </summary>
         [Test]
         public void ScoutHutLevelOneAllowsOneActiveExpeditionOnlyTest()
         {
@@ -63,6 +72,9 @@ namespace Domiki.Web.Tests
             Assert.That(ex!.Message, Is.EqualTo("Все отряды в походе – улучшите Сторожку"));
         }
 
+        /// <summary>
+        /// Пеший разведчик уходит без золота, занимает одного трудягу и возвращается через 2 часа.
+        /// </summary>
         [Test]
         public void FootScoutStartsWithoutGoldRowTest()
         {
@@ -82,6 +94,9 @@ namespace Domiki.Web.Tests
             Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Без Сторожки отправить экспедицию нельзя.
+        /// </summary>
         [Test]
         public void StartExpeditionWithoutBuildingThrowsTest()
         {
@@ -92,6 +107,13 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Нужна Сторожка"));
         }
 
+        /// <summary>
+        /// Отправка экспедиции занимает ровно положенное число трудяг, списывает золото и снаряжение и назначает длительность похода по типу.
+        /// </summary>
+        /// <param name="expeditionTypeId">Тип экспедиции.</param>
+        /// <param name="workerCount">Число трудяг в отряде.</param>
+        /// <param name="goldCost">Стоимость похода в золоте.</param>
+        /// <param name="durationSeconds">Длительность похода в секундах.</param>
         [TestCase(ShortScoutId, 2, 1, 14400)]
         [TestCase(LongJourneyId, 5, 2, 86400)]
         public void StartExpeditionAssignsWorkersAndWritesOffGoldTest(int expeditionTypeId, int workerCount, int goldCost, int durationSeconds)
@@ -114,6 +136,9 @@ namespace Domiki.Web.Tests
             Assert.That(ResourceValue(resources, PlankResourceTypeId), Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// При явном выборе трудяг в отряд попадают ровно указанные, а не произвольные свободные.
+        /// </summary>
         [Test]
         public void StartExpeditionWithChosenWorkersAssignsExactlyThoseTest()
         {
@@ -131,6 +156,9 @@ namespace Domiki.Web.Tests
             Assert.That(assigned, Is.EquivalentTo(chosen));
         }
 
+        /// <summary>
+        /// Число выбранных трудяг обязано совпадать с требуемым составом отряда, иначе экспедиция не стартует и ресурсы не списываются.
+        /// </summary>
         [Test]
         public void StartExpeditionWithWrongWorkerCountThrowsAndKeepsStateTest()
         {
@@ -147,6 +175,9 @@ namespace Domiki.Web.Tests
             Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Один и тот же трудяга не может быть выбран в отряд дважды.
+        /// </summary>
         [Test]
         public void StartExpeditionWithDuplicateWorkerThrowsTest()
         {
@@ -161,6 +192,9 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Дублирующиеся трудяги"));
         }
 
+        /// <summary>
+        /// Трудяга, занятый в производстве, нельзя выбрать в отряд экспедиции.
+        /// </summary>
         [Test]
         public void StartExpeditionWithBusyChosenWorkerThrowsTest()
         {
@@ -196,6 +230,10 @@ namespace Domiki.Web.Tests
             })).SetName("BusyWithOtherExpedition");
         }
 
+        /// <summary>
+        /// Экспедиция не стартует без достаточного числа свободных трудяг, будь они заняты в производстве, на отдыхе или уже в другом походе.
+        /// </summary>
+        /// <param name="occupy">Сценарий, занимающий трудяг перед попыткой отправить экспедицию.</param>
         [TestCaseSource(nameof(InsufficientWorkerCases))]
         public void StartExpeditionWithoutEnoughFreeWorkersThrowsTest(Action<ExpeditionTests, int, int[]> occupy)
         {
@@ -212,6 +250,9 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
         }
 
+        /// <summary>
+        /// Без достаточного золота экспедиция не стартует, трудяги остаются свободны, а прочие ресурсы не тратятся.
+        /// </summary>
         [Test]
         public void StartExpeditionWithoutEnoughGoldThrowsAndKeepsStateTest()
         {
@@ -227,6 +268,9 @@ namespace Domiki.Web.Tests
             Assert.That(ResourceValue(GetResources(playerId), PlankResourceTypeId), Is.EqualTo(2));
         }
 
+        /// <summary>
+        /// Без достаточного количества досок на снаряжение экспедиция не стартует, трудяги остаются свободны, а золото не тратится.
+        /// </summary>
         [Test]
         public void StartExpeditionWithoutEnoughPlanksThrowsAndKeepsStateTest()
         {
@@ -242,6 +286,9 @@ namespace Domiki.Web.Tests
             Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Отправка экспедиции с несуществующим типом похода отклоняется.
+        /// </summary>
         [Test]
         public void StartExpeditionWithUnknownTypeThrowsTest()
         {
@@ -252,6 +299,9 @@ namespace Domiki.Web.Tests
             Assert.Throws<BusinessException>(() => StartExpedition(playerId, int.MaxValue));
         }
 
+        /// <summary>
+        /// Трудяга, ушедший в экспедицию, недоступен для автоподбора в производство.
+        /// </summary>
         [Test]
         public void WorkerOnExpeditionIsNotSelectedForManufactureTest()
         {
@@ -267,6 +317,9 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
         }
 
+        /// <summary>
+        /// Завершение экспедиции убирает её из активных и освобождает всех задействованных трудяг.
+        /// </summary>
         [Test]
         public void FinishExpeditionReleasesWorkersAndRemovesExpeditionTest()
         {
@@ -284,6 +337,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetWorkers(playerId).All(x => x.ExpeditionId == null), Is.True);
         }
 
+        /// <summary>
+        /// Завершение экспедиции выдаёт хотя бы часть лута, и каждый ресурс укладывается в диапазон таблицы добычи (дерево/камень/глина до 210, инструменты до 15, мебель до 12 – трёхкратный запас на длительный поход).
+        /// </summary>
         [Test]
         public void FinishExpeditionGrantsLootWithinTableRangesTest()
         {
@@ -313,6 +369,9 @@ namespace Domiki.Web.Tests
             Assert.That(furnitureDelta, Is.InRange(0, 4 * 3));
         }
 
+        /// <summary>
+        /// Счётчик жалости обнуляется, если выпал редкий лут (инструменты, декор, чертёж), и увеличивается на 1, если редкой награды не было.
+        /// </summary>
         [Test]
         public void FinishExpeditionUpdatesPityCounterConsistentlyWithRareGrantTest()
         {
@@ -335,6 +394,9 @@ namespace Domiki.Web.Tests
             Assert.That(pity, Is.EqualTo(toolGranted || decorGranted || blueprintGranted ? 0 : 1));
         }
 
+        /// <summary>
+        /// По достижении порога жалости короткая разведка гарантированно выдаёт редкий лут (инструменты, декор или чертёж) и обнуляет счётчик.
+        /// </summary>
         [Test]
         public void PityThresholdForcesRareLootOnShortScoutAndResetsCounterTest()
         {
@@ -358,6 +420,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetPityCounter(playerId), Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// По достижении порога жалости дальний поход гарантированно выдаёт редкий лут (мебель, декор, прокачку черты трудяги или чертёж) и обнуляет счётчик.
+        /// </summary>
         [Test]
         public void PityThresholdForcesRareLootOnLongJourneyAndResetsCounterTest()
         {
@@ -383,6 +448,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetPityCounter(playerId), Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Запись лута типа декор выдаёт игроку соответствующий декор.
+        /// </summary>
         [Test]
         public void ApplyLootEntryDecorGrantsPlayerDecorTest()
         {
@@ -403,6 +471,9 @@ namespace Domiki.Web.Tests
             Assert.That(decor.Owned.Single(x => x.DecorTypeId == TrailIdolDecorTypeId).Count, Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Запись лута прокачки черты меняет черту одного обычного трудяги из отряда на особую.
+        /// </summary>
         [Test]
         public void ApplyLootEntryTraitUpgradeChangesOrdinaryWorkerTraitTest()
         {
@@ -428,6 +499,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetWorkers(playerId).Count(x => x.Trait.LogicName != "ordinary"), Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Если в отряде нет обычных трудяг для прокачки черты, лут заменяется другой наградой (мебель, декор или чертёж), а черты отряда не меняются.
+        /// </summary>
         [Test]
         public void ApplyLootEntryTraitUpgradeFallsBackWithoutOrdinaryWorkerTest()
         {
@@ -459,6 +533,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetWorkers(playerId).All(x => x.Trait.LogicName == "nimble"), Is.True);
         }
 
+        /// <summary>
+        /// Запись лута чертежа выдаёт игроку ещё не изученный чертёж.
+        /// </summary>
         [Test]
         public void ApplyBlueprintLootGrantsUnownedBlueprintTest()
         {
@@ -480,6 +557,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Если у игрока уже изучены все чертежи, лут чертежа заменяется другой наградой вместо повторной выдачи.
+        /// </summary>
         [Test]
         public void ApplyBlueprintLootFallsBackWhenAllOwnedTest()
         {
@@ -506,6 +586,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// После завершения экспедиции трудяги без иммунитета к усталости уходят отдыхать на фиксированное время (ExpeditionRestSeconds).
+        /// </summary>
         [Test]
         public void FinishExpeditionSetsRestForNonNoFatigueWorkersTest()
         {
@@ -531,6 +614,10 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Ресурсы, которые экспедиция тратит на снаряжение, не пересекаются с ресурсами, которые она выдаёт как лут.
+        /// </summary>
+        /// <param name="expeditionTypeId">Тип экспедиции.</param>
         [TestCase(ShortScoutId)]
         [TestCase(LongJourneyId)]
         public void ExpeditionEquipmentDoesNotOverlapLootTest(int expeditionTypeId)
@@ -544,6 +631,13 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Бонус удачи увеличивает вес только редких записей лута, обычные записи он не затрагивает.
+        /// </summary>
+        /// <param name="isRare">Является ли запись лута редкой.</param>
+        /// <param name="weight">Базовый вес записи.</param>
+        /// <param name="luckPercent">Процент бонуса удачи.</param>
+        /// <param name="expected">Ожидаемый итоговый вес.</param>
         [TestCase(false, 10, 0, 10)]
         [TestCase(true, 10, 0, 10)]
         [TestCase(true, 10, 100, 20)]

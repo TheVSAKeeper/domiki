@@ -12,12 +12,18 @@ namespace Domiki.Web.Tests
         private const int SellClayReceiptId = 6;
         private const int ClayResourceTypeId = 4;
 
+        /// <summary>
+        /// Новый игрок получает 24 заряда рвения.
+        /// </summary>
         [Test]
         public void NewPlayerStartsWithTwentyFourZealChargesTest()
         {
             Assert.That(GetZealCharges(CreatePlayer()), Is.EqualTo(DomikManager.ZealStartCharges));
         }
 
+        /// <summary>
+        /// Копка глины тратит заряд рвения и идёт вчетверо быстрее обычного.
+        /// </summary>
         [Test]
         public void ClayDigUsesFourfoldZealSpeedupAndChargeTest()
         {
@@ -30,6 +36,12 @@ namespace Domiki.Web.Tests
             Assert.That(GetZealCharges(playerId), Is.EqualTo(23));
         }
 
+        /// <summary>
+        /// Ускорение копки от рвения ступенчато слабеет по мере расхода зарядов и никогда не уводит их счётчик в отрицательные значения.
+        /// </summary>
+        /// <param name="initialCharges">Заряды рвения перед запуском.</param>
+        /// <param name="expectedDuration">Ожидаемая длительность производства в секундах.</param>
+        /// <param name="expectedCharges">Ожидаемый остаток зарядов рвения после запуска.</param>
         [TestCase(17, 900, 16)]
         [TestCase(16, 1800, 15)]
         [TestCase(1, 1800, 0)]
@@ -46,6 +58,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetZealCharges(playerId), Is.EqualTo(expectedCharges));
         }
 
+        /// <summary>
+        /// Долгий восьмичасовой рецепт копки глины не расходует заряды рвения и не ускоряется ими.
+        /// </summary>
         [Test]
         public void EightHourClayDigDoesNotUseZealTest()
         {
@@ -58,6 +73,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetZealCharges(playerId), Is.EqualTo(24));
         }
 
+        /// <summary>
+        /// Продажа ресурса на рынке не расходует заряды рвения и не ускоряется ими.
+        /// </summary>
         [Test]
         public void MarketSaleDoesNotUseZealTest()
         {

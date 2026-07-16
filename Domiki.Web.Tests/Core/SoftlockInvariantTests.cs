@@ -10,6 +10,9 @@ namespace Domiki.Web.Tests
         private const int CoinResourceTypeId = 1;
         private const int ClayResourceTypeId = 4;
 
+        /// <summary>
+        /// Игрок без монет не попадает в софтлок: копка глины не требует монет, а сдача заказа на глину возвращает монеты в оборот.
+        /// </summary>
         [Test]
         public void PlayerWithoutCoinsCanDigClayAndCompleteAffordableOrderForCoinsTest()
         {

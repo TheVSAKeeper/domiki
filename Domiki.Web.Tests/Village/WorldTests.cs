@@ -8,6 +8,9 @@ namespace Domiki.Web.Tests
 {
     public class WorldTests : TestBase
     {
+        /// <summary>
+        /// Список мира включает только именованные деревни, отсортированные по уровню по убыванию, и не включает неназванных игроков.
+        /// </summary>
         [Test]
         public void GetWorldReturnsNamedVillagesAndNpcsSortedByLevelTest()
         {
@@ -25,6 +28,9 @@ namespace Domiki.Web.Tests
             Assert.That(Array.IndexOf(world.Villages, world.Villages.Single(x => x.PlayerId == middlePlayerId)), Is.LessThan(Array.IndexOf(world.Villages, world.Villages.Single(x => x.PlayerId == lowPlayerId))));
         }
 
+        /// <summary>
+        /// В списке мира флагом «своя» помечена ровно одна деревня – деревня запросившего игрока.
+        /// </summary>
         [Test]
         public void GetWorldMarksOnlyCurrentPlayerAsMeTest()
         {
@@ -38,6 +44,9 @@ namespace Domiki.Web.Tests
             Assert.That(world.Villages.Where(x => x.IsMe).Select(x => x.PlayerId), Is.EqualTo(new int?[] { mePlayerId }));
         }
 
+        /// <summary>
+        /// Список мира всегда содержит фиксированный набор из пяти деревень-NPC с заранее заданными именами, уровнями, гербами и типами ресурсов.
+        /// </summary>
         [Test]
         public void GetWorldReturnsNpcRowsWithPresentationConstantsTest()
         {
@@ -56,6 +65,9 @@ namespace Domiki.Web.Tests
             Assert.That(npcs.All(x => !x.IsMe), Is.True);
         }
 
+        /// <summary>
+        /// Визит в чужую деревню отдаёт её публичную идентичность, уровень и список построек без права владения.
+        /// </summary>
         [Test]
         public void VisitVillageReturnsPublicFieldsAndBuildingsTest()
         {
@@ -71,6 +83,9 @@ namespace Domiki.Web.Tests
             Assert.That(visit.Buildings.Any(x => x.TypeName == "Артельная изба" && x.Level == 1), Is.True);
         }
 
+        /// <summary>
+        /// DTO мира и визита в деревню не утекают приватные поля игрока (Name, AspNetUserId) в сериализованный JSON.
+        /// </summary>
         [Test]
         public void WorldDtosDoNotContainPrivatePlayerFieldsTest()
         {
@@ -96,6 +111,9 @@ namespace Domiki.Web.Tests
             AssertPrivateFieldsAbsent(visitJson);
         }
 
+        /// <summary>
+        /// Визит к несуществующему игроку и к игроку без названной деревни одинаково падает с ошибкой «Деревня не найдена».
+        /// </summary>
         [Test]
         public void VisitVillageMissingOrUnnamedPlayerThrowsTest()
         {

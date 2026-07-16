@@ -31,6 +31,11 @@ namespace Domiki.Web.Tests
             ResetToloka();
         }
 
+        /// <summary>
+        /// Номер сезона увеличивается только по истечении полной длительности сезона от эпохи, а границы сезона точно совпадают с этой длительностью.
+        /// </summary>
+        /// <param name="offsetSeconds">Смещение от эпохи сезонов в секундах.</param>
+        /// <param name="expectedNumber">Ожидаемый номер сезона.</param>
         [TestCase(0, 0)]
         [TestCase(1, 0)]
         [TestCase(SeasonManager.SeasonDurationSeconds - 1, 0)]
@@ -46,6 +51,9 @@ namespace Domiki.Web.Tests
             Assert.That((season.EndDate - season.StartDate).TotalSeconds, Is.EqualTo(SeasonManager.SeasonDurationSeconds));
         }
 
+        /// <summary>
+        /// Выполнение заказа увеличивает сезонный счётчик заказов игрока на величину денежной награды заказа.
+        /// </summary>
         [Test]
         public void CompleteOrderGrowsSeasonOrdersCounterTest()
         {
@@ -60,6 +68,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetSeasonCounter(season.Number, playerId, SeasonMetric.Orders), Is.EqualTo(order.RewardCoins));
         }
 
+        /// <summary>
+        /// Взнос в толоку увеличивает сезонный счётчик толоки игрока на внесённую величину.
+        /// </summary>
         [Test]
         public void ContributeGrowsSeasonTolokaCounterTest()
         {
@@ -72,6 +83,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetSeasonCounter(season.Number, playerId, SeasonMetric.Toloka), Is.EqualTo(40));
         }
 
+        /// <summary>
+        /// Завершение экспедиции увеличивает сезонный счётчик экспедиций игрока на единицу.
+        /// </summary>
         [Test]
         public void FinishExpeditionGrowsSeasonExpeditionsCounterTest()
         {
@@ -89,6 +103,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetSeasonCounter(season.Number, playerId, SeasonMetric.Expeditions), Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Сезонные счётчики хранятся отдельно по номеру сезона: значения из прошлого сезона не переносятся и не смешиваются со следующим.
+        /// </summary>
         [Test]
         public void SeasonKeyResetsBetweenSeasonsTest()
         {
@@ -109,6 +126,9 @@ namespace Domiki.Web.Tests
             Assert.That(firstSeasonCounters[(playerId, SeasonMetric.Toloka)], Is.EqualTo(40));
         }
 
+        /// <summary>
+        /// Список мира отдаёт метаданные текущего сезона и посезонные метрики (заказы, толока, экспедиции, уют) по каждой деревне; у NPC все сезонные метрики всегда нулевые.
+        /// </summary>
         [Test]
         public void GetWorldReturnsSeasonMetaAndPerVillageMetricsTest()
         {
@@ -140,6 +160,9 @@ namespace Domiki.Web.Tests
             Assert.That(npcs.All(x => x.SeasonOrders == 0 && x.SeasonToloka == 0 && x.SeasonExpeditions == 0 && x.Comfort == 0), Is.True);
         }
 
+        /// <summary>
+        /// DTO мира с сезонными полями не утекает приватные поля игрока (Name, AspNetUserId) в сериализованный JSON.
+        /// </summary>
         [Test]
         public void WorldDtoWithSeasonFieldsDoesNotContainPrivateFieldsTest()
         {
@@ -159,6 +182,9 @@ namespace Domiki.Web.Tests
             Assert.That(json, Does.Not.Contain("AspNetUserId"));
         }
 
+        /// <summary>
+        /// Параллельные взносы в толоку от одного игрока суммируются в сезонном счётчике точно, без потери обновлений.
+        /// </summary>
         [Test]
         public async Task ConcurrentContributesKeepExactSeasonCounterSumTest()
         {

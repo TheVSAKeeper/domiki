@@ -11,6 +11,9 @@ namespace Domiki.Web.Tests
         private const int CoinResourceTypeId = 1;
         private const int ClayDigReceiptId = 1;
 
+        /// <summary>
+        /// Новый игрок сразу получает барак и глиняный карьер первого уровня и стартовый запас монет.
+        /// </summary>
         [Test]
         public void NewPlayerStartsWithBarrackAndClayMineAndCoinsTest()
         {
@@ -27,6 +30,9 @@ namespace Domiki.Web.Tests
             Assert.That(resources.Single(x => x.Type.Id == CoinResourceTypeId).Value, Is.EqualTo(DomikManager.StartingCoins));
         }
 
+        /// <summary>
+        /// Стартовый комплект построек и рабочих даёт новому игроку обжитость деревни, равную 4.
+        /// </summary>
         [Test]
         public void NewPlayerStartingVillageLevelIsFourTest()
         {
@@ -38,6 +44,9 @@ namespace Domiki.Web.Tests
             Assert.That(level.Level, Is.EqualTo(4));
         }
 
+        /// <summary>
+        /// Стартовый комплект построек виден сразу же в той же транзакции, где только что был создан игрок, без перечитывания из БД.
+        /// </summary>
         [Test]
         public void GetDomiksInSameScopeAsGetPlayerIdSeesStartingKitTest()
         {
@@ -53,6 +62,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Даже без единой монеты новый игрок может запустить копку глины на стартовом карьере, ничего не покупая.
+        /// </summary>
         [Test]
         public void NewPlayerWithZeroCoinsCanStartClayDigWithoutBuyingAnythingTest()
         {

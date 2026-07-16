@@ -6,6 +6,9 @@ namespace Domiki.Web.Tests
     [NonParallelizable]
     public class OfflineRecapTests : TestBase
     {
+        /// <summary>
+        /// Событие завершения производства попадает в офлайн-сводку ровно один раз: повторный TakeRecap его уже не возвращает, но оно остаётся в истории событий игрока.
+        /// </summary>
         [Test]
         public void FinishedManufactureIsDeliveredOnceTest()
         {
@@ -39,6 +42,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Принятие лота покупателем кладёт продавцу в офлайн-сводку событие продажи (LotSold).
+        /// </summary>
         [Test]
         public void AcceptedLotIsDeliveredToSellerTest()
         {

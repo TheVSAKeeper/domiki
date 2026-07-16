@@ -8,6 +8,9 @@ namespace Domiki.Web.Tests
     {
         private const int GoldResourceTypeId = 5;
 
+        /// <summary>
+        /// Ускорение производства в пределах лимита завершает его немедленно и списывает золото за сэкономленное время.
+        /// </summary>
         [Test]
         public void HurryManufactureInCapFinishesAndWritesOffGoldTest()
         {
@@ -24,6 +27,11 @@ namespace Domiki.Web.Tests
             Assert.That(GetWorkers(playerId).Single().ManufactureId, Is.Null);
         }
 
+        /// <summary>
+        /// Стоимость ускорения производства в золоте округляется вверх по оставшемуся времени, а не считается дробно.
+        /// </summary>
+        /// <param name="remainingSeconds">Сколько секунд осталось до завершения.</param>
+        /// <param name="expectedCost">Ожидаемая стоимость ускорения в золоте.</param>
         [TestCase(40 * 60, 1)]
         [TestCase(3 * 3600 + 60, 4)]
         [TestCase(6 * 3600, 6)]
@@ -38,6 +46,9 @@ namespace Domiki.Web.Tests
             Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(6 - expectedCost));
         }
 
+        /// <summary>
+        /// Ускорение производства с оставшимся временем выше лимита (6 часов) запрещено и не меняет состояние производства.
+        /// </summary>
         [Test]
         public void HurryManufactureOverCapThrowsAndKeepsStateTest()
         {
@@ -52,6 +63,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetDomiks(playerId).Single(x => x.Id == 2).Manufactures.Single().Id, Is.EqualTo(manufactureId));
         }
 
+        /// <summary>
+        /// Ускорение производства при нехватке золота падает исключением и не списывает ресурсы и не завершает производство.
+        /// </summary>
         [Test]
         public void HurryManufactureWithoutGoldThrowsAndKeepsStateTest()
         {
@@ -66,6 +80,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetDomiks(playerId).Single(x => x.Id == 2).Manufactures.Single().Id, Is.EqualTo(manufactureId));
         }
 
+        /// <summary>
+        /// Нельзя ускорить несуществующее производство или производство чужого игрока.
+        /// </summary>
         [Test]
         public void HurryManufactureMissingOrForeignThrowsTest()
         {
@@ -76,6 +93,9 @@ namespace Domiki.Web.Tests
             Assert.Throws<BusinessException>(() => HurryManufacture(otherPlayerId, manufactureId));
         }
 
+        /// <summary>
+        /// Ускорение улучшения домика в пределах лимита завершает улучшение немедленно и списывает золото.
+        /// </summary>
         [Test]
         public void HurryDomikInCapFinishesAndWritesOffGoldTest()
         {
@@ -92,6 +112,9 @@ namespace Domiki.Web.Tests
             Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Нельзя ускорить домик, который сейчас не улучшается, – бросает ошибку «Домик не улучшается».
+        /// </summary>
         [Test]
         public void HurryDomikNotUpgradingThrowsTest()
         {
@@ -102,6 +125,9 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Домик не улучшается"));
         }
 
+        /// <summary>
+        /// Нельзя ускорить несуществующий домик или домик чужого игрока.
+        /// </summary>
         [Test]
         public void HurryDomikMissingOrForeignThrowsTest()
         {
@@ -112,6 +138,9 @@ namespace Domiki.Web.Tests
             Assert.Throws<BusinessException>(() => HurryDomik(otherPlayerId, 1));
         }
 
+        /// <summary>
+        /// Ускоренное завершение производства выдаёт ресурсы по проценту выхода, зафиксированному на момент старта, а не по стандартному.
+        /// </summary>
         [Test]
         public void HurryManufactureUsesFixedOutputPercentTest()
         {

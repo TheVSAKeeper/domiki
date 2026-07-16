@@ -13,6 +13,14 @@ namespace Domiki.Web.Tests
         private const int MakeToolReceiptId = 24;
         private const int MakeTool8hReceiptId = 49;
 
+        /// <summary>
+        /// Рецепт привязан к конкретному типу постройки и открывается только с нужного уровня; 8-часовые варианты рецепта
+        /// требуют более высокого уровня, чем их базовые аналоги.
+        /// </summary>
+        /// <param name="domikTypeId">Тип постройки.</param>
+        /// <param name="level">Уровень постройки.</param>
+        /// <param name="receiptId">Проверяемый рецепт.</param>
+        /// <param name="expected">Ожидается ли привязка.</param>
         [TestCase(PotteryTypeId, 1, MakeBrickReceiptId, true)]
         [TestCase(PotteryTypeId, 2, MakeBrick8hReceiptId, true)]
         [TestCase(PotteryTypeId, 1, MakeBrick8hReceiptId, false)]
@@ -40,6 +48,9 @@ namespace Domiki.Web.Tests
             Assert.That(receiptIds.Contains(receiptId), Is.EqualTo(expected));
         }
 
+        /// <summary>
+        /// Чертежи открываются по возрастающей лестнице репутации: гончарня с 15, камнерез с 20, мастерская с 30.
+        /// </summary>
         [Test]
         public void BlueprintLadderTest()
         {
@@ -51,6 +62,9 @@ namespace Domiki.Web.Tests
             Assert.That(blueprints.Single(x => x.LogicName == "workshop").ReputationThreshold, Is.EqualTo(30));
         }
 
+        /// <summary>
+        /// У каждого из пяти соседей закреплён вторичный ресурс: глинищи – 12, каменка – 10, заречье – 2, боровое – 9, дубрава – 15.
+        /// </summary>
         [Test]
         public void SecondaryProfilesTest()
         {
@@ -64,6 +78,11 @@ namespace Domiki.Web.Tests
             Assert.That(neighbors.Single(x => x.LogicName == "dubrava").SecondaryResourceTypeId, Is.EqualTo(15));
         }
 
+        /// <summary>
+        /// Рыночная стоимость блока, жёрнова и посуды: блок – 35, жёрнов – 150, посуда – 45.
+        /// </summary>
+        /// <param name="resourceTypeId">Тип ресурса.</param>
+        /// <param name="expected">Ожидаемая рыночная стоимость.</param>
         [TestCase(10, 35)]
         [TestCase(11, 150)]
         [TestCase(12, 45)]

@@ -7,6 +7,11 @@ namespace Domiki.Web.Tests
         private const int ClayResourceTypeId = 4;
         private const int StoneResourceTypeId = 2;
 
+        /// <summary>
+        /// Стартовая производственная мощность по глине (1 в сутки) ограничивает объём заказа для любого тира спроса.
+        /// </summary>
+        /// <param name="tierIndex">Индекс тира спроса.</param>
+        /// <param name="expectedQuantity">Ожидаемое количество ресурса в заказе.</param>
         [TestCase(0, 2)]
         [TestCase(1, 5)]
         [TestCase(2, 16)]
@@ -22,6 +27,10 @@ namespace Domiki.Web.Tests
             Assert.That(quantity, Is.EqualTo(expectedQuantity));
         }
 
+        /// <summary>
+        /// Ресурс, который игрок вообще не производит (нулевая мощность), всё равно даёт заказ не меньше чем на 2 единицы, для любого тира спроса.
+        /// </summary>
+        /// <param name="tierIndex">Индекс тира спроса.</param>
         [TestCase(0)]
         [TestCase(1)]
         [TestCase(2)]

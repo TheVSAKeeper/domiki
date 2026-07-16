@@ -5,6 +5,12 @@ namespace Domiki.Web.Tests
 {
     public class PacingTests : TestBase
     {
+        /// <summary>
+        /// Объём и денежная награда заказа на передельный ресурс нормированы по тиру спроса и одинаковы для равнозначных типов ресурса (6 и 7).
+        /// </summary>
+        /// <param name="resourceTypeId">Тип запрашиваемого ресурса.</param>
+        /// <param name="expectedQuantity">Ожидаемое нормированное количество ресурса.</param>
+        /// <param name="expectedRewardCoins">Ожидаемая награда в монетах.</param>
         [TestCase(6, 1, 53)]
         [TestCase(6, 4, 280)]
         [TestCase(6, 9, 945)]
@@ -28,6 +34,11 @@ namespace Domiki.Web.Tests
             Assert.That(GetResource(playerId, 1) - coinsBefore, Is.EqualTo(rewardCoins));
         }
 
+        /// <summary>
+        /// Запуск рецепта на рыночном дворе списывает ровно 35 монет и производит 1 единицу указанного ресурса.
+        /// </summary>
+        /// <param name="receiptId">Идентификатор рецепта.</param>
+        /// <param name="resourceTypeId">Тип производимого ресурса.</param>
         [TestCase(32, 2)]
         [TestCase(33, 3)]
         [TestCase(34, 4)]
@@ -50,6 +61,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetResource(playerId, resourceTypeId) - resourceBefore, Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Заказы, сгенерированные доской (включая заказы на передельные ресурсы), сохраняют количество и награду строго по формуле нормировки тира.
+        /// </summary>
         [Test]
         public void CreateOrderPersistsNormalizedQuantityAndRewardTest()
         {

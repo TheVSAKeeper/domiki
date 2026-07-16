@@ -28,6 +28,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Событие планировщика, падающее с исключением, откладывается на будущее, а не блокирует обработку остальной очереди.
+        /// </summary>
         [Test]
         public void PoisonEventDoesNotBlockQueueOrKillSchedulerTest()
         {
@@ -52,6 +55,9 @@ namespace Domiki.Web.Tests
             Assert.That(deferred!.Date, Is.GreaterThan(now), "ядовитое событие перенесено в будущее для повторной попытки");
         }
 
+        /// <summary>
+        /// Планировщик за один проход обрабатывает все уже наступившие события и не трогает события из будущего.
+        /// </summary>
         [Test]
         public void DrainProcessesAllDueEventsInOnePassTest()
         {
@@ -70,6 +76,9 @@ namespace Domiki.Web.Tests
             Assert.That(calc.PendingForTest.Select(x => x.ObjectId), Is.EquivalentTo(new[] { 4 }), "будущее событие осталось нетронутым");
         }
 
+        /// <summary>
+        /// Бюджет ограничивает число событий, обрабатываемых планировщиком за один проход, остальные ждут следующего тика.
+        /// </summary>
         [Test]
         public void DrainStopsAtBudgetTest()
         {

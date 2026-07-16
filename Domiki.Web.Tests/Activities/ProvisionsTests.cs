@@ -15,6 +15,12 @@ namespace Domiki.Web.Tests
         private const int PlankResourceTypeId = 7;
         private const int BreadResourceTypeId = 15;
 
+        /// <summary>
+        /// Флаг провианта на экспедиции списывает хлеб и избавляет вернувшихся трудяг от отдыха, без провианта хлеб не тратится и отдых обязателен.
+        /// </summary>
+        /// <param name="provisions">Взят ли провиант в экспедицию.</param>
+        /// <param name="expectedBread">Ожидаемый остаток хлеба после экспедиции.</param>
+        /// <param name="expectedNoRest">Ожидается ли отсутствие отдыха у трудяг.</param>
         [TestCase(true, 0, true)]
         [TestCase(false, 2, false)]
         public void ExpeditionProvisionsControlRestAndBreadWriteOffTest(bool provisions, int expectedBread, bool expectedNoRest)
@@ -48,6 +54,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetResource(playerId, BreadResourceTypeId), Is.EqualTo(expectedBread));
         }
 
+        /// <summary>
+        /// Запуск экспедиции с провиантом без достаточного запаса хлеба бросает исключение.
+        /// </summary>
         [Test]
         public void StartingProvisionedExpeditionWithoutBreadThrowsTest()
         {
@@ -59,6 +68,9 @@ namespace Domiki.Web.Tests
             Assert.Throws<BusinessException>(() => StartExpedition(playerId, ShortScoutId, provisions: true));
         }
 
+        /// <summary>
+        /// На типе экспедиции без опционального снаряжения флаг провианта не освобождает трудяг от отдыха и хлеб не списывается.
+        /// </summary>
         [Test]
         public void ProvisionsFlagOnExpeditionWithoutOptionalEquipmentDoesNotSkipRestTest()
         {

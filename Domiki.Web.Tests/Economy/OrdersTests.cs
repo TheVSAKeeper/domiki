@@ -6,6 +6,9 @@ namespace Domiki.Web.Tests
 {
     public class OrdersTests : TestBase
     {
+        /// <summary>
+        /// Доска заказов нового игрока изначально заполнена ровно тремя заказами, каждый на один вид ресурса.
+        /// </summary>
         [Test]
         public void GetOrdersNewPlayerCreatesThreeOrdersTest()
         {
@@ -17,6 +20,9 @@ namespace Domiki.Web.Tests
             Assert.That(orders.All(x => x.Resources.Length == 1), Is.True);
         }
 
+        /// <summary>
+        /// Выполнение заказа при достаточных ресурсах списывает нужный ресурс, начисляет монеты, золото и репутацию соседа, а слот на доске остаётся пустым (не перезаполняется сразу).
+        /// </summary>
         [Test]
         public void CompleteOrderWithEnoughResourcesWritesOffRewardsAndHoldsSlotTest()
         {
@@ -41,6 +47,9 @@ namespace Domiki.Web.Tests
             Assert.That(orders.Any(x => x.Id == order.Id), Is.False);
         }
 
+        /// <summary>
+        /// Освободившийся после выполнения заказа слот доски не заполняется заново при повторных запросах доски.
+        /// </summary>
         [Test]
         public void CompleteOrderHoldsSlotOnRepeatedFetchTest()
         {
@@ -56,6 +65,9 @@ namespace Domiki.Web.Tests
             Assert.That(orders.Any(x => x.Id == order.Id), Is.False);
         }
 
+        /// <summary>
+        /// После истечения задержки на пополнение доска заказов снова заполняется до трёх заказов.
+        /// </summary>
         [Test]
         public void OrderBoardRefillsAfterDelayElapsesTest()
         {
@@ -71,6 +83,9 @@ namespace Domiki.Web.Tests
             Assert.That(orders.Length, Is.EqualTo(3));
         }
 
+        /// <summary>
+        /// Выполнение заказа без нужных ресурсов бросает ошибку и не меняет ни ресурсы, ни репутацию, ни доску заказов.
+        /// </summary>
         [Test]
         public void CompleteOrderWithoutResourcesThrowsAndKeepsStateTest()
         {
@@ -90,6 +105,9 @@ namespace Domiki.Web.Tests
             Assert.That(orders.Any(x => x.Id == order.Id), Is.True);
         }
 
+        /// <summary>
+        /// Выполнить чужой заказ нельзя: бросается ошибка, а заказ остаётся на доске исходного игрока.
+        /// </summary>
         [Test]
         public void CompleteForeignOrderThrowsTest()
         {
@@ -104,6 +122,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetOrders(firstPlayerId).Any(x => x.Id == order.Id), Is.True);
         }
 
+        /// <summary>
+        /// Выполнение несуществующего заказа бросает ошибку.
+        /// </summary>
         [Test]
         public void CompleteMissingOrderThrowsTest()
         {
@@ -112,6 +133,9 @@ namespace Domiki.Web.Tests
             Assert.Throws<BusinessException>(() => CompleteOrder(playerId, int.MaxValue));
         }
 
+        /// <summary>
+        /// Просроченный заказ, снятый планировщиком, убирается с доски, а его слот остаётся пустым (не заполняется сразу).
+        /// </summary>
         [Test]
         public void FinishOrderRemovesExpiredOrderAndHoldsSlotTest()
         {
@@ -125,6 +149,9 @@ namespace Domiki.Web.Tests
             Assert.That(orders.Any(x => x.Id == order.Id), Is.False);
         }
 
+        /// <summary>
+        /// Репутация одного и того же соседа суммируется при выполнении нескольких его заказов подряд.
+        /// </summary>
         [Test]
         public void ReputationAccumulatesForSameNeighborTest()
         {
@@ -142,6 +169,9 @@ namespace Domiki.Web.Tests
             Assert.That(reputation.Points, Is.EqualTo(7));
         }
 
+        /// <summary>
+        /// Доска заказов просит только те ресурсы, которые деревня действительно способна производить.
+        /// </summary>
         [Test]
         public void OrdersOnlyAskProducibleResourcesTest()
         {
@@ -160,6 +190,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Игрок без единой постройки всё равно получает полную доску из трёх заказов.
+        /// </summary>
         [Test]
         public void NewPlayerWithoutBuildingsStillGetsOrdersTest()
         {
@@ -170,6 +203,9 @@ namespace Domiki.Web.Tests
             Assert.That(orders.Length, Is.EqualTo(3));
         }
 
+        /// <summary>
+        /// Параллельные запросы доски заказов одного игрока сериализуются без ошибок конкурентности и сходятся на трёх заказах.
+        /// </summary>
         [Test]
         public void ConcurrentGetOrdersSerializesWithoutConcurrencyExceptionTest()
         {

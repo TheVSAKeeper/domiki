@@ -29,6 +29,9 @@ namespace Domiki.Web.Tests
             ClearTradeLots();
         }
 
+        /// <summary>
+        /// У нового игрока без Торгового двора рынок отсутствует.
+        /// </summary>
         [Test]
         public void GetMarketForNewPlayerReturnsNullTest()
         {
@@ -39,6 +42,9 @@ namespace Domiki.Web.Tests
             Assert.That(market, Is.Null);
         }
 
+        /// <summary>
+        /// Постройка Торгового двора первого уровня открывает пустой рынок с комиссией и лимитом первого уровня, а также показывает ставку следующего уровня.
+        /// </summary>
         [Test]
         public void GetMarketWithBuildingReturnsEmptyTest()
         {
@@ -54,6 +60,13 @@ namespace Domiki.Web.Tests
             Assert.That(market.NextCommissionRate, Is.EqualTo(MarketManager.GetCommissionRate(2)));
         }
 
+        /// <summary>
+        /// Комиссия рынка считается по уровню Торгового двора, типу и количеству отдаваемого ресурса.
+        /// </summary>
+        /// <param name="level">Уровень Торгового двора.</param>
+        /// <param name="giveResourceTypeId">Тип отдаваемого ресурса.</param>
+        /// <param name="giveValue">Количество отдаваемого ресурса.</param>
+        /// <param name="expected">Ожидаемая комиссия в монетах.</param>
         [TestCase(1, 4, 20, 16)]
         [TestCase(5, 4, 20, 6)]
         [TestCase(1, 6, 1, 3)]
@@ -65,6 +78,9 @@ namespace Domiki.Web.Tests
             Assert.That(MarketManager.ComputeCommission(level, giveResourceTypeId, giveValue), Is.EqualTo(expected));
         }
 
+        /// <summary>
+        /// Без Торгового двора выставить лот нельзя: бросается ошибка «Нужен Торговый двор», ресурсы не списываются.
+        /// </summary>
         [Test]
         public void PostLotWithoutBuildingThrowsAndDoesNotWriteOffTest()
         {
@@ -79,6 +95,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetResourceValue(playerId, ClayResourceTypeId), Is.EqualTo(before));
         }
 
+        /// <summary>
+        /// Выставление лота списывает отдаваемый ресурс в эскроу и комиссию монетами, а лот со сведениями о деревне продавца становится виден другим игрокам.
+        /// </summary>
         [Test]
         public void PostLotWritesOffEscrowAndCommissionAndVisibleToOtherPlayerTest()
         {
@@ -102,6 +121,9 @@ namespace Domiki.Web.Tests
             Assert.That(buyerLot.SellerCrestColor, Is.EqualTo(3));
         }
 
+        /// <summary>
+        /// Торговый двор первого уровня допускает не больше двух активных лотов одновременно, третий бросает ошибку с предложением улучшить постройку.
+        /// </summary>
         [Test]
         public void MarketYardLevelOneAllowsTwoActiveLotsOnlyTest()
         {
@@ -115,6 +137,9 @@ namespace Domiki.Web.Tests
             Assert.That(ex!.Message, Is.EqualTo("Все места на прилавке заняты – улучшите Торговый двор"));
         }
 
+        /// <summary>
+        /// Некорректный лот (нехватка ресурса, нулевое количество, совпадение отдаваемого и желаемого ресурса, нехватка монет на комиссию) не создаётся и ничего не списывает.
+        /// </summary>
         [Test]
         public void PostLotInvalidOrInsufficientDoesNotCreateLotTest()
         {
@@ -131,6 +156,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetResourceValue(playerId, ClayResourceTypeId), Is.EqualTo(10));
         }
 
+        /// <summary>
+        /// Принятие лота обменивает ресурсы между продавцом и покупателем и убирает лот с обеих сторон рынка.
+        /// </summary>
         [Test]
         public void AcceptLotTransfersResourcesAndDeletesLotTest()
         {
@@ -152,6 +180,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetMarket(buyerId)!.Lots, Is.Empty);
         }
 
+        /// <summary>
+        /// Лот нельзя принять самому продавцу, без Торгового двора, без нужного ресурса или по несуществующему id – во всех случаях обмен не происходит.
+        /// </summary>
         [Test]
         public void AcceptLotInvalidCasesDoNotTransferTest()
         {
@@ -173,6 +204,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetResourceValue(buyerId, GoldResourceTypeId), Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Отмена лота возвращает эскроу-ресурс, но не возвращает уплаченную комиссию; отменить лот может только его продавец.
+        /// </summary>
         [Test]
         public void CancelLotReturnsEscrowButNotCommissionTest()
         {
@@ -190,6 +224,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetMarket(sellerId)!.MyLots, Is.Empty);
         }
 
+        /// <summary>
+        /// Истёкший лот, снятый планировщиком, возвращает эскроу-ресурс, но не возвращает уплаченную комиссию.
+        /// </summary>
         [Test]
         public void ExpiredLotReturnsEscrowButNotCommissionTest()
         {
@@ -207,6 +244,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetMarket(sellerId)!.MyLots, Is.Empty);
         }
 
+        /// <summary>
+        /// Одновременные попытки принять один и тот же лот успешны только у одного из конкурирующих покупателей.
+        /// </summary>
         [Test]
         public async Task ConcurrentAcceptOneLotAllowsOneSuccessTest()
         {
@@ -228,6 +268,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetResourceValue(firstBuyerId, ClayResourceTypeId) + GetResourceValue(secondBuyerId, ClayResourceTypeId), Is.EqualTo(20));
         }
 
+        /// <summary>
+        /// Взаимное одновременное принятие лотов друг друга двумя игроками завершается успешно, без взаимной блокировки.
+        /// </summary>
         [Test]
         public async Task CrossAcceptLotsDoesNotDeadlockTest()
         {

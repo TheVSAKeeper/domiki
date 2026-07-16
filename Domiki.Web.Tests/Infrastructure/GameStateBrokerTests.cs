@@ -4,6 +4,9 @@ namespace Domiki.Web.Tests
 {
     public class GameStateBrokerTests
     {
+        /// <summary>
+        /// Публикация состояния конкретному игроку доходит только до его подписки, у остальных подписчиков очередь остаётся пустой.
+        /// </summary>
         [Test]
         public void PublishDeliversOnlyToTargetPlayer()
         {
@@ -18,6 +21,9 @@ namespace Domiki.Web.Tests
             Assert.That(other.Reader.TryRead(out _), Is.False);
         }
 
+        /// <summary>
+        /// Широковещательная рассылка доставляет один и тот же скоуп всем активным подпискам.
+        /// </summary>
         [Test]
         public void BroadcastDeliversToAllPlayers()
         {
@@ -33,6 +39,9 @@ namespace Domiki.Web.Tests
             Assert.That(secondScope, Is.EqualTo(GameStateScopes.Market));
         }
 
+        /// <summary>
+        /// Отписанный (disposed) подписчик исключён из рассылки и не получает последующие публикации.
+        /// </summary>
         [Test]
         public void DisposedSubscriptionDoesNotReceiveMessages()
         {

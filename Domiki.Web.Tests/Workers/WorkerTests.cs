@@ -6,6 +6,9 @@ namespace Domiki.Web.Tests
 {
     public class WorkerTests : TestBase
     {
+        /// <summary>
+        /// Число трудяг у игрока равно вместимости коек барака, новые трудяги изначально свободны от производства.
+        /// </summary>
         [Test]
         public void GetWorkersMatchesBedCapacityTest()
         {
@@ -20,6 +23,9 @@ namespace Domiki.Web.Tests
             Assert.That(workers.All(x => x.ManufactureId == null), Is.True);
         }
 
+        /// <summary>
+        /// Улучшение барака увеличивает число трудяг вслед за возросшей вместимостью коек.
+        /// </summary>
         [Test]
         public void UpgradeBarracksAddsWorkerTest()
         {
@@ -32,6 +38,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetWorkers(playerId).Length, Is.EqualTo(3));
         }
 
+        /// <summary>
+        /// Старт производства занимает трудягу, а его завершение освобождает трудягу обратно.
+        /// </summary>
         [Test]
         public void StartManufactureAssignsAndFinishReleasesWorkerTest()
         {
@@ -48,6 +57,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetWorkers(playerId).Single().ManufactureId, Is.Null);
         }
 
+        /// <summary>
+        /// Без свободных трудяг запуск производства запрещён ошибкой «Недостаточно трудяг».
+        /// </summary>
         [Test]
         public void StartManufactureWithoutFreeWorkersThrowsTest()
         {
@@ -59,6 +71,9 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
         }
 
+        /// <summary>
+        /// Черта «Работящий» сокращает длительность производства на 20%.
+        /// </summary>
         [Test]
         public void WorkerTraitShortensManufactureDurationTest()
         {
@@ -73,6 +88,9 @@ namespace Domiki.Web.Tests
             Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(23040).Within(2));
         }
 
+        /// <summary>
+        /// Групповой рецепт занимает ровно столько трудяг, сколько указано в PlodderCount рецепта, не больше и не меньше.
+        /// </summary>
         [Test]
         public void GroupRecipeAssignsReceiptPlodderCountWorkersTest()
         {
@@ -93,6 +111,9 @@ namespace Domiki.Web.Tests
             Assert.That(workers.Count(x => x.ManufactureId == null), Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Параллельные обращения к списку трудяг игрока не приводят к ошибкам и не искажают их количество.
+        /// </summary>
         [Test]
         public void ConcurrentGetWorkersDoesNotThrowTest()
         {
@@ -115,6 +136,9 @@ namespace Domiki.Web.Tests
             Assert.That(errorCount, Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Завершение производства заводит трудяге навык по типу постройки и увеличивает счётчик использований.
+        /// </summary>
         [Test]
         public void FinishManufactureIncrementsWorkerSkillUsesTest()
         {
@@ -130,6 +154,9 @@ namespace Domiki.Web.Tests
             Assert.That(skill.BonusPercent, Is.EqualTo(WorkerSkillCalculator.GetBonusPercent(1)));
         }
 
+        /// <summary>
+        /// Навык трудяги по типу постройки сокращает длительность производства.
+        /// </summary>
         [Test]
         public void WorkerSkillShortensManufactureDurationTest()
         {
@@ -145,12 +172,18 @@ namespace Domiki.Web.Tests
             Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(26208).Within(2));
         }
 
+        /// <summary>
+        /// Бонус навыка не превышает потолок в 15% независимо от числа использований.
+        /// </summary>
         [Test]
         public void WorkerSkillBonusHasCapTest()
         {
             Assert.That(WorkerSkillCalculator.GetBonusPercent(10000), Is.EqualTo(15));
         }
 
+        /// <summary>
+        /// Прирост бонуса навыка на ранних использованиях больше, чем на поздних: отдача убывает.
+        /// </summary>
         [Test]
         public void WorkerSkillBonusHasDiminishingReturnsTest()
         {
@@ -160,6 +193,9 @@ namespace Domiki.Web.Tests
             Assert.That(earlyGain, Is.GreaterThan(lateGain));
         }
 
+        /// <summary>
+        /// Навык, накопленный по одному типу постройки, не сокращает длительность производства в постройке другого типа.
+        /// </summary>
         [Test]
         public void WorkerSkillForOtherDomikTypeDoesNotShortenManufactureDurationTest()
         {
@@ -176,6 +212,9 @@ namespace Domiki.Web.Tests
             Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(28800).Within(2));
         }
 
+        /// <summary>
+        /// Черта трудяги и навык по типу постройки сокращают длительность производства мультипликативно, а не складываются.
+        /// </summary>
         [Test]
         public void WorkerTraitAndSkillStackMultiplicativelyTest()
         {
@@ -192,6 +231,9 @@ namespace Domiki.Web.Tests
         }
 
 
+        /// <summary>
+        /// Торговое производство не накапливает усталость трудяги и не отправляет его отдыхать.
+        /// </summary>
         [Test]
         public void TradeManufactureDoesNotAccumulateFatigueTest()
         {
@@ -208,6 +250,9 @@ namespace Domiki.Web.Tests
             Assert.That(worker.RestUntil, Is.Null);
         }
 
+        /// <summary>
+        /// Завершение производства прибавляет трудяге фактически отработанные секунды без ухода на отдых, пока порог усталости не достигнут.
+        /// </summary>
         [Test]
         public void FinishManufactureAccumulatesActualWorkerWorkedSecondsTest()
         {
@@ -222,6 +267,10 @@ namespace Domiki.Web.Tests
             Assert.That(worker.RestUntil, Is.Null);
         }
 
+        /// <summary>
+        /// По достижении порога усталости трудяга сбрасывает наработку и уходит отдыхать до будущей даты.
+        /// </summary>
+        /// <param name="receiptId">Рецепт, чья длительность выводит трудягу на порог усталости.</param>
         [TestCase(14)]
         public void FinishManufactureFatigueThresholdSendsWorkerToRestTest(int receiptId)
         {
@@ -237,6 +286,10 @@ namespace Domiki.Web.Tests
             Assert.That(worker.RestUntil, Is.GreaterThan(DateTimeHelper.GetNowDate()));
         }
 
+        /// <summary>
+        /// Отдыхающий трудяга недоступен для нового производства, запуск падает ошибкой «Недостаточно трудяг».
+        /// </summary>
+        /// <param name="receiptId">Рецепт запускаемого производства.</param>
         [TestCase(14)]
         public void RestingWorkerDoesNotStartManufactureTest(int receiptId)
         {
@@ -248,6 +301,10 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
         }
 
+        /// <summary>
+        /// Трудяга с истёкшим временем отдыха снова доступен для назначения на производство.
+        /// </summary>
+        /// <param name="receiptId">Рецепт запускаемого производства.</param>
         [TestCase(14)]
         public void WorkerWithExpiredRestUntilStartsManufactureTest(int receiptId)
         {
@@ -261,6 +318,10 @@ namespace Domiki.Web.Tests
             Assert.That(worker.ManufactureId, Is.Not.Null);
         }
 
+        /// <summary>
+        /// Трудяга с чертой «Соня» не накапливает усталость и не уходит отдыхать после производства.
+        /// </summary>
+        /// <param name="receiptId">Рецепт запускаемого производства.</param>
         [TestCase(18)]
         public void SonyaWorkerDoesNotAccumulateFatigueTest(int receiptId)
         {
@@ -276,6 +337,9 @@ namespace Domiki.Web.Tests
             Assert.That(worker.RestUntil, Is.Null);
         }
 
+        /// <summary>
+        /// Черта «Соня» удлиняет длительность производства на 25% в обмен на отсутствие усталости.
+        /// </summary>
         [Test]
         public void SonyaTraitLengthensManufactureDurationByTwentyFivePercentTest()
         {
@@ -290,6 +354,9 @@ namespace Domiki.Web.Tests
             Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(36000).Within(2));
         }
 
+        /// <summary>
+        /// Автовыбор трудяги отдаёт предпочтение более эффективному по черте трудяге, а не первому по id.
+        /// </summary>
         [Test]
         public void AutoSelectsWorkerWithBestFitnessOverFirstByIdTest()
         {
@@ -310,6 +377,9 @@ namespace Domiki.Web.Tests
             Assert.That(busyWorker.Id, Is.EqualTo(strongWorker.Id));
         }
 
+        /// <summary>
+        /// Ручной выбор назначает на производство именно указанного трудягу, а не автоматически подобранного.
+        /// </summary>
         [Test]
         public void ManualSelectionAssignsExplicitWorkerTest()
         {
@@ -329,6 +399,9 @@ namespace Domiki.Web.Tests
             Assert.That(busyWorker.Id, Is.EqualTo(weakWorker.Id));
         }
 
+        /// <summary>
+        /// Пустой список ручного выбора трудяг откатывается к автоматическому подбору.
+        /// </summary>
         [Test]
         public void EmptyManualSelectionFallsBackToAutoTest()
         {
@@ -340,6 +413,9 @@ namespace Domiki.Web.Tests
             Assert.That(busyWorker.ManufactureId, Is.Not.Null);
         }
 
+        /// <summary>
+        /// Число вручную выбранных трудяг должно совпадать с требуемым рецептом, иначе запуск падает ошибкой «Неверное число трудяг».
+        /// </summary>
         [Test]
         public void ManualSelectionWithWrongCountThrowsTest()
         {
@@ -353,6 +429,9 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Неверное число трудяг"));
         }
 
+        /// <summary>
+        /// Повторение одного трудяги в списке ручного выбора запрещено ошибкой «Дублирующиеся трудяги».
+        /// </summary>
         [Test]
         public void ManualSelectionWithDuplicateWorkerThrowsTest()
         {
@@ -372,6 +451,9 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Дублирующиеся трудяги"));
         }
 
+        /// <summary>
+        /// Ручной выбор для группового рецепта занимает ровно перечисленных трудяг, остальные остаются свободны.
+        /// </summary>
         [Test]
         public void ManualSelectionForGroupRecipeReservesExactWorkersTest()
         {
@@ -396,6 +478,9 @@ namespace Domiki.Web.Tests
             Assert.That(updatedWorkers.Single(x => x.Id == excludedWorkerId).ManufactureId, Is.Null);
         }
 
+        /// <summary>
+        /// Трудягу другого игрока нельзя выбрать вручную, попытка падает ошибкой «Трудяга недоступен».
+        /// </summary>
         [Test]
         public void ManualSelectionWithForeignWorkerThrowsTest()
         {
@@ -408,6 +493,9 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
         }
 
+        /// <summary>
+        /// Уже занятого производством трудягу нельзя выбрать вручную повторно, ошибка «Трудяга недоступен».
+        /// </summary>
         [Test]
         public void ManualSelectionWithBusyWorkerThrowsTest()
         {
@@ -422,6 +510,9 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
         }
 
+        /// <summary>
+        /// Отдыхающего трудягу нельзя выбрать вручную, ошибка «Трудяга недоступен».
+        /// </summary>
         [Test]
         public void ManualSelectionWithRestingWorkerThrowsTest()
         {

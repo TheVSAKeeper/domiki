@@ -25,6 +25,13 @@ namespace Domiki.Web.Tests
         private const int ClayResourceTypeId = 4;
         private const int WoodResourceTypeId = 3;
 
+        /// <summary>
+        /// Погода, влияющая на добываемый ресурс (дождь усиливает глину, засуха усиливает дерево, и наоборот – ослабляет противоположный ресурс), фиксирует процент выхода производства в момент запуска.
+        /// </summary>
+        /// <param name="weatherTypeId">Тип погоды на момент запуска.</param>
+        /// <param name="domikTypeId">Тип домика-добытчика.</param>
+        /// <param name="receiptId">Рецепт добычи.</param>
+        /// <param name="expectedOutputPercent">Ожидаемый процент выхода ресурса.</param>
         [TestCase(RainWeatherTypeId, ClayMineDomikTypeId, ClayDig8hReceiptId, 150)]
         [TestCase(RainWeatherTypeId, LumberMillDomikTypeId, WoodDig8hReceiptId, 75)]
         [TestCase(DroughtWeatherTypeId, LumberMillDomikTypeId, WoodDig8hReceiptId, 150)]
@@ -42,6 +49,12 @@ namespace Domiki.Web.Tests
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(expectedOutputPercent));
         }
 
+        /// <summary>
+        /// Погода, не влияющая на добываемый ресурс (в т.ч. ясная погода), оставляет процент выхода производства на базовых 100.
+        /// </summary>
+        /// <param name="weatherTypeId">Тип погоды на момент запуска.</param>
+        /// <param name="domikTypeId">Тип домика-добытчика.</param>
+        /// <param name="receiptId">Рецепт добычи.</param>
         [TestCase(ClearWeatherTypeId, ClayMineDomikTypeId, ClayDig8hReceiptId)]
         [TestCase(ClearWeatherTypeId, LumberMillDomikTypeId, WoodDig8hReceiptId)]
         [TestCase(RainWeatherTypeId, StoneMineDomikTypeId, StoneDig8hReceiptId)]
@@ -60,6 +73,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(100));
         }
 
+        /// <summary>
+        /// Дождь усиливает добычу глины на 50% – по завершении производства выдаётся 12 глины вместо базовых 8.
+        /// </summary>
         [Test]
         public void FinishManufactureGrantsBonusOutputUnderRainAtClayMineTest()
         {
@@ -76,6 +92,9 @@ namespace Domiki.Web.Tests
             Assert.That(clay.Value, Is.EqualTo(12));
         }
 
+        /// <summary>
+        /// Дождь ослабляет заготовку дерева на 25% – по завершении производства выдаётся 6 древесины вместо базовых 8.
+        /// </summary>
         [Test]
         public void FinishManufactureCutsOutputUnderRainAtLumberMillTest()
         {
@@ -92,6 +111,9 @@ namespace Domiki.Web.Tests
             Assert.That(wood.Value, Is.EqualTo(6));
         }
 
+        /// <summary>
+        /// Даже при искусственно заниженном (1%) проценте выхода завершение производства всегда выдаёт хотя бы одну единицу ресурса, а не ноль.
+        /// </summary>
         [Test]
         public void FinishManufactureMaxGuardPreventsZeroGrantTest()
         {
@@ -110,6 +132,9 @@ namespace Domiki.Web.Tests
             Assert.That(clay.Value, Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Процент выхода на момент завершения производства берётся тем, что был зафиксирован при запуске, а не текущей погодой – смена погоды в процессе не влияет на результат.
+        /// </summary>
         [Test]
         public void FinishManufactureUsesOutputPercentFixedAtStartNotAtFinishTest()
         {
@@ -128,6 +153,9 @@ namespace Domiki.Web.Tests
             Assert.That(clay.Value, Is.EqualTo(12));
         }
 
+        /// <summary>
+        /// Запрос погоды возвращает текущий период плюс прогноз из двух периодов, идущих без разрывов и покрывающих весь горизонт прогноза.
+        /// </summary>
         [Test]
         public void GetWeatherReturnsCurrentAndContiguousForecastTest()
         {
@@ -146,6 +174,9 @@ namespace Domiki.Web.Tests
             Assert.That(weather.Forecast[1].EndDate, Is.EqualTo(weather.Current.StartDate.AddSeconds(WeatherManager.ForecastHorizonSeconds)));
         }
 
+        /// <summary>
+        /// При полностью пустом расписании погоды его достройка заполняет период от текущего момента и покрывает весь горизонт прогноза.
+        /// </summary>
         [Test]
         public void EnsureWeatherScheduleFromEmptyCoversForecastHorizonTest()
         {
@@ -161,6 +192,9 @@ namespace Domiki.Web.Tests
             Assert.That(periods.Any(x => x.StartDate <= now && now < x.EndDate), Is.True);
         }
 
+        /// <summary>
+        /// Если расписание погоды покрывает только ближайшее будущее, его достройка продлевает хвост без разрывов до полного горизонта прогноза.
+        /// </summary>
         [Test]
         public void EnsureWeatherScheduleFromPartialScheduleExtendsTailTest()
         {
@@ -178,6 +212,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Если хвост расписания погоды устарел (закончился в прошлом), его достройка продолжает расписание вперёд через текущий момент и до полного горизонта прогноза.
+        /// </summary>
         [Test]
         public void EnsureWeatherScheduleFromStaleTailContinuesForwardThroughNowTest()
         {

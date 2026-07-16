@@ -2,6 +2,9 @@
 {
     public class PushTests : TestBase
     {
+        /// <summary>
+        /// Повторная подписка с тем же endpoint обновляет ключи существующей push-подписки, а не создаёт дубликат.
+        /// </summary>
         [Test]
         public void PushSubscribeTest()
         {

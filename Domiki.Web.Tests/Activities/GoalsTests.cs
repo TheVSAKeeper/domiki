@@ -18,6 +18,9 @@ namespace Domiki.Web.Tests
         private const int ClayResourceTypeId = 4;
         private const int CoinResourceTypeId = 1;
 
+        /// <summary>
+        /// Из 9 целей первая закрывается добычей глины, платит награду монетами и пишет запись в журнал с id цели и наградой.
+        /// </summary>
         [Test]
         public void FirstGoalCompletesOnClayDigAndWritesJournalEntryTest()
         {
@@ -44,6 +47,9 @@ namespace Domiki.Web.Tests
             Assert.That(data.RootElement.GetProperty("rewardCoins").GetInt32(), Is.EqualTo(10));
         }
 
+        /// <summary>
+        /// Покупка рынка выполняет условие второй цели, но начисление награды и её видимость в списке завершённых происходит только при чтении состояния целей.
+        /// </summary>
         [Test]
         public void MarketPurchaseCompletesSecondGoalOnlyWhenGoalsAreReadTest()
         {
@@ -63,6 +69,9 @@ namespace Domiki.Web.Tests
             });
         }
 
+        /// <summary>
+        /// Продажа глины, случившаяся до активации третьей цели, в зачёт не идёт: цель закрывает только следующая продажа после активации.
+        /// </summary>
         [Test]
         public void SaleBeforeItsActivationNeedsSecondSaleToCompleteThirdGoalTest()
         {
@@ -90,6 +99,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetResourceValue(playerId, CoinResourceTypeId) - coinsBeforeSecondSale, Is.EqualTo(15));
         }
 
+        /// <summary>
+        /// Одна продажа глины может одновременно закрыть цель-состояние «есть рынок» и цель-действие «продать глину», если предыдущие цели уже выполнены.
+        /// </summary>
         [Test]
         public void SaleCompletesMarketStateGoalAndSaleGoalTogetherTest()
         {
@@ -109,6 +121,9 @@ namespace Domiki.Web.Tests
             });
         }
 
+        /// <summary>
+        /// Прокачка казармы закрывает пятую цель, но только после того, как цели с первой по четвёртую уже выполнены.
+        /// </summary>
         [Test]
         public void BarracksUpgradeCompletesFifthGoalAfterEarlierGoalsTest()
         {
@@ -134,6 +149,9 @@ namespace Domiki.Web.Tests
             });
         }
 
+        /// <summary>
+        /// Седьмую цель закрывает только восьмичасовая смена добычи глины, обычная часовая смена её не выполняет.
+        /// </summary>
         [Test]
         public void EightHourShiftCompletesSeventhGoalButOneHourShiftDoesNotTest()
         {
@@ -148,6 +166,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetCompletedGoalIds(playerId), Does.Contain(7));
         }
 
+        /// <summary>
+        /// Цели-состояния закрываются каскадом автоматически, но каскад останавливается на первой цели-действии, требующей отдельного игрового события.
+        /// </summary>
         [Test]
         public void StateGoalsCascadeOnlyUntilActionGoalTest()
         {
@@ -167,6 +188,9 @@ namespace Domiki.Web.Tests
             });
         }
 
+        /// <summary>
+        /// Выполнение заказа закрывает шестую цель.
+        /// </summary>
         [Test]
         public void CompletedOrderCompletesSixthGoalTest()
         {
@@ -183,6 +207,9 @@ namespace Domiki.Web.Tests
             Assert.That(state.ActiveGoal!.Ordinal, Is.EqualTo(7));
         }
 
+        /// <summary>
+        /// Покупка каменоломни закрывает восьмую цель, а награда материализуется при следующем чтении состояния целей.
+        /// </summary>
         [Test]
         public void StoneMinePurchaseCompletesEighthGoalWhenGoalsAreReadTest()
         {
@@ -204,6 +231,9 @@ namespace Domiki.Web.Tests
             });
         }
 
+        /// <summary>
+        /// Достижение 10 уровня деревни закрывает девятую, последнюю цель – активных целей после этого не остаётся.
+        /// </summary>
         [Test]
         public void VillageLevelTenCompletesNinthGoalTest()
         {

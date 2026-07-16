@@ -25,6 +25,9 @@ namespace Domiki.Web.Tests
         private const int FatigueThresholdSeconds = 8 * 3600;
         private const int RestSeconds = 2 * 3600;
 
+        /// <summary>
+        /// Новый игрок видит полный каталог декора с правильной покупаемостью (идол и баннер странника не продаются) и стартует без декора и с нулевым уютом.
+        /// </summary>
         [Test]
         public void GetDecorForNewPlayerReturnsTypesAndZeroComfortTest()
         {
@@ -39,6 +42,11 @@ namespace Domiki.Web.Tests
             Assert.That(decor.Comfort, Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Покупка декора списывает его стоимость в ресурсах и добавляет к общему уюту фиксированное количество очков за экземпляр.
+        /// </summary>
+        /// <param name="decorTypeId">Тип декора.</param>
+        /// <param name="comfortPoints">Уют, который даёт один экземпляр декора.</param>
         [TestCase(FenceDecorTypeId, 2)]
         [TestCase(FlowerbedDecorTypeId, 3)]
         [TestCase(GardenDecorTypeId, 5)]
@@ -64,6 +72,9 @@ namespace Domiki.Web.Tests
             }
         }
 
+        /// <summary>
+        /// Без достаточного количества ресурсов покупка декора падает с ошибкой «Недостаточно...», а владение и уют не меняются.
+        /// </summary>
         [Test]
         public void BuyDecorWithoutResourcesThrowsAndDoesNotChangeOwnedTest()
         {
@@ -77,6 +88,9 @@ namespace Domiki.Web.Tests
             Assert.That(decor.Comfort, Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// Покупка декора по несуществующему типу падает с ошибкой «Декор не найден».
+        /// </summary>
         [Test]
         public void BuyUnknownDecorThrowsTest()
         {
@@ -87,6 +101,9 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Is.EqualTo("Декор не найден"));
         }
 
+        /// <summary>
+        /// Декор, помеченный как непокупаемый (идол на тропе), нельзя купить – падает с ошибкой «Этот декор нельзя купить», владение не меняется.
+        /// </summary>
         [Test]
         public void BuyNonPurchasableDecorThrowsAndDoesNotChangeOwnedTest()
         {
@@ -98,6 +115,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetDecor(playerId).Owned, Is.Empty);
         }
 
+        /// <summary>
+        /// Декор, открываемый репутацией с соседом, нельзя купить без нужной репутации – ошибка упоминает «репутац».
+        /// </summary>
         [Test]
         public void BuyGatedDecorWithoutReputationThrowsTest()
         {
@@ -110,6 +130,9 @@ namespace Domiki.Web.Tests
             Assert.That(ex.Message, Does.Contain("репутац"));
         }
 
+        /// <summary>
+        /// При достижении нужного порога репутации с соседом декор, требующий репутацию, покупается успешно.
+        /// </summary>
         [Test]
         public void BuyGatedDecorWithReputationSucceedsTest()
         {
@@ -123,6 +146,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetDecor(playerId).Owned.Single(x => x.DecorTypeId == BrickArchDecorTypeId).Count, Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Выдача декора напрямую через менеджера суммирует количество при повторных вызовах, а не перезаписывает его.
+        /// </summary>
         [Test]
         public void GrantDecorViaManagerIncrementsPlayerDecorTest()
         {
@@ -135,6 +161,9 @@ namespace Domiki.Web.Tests
             Assert.That(decor.Owned.Single(x => x.DecorTypeId == TrailIdolDecorTypeId).Count, Is.EqualTo(3));
         }
 
+        /// <summary>
+        /// Уют от владения декором вносит вклад в уровень деревни с фиксированным весом (VillageLevelCalculator.ComfortWeight).
+        /// </summary>
         [Test]
         public void ComfortIncreasesVillageLevelTest()
         {
@@ -148,6 +177,9 @@ namespace Domiki.Web.Tests
             Assert.That(after.Level, Is.EqualTo(before.Level + 16 * VillageLevelCalculator.ComfortWeight));
         }
 
+        /// <summary>
+        /// Уют сокращает время отдыха уставшего трудяги на процент, зависящий от накопленного уюта (здесь – на 8%, отдых сокращается до 92%).
+        /// </summary>
         [Test]
         public void ComfortShortensWorkerRestTest()
         {
@@ -167,6 +199,9 @@ namespace Domiki.Web.Tests
             Assert.That(worker.RestUntil, Is.EqualTo(finishDate.AddSeconds(RestSeconds * 92 / 100)));
         }
 
+        /// <summary>
+        /// Сокращение отдыха от уюта ограничено сверху: сколько бы уюта ни было, отдых не сокращается больше чем наполовину.
+        /// </summary>
         [Test]
         public void ComfortRestReductionIsCappedAtHalfTest()
         {
@@ -186,6 +221,9 @@ namespace Domiki.Web.Tests
             Assert.That(worker.RestUntil, Is.EqualTo(finishDate.AddSeconds(RestSeconds / 2)));
         }
 
+        /// <summary>
+        /// Трудяга, ещё не достигший порога усталости, не уходит отдыхать вовсе, независимо от уровня уюта.
+        /// </summary>
         [Test]
         public void NoFatigueWorkerDoesNotRestRegardlessComfortTest()
         {

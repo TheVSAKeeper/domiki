@@ -5,6 +5,9 @@ namespace Domiki.Web.Tests
 {
     public class FoodReferenceTests : TestBase
     {
+        /// <summary>
+        /// Рецепт выпечки хлеба превращает 2 муки в 4 хлеба, без монет на входе.
+        /// </summary>
         [Test]
         public void BreadReceiptResourcesTest()
         {
@@ -16,6 +19,9 @@ namespace Domiki.Web.Tests
             Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo(new[] { (15, 4) }));
         }
 
+        /// <summary>
+        /// Добыча зерна не требует монет на входе и даёт 1 зерно за цикл.
+        /// </summary>
         [Test]
         public void GrainReceiptHasNoCoinInputTest()
         {
@@ -27,6 +33,14 @@ namespace Domiki.Web.Tests
             Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo(new[] { (13, 1) }));
         }
 
+        /// <summary>
+        /// Апгрейд мельницы на 1 уровне требует 150 монет и 1 жёрнов, на 3 уровне – 1 жёрнов, на 5 уровне – 2 жёрнова;
+        /// апгрейд пекарни на 1 уровне требует 10 золота, на 4 уровне – 10 посуды.
+        /// </summary>
+        /// <param name="domikTypeId">Тип постройки (мельница или пекарня).</param>
+        /// <param name="level">Уровень постройки.</param>
+        /// <param name="resourceTypeId">Проверяемый тип ресурса в стоимости апгрейда.</param>
+        /// <param name="expected">Ожидаемое количество ресурса.</param>
         [TestCase(15, 1, 1, 150)]
         [TestCase(15, 1, 11, 1)]
         [TestCase(15, 3, 11, 1)]
@@ -42,6 +56,11 @@ namespace Domiki.Web.Tests
             Assert.That(resources.Single(x => x.Type.Id == resourceTypeId).Value, Is.EqualTo(expected));
         }
 
+        /// <summary>
+        /// Рыночная стоимость зерна, муки и хлеба: зерно – 10, мука – 35, хлеб – 20.
+        /// </summary>
+        /// <param name="resourceTypeId">Тип ресурса.</param>
+        /// <param name="expected">Ожидаемая рыночная стоимость.</param>
         [TestCase(13, 10)]
         [TestCase(14, 35)]
         [TestCase(15, 20)]
@@ -50,6 +69,9 @@ namespace Domiki.Web.Tests
             Assert.That(ResourceManager.GetMarketValue(resourceTypeId), Is.EqualTo(expected));
         }
 
+        /// <summary>
+        /// Дубрава торгует хлебом как вторичным ресурсом спроса, а её чертёж открывает пекарню при репутации 25.
+        /// </summary>
         [Test]
         public void DubravaFoodProfileAndBakeryBlueprintTest()
         {

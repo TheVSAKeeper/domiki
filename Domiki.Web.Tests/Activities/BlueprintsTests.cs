@@ -19,6 +19,9 @@ namespace Domiki.Web.Tests
         private const int StonecutterDomikTypeId = 12;
         private const int StonecutterBlueprintId = 2;
 
+        /// <summary>
+        /// Новый игрок видит чертёж мастерской заблокированным, привязанным к соседу Боровое, при нулевой репутации.
+        /// </summary>
         [Test]
         public void GetBlueprintsNewPlayerReturnsWorkshopBlueprintLockedTest()
         {
@@ -32,6 +35,11 @@ namespace Domiki.Web.Tests
             Assert.That(blueprint.Owned, Is.False);
         }
 
+        /// <summary>
+        /// Порог репутации выдаёт чертёж ровно один раз, повторное чтение не дублирует владение.
+        /// </summary>
+        /// <param name="reputation">Накопленная репутация с соседом.</param>
+        /// <param name="expectedOwned">Ожидается ли владение чертежом.</param>
         [TestCase(29, false)]
         [TestCase(30, true)]
         [TestCase(31, true)]
@@ -48,6 +56,9 @@ namespace Domiki.Web.Tests
             Assert.That(PlayerBlueprintCount(playerId), Is.EqualTo(expectedOwned ? 1 : 0));
         }
 
+        /// <summary>
+        /// Покупка постройки без нужного чертежа бросает исключение и не трогает ресурсы игрока.
+        /// </summary>
         [Test]
         public void BuyWorkshopWithoutBlueprintThrowsAndKeepsResourcesTest()
         {
@@ -62,6 +73,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetDomikCount(playerId, WorkshopDomikTypeId), Is.EqualTo(0));
         }
 
+        /// <summary>
+        /// При достаточной репутации чертёж считается выданным и покупка постройки проходит успешно.
+        /// </summary>
         [Test]
         public void BuyWorkshopWithBlueprintSucceedsTest()
         {
@@ -74,6 +88,9 @@ namespace Domiki.Web.Tests
             Assert.That(PlayerBlueprintCount(playerId), Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Чертёж фактически выдаётся лениво, в момент покупки постройки, а не заранее при достижении порога репутации.
+        /// </summary>
         [Test]
         public void BuyWorkshopLazilyGrantsBlueprintTest()
         {
@@ -87,6 +104,9 @@ namespace Domiki.Web.Tests
             Assert.That(GetDomikCount(playerId, WorkshopDomikTypeId), Is.EqualTo(1));
         }
 
+        /// <summary>
+        /// Рецепт мастерской превращает доски в мебель, а рецепт рынка продаёт мебель за монеты.
+        /// </summary>
         [Test]
         public void FurnitureRecipeAndSaleTest()
         {
@@ -110,6 +130,9 @@ namespace Domiki.Web.Tests
             Assert.That(ResourceValue(afterSell, CoinResourceTypeId) - ResourceValue(afterMake, CoinResourceTypeId), Is.EqualTo(95));
         }
 
+        /// <summary>
+        /// Повторная выдача уже выданного чертежа идемпотентна: возвращает false и не меняет владение.
+        /// </summary>
         [Test]
         public void GrantBlueprintIsIdempotentTest()
         {
@@ -123,6 +146,9 @@ namespace Domiki.Web.Tests
             Assert.That(IsOwned(playerId, StonecutterBlueprintId), Is.True);
         }
 
+        /// <summary>
+        /// Покупка каменотёсни без владения её чертежом бросает исключение с упоминанием чертежа.
+        /// </summary>
         [Test]
         public void BuyStonecutterWithoutBlueprintThrowsTest()
         {

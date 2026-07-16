@@ -6,6 +6,9 @@ namespace Domiki.Web.Tests
 {
     public class ResponseBufferingTests : TestBase
     {
+        /// <summary>
+        /// Успешно завершённый запрос сбрасывает буферизованное тело ответа в реальный поток целиком.
+        /// </summary>
         [Test]
         public async Task SuccessfulRequestFlushesBufferedBody()
         {
@@ -21,6 +24,9 @@ namespace Domiki.Web.Tests
             Assert.That(Encoding.UTF8.GetString(realBody.ToArray()), Is.EqualTo("hello"));
         }
 
+        /// <summary>
+        /// Упавший запрос не отдаёт клиенту недописанное частичное тело ответа.
+        /// </summary>
         [Test]
         public void FailingRequestDoesNotFlushPartialBody()
         {

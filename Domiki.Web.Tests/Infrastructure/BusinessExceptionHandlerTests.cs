@@ -8,6 +8,9 @@ namespace Domiki.Web.Tests
 {
     public class BusinessExceptionHandlerTests
     {
+        /// <summary>
+        /// BusinessException отдаётся клиенту как 400 с телом-конвертом { type = ErrorMessage, content = текст исключения }.
+        /// </summary>
         [Test]
         public async Task BusinessExceptionIsWrittenAsErrorEnvelope()
         {
@@ -26,6 +29,9 @@ namespace Domiki.Web.Tests
             Assert.That(json.RootElement.GetProperty("content").GetString(), Is.EqualTo("Не хватает монет"));
         }
 
+        /// <summary>
+        /// Обработчик берёт на себя только BusinessException, остальные исключения не перехватывает и оставляет дальше по конвейеру.
+        /// </summary>
         [Test]
         public async Task OtherExceptionsAreNotHandled()
         {
