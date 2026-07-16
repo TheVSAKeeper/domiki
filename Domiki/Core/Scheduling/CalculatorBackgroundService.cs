@@ -1,22 +1,19 @@
-﻿using System.Timers;
+﻿namespace Domiki.Web.Core.Scheduling;
 
-namespace Domiki.Web.Core.Scheduling
+public class CalculatorBackgroundService : BackgroundService
 {
-    public class CalculatorBackgroundService : BackgroundService
+    private readonly ICalculator _calculator;
+    private IServiceProvider _serviceProvider;
+
+    public CalculatorBackgroundService(IServiceProvider serviceProvider, ICalculator calculator)
     {
-        private IServiceProvider _serviceProvider;
-        private ICalculator _calculator;
+        _serviceProvider = serviceProvider;
+        _calculator = calculator;
+    }
 
-        public CalculatorBackgroundService(IServiceProvider serviceProvider, ICalculator calculator)
-        {
-            _serviceProvider = serviceProvider;
-            _calculator = calculator;
-        }
-
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            _calculator.CheckInit();
-            return Task.FromResult(0);
-        }
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        _calculator.CheckInit();
+        return Task.FromResult(0);
     }
 }

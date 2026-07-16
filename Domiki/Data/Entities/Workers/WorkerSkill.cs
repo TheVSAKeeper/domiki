@@ -1,16 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Domiki.Web.Data.Entities
+namespace Domiki.Web.Data.Entities;
+
+[Table("WorkerSkills")]
+public class WorkerSkill
 {
-    [Table("WorkerSkills")]
-    public class WorkerSkill
-    {
-        public int WorkerId { get; set; }
+    public int WorkerId { get; set; }
 
-        public int DomikTypeId { get; set; }
+    public int DomikTypeId { get; set; }
 
-        public int Uses { get; set; }
+    public int Uses { get; set; }
 
-        public Worker Worker { get; set; }
-    }
+    public Worker Worker { get; set; }
 }

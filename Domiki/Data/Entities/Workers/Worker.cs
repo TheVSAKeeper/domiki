@@ -1,40 +1,39 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Domiki.Web.Data.Entities
+namespace Domiki.Web.Data.Entities;
+
+[Table("Workers")]
+public class Worker
 {
-    [Table("Workers")]
-    public class Worker
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
-        public int PlayerId { get; set; }
+    public int PlayerId { get; set; }
 
-        [MaxLength(100)]
-        [Required(AllowEmptyStrings = false)]
-        public string Name { get; set; }
+    [MaxLength(100)]
+    [Required(AllowEmptyStrings = false)]
+    public string Name { get; set; }
 
-        public int TraitId { get; set; }
+    public int TraitId { get; set; }
 
-        public int? ManufactureId { get; set; }
+    public int? ManufactureId { get; set; }
 
-        public int? ExpeditionId { get; set; }
+    public int? ExpeditionId { get; set; }
 
-        public int WorkedSeconds { get; set; }
+    public int WorkedSeconds { get; set; }
 
-        public DateTime? RestUntil { get; set; }
+    public DateTime? RestUntil { get; set; }
 
-        public DateTime? SickUntil { get; set; }
-        public Player Player { get; set; }
+    public DateTime? SickUntil { get; set; }
+    public Player Player { get; set; }
 
-        public Trait Trait { get; set; }
+    public Trait Trait { get; set; }
 
-        public Manufacture Manufacture { get; set; }
+    public Manufacture Manufacture { get; set; }
 
-        public Expedition Expedition { get; set; }
+    public Expedition Expedition { get; set; }
 
-        public ICollection<WorkerSkill> Skills { get; set; }
-    }
+    public ICollection<WorkerSkill> Skills { get; set; }
 }

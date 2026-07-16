@@ -1,21 +1,20 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Domiki.Web.Data.Entities
+namespace Domiki.Web.Data.Entities;
+
+public class PlayerEvent
 {
-    public class PlayerEvent
-    {
-        [Key]
-        public long Id { get; set; }
+    [Key]
+    public long Id { get; set; }
 
-        public int PlayerId { get; set; }
+    public int PlayerId { get; set; }
 
-        public PlayerEventType Type { get; set; }
+    public PlayerEventType Type { get; set; }
 
-        public DateTime Date { get; set; }
+    public DateTime Date { get; set; }
 
-        [Required(AllowEmptyStrings = false)]
-        public string Data { get; set; }
+    [Required(AllowEmptyStrings = false)]
+    public string Data { get; set; }
 
-        public bool Read { get; set; }
-    }
+    public bool Read { get; set; }
 }

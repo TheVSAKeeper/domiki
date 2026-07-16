@@ -1,11 +1,9 @@
-﻿
-namespace Domiki.Web.Economy.Dto
+﻿namespace Domiki.Web.Economy.Dto;
+
+public class NeighborReputationDto
 {
-    public class NeighborReputationDto
-    {
-        public int NeighborId { get; set; }
-        public string NeighborName { get; set; }
-        public string NeighborLogicName { get; set; }
-        public int Points { get; set; }
-    }
+    public int NeighborId { get; set; }
+    public string NeighborName { get; set; }
+    public string NeighborLogicName { get; set; }
+    public int Points { get; set; }
 }

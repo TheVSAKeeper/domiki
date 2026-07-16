@@ -1,85 +1,82 @@
-﻿using Domiki.Web.Data.Entities;
-using Domiki.Web.Data;
-using Microsoft.EntityFrameworkCore;
+﻿using Domiki.Web.Data;
 using System.Net;
 using System.Text.Json;
 using WebPush;
 
-namespace Domiki.Web.Infrastructure
+namespace Domiki.Web.Infrastructure;
+
+public class PushSender
 {
-    public class PushSender
+    private readonly string _vapidPublicKey;
+    private readonly string _vapidPrivateKey;
+    private readonly string _subject;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<PushSender> _logger;
+    private readonly WebPushClient _webPushClient = new();
+
+    public PushSender(IConfiguration configuration, IServiceScopeFactory scopeFactory, ILogger<PushSender> logger)
     {
-        private readonly string _vapidPublicKey;
-        private readonly string _vapidPrivateKey;
-        private readonly string _subject;
-        private readonly IServiceScopeFactory _scopeFactory;
-        private readonly ILogger<PushSender> _logger;
-        private readonly WebPushClient _webPushClient = new WebPushClient();
+        _vapidPublicKey = configuration["Push:VapidPublicKey"];
+        _vapidPrivateKey = configuration["Push:VapidPrivateKey"];
+        _subject = configuration["Push:Subject"];
+        _scopeFactory = scopeFactory;
+        _logger = logger;
+    }
 
-        public PushSender(IConfiguration configuration, IServiceScopeFactory scopeFactory, ILogger<PushSender> logger)
+    public string PublicKey => _vapidPublicKey ?? string.Empty;
+
+    public bool Enabled => !string.IsNullOrWhiteSpace(_vapidPublicKey) && !string.IsNullOrWhiteSpace(_vapidPrivateKey);
+
+    public void Notify(int playerId, string title, string body, string url)
+    {
+        if (!Enabled)
         {
-            _vapidPublicKey = configuration["Push:VapidPublicKey"];
-            _vapidPrivateKey = configuration["Push:VapidPrivateKey"];
-            _subject = configuration["Push:Subject"];
-            _scopeFactory = scopeFactory;
-            _logger = logger;
+            return;
         }
 
-        public string PublicKey => _vapidPublicKey ?? string.Empty;
-
-        public bool Enabled => !string.IsNullOrWhiteSpace(_vapidPublicKey) && !string.IsNullOrWhiteSpace(_vapidPrivateKey);
-
-        public void Notify(int playerId, string title, string body, string url)
+        Task.Run(async () =>
         {
-            if (!Enabled)
+            try
             {
-                return;
+                await SendAsync(playerId, title, body, url);
             }
-
-            Task.Run(async () =>
+            catch (Exception ex)
             {
-                try
-                {
-                    await SendAsync(playerId, title, body, url);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "PushSender - notify failed: " + playerId);
-                }
-            });
+                _logger.LogWarning(ex, "PushSender - notify failed: " + playerId);
+            }
+        });
+    }
+
+    private async Task SendAsync(int playerId, string title, string body, string url)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var subscriptions = context.PlayerPushSubscriptions.Where(x => x.PlayerId == playerId).ToList();
+        if (subscriptions.Count == 0)
+        {
+            return;
         }
 
-        private async Task SendAsync(int playerId, string title, string body, string url)
+        var payload = JsonSerializer.Serialize(new { title, body, url });
+        var vapidDetails = new VapidDetails(_subject, _vapidPublicKey, _vapidPrivateKey);
+
+        foreach (var subscription in subscriptions)
         {
-            using var scope = _scopeFactory.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var subscriptions = context.PlayerPushSubscriptions.Where(x => x.PlayerId == playerId).ToList();
-            if (subscriptions.Count == 0)
+            try
             {
-                return;
+                var pushSubscription = new PushSubscription(subscription.Endpoint, subscription.P256dh, subscription.Auth);
+                await _webPushClient.SendNotificationAsync(pushSubscription, payload, vapidDetails);
             }
-
-            var payload = JsonSerializer.Serialize(new { title, body, url });
-            var vapidDetails = new VapidDetails(_subject, _vapidPublicKey, _vapidPrivateKey);
-
-            foreach (var subscription in subscriptions)
+            catch (WebPushException ex) when (ex.StatusCode is HttpStatusCode.Gone or HttpStatusCode.NotFound)
             {
-                try
-                {
-                    var pushSubscription = new PushSubscription(subscription.Endpoint, subscription.P256dh, subscription.Auth);
-                    await _webPushClient.SendNotificationAsync(pushSubscription, payload, vapidDetails);
-                }
-                catch (WebPushException ex) when (ex.StatusCode is HttpStatusCode.Gone or HttpStatusCode.NotFound)
-                {
-                    context.PlayerPushSubscriptions.Remove(subscription);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "PushSender - send failed: " + playerId + " - subscription " + subscription.Id);
-                }
+                context.PlayerPushSubscriptions.Remove(subscription);
             }
-
-            context.SaveChanges();
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "PushSender - send failed: " + playerId + " - subscription " + subscription.Id);
+            }
         }
+
+        context.SaveChanges();
     }
 }

@@ -1,30 +1,29 @@
 ﻿using Domiki.Web.Village.Models;
 
-namespace Domiki.Web.Village.Dto
-{
-    public static class VillageLevelDtoExtensions
-    {
-        public static VillageLevelDto ToDto(this VillageLevel villageLevel)
-        {
-            return new VillageLevelDto
-            {
-                Level = villageLevel.Level,
-                Buildings = villageLevel.Buildings,
-                Residents = villageLevel.Residents,
-                Reputation = villageLevel.Reputation,
-                Comfort = villageLevel.Comfort,
-                UpcomingUnlocks = villageLevel.UpcomingUnlocks.Select(x => x.ToDto()).ToArray(),
-            };
-        }
+namespace Domiki.Web.Village.Dto;
 
-        public static VillageLevelUnlockDto ToDto(this VillageLevelUnlock unlock)
+public static class VillageLevelDtoExtensions
+{
+    public static VillageLevelDto ToDto(this VillageLevel villageLevel)
+    {
+        return new()
         {
-            return new VillageLevelUnlockDto
-            {
-                Level = unlock.Level,
-                Label = unlock.Label,
-                Requirement = unlock.Requirement,
-            };
-        }
+            Level = villageLevel.Level,
+            Buildings = villageLevel.Buildings,
+            Residents = villageLevel.Residents,
+            Reputation = villageLevel.Reputation,
+            Comfort = villageLevel.Comfort,
+            UpcomingUnlocks = villageLevel.UpcomingUnlocks.Select(x => x.ToDto()).ToArray(),
+        };
+    }
+
+    public static VillageLevelUnlockDto ToDto(this VillageLevelUnlock unlock)
+    {
+        return new()
+        {
+            Level = unlock.Level,
+            Label = unlock.Label,
+            Requirement = unlock.Requirement,
+        };
     }
 }

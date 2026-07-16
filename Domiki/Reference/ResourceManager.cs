@@ -1,39 +1,55 @@
-﻿using Domiki.Web.Activities.Models;
-using Domiki.Web.Core.Models;
-using Domiki.Web.Economy.Models;
+﻿using Domiki.Web.Core.Models;
+using Domiki.Web.Data;
+using Domiki.Web.Data.Entities;
 using Domiki.Web.Reference.Models;
-using Domiki.Web.Village.Models;
-using Domiki.Web.Workers.Models;
 using Microsoft.EntityFrameworkCore;
+using Blueprint = Domiki.Web.Activities.Models.Blueprint;
+using DecorType = Domiki.Web.Village.Models.DecorType;
+using DomikType = Domiki.Web.Core.Models.DomikType;
+using DomikTypeCountGate = Domiki.Web.Core.Models.DomikTypeCountGate;
+using ExpeditionEquipment = Domiki.Web.Activities.Models.ExpeditionEquipment;
+using ExpeditionLoot = Domiki.Web.Activities.Models.ExpeditionLoot;
+using ExpeditionType = Domiki.Web.Activities.Models.ExpeditionType;
+using ModificatorType = Domiki.Web.Reference.Models.ModificatorType;
+using Neighbor = Domiki.Web.Economy.Models.Neighbor;
+using Receipt = Domiki.Web.Reference.Models.Receipt;
+using Resource = Domiki.Web.Reference.Models.Resource;
+using ResourceType = Domiki.Web.Reference.Models.ResourceType;
+using TolokaType = Domiki.Web.Activities.Models.TolokaType;
+using Trait = Domiki.Web.Workers.Models.Trait;
+using WeatherType = Domiki.Web.Village.Models.WeatherType;
+using WeatherTypeEffect = Domiki.Web.Village.Models.WeatherTypeEffect;
 
-namespace Domiki.Web.Reference
+namespace Domiki.Web.Reference;
+
+public class ResourceManager
 {
-    public class ResourceManager
+    public const int BaseMarketValue = 10;
+
+    // todo избавится от статиков
+    private static ModificatorType[] _modificatorTypes;
+    private static ResourceType[] _resourceTypes;
+    private static Receipt[] _receipts;
+    private static DomikType[] _domikTypes;
+    private static DomikTypeCountGate[] _domikTypeCountGates;
+    private static Neighbor[] _neighbors;
+    private static Trait[] _traits;
+    private static WeatherType[] _weatherTypes;
+    private static Blueprint[] _blueprints;
+    private static ExpeditionType[] _expeditionTypes;
+    private static DecorType[] _decorTypes;
+    private static TolokaType[] _tolokaTypes;
+    private static StarterGoal[] _starterGoals;
+    private readonly ApplicationDbContext _context;
+
+    public ResourceManager(ApplicationDbContext context)
     {
-        public const int BaseMarketValue = 10;
-        private Data.ApplicationDbContext _context;
+        _context = context;
+    }
 
-        // todo избавится от статиков
-        private static ModificatorType[] _modificatorTypes;
-        private static ResourceType[] _resourceTypes;
-        private static Receipt[] _receipts;
-        private static DomikType[] _domikTypes;
-        private static DomikTypeCountGate[] _domikTypeCountGates;
-        private static Neighbor[] _neighbors;
-        private static Trait[] _traits;
-        private static WeatherType[] _weatherTypes;
-        private static Blueprint[] _blueprints;
-        private static ExpeditionType[] _expeditionTypes;
-        private static DecorType[] _decorTypes;
-        private static TolokaType[] _tolokaTypes;
-        private static Data.Entities.StarterGoal[] _starterGoals;
-
-        public ResourceManager(Data.ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
-        public static int GetMarketValue(int resourceTypeId) => resourceTypeId switch
+    public static int GetMarketValue(int resourceTypeId)
+    {
+        return resourceTypeId switch
         {
             5 => 100,
             6 or 7 or 10 or 14 or 17 => 35,
@@ -46,27 +62,29 @@ namespace Domiki.Web.Reference
             15 => 20,
             _ => BaseMarketValue,
         };
+    }
 
-        public ModificatorType[] GetModificatorTypes()
+    public ModificatorType[] GetModificatorTypes()
+    {
+        if (_modificatorTypes == null)
         {
-            if (_modificatorTypes == null)
-            {
-                _modificatorTypes = _context.ModificatorTypes.Select(x => new ModificatorType
+            _modificatorTypes = _context.ModificatorTypes.Select(x => new ModificatorType
                 {
                     Id = x.Id,
                     LogicName = x.LogicName,
                     Name = x.Name,
-                }).ToArray();
-            }
-
-            return _modificatorTypes;
+                })
+                .ToArray();
         }
 
-        public Trait[] GetTraits()
+        return _modificatorTypes;
+    }
+
+    public Trait[] GetTraits()
+    {
+        if (_traits == null)
         {
-            if (_traits == null)
-            {
-                _traits = _context.Traits.Select(x => new Trait
+            _traits = _context.Traits.Select(x => new Trait
                 {
                     Id = x.Id,
                     LogicName = x.LogicName,
@@ -75,38 +93,41 @@ namespace Domiki.Web.Reference
                     NoFatigue = x.NoFatigue,
                     NoSick = x.NoSick,
                     LuckWeightPercent = x.LuckWeightPercent,
-                }).ToArray();
-            }
-
-            return _traits;
+                })
+                .ToArray();
         }
 
-        public ResourceType[] GetResourceTypes()
-        {
-            if (_resourceTypes == null)
-            {
-                _resourceTypes = _context.ResourceTypes
-                    .Select(x => new ResourceType { Id = x.Id, LogicName = x.LogicName, Name = x.Name }).ToArray();
-            }
+        return _traits;
+    }
 
-            return _resourceTypes;
+    public ResourceType[] GetResourceTypes()
+    {
+        if (_resourceTypes == null)
+        {
+            _resourceTypes = _context.ResourceTypes
+                .Select(x => new ResourceType { Id = x.Id, LogicName = x.LogicName, Name = x.Name })
+                .ToArray();
         }
 
-        public Data.Entities.StarterGoal[] GetStarterGoals()
-        {
-            if (_starterGoals == null)
-            {
-                _starterGoals = _context.StarterGoals.AsNoTracking().OrderBy(x => x.Ordinal).ToArray();
-            }
+        return _resourceTypes;
+    }
 
-            return _starterGoals;
+    public StarterGoal[] GetStarterGoals()
+    {
+        if (_starterGoals == null)
+        {
+            _starterGoals = _context.StarterGoals.AsNoTracking().OrderBy(x => x.Ordinal).ToArray();
         }
 
-        public Receipt[] GetReceipts()
+        return _starterGoals;
+    }
+
+    public Receipt[] GetReceipts()
+    {
+        if (_receipts == null)
         {
-            if (_receipts == null)
-            {
-                _receipts = _context.Receipts.Include(x => x.Resources).Select(x => new Receipt
+            _receipts = _context.Receipts.Include(x => x.Resources)
+                .Select(x => new Receipt
                 {
                     Id = x.Id,
                     LogicName = x.LogicName,
@@ -117,31 +138,39 @@ namespace Domiki.Web.Reference
                     InputResources = x.Resources.Where(x => x.IsInput && !x.IsOptional)
                         .Select(x => new Resource
                         {
-                            Type = new ResourceType { Id = x.ResourceTypeId },
-                            Value = x.Value
-                        }).ToArray(),
+                            Type = new()
+                                { Id = x.ResourceTypeId },
+                            Value = x.Value,
+                        })
+                        .ToArray(),
                     OptionalInputResources = x.Resources.Where(x => x.IsInput && x.IsOptional)
                         .Select(x => new Resource
                         {
-                            Type = new ResourceType { Id = x.ResourceTypeId },
-                            Value = x.Value
-                        }).ToArray(),
+                            Type = new()
+                                { Id = x.ResourceTypeId },
+                            Value = x.Value,
+                        })
+                        .ToArray(),
                     OutputResources = x.Resources.Where(x => !x.IsInput)
                         .Select(x => new Resource
                         {
-                            Type = new ResourceType { Id = x.ResourceTypeId },
-                            Value = x.Value
-                        }).ToArray(),
-                }).ToArray();
-            }
-            return _receipts;
+                            Type = new()
+                                { Id = x.ResourceTypeId },
+                            Value = x.Value,
+                        })
+                        .ToArray(),
+                })
+                .ToArray();
         }
 
-        public Neighbor[] GetNeighbors()
+        return _receipts;
+    }
+
+    public Neighbor[] GetNeighbors()
+    {
+        if (_neighbors == null)
         {
-            if (_neighbors == null)
-            {
-                _neighbors = _context.Neighbors.Select(x => new Neighbor
+            _neighbors = _context.Neighbors.Select(x => new Neighbor
                 {
                     Id = x.Id,
                     Name = x.Name,
@@ -149,17 +178,18 @@ namespace Domiki.Web.Reference
                     PrimaryResourceTypeId = x.PrimaryResourceTypeId,
                     SecondaryResourceTypeId = x.SecondaryResourceTypeId,
                     UnlockLevel = x.UnlockLevel,
-                }).ToArray();
-            }
-
-            return _neighbors;
+                })
+                .ToArray();
         }
 
-        public Blueprint[] GetBlueprints()
+        return _neighbors;
+    }
+
+    public Blueprint[] GetBlueprints()
+    {
+        if (_blueprints == null)
         {
-            if (_blueprints == null)
-            {
-                _blueprints = _context.Blueprints.Select(x => new Blueprint
+            _blueprints = _context.Blueprints.Select(x => new Blueprint
                 {
                     Id = x.Id,
                     Name = x.Name,
@@ -167,44 +197,46 @@ namespace Domiki.Web.Reference
                     DomikTypeId = x.DomikTypeId,
                     NeighborId = x.NeighborId,
                     ReputationThreshold = x.ReputationThreshold,
-                }).ToArray();
-            }
-
-            return _blueprints;
+                })
+                .ToArray();
         }
 
-        public WeatherType[] GetWeatherTypes()
+        return _blueprints;
+    }
+
+    public WeatherType[] GetWeatherTypes()
+    {
+        if (_weatherTypes == null)
         {
-            if (_weatherTypes == null)
-            {
-                var effects = _context.WeatherTypeEffects.ToArray();
-                _weatherTypes = _context.WeatherTypes.Select(x => new WeatherType
+            var effects = _context.WeatherTypeEffects.ToArray();
+            _weatherTypes = _context.WeatherTypes.Select(x => new WeatherType
                 {
                     Id = x.Id,
                     Name = x.Name,
                     LogicName = x.LogicName,
                     RotationWeight = x.RotationWeight,
-                }).ToArray();
+                })
+                .ToArray();
 
-                foreach (var weatherType in _weatherTypes)
-                {
-                    weatherType.Effects = effects
-                        .Where(x => x.WeatherTypeId == weatherType.Id)
-                        .Select(x => new WeatherTypeEffect { DomikTypeId = x.DomikTypeId, OutputPercent = x.OutputPercent })
-                        .ToArray();
-                }
+            foreach (var weatherType in _weatherTypes)
+            {
+                weatherType.Effects = effects
+                    .Where(x => x.WeatherTypeId == weatherType.Id)
+                    .Select(x => new WeatherTypeEffect { DomikTypeId = x.DomikTypeId, OutputPercent = x.OutputPercent })
+                    .ToArray();
             }
-
-            return _weatherTypes;
         }
 
-        public ExpeditionType[] GetExpeditionTypes()
+        return _weatherTypes;
+    }
+
+    public ExpeditionType[] GetExpeditionTypes()
+    {
+        if (_expeditionTypes == null)
         {
-            if (_expeditionTypes == null)
-            {
-                var loot = _context.ExpeditionLoot.ToArray();
-                var equipment = _context.ExpeditionEquipment.ToArray();
-                _expeditionTypes = _context.ExpeditionTypes.Select(x => new ExpeditionType
+            var loot = _context.ExpeditionLoot.ToArray();
+            var equipment = _context.ExpeditionEquipment.ToArray();
+            _expeditionTypes = _context.ExpeditionTypes.Select(x => new ExpeditionType
                 {
                     Id = x.Id,
                     Name = x.Name,
@@ -213,45 +245,47 @@ namespace Domiki.Web.Reference
                     WorkerCount = x.WorkerCount,
                     GoldCost = x.GoldCost,
                     RollCount = x.RollCount,
-                }).ToArray();
+                })
+                .ToArray();
 
-                foreach (var expeditionType in _expeditionTypes)
-                {
-                    expeditionType.Loot = loot
-                        .Where(x => x.ExpeditionTypeId == expeditionType.Id)
-                        .Select(x => new ExpeditionLoot
-                        {
-                            Kind = x.Kind,
-                            ResourceTypeId = x.ResourceTypeId,
-                            DecorTypeId = x.DecorTypeId,
-                            BlueprintId = x.BlueprintId,
-                            MinValue = x.MinValue,
-                            MaxValue = x.MaxValue,
-                            Weight = x.Weight,
-                            IsRare = x.IsRare,
-                        })
-                        .ToArray();
-                    expeditionType.Equipment = equipment
-                        .Where(x => x.ExpeditionTypeId == expeditionType.Id)
-                        .Select(x => new ExpeditionEquipment
-                        {
-                            ResourceTypeId = x.ResourceTypeId,
-                            Value = x.Value,
-                            IsOptional = x.IsOptional,
-                        })
-                        .ToArray();
-                }
+            foreach (var expeditionType in _expeditionTypes)
+            {
+                expeditionType.Loot = loot
+                    .Where(x => x.ExpeditionTypeId == expeditionType.Id)
+                    .Select(x => new ExpeditionLoot
+                    {
+                        Kind = x.Kind,
+                        ResourceTypeId = x.ResourceTypeId,
+                        DecorTypeId = x.DecorTypeId,
+                        BlueprintId = x.BlueprintId,
+                        MinValue = x.MinValue,
+                        MaxValue = x.MaxValue,
+                        Weight = x.Weight,
+                        IsRare = x.IsRare,
+                    })
+                    .ToArray();
+
+                expeditionType.Equipment = equipment
+                    .Where(x => x.ExpeditionTypeId == expeditionType.Id)
+                    .Select(x => new ExpeditionEquipment
+                    {
+                        ResourceTypeId = x.ResourceTypeId,
+                        Value = x.Value,
+                        IsOptional = x.IsOptional,
+                    })
+                    .ToArray();
             }
-
-            return _expeditionTypes;
         }
 
-        public TolokaType[] GetTolokaTypes()
+        return _expeditionTypes;
+    }
+
+    public TolokaType[] GetTolokaTypes()
+    {
+        if (_tolokaTypes == null)
         {
-            if (_tolokaTypes == null)
-            {
-                var effects = _context.TolokaTypeEffects.ToArray();
-                var tolokaTypes = _context.TolokaTypes.Select(x => new TolokaType
+            var effects = _context.TolokaTypeEffects.ToArray();
+            var tolokaTypes = _context.TolokaTypes.Select(x => new TolokaType
                 {
                     Id = x.Id,
                     Name = x.Name,
@@ -259,28 +293,29 @@ namespace Domiki.Web.Reference
                     ResourceTypeId = x.ResourceTypeId,
                     Goal = x.Goal,
                     RotationWeight = x.RotationWeight,
-                }).ToArray();
+                })
+                .ToArray();
 
-                foreach (var tolokaType in tolokaTypes)
-                {
-                    tolokaType.Effects = effects
-                        .Where(x => x.TolokaTypeId == tolokaType.Id)
-                        .Select(x => new Data.Entities.TolokaTypeEffect { DomikTypeId = x.DomikTypeId, OutputPercent = x.OutputPercent })
-                        .ToArray();
-                }
-
-                _tolokaTypes = tolokaTypes;
+            foreach (var tolokaType in tolokaTypes)
+            {
+                tolokaType.Effects = effects
+                    .Where(x => x.TolokaTypeId == tolokaType.Id)
+                    .Select(x => new TolokaTypeEffect { DomikTypeId = x.DomikTypeId, OutputPercent = x.OutputPercent })
+                    .ToArray();
             }
 
-            return _tolokaTypes;
+            _tolokaTypes = tolokaTypes;
         }
 
-        public DecorType[] GetDecorTypes()
+        return _tolokaTypes;
+    }
+
+    public DecorType[] GetDecorTypes()
+    {
+        if (_decorTypes == null)
         {
-            if (_decorTypes == null)
-            {
-                var costs = _context.DecorCosts.ToArray();
-                _decorTypes = _context.DecorTypes.Select(x => new DecorType
+            var costs = _context.DecorCosts.ToArray();
+            _decorTypes = _context.DecorTypes.Select(x => new DecorType
                 {
                     Id = x.Id,
                     Name = x.Name,
@@ -289,76 +324,99 @@ namespace Domiki.Web.Reference
                     IsPurchasable = x.IsPurchasable,
                     NeighborId = x.NeighborId,
                     ReputationThreshold = x.ReputationThreshold,
-                }).ToArray();
+                })
+                .ToArray();
 
-                foreach (var decorType in _decorTypes)
-                {
-                    decorType.Cost = costs
-                        .Where(x => x.DecorTypeId == decorType.Id)
-                        .Select(x => new Resource
-                        {
-                            Type = new ResourceType { Id = x.ResourceTypeId },
-                            Value = x.Value,
-                        })
-                        .ToArray();
-                }
+            foreach (var decorType in _decorTypes)
+            {
+                decorType.Cost = costs
+                    .Where(x => x.DecorTypeId == decorType.Id)
+                    .Select(x => new Resource
+                    {
+                        Type = new()
+                            { Id = x.ResourceTypeId },
+                        Value = x.Value,
+                    })
+                    .ToArray();
             }
-
-            return _decorTypes;
         }
 
-        public DomikType[] GetDomikTypes()
+        return _decorTypes;
+    }
+
+    public DomikType[] GetDomikTypes()
+    {
+        if (_domikTypes == null)
         {
-            if (_domikTypes == null)
-            {
-                var modificators = _context.DomikTypeLevelModificators.ToArray();
-                var recepts = _context.DomikTypeLevelRecepts.ToArray();
-                var resources = _context.DomikTypeLevelResources.ToArray();
-                _domikTypes = _context.DomikTypes.Include(x => x.Levels).ToArray().OrderBy(x => x.Id).Select(domikType => new DomikType
+            var modificators = _context.DomikTypeLevelModificators.ToArray();
+            var recepts = _context.DomikTypeLevelRecepts.ToArray();
+            var resources = _context.DomikTypeLevelResources.ToArray();
+            _domikTypes = _context.DomikTypes.Include(x => x.Levels)
+                .ToArray()
+                .OrderBy(x => x.Id)
+                .Select(domikType => new DomikType
                 {
                     Id = domikType.Id,
                     LogicName = domikType.LogicName,
                     Name = domikType.Name,
                     MaxCount = domikType.MaxCount,
                     UnlockLevel = domikType.UnlockLevel,
-                    Levels = domikType.Levels.OrderBy(level => level.Value).Select(level => new UpgradeLevel
-                    {
-                        Value = level.Value,
-                        UpgradeSeconds = level.UpgradeSeconds,
-                        MaxManufactureCount = level.MaxManufactureCount,
-                        Modificators = modificators
-                            .Where(m => m.DomikTypeLevelDomikTypeId == domikType.Id
-                                && m.DomikTypeLevelValue == level.Value)
-                            .OrderBy(m => m.ModificatorTypeId)
-                            .Select(x => new Modificator { Type = new ModificatorType { Id = x.ModificatorTypeId }, Value = x.Value }).ToArray(),
-                        Receipts = recepts
-                            .Where(m => m.DomikTypeLevelDomikTypeId == domikType.Id
-                                && m.DomikTypeLevelValue == level.Value)
-                            .OrderBy(m => m.ReceiptId)
-                            .Select(x => new Receipt { Id = x.ReceiptId }).ToArray(),
-                        Resources = resources
-                            .Where(m => m.DomikTypeLevelDomikTypeId == domikType.Id
-                                && m.DomikTypeLevelValue == level.Value)
-                            .OrderBy(m => m.ResourceTypeId)
-                            .Select(x => new Resource { Type = new ResourceType { Id = x.ResourceTypeId }, Value = x.Value }).ToArray(),
-                    }).ToArray(),
-                }).ToArray();
-            }
-            return _domikTypes;
+                    Levels = domikType.Levels.OrderBy(level => level.Value)
+                        .Select(level => new UpgradeLevel
+                        {
+                            Value = level.Value,
+                            UpgradeSeconds = level.UpgradeSeconds,
+                            MaxManufactureCount = level.MaxManufactureCount,
+                            Modificators = modificators
+                                .Where(m => m.DomikTypeLevelDomikTypeId == domikType.Id
+                                            && m.DomikTypeLevelValue == level.Value)
+                                .OrderBy(m => m.ModificatorTypeId)
+                                .Select(x => new Modificator
+                                {
+                                    Type = new()
+                                        { Id = x.ModificatorTypeId },
+                                    Value = x.Value,
+                                })
+                                .ToArray(),
+                            Receipts = recepts
+                                .Where(m => m.DomikTypeLevelDomikTypeId == domikType.Id
+                                            && m.DomikTypeLevelValue == level.Value)
+                                .OrderBy(m => m.ReceiptId)
+                                .Select(x => new Receipt { Id = x.ReceiptId })
+                                .ToArray(),
+                            Resources = resources
+                                .Where(m => m.DomikTypeLevelDomikTypeId == domikType.Id
+                                            && m.DomikTypeLevelValue == level.Value)
+                                .OrderBy(m => m.ResourceTypeId)
+                                .Select(x => new Resource
+                                {
+                                    Type = new()
+                                        { Id = x.ResourceTypeId },
+                                    Value = x.Value,
+                                })
+                                .ToArray(),
+                        })
+                        .ToArray(),
+                })
+                .ToArray();
         }
 
-        public DomikTypeCountGate[] GetDomikTypeCountGates()
+        return _domikTypes;
+    }
+
+    public DomikTypeCountGate[] GetDomikTypeCountGates()
+    {
+        if (_domikTypeCountGates == null)
         {
-            if (_domikTypeCountGates == null)
-            {
-                _domikTypeCountGates = _context.DomikTypeCountGates.Select(x => new DomikTypeCountGate
+            _domikTypeCountGates = _context.DomikTypeCountGates.Select(x => new DomikTypeCountGate
                 {
                     DomikTypeId = x.DomikTypeId,
                     Ordinal = x.Ordinal,
                     UnlockLevel = x.UnlockLevel,
-                }).ToArray();
-            }
-            return _domikTypeCountGates;
+                })
+                .ToArray();
         }
+
+        return _domikTypeCountGates;
     }
 }

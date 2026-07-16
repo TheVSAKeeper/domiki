@@ -1,28 +1,27 @@
-﻿
-namespace Domiki.Web.Infrastructure
+﻿namespace Domiki.Web.Infrastructure;
+
+public class Response<T> : Response
 {
-    public class Response<T> : Response
+    public Response(T content)
     {
-        public T Content { get; set; }
-
-        public Response(T content)
-        {
-            Content = content;
-        }
+        Content = content;
     }
 
-    public class Response
+    public T Content { get; set; }
+}
+
+public class Response
+{
+    public Response()
     {
-        public ResponseType Type { get; set; }
-        public Response()
-        {
-            Type = ResponseType.Success;
-        }
+        Type = ResponseType.Success;
     }
 
-    public enum ResponseType
-    {
-        Success = 1,
-        ErrorMessage = 2,
-    }
+    public ResponseType Type { get; set; }
+}
+
+public enum ResponseType
+{
+    Success = 1,
+    ErrorMessage = 2,
 }

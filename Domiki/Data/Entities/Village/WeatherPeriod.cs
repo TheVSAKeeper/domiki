@@ -1,21 +1,20 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Domiki.Web.Data.Entities
+namespace Domiki.Web.Data.Entities;
+
+[Table("WeatherPeriods")]
+public class WeatherPeriod
 {
-    [Table("WeatherPeriods")]
-    public class WeatherPeriod
-    {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
 
-        public int WeatherTypeId { get; set; }
+    public int WeatherTypeId { get; set; }
 
-        public DateTime StartDate { get; set; }
+    public DateTime StartDate { get; set; }
 
-        public DateTime EndDate { get; set; }
+    public DateTime EndDate { get; set; }
 
-        public WeatherType WeatherType { get; set; }
-    }
+    public WeatherType WeatherType { get; set; }
 }

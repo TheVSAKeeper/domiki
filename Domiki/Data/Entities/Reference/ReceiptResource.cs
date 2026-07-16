@@ -1,30 +1,28 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Reflection.Metadata;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Domiki.Web.Data.Entities
+namespace Domiki.Web.Data.Entities;
+
+[Table("ReceiptResources")]
+public class ReceiptResource
 {
-    [Table("ReceiptResources")]
-    public class ReceiptResource
-    {
-        [Key]
-        [Column(Order = 1)]
-        public int ReceiptId { get; set; }
+    [Key]
+    [Column(Order = 1)]
+    public int ReceiptId { get; set; }
 
-        [Key]
-        [Column(Order = 2)]
-        public int ResourceTypeId { get; set; }
+    [Key]
+    [Column(Order = 2)]
+    public int ResourceTypeId { get; set; }
 
-        [Key]
-        [Column(Order = 3)]
-        public bool IsInput { get; set; }
+    [Key]
+    [Column(Order = 3)]
+    public bool IsInput { get; set; }
 
-        public bool IsOptional { get; set; }
+    public bool IsOptional { get; set; }
 
-        public int Value { get; set; }
+    public int Value { get; set; }
 
-        public Receipt Receipt { get; set; }
+    public Receipt Receipt { get; set; }
 
-        public ResourceType ResourceType { get; set; }
-    }
+    public ResourceType ResourceType { get; set; }
 }

@@ -1,9 +1,7 @@
-﻿
-namespace Domiki.Web.Economy.Models
+﻿namespace Domiki.Web.Economy.Models;
+
+public class NeighborReputation
 {
-    public class NeighborReputation
-    {
-        public Neighbor Neighbor { get; set; }
-        public int Points { get; set; }
-    }
+    public Neighbor Neighbor { get; set; }
+    public int Points { get; set; }
 }

@@ -1,81 +1,86 @@
-﻿using Domiki.Web.Economy.Models;
-using Domiki.Web.Reference.Models;
+﻿using Domiki.Web.Data;
 using Domiki.Web.Reference;
+using Domiki.Web.Reference.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Domiki.Web.Infrastructure
+namespace Domiki.Web.Infrastructure;
+
+public class PlayerResourceManager
 {
-    public class PlayerResourceManager
+    private readonly ApplicationDbContext _context;
+    private readonly ResourceManager _resourceManager;
+
+    public PlayerResourceManager(ApplicationDbContext context, ResourceManager resourceManager)
     {
-        private Data.ApplicationDbContext _context;
-        private ResourceManager _resourceManager;
+        _context = context;
+        _resourceManager = resourceManager;
+    }
 
-        public PlayerResourceManager(Data.ApplicationDbContext context, ResourceManager resourceManager)
-        {
-            _context = context;
-            _resourceManager = resourceManager;
-        }
+    public void LockDbPlayerRow(int playerId)
+    {
+        _context.Database.ExecuteSqlRaw("SELECT 1 FROM \"Players\" WHERE \"Id\" = {0} FOR UPDATE", playerId);
+    }
 
-        public void LockDbPlayerRow(int playerId)
+    public void WriteOffResources(int playerId, Resource[] resources)
+    {
+        resources = resources.Where(x => x.Value > 0).ToArray();
+        var dbResources = _context.Resources.Where(x => x.PlayerId == playerId).ToArray();
+        var resourceTypes = _resourceManager.GetResourceTypes();
+        foreach (var group in resources.GroupBy(x => x.Type.Id))
         {
-            _context.Database.ExecuteSqlRaw("SELECT 1 FROM \"Players\" WHERE \"Id\" = {0} FOR UPDATE", playerId);
-        }
-
-        public void WriteOffResources(int playerId, Resource[] resources)
-        {
-            resources = resources.Where(x => x.Value > 0).ToArray();
-            var dbResources = _context.Resources.Where(x => x.PlayerId == playerId).ToArray();
-            var resourceTypes = _resourceManager.GetResourceTypes();
-            foreach (var group in resources.GroupBy(x => x.Type.Id))
+            var dbResource = dbResources.FirstOrDefault(x => x.TypeId == group.Key);
+            if (dbResource == null || dbResource.Value < group.Sum(x => x.Value))
             {
-                var dbResource = dbResources.FirstOrDefault(x => x.TypeId == group.Key);
-                if (dbResource == null || dbResource.Value < group.Sum(x => x.Value))
-                {
-                    throw new BusinessException("Недостаточно " + GetResourceName(group.First(), resourceTypes));
-                }
-            }
-
-            foreach (var needResource in resources)
-            {
-                var dbResource = dbResources.First(x => x.TypeId == needResource.Type.Id);
-                dbResource.Value -= needResource.Value;
+                throw new BusinessException("Недостаточно " + GetResourceName(group.First(), resourceTypes));
             }
         }
 
-        public void GrantReputation(int playerId, int neighborId, int points)
+        foreach (var needResource in resources)
         {
-            var reputation = _context.NeighborReputations.Local.FirstOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId)
-                ?? _context.NeighborReputations.FirstOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId);
-            if (reputation == null)
-            {
-                reputation = new Data.Entities.NeighborReputation { PlayerId = playerId, NeighborId = neighborId };
-                _context.NeighborReputations.Add(reputation);
-            }
+            var dbResource = dbResources.First(x => x.TypeId == needResource.Type.Id);
+            dbResource.Value -= needResource.Value;
+        }
+    }
 
-            reputation.Points += points;
+    public void GrantReputation(int playerId, int neighborId, int points)
+    {
+        var reputation = _context.NeighborReputations.Local.FirstOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId)
+                         ?? _context.NeighborReputations.FirstOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId);
+
+        if (reputation == null)
+        {
+            reputation = new()
+                { PlayerId = playerId, NeighborId = neighborId };
+
+            _context.NeighborReputations.Add(reputation);
         }
 
-        public void GrantResource(int playerId, int typeId, int value)
+        reputation.Points += points;
+    }
+
+    public void GrantResource(int playerId, int typeId, int value)
+    {
+        if (value == 0)
         {
-            if (value == 0)
-            {
-                return;
-            }
-
-            var dbResource = _context.Resources.Local.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId)
-                ?? _context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
-            if (dbResource == null)
-            {
-                dbResource = new Data.Entities.Resource { PlayerId = playerId, TypeId = typeId };
-                _context.Resources.Add(dbResource);
-            }
-
-            dbResource.Value += value;
+            return;
         }
 
-        private string GetResourceName(Resource resource, ResourceType[] resourceTypes)
+        var dbResource = _context.Resources.Local.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId)
+                         ?? _context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
+
+        if (dbResource == null)
         {
-            return resource.Type.Name ?? resourceTypes.First(x => x.Id == resource.Type.Id).Name;
+            dbResource = new()
+                { PlayerId = playerId, TypeId = typeId };
+
+            _context.Resources.Add(dbResource);
         }
+
+        dbResource.Value += value;
+    }
+
+    private string GetResourceName(Resource resource, ResourceType[] resourceTypes)
+    {
+        return resource.Type.Name ?? resourceTypes.First(x => x.Id == resource.Type.Id).Name;
     }
 }

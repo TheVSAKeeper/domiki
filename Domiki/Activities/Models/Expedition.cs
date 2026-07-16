@@ -1,11 +1,9 @@
-﻿
-namespace Domiki.Web.Activities.Models
+﻿namespace Domiki.Web.Activities.Models;
+
+public class Expedition
 {
-    public class Expedition
-    {
-        public int Id { get; set; }
-        public ExpeditionType ExpeditionType { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime FinishDate { get; set; }
-    }
+    public int Id { get; set; }
+    public ExpeditionType ExpeditionType { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime FinishDate { get; set; }
 }

@@ -1,26 +1,25 @@
 ﻿using Domiki.Web.Infrastructure.Models;
 
-namespace Domiki.Web.Infrastructure.Dto
-{
-    public static class RecapDtoExtensions
-    {
-        public static RecapDto ToDto(this RecapModel model)
-        {
-            return new RecapDto
-            {
-                AwaySeconds = model.AwaySeconds,
-                Events = model.Events.Select(x => x.ToDto()).ToArray(),
-            };
-        }
+namespace Domiki.Web.Infrastructure.Dto;
 
-        public static RecapEventDto ToDto(this RecapEventModel model)
+public static class RecapDtoExtensions
+{
+    public static RecapDto ToDto(this RecapModel model)
+    {
+        return new()
         {
-            return new RecapEventDto
-            {
-                Type = model.Type.ToString(),
-                Date = DateTime.SpecifyKind(model.Date, DateTimeKind.Utc),
-                Data = model.Data,
-            };
-        }
+            AwaySeconds = model.AwaySeconds,
+            Events = model.Events.Select(x => x.ToDto()).ToArray(),
+        };
+    }
+
+    public static RecapEventDto ToDto(this RecapEventModel model)
+    {
+        return new()
+        {
+            Type = model.Type.ToString(),
+            Date = DateTime.SpecifyKind(model.Date, DateTimeKind.Utc),
+            Data = model.Data,
+        };
     }
 }

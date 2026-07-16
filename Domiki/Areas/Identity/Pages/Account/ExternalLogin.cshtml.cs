@@ -1,195 +1,197 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-#nullable disable
-
-using Domiki.Web.Data.Entities;
+﻿using Domiki.Web.Data.Entities;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
-using System.Text.Encodings.Web;
 using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
-using System;
+using System.Text.Encodings.Web;
 
-namespace Domiki.Web.Areas.Identity.Pages.Account
+namespace Domiki.Web.Areas.Identity.Pages.Account;
+
+[AllowAnonymous]
+public class ExternalLoginModel : PageModel
 {
-    [AllowAnonymous]
-    public class ExternalLoginModel : PageModel
+    private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IUserStore<ApplicationUser> _userStore;
+    private readonly IUserEmailStore<ApplicationUser> _emailStore;
+    private readonly IEmailSender _emailSender;
+    private readonly ILogger<ExternalLoginModel> _logger;
+
+    public ExternalLoginModel(
+        SignInManager<ApplicationUser> signInManager,
+        UserManager<ApplicationUser> userManager,
+        IUserStore<ApplicationUser> userStore,
+        ILogger<ExternalLoginModel> logger,
+        IEmailSender emailSender)
     {
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IUserStore<ApplicationUser> _userStore;
-        private readonly IUserEmailStore<ApplicationUser> _emailStore;
-        private readonly IEmailSender _emailSender;
-        private readonly ILogger<ExternalLoginModel> _logger;
+        _signInManager = signInManager;
+        _userManager = userManager;
+        _userStore = userStore;
+        _emailStore = GetEmailStore();
+        _logger = logger;
+        _emailSender = emailSender;
+    }
 
-        public ExternalLoginModel(
-            SignInManager<ApplicationUser> signInManager,
-            UserManager<ApplicationUser> userManager,
-            IUserStore<ApplicationUser> userStore,
-            ILogger<ExternalLoginModel> logger,
-            IEmailSender emailSender)
+    [BindProperty]
+    public InputModel Input { get; set; }
+
+    public string ProviderDisplayName { get; set; }
+
+    public string ReturnUrl { get; set; }
+
+    [TempData]
+    public string ErrorMessage { get; set; }
+
+    public IActionResult OnGet()
+    {
+        return RedirectToPage("./Login");
+    }
+
+    public IActionResult OnPost(string provider, string returnUrl = null)
+    {
+        var redirectUrl = Url.Page("./ExternalLogin", "Callback", new { returnUrl });
+        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+        return new ChallengeResult(provider, properties);
+    }
+
+    public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null)
+    {
+        returnUrl = returnUrl ?? Url.Content("~/");
+        if (remoteError != null)
         {
-            _signInManager = signInManager;
-            _userManager = userManager;
-            _userStore = userStore;
-            _emailStore = GetEmailStore();
-            _logger = logger;
-            _emailSender = emailSender;
+            ErrorMessage = $"Ошибка внешнего провайдера: {remoteError}";
+            return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
         }
 
-        [BindProperty]
-        public InputModel Input { get; set; }
-
-        public string ProviderDisplayName { get; set; }
-
-        public string ReturnUrl { get; set; }
-
-        [TempData]
-        public string ErrorMessage { get; set; }
-
-        public class InputModel
+        var info = await _signInManager.GetExternalLoginInfoAsync();
+        if (info == null)
         {
-            [Required(ErrorMessage = "Укажите почту")]
-            [EmailAddress(ErrorMessage = "Некорректная почта")]
-            public string Email { get; set; }
+            ErrorMessage = "Не удалось загрузить данные внешнего входа.";
+            return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
         }
 
-        public IActionResult OnGet() => RedirectToPage("./Login");
-
-        public IActionResult OnPost(string provider, string returnUrl = null)
+        var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
+        if (result.Succeeded)
         {
-            var redirectUrl = Url.Page("./ExternalLogin", pageHandler: "Callback", values: new { returnUrl });
-            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
-            return new ChallengeResult(provider, properties);
+            _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
+            return LocalRedirect(returnUrl);
         }
 
-        public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null)
+        if (result.IsLockedOut)
         {
-            returnUrl = returnUrl ?? Url.Content("~/");
-            if (remoteError != null)
+            return RedirectToPage("./Lockout");
+        }
+
+        ReturnUrl = returnUrl;
+        ProviderDisplayName = info.ProviderDisplayName;
+        if (info.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
+        {
+            Input = new()
             {
-                ErrorMessage = $"Ошибка внешнего провайдера: {remoteError}";
-                return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
-            }
-            var info = await _signInManager.GetExternalLoginInfoAsync();
-            if (info == null)
-            {
-                ErrorMessage = "Не удалось загрузить данные внешнего входа.";
-                return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
-            }
+                Email = info.Principal.FindFirstValue(ClaimTypes.Email),
+            };
+        }
 
-            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostConfirmationAsync(string returnUrl = null)
+    {
+        returnUrl = returnUrl ?? Url.Content("~/");
+        var info = await _signInManager.GetExternalLoginInfoAsync();
+        if (info == null)
+        {
+            ErrorMessage = "Не удалось загрузить данные внешнего входа при подтверждении.";
+            return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
+        }
+
+        if (ModelState.IsValid)
+        {
+            var user = CreateUser();
+
+            await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+            await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+
+            var result = await _userManager.CreateAsync(user);
             if (result.Succeeded)
             {
-                _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
-                return LocalRedirect(returnUrl);
-            }
-            if (result.IsLockedOut)
-            {
-                return RedirectToPage("./Lockout");
-            }
-            else
-            {
-                ReturnUrl = returnUrl;
-                ProviderDisplayName = info.ProviderDisplayName;
-                if (info.Principal.HasClaim(c => c.Type == ClaimTypes.Email))
-                {
-                    Input = new InputModel
-                    {
-                        Email = info.Principal.FindFirstValue(ClaimTypes.Email)
-                    };
-                }
-                return Page();
-            }
-        }
-
-        public async Task<IActionResult> OnPostConfirmationAsync(string returnUrl = null)
-        {
-            returnUrl = returnUrl ?? Url.Content("~/");
-            var info = await _signInManager.GetExternalLoginInfoAsync();
-            if (info == null)
-            {
-                ErrorMessage = "Не удалось загрузить данные внешнего входа при подтверждении.";
-                return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
-            }
-
-            if (ModelState.IsValid)
-            {
-                var user = CreateUser();
-
-                await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-                await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-
-                var result = await _userManager.CreateAsync(user);
+                result = await _userManager.AddLoginAsync(user, info);
                 if (result.Succeeded)
                 {
-                    result = await _userManager.AddLoginAsync(user, info);
-                    if (result.Succeeded)
-                    {
-                        _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
+                    _logger.LogInformation("User created an account using {Name} provider.", info.LoginProvider);
 
-                        var userId = await _userManager.GetUserIdAsync(user);
-                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+                    var userId = await _userManager.GetUserIdAsync(user);
+                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
 
-                        var callbackUrl = Url.Page(
-                            "/Account/ConfirmEmail",
-                            pageHandler: null,
-                            values: new { area = "Identity", userId = userId, code = code },
-                            protocol: Request.Scheme);
-
-                        await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                            $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
-                        if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                    var callbackUrl = Url.Page("/Account/ConfirmEmail",
+                        null,
+                        new
                         {
-                            return RedirectToPage("./RegisterConfirmation", new { Email = Input.Email });
-                        }
+                            area = "Identity",
+                            userId,
+                            code,
+                        },
+                        Request.Scheme);
 
-                        await _signInManager.SignInAsync(user, isPersistent: false, info.LoginProvider);
-                        return LocalRedirect(returnUrl);
+                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+                    if (_userManager.Options.SignIn.RequireConfirmedAccount)
+                    {
+                        return RedirectToPage("./RegisterConfirmation", new
+                        {
+                            Input.Email,
+                        });
                     }
+
+                    await _signInManager.SignInAsync(user, false, info.LoginProvider);
+                    return LocalRedirect(returnUrl);
                 }
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
             }
 
-            ProviderDisplayName = info.ProviderDisplayName;
-            ReturnUrl = returnUrl;
-            return Page();
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
         }
 
-        private ApplicationUser CreateUser()
+        ProviderDisplayName = info.ProviderDisplayName;
+        ReturnUrl = returnUrl;
+        return Page();
+    }
+
+    private ApplicationUser CreateUser()
+    {
+        try
         {
-            try
-            {
-                return Activator.CreateInstance<ApplicationUser>();
-            }
-            catch
-            {
-                throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
-                    $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                    $"override the external login page in /Areas/Identity/Pages/Account/ExternalLogin.cshtml");
-            }
+            return Activator.CreateInstance<ApplicationUser>();
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " + $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " + $"override the external login page in /Areas/Identity/Pages/Account/ExternalLogin.cshtml");
+        }
+    }
+
+    private IUserEmailStore<ApplicationUser> GetEmailStore()
+    {
+        if (!_userManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException("The default UI requires a user store with email support.");
         }
 
-        private IUserEmailStore<ApplicationUser> GetEmailStore()
-        {
-            if (!_userManager.SupportsUserEmail)
-            {
-                throw new NotSupportedException("The default UI requires a user store with email support.");
-            }
-            return (IUserEmailStore<ApplicationUser>)_userStore;
-        }
+        return (IUserEmailStore<ApplicationUser>)_userStore;
+    }
+
+    public class InputModel
+    {
+        [Required(ErrorMessage = "Укажите почту")]
+        [EmailAddress(ErrorMessage = "Некорректная почта")]
+        public string Email { get; set; }
     }
 }

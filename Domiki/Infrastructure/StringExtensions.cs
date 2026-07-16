@@ -1,12 +1,10 @@
-﻿
-namespace Domiki.Web.Infrastructure
+﻿namespace Domiki.Web.Infrastructure;
+
+public static class StringExtensions
 {
-    public static class StringExtensions
+    public static double ToDouble(this string str)
     {
-        public static double ToDouble(this string str)
-        {
-            str = str.Replace(".", ",");
-            return double.Parse(str);
-        }
+        str = str.Replace(".", ",");
+        return double.Parse(str);
     }
 }

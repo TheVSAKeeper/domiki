@@ -1,14 +1,14 @@
-﻿
-namespace Domiki.Web.Activities.Models
+﻿using Domiki.Web.Data.Entities;
+
+namespace Domiki.Web.Activities.Models;
+
+public class TolokaType
 {
-    public class TolokaType
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string LogicName { get; set; }
-        public int ResourceTypeId { get; set; }
-        public int Goal { get; set; }
-        public int RotationWeight { get; set; }
-        public Data.Entities.TolokaTypeEffect[] Effects { get; set; }
-    }
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string LogicName { get; set; }
+    public int ResourceTypeId { get; set; }
+    public int Goal { get; set; }
+    public int RotationWeight { get; set; }
+    public TolokaTypeEffect[] Effects { get; set; }
 }

@@ -1,23 +1,21 @@
-﻿
-namespace Domiki.Web.Village.Dto
+﻿namespace Domiki.Web.Village.Dto;
+
+public class VillageDto
 {
-    public class VillageDto
-    {
-        public string VillageName { get; set; }
-        public int CrestIcon { get; set; }
-        public int CrestColor { get; set; }
-        public bool FeedWorkers { get; set; }
-    }
+    public string VillageName { get; set; }
+    public int CrestIcon { get; set; }
+    public int CrestColor { get; set; }
+    public bool FeedWorkers { get; set; }
+}
 
-    public class SetVillageDto
-    {
-        public string Name { get; set; }
-        public int CrestIcon { get; set; }
-        public int CrestColor { get; set; }
-    }
+public class SetVillageDto
+{
+    public string Name { get; set; }
+    public int CrestIcon { get; set; }
+    public int CrestColor { get; set; }
+}
 
-    public class SetFeedWorkersDto
-    {
-        public bool Enabled { get; set; }
-    }
+public class SetFeedWorkersDto
+{
+    public bool Enabled { get; set; }
 }

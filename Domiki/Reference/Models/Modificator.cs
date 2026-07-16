@@ -1,9 +1,7 @@
-﻿
-namespace Domiki.Web.Reference.Models
+﻿namespace Domiki.Web.Reference.Models;
+
+public class Modificator
 {
-    public class Modificator
-    {
-        public ModificatorType Type { get; set; }
-        public int Value { get; set; }
-    }
+    public ModificatorType Type { get; set; }
+    public int Value { get; set; }
 }

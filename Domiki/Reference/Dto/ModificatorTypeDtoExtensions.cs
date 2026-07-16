@@ -1,12 +1,12 @@
 ﻿using Domiki.Web.Reference.Models;
 
-namespace Domiki.Web.Reference.Dto
+namespace Domiki.Web.Reference.Dto;
+
+public static class ModificatorTypeDtoExtentions
 {
-    public static class ModificatorTypeDtoExtentions
+    public static ModificatorTypeDto ToDto(this ModificatorType resourceType)
     {
-        public static ModificatorTypeDto ToDto(this ModificatorType resourceType)
-        {
-            return new ModificatorTypeDto { Id = resourceType.Id, LogicName = resourceType.LogicName, Name = resourceType.Name };
-        }
+        return new()
+            { Id = resourceType.Id, LogicName = resourceType.LogicName, Name = resourceType.Name };
     }
 }

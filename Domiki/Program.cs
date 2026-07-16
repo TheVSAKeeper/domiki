@@ -1,24 +1,24 @@
 ﻿using Domiki.Web.Activities;
-using Domiki.Web.Core.Scheduling;
 using Domiki.Web.Core;
-using Domiki.Web.Data.Entities;
+using Domiki.Web.Core.Scheduling;
 using Domiki.Web.Data;
+using Domiki.Web.Data.Entities;
 using Domiki.Web.Economy;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Reference;
 using Domiki.Web.Village;
 using Domiki.Web.Workers;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using NLog.Web;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using NLog;
+using NLog.Web;
 using System.IO.Compression;
 using System.Security.Claims;
+using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("init main");
@@ -31,10 +31,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString);
     options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
 });
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 builder.Logging.ClearProviders();
-builder.Logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+builder.Logging.SetMinimumLevel(LogLevel.Trace);
 builder.Host.UseNLog();
 
 builder.Services
@@ -50,6 +51,7 @@ builder.Services.ConfigureApplicationCookie(options =>
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return Task.CompletedTask;
         }
+
         context.Response.Redirect(context.RedirectUri);
         return Task.CompletedTask;
     };
@@ -61,9 +63,17 @@ var oidcAuthority = builder.Configuration["Oidc:Authority"];
 if (!string.IsNullOrWhiteSpace(oidcAuthority))
 {
     var oidcScheme = builder.Configuration["Oidc:Scheme"];
-    if (string.IsNullOrWhiteSpace(oidcScheme)) oidcScheme = "oidc";
+    if (string.IsNullOrWhiteSpace(oidcScheme))
+    {
+        oidcScheme = "oidc";
+    }
+
     var oidcDisplayName = builder.Configuration["Oidc:DisplayName"];
-    if (string.IsNullOrWhiteSpace(oidcDisplayName)) oidcDisplayName = oidcScheme;
+    if (string.IsNullOrWhiteSpace(oidcDisplayName))
+    {
+        oidcDisplayName = oidcScheme;
+    }
+
     authenticationBuilder.AddOpenIdConnect(oidcScheme, oidcDisplayName, options =>
     {
         options.SignInScheme = IdentityConstants.ExternalScheme;
@@ -133,6 +143,7 @@ builder.Services.AddResponseCompression(options =>
         "application/manifest+json",
     });
 });
+
 builder.Services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
 builder.Services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
 
@@ -185,8 +196,10 @@ app.Use(async (context, next) =>
         {
             headers.CacheControl = "no-cache";
         }
+
         return Task.CompletedTask;
     });
+
     await next();
 });
 
@@ -222,6 +235,7 @@ app.Use(async (context, next) =>
                     ".xml" => "text/xml",
                     _ => context.Response.ContentType,
                 };
+
                 return Task.CompletedTask;
             });
         }
@@ -249,8 +263,9 @@ app.UseStaticFiles(new StaticFileOptions
         {
             context.Context.Response.Headers.CacheControl = "no-cache";
         }
-    }
+    },
 });
+
 app.UseRouting();
 
 app.UseAuthentication();
@@ -266,13 +281,14 @@ app.Use(async (context, next) =>
         context.Response.StatusCode = StatusCodes.Status403Forbidden;
         return;
     }
+
     await next();
 });
 
 app.MapControllers();
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller}/{action=Index}/{id?}");
+app.MapControllerRoute("default",
+    "{controller}/{action=Index}/{id?}");
+
 app.MapRazorPages();
 
 app.MapHealthChecks("/healthz");
@@ -282,11 +298,12 @@ app.MapGet("/authentication/login", (string returnUrl) =>
     var target = !string.IsNullOrEmpty(returnUrl) && Uri.IsWellFormedUriString(returnUrl, UriKind.Relative)
         ? returnUrl
         : "/";
+
     return Results.Redirect($"/Identity/Account/Login?returnUrl={Uri.EscapeDataString(target)}");
 });
 
-app.MapGet("/authentication/logout", () => Results.SignOut(
-    new AuthenticationProperties { RedirectUri = "/" },
+app.MapGet("/authentication/logout", () => Results.SignOut(new()
+        { RedirectUri = "/" },
     new[] { IdentityConstants.ApplicationScheme }));
 
 app.MapGet("/authentication/user", (HttpContext http) =>
@@ -301,6 +318,7 @@ app.MapGet("/authentication/user", (HttpContext http) =>
                ?? user.FindFirstValue("preferred_username")
                ?? user.FindFirstValue("email")
                ?? user.Identity?.Name;
+
     return Results.Ok(new { isAuthenticated = true, name });
 });
 
@@ -310,69 +328,71 @@ app.MapPost("/authentication/demo", async (HttpContext http, SignInManager<Appli
     {
         return Results.Ok(new { isAuthenticated = true, name = http.User.Identity.Name });
     }
-    var result = await signInManager.PasswordSignInAsync(demoUserName, demoPassword, isPersistent: false, lockoutOnFailure: false);
+
+    var result = await signInManager.PasswordSignInAsync(demoUserName, demoPassword, false, false);
     return result.Succeeded
         ? Results.Ok(new { isAuthenticated = true, name = demoUserName })
         : Results.Unauthorized();
 });
 
 app.MapGet("/Domiki/Stream", async (HttpContext http, GameStateBroker broker) =>
-{
-    int playerId;
-    using (var scope = http.RequestServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
     {
-        var domikManager = scope.ServiceProvider.GetRequiredService<DomikManager>();
-        playerId = domikManager.GetPlayerId(http.User.FindFirstValue(ClaimTypes.NameIdentifier));
-        scope.ServiceProvider.GetRequiredService<UnitOfWork>().Commit();
-    }
-
-    http.Response.ContentType = "text/event-stream";
-    http.Response.Headers.CacheControl = "no-cache";
-    http.Response.Headers["X-Accel-Buffering"] = "no";
-
-    await http.Response.WriteAsync(": connected\n\n");
-    await http.Response.Body.FlushAsync(http.RequestAborted);
-
-    using var subscription = broker.Subscribe(playerId);
-    try
-    {
-        while (!http.RequestAborted.IsCancellationRequested)
+        int playerId;
+        using (var scope = http.RequestServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
         {
-            bool canRead;
-            try
-            {
-                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(http.RequestAborted);
-                timeout.CancelAfter(TimeSpan.FromSeconds(15));
-                canRead = await subscription.Reader.WaitToReadAsync(timeout.Token);
-            }
-            catch (OperationCanceledException) when (!http.RequestAborted.IsCancellationRequested)
-            {
-                await http.Response.WriteAsync(": ping\n\n");
-                await http.Response.Body.FlushAsync(http.RequestAborted);
-                continue;
-            }
+            var domikManager = scope.ServiceProvider.GetRequiredService<DomikManager>();
+            playerId = domikManager.GetPlayerId(http.User.FindFirstValue(ClaimTypes.NameIdentifier));
+            scope.ServiceProvider.GetRequiredService<UnitOfWork>().Commit();
+        }
 
-            if (!canRead)
-            {
-                break;
-            }
+        http.Response.ContentType = "text/event-stream";
+        http.Response.Headers.CacheControl = "no-cache";
+        http.Response.Headers["X-Accel-Buffering"] = "no";
 
-            while (subscription.Reader.TryRead(out var changedScope))
+        await http.Response.WriteAsync(": connected\n\n");
+        await http.Response.Body.FlushAsync(http.RequestAborted);
+
+        using var subscription = broker.Subscribe(playerId);
+        try
+        {
+            while (!http.RequestAborted.IsCancellationRequested)
             {
-                await http.Response.WriteAsync($"data: {changedScope}\n\n");
-                await http.Response.Body.FlushAsync(http.RequestAborted);
+                bool canRead;
+                try
+                {
+                    using var timeout = CancellationTokenSource.CreateLinkedTokenSource(http.RequestAborted);
+                    timeout.CancelAfter(TimeSpan.FromSeconds(15));
+                    canRead = await subscription.Reader.WaitToReadAsync(timeout.Token);
+                }
+                catch (OperationCanceledException) when (!http.RequestAborted.IsCancellationRequested)
+                {
+                    await http.Response.WriteAsync(": ping\n\n");
+                    await http.Response.Body.FlushAsync(http.RequestAborted);
+                    continue;
+                }
+
+                if (!canRead)
+                {
+                    break;
+                }
+
+                while (subscription.Reader.TryRead(out var changedScope))
+                {
+                    await http.Response.WriteAsync($"data: {changedScope}\n\n");
+                    await http.Response.Body.FlushAsync(http.RequestAborted);
+                }
             }
         }
-    }
-    catch (OperationCanceledException) when (http.RequestAborted.IsCancellationRequested)
-    {
-    }
-}).RequireAuthorization();
+        catch (OperationCanceledException) when (http.RequestAborted.IsCancellationRequested)
+        {
+        }
+    })
+    .RequireAuthorization();
 
 app.MapFallbackToFile("index.html");
 
 app.UseExceptionHandler();
-app.UseWhen(
-    context => !context.Request.Path.StartsWithSegments("/Domiki/Stream"),
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/Domiki/Stream"),
     branch => branch.UseMiddleware<UnitOfWorkMiddleware>());
+
 app.Run();

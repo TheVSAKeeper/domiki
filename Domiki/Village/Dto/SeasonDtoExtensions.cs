@@ -1,17 +1,16 @@
 ﻿using Domiki.Web.Village.Models;
 
-namespace Domiki.Web.Village.Dto
+namespace Domiki.Web.Village.Dto;
+
+public static class SeasonDtoExtensions
 {
-    public static class SeasonDtoExtensions
+    public static SeasonDto ToDto(this Season season)
     {
-        public static SeasonDto ToDto(this Season season)
+        return new()
         {
-            return new SeasonDto
-            {
-                Number = season.Number + 1,
-                StartDate = season.StartDate,
-                EndDate = season.EndDate,
-            };
-        }
+            Number = season.Number + 1,
+            StartDate = season.StartDate,
+            EndDate = season.EndDate,
+        };
     }
 }

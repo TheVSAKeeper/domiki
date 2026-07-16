@@ -1,12 +1,10 @@
-﻿
-namespace Domiki.Web.Activities.Models
+﻿namespace Domiki.Web.Activities.Models;
+
+public class ExpeditionState
 {
-    public class ExpeditionState
-    {
-        public Expedition[] Active { get; set; }
-        public ExpeditionType[] Types { get; set; }
-        public int ExpeditionsSincePity { get; set; }
-        public int PityThreshold { get; set; }
-        public int MaxActive { get; set; }
-    }
+    public Expedition[] Active { get; set; }
+    public ExpeditionType[] Types { get; set; }
+    public int ExpeditionsSincePity { get; set; }
+    public int PityThreshold { get; set; }
+    public int MaxActive { get; set; }
 }

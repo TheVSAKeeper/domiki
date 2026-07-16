@@ -1,12 +1,9 @@
-﻿using Domiki.Web.Activities.Models;
+﻿namespace Domiki.Web.Village.Models;
 
-namespace Domiki.Web.Village.Models
+public enum SeasonMetric
 {
-    public enum SeasonMetric
-    {
-        None = 0,
-        Orders = 1,
-        Toloka = 2,
-        Expeditions = 3,
-    }
+    None = 0,
+    Orders = 1,
+    Toloka = 2,
+    Expeditions = 3,
 }

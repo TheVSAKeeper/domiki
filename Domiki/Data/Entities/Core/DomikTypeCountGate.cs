@@ -1,19 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Domiki.Web.Data.Entities
+namespace Domiki.Web.Data.Entities;
+
+[Table("DomikTypeCountGates")]
+public class DomikTypeCountGate
 {
-    [Table("DomikTypeCountGates")]
-    public class DomikTypeCountGate
-    {
-        [Key]
-        [Column(Order = 1)]
-        public int DomikTypeId { get; set; }
+    [Key]
+    [Column(Order = 1)]
+    public int DomikTypeId { get; set; }
 
-        [Key]
-        [Column(Order = 2)]
-        public int Ordinal { get; set; }
+    [Key]
+    [Column(Order = 2)]
+    public int Ordinal { get; set; }
 
-        public int UnlockLevel { get; set; }
-    }
+    public int UnlockLevel { get; set; }
 }

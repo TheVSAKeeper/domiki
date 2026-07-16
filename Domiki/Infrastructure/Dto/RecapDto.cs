@@ -1,16 +1,14 @@
-﻿
-namespace Domiki.Web.Infrastructure.Dto
-{
-    public class RecapDto
-    {
-        public int AwaySeconds { get; set; }
-        public RecapEventDto[] Events { get; set; }
-    }
+﻿namespace Domiki.Web.Infrastructure.Dto;
 
-    public class RecapEventDto
-    {
-        public string Type { get; set; }
-        public DateTime Date { get; set; }
-        public object Data { get; set; }
-    }
+public class RecapDto
+{
+    public int AwaySeconds { get; set; }
+    public RecapEventDto[] Events { get; set; }
+}
+
+public class RecapEventDto
+{
+    public string Type { get; set; }
+    public DateTime Date { get; set; }
+    public object Data { get; set; }
 }

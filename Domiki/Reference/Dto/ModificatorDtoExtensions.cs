@@ -1,16 +1,15 @@
 ﻿using Domiki.Web.Reference.Models;
 
-namespace Domiki.Web.Reference.Dto
+namespace Domiki.Web.Reference.Dto;
+
+public static class ModificatorDtoExtentions
 {
-    public static class ModificatorDtoExtentions
+    public static ModificatorDto ToDto(this Modificator res)
     {
-        public static ModificatorDto ToDto(this Modificator res)
+        return new()
         {
-            return new ModificatorDto
-            {
-                Value = res.Value,
-                TypeId = res.Type.Id,
-            };
-        }
+            Value = res.Value,
+            TypeId = res.Type.Id,
+        };
     }
 }

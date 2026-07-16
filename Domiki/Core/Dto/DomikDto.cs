@@ -1,13 +1,11 @@
-﻿
-namespace Domiki.Web.Core.Dto
+﻿namespace Domiki.Web.Core.Dto;
+
+public class DomikDto
 {
-    public class DomikDto
-    {
-        public int Id { get; set; }
-        public int TypeId { get; set; }
-        public int Level { get; set; }
-        public DateTime? FinishDate { get; set; }
-        public int? UpgradeSeconds { get; set; }
-        public ManufactureDto[] Manufactures { get; set; }
-    }
+    public int Id { get; set; }
+    public int TypeId { get; set; }
+    public int Level { get; set; }
+    public DateTime? FinishDate { get; set; }
+    public int? UpgradeSeconds { get; set; }
+    public ManufactureDto[] Manufactures { get; set; }
 }

@@ -1,10 +1,8 @@
-﻿
-namespace Domiki.Web.Reference.Dto
+﻿namespace Domiki.Web.Reference.Dto;
+
+public class ModificatorTypeDto
 {
-    public class ModificatorTypeDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string LogicName { get; set; }
-    }
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string LogicName { get; set; }
 }

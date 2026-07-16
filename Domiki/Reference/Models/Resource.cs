@@ -1,9 +1,7 @@
-﻿
-namespace Domiki.Web.Reference.Models
+﻿namespace Domiki.Web.Reference.Models;
+
+public class Resource
 {
-    public class Resource
-    {
-        public ResourceType Type { get; set; }
-        public int Value { get; set; }
-    }
+    public ResourceType Type { get; set; }
+    public int Value { get; set; }
 }

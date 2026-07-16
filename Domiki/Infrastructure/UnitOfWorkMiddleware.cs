@@ -1,33 +1,31 @@
-﻿
-namespace Domiki.Web.Infrastructure
+﻿namespace Domiki.Web.Infrastructure;
+
+public class UnitOfWorkMiddleware
 {
-    public class UnitOfWorkMiddleware
+    private readonly RequestDelegate _next;
+
+    public UnitOfWorkMiddleware(RequestDelegate next)
     {
-        private readonly RequestDelegate _next;
+        _next = next;
+    }
 
-        public UnitOfWorkMiddleware(RequestDelegate next)
+    // IMessageWriter is injected into InvokeAsync
+    public async Task InvokeAsync(HttpContext httpContext, UnitOfWork uow)
+    {
+        var originalBody = httpContext.Response.Body;
+        using var buffer = new MemoryStream();
+        httpContext.Response.Body = buffer;
+        try
         {
-            _next = next;
+            await _next(httpContext);
+            uow.Commit();
+        }
+        finally
+        {
+            httpContext.Response.Body = originalBody;
         }
 
-        // IMessageWriter is injected into InvokeAsync
-        public async Task InvokeAsync(HttpContext httpContext, UnitOfWork uow)
-        {
-            var originalBody = httpContext.Response.Body;
-            using var buffer = new MemoryStream();
-            httpContext.Response.Body = buffer;
-            try
-            {
-                await _next(httpContext);
-                uow.Commit();
-            }
-            finally
-            {
-                httpContext.Response.Body = originalBody;
-            }
-
-            buffer.Position = 0;
-            await buffer.CopyToAsync(originalBody);
-        }
+        buffer.Position = 0;
+        await buffer.CopyToAsync(originalBody);
     }
 }

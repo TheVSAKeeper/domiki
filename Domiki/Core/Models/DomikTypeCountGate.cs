@@ -1,10 +1,8 @@
-﻿
-namespace Domiki.Web.Core.Models
+﻿namespace Domiki.Web.Core.Models;
+
+public class DomikTypeCountGate
 {
-    public class DomikTypeCountGate
-    {
-        public int DomikTypeId { get; set; }
-        public int Ordinal { get; set; }
-        public int UnlockLevel { get; set; }
-    }
+    public int DomikTypeId { get; set; }
+    public int Ordinal { get; set; }
+    public int UnlockLevel { get; set; }
 }

@@ -1,13 +1,12 @@
-﻿namespace Domiki.Web.Data.Entities
+﻿namespace Domiki.Web.Data.Entities;
+
+public enum GoalConditionType
 {
-    public enum GoalConditionType
-    {
-        None = 0,
-        BuildDomikType = 1,
-        StartAnyManufacture = 2,
-        SellAnyResource = 3,
-        UpgradeDomikToLevel = 4,
-        CompleteAnyOrder = 5,
-        ReachVillageLevel = 6,
-    }
+    None = 0,
+    BuildDomikType = 1,
+    StartAnyManufacture = 2,
+    SellAnyResource = 3,
+    UpgradeDomikToLevel = 4,
+    CompleteAnyOrder = 5,
+    ReachVillageLevel = 6,
 }

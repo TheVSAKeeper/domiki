@@ -1,9 +1,7 @@
-﻿
-namespace Domiki.Web.Village.Models
+﻿namespace Domiki.Web.Village.Models;
+
+public class WeatherState
 {
-    public class WeatherState
-    {
-        public WeatherPeriod Current { get; set; }
-        public WeatherPeriod[] Forecast { get; set; }
-    }
+    public WeatherPeriod Current { get; set; }
+    public WeatherPeriod[] Forecast { get; set; }
 }

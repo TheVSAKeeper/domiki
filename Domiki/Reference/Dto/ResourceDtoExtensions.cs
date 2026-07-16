@@ -1,16 +1,15 @@
 ﻿using Domiki.Web.Reference.Models;
 
-namespace Domiki.Web.Reference.Dto
+namespace Domiki.Web.Reference.Dto;
+
+public static class ResourceDtoExtentions
 {
-    public static class ResourceDtoExtentions
+    public static ResourceDto ToDto(this Resource res)
     {
-        public static ResourceDto ToDto(this Resource res)
+        return new()
         {
-            return new ResourceDto
-            {
-                Value = res.Value,
-                TypeId = res.Type.Id,
-            };
-        }
+            Value = res.Value,
+            TypeId = res.Type.Id,
+        };
     }
 }

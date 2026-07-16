@@ -1,57 +1,56 @@
 ﻿using Domiki.Web.Village.Models;
 
-namespace Domiki.Web.Village.Dto
+namespace Domiki.Web.Village.Dto;
+
+public static class WorldDtoExtensions
 {
-    public static class WorldDtoExtensions
+    public static WorldDto ToDto(this World world)
     {
-        public static WorldDto ToDto(this World world)
+        return new()
         {
-            return new WorldDto
-            {
-                Villages = world.Villages.Select(x => x.ToDto()).ToArray(),
-                Season = world.Season.ToDto(),
-            };
-        }
+            Villages = world.Villages.Select(x => x.ToDto()).ToArray(),
+            Season = world.Season.ToDto(),
+        };
+    }
 
-        public static WorldVillageDto ToDto(this WorldVillage village)
+    public static WorldVillageDto ToDto(this WorldVillage village)
+    {
+        return new()
         {
-            return new WorldVillageDto
-            {
-                PlayerId = village.PlayerId,
-                VillageName = village.VillageName,
-                CrestIcon = village.CrestIcon,
-                CrestColor = village.CrestColor,
-                Level = village.Level,
-                IsNpc = village.IsNpc,
-                IsMe = village.IsMe,
-                NpcResourceTypeId = village.NpcResourceTypeId,
-                NpcLogicName = village.NpcLogicName,
-                SeasonOrders = village.SeasonOrders,
-                SeasonToloka = village.SeasonToloka,
-                SeasonExpeditions = village.SeasonExpeditions,
-                Comfort = village.Comfort,
-            };
-        }
+            PlayerId = village.PlayerId,
+            VillageName = village.VillageName,
+            CrestIcon = village.CrestIcon,
+            CrestColor = village.CrestColor,
+            Level = village.Level,
+            IsNpc = village.IsNpc,
+            IsMe = village.IsMe,
+            NpcResourceTypeId = village.NpcResourceTypeId,
+            NpcLogicName = village.NpcLogicName,
+            SeasonOrders = village.SeasonOrders,
+            SeasonToloka = village.SeasonToloka,
+            SeasonExpeditions = village.SeasonExpeditions,
+            Comfort = village.Comfort,
+        };
+    }
 
-        public static VillageVisitDto ToDto(this VillageVisit visit)
+    public static VillageVisitDto ToDto(this VillageVisit visit)
+    {
+        return new()
         {
-            return new VillageVisitDto
-            {
-                VillageName = visit.VillageName,
-                CrestIcon = visit.CrestIcon,
-                CrestColor = visit.CrestColor,
-                Level = visit.Level.ToDto(),
-                Buildings = visit.Buildings.Select(x => x.ToDto()).ToArray(),
-            };
-        }
+            VillageName = visit.VillageName,
+            CrestIcon = visit.CrestIcon,
+            CrestColor = visit.CrestColor,
+            Level = visit.Level.ToDto(),
+            Buildings = visit.Buildings.Select(x => x.ToDto()).ToArray(),
+        };
+    }
 
-        public static VisitBuildingDto ToDto(this VisitBuilding building)
+    public static VisitBuildingDto ToDto(this VisitBuilding building)
+    {
+        return new()
         {
-            return new VisitBuildingDto
-            {
-                TypeName = building.TypeName,
-                Level = building.Level,
-            };
-        }
+            TypeName = building.TypeName,
+            Level = building.Level,
+        };
     }
 }

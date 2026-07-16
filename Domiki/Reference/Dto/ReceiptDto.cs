@@ -1,17 +1,15 @@
-﻿
-namespace Domiki.Web.Reference.Dto
-{
-    public class ReceiptDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public string LogicName { get; set; }
+﻿namespace Domiki.Web.Reference.Dto;
 
-        public ResourceDto[] InputResources { get; set; }
-        public ResourceDto[] OptionalInputResources { get; set; }
-        public int DurationSeconds { get; set; }
-        public int OutputBonusPercent { get; set; }
-        public ResourceDto[] OutputResources { get; set; }
-        public int PlodderCount { get; set; }
-    }
+public class ReceiptDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public string LogicName { get; set; }
+
+    public ResourceDto[] InputResources { get; set; }
+    public ResourceDto[] OptionalInputResources { get; set; }
+    public int DurationSeconds { get; set; }
+    public int OutputBonusPercent { get; set; }
+    public ResourceDto[] OutputResources { get; set; }
+    public int PlodderCount { get; set; }
 }
