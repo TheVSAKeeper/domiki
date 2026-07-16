@@ -1,23 +1,17 @@
 ﻿using Domiki.Web.Core;
-using Domiki.Web.Infrastructure;
 using Domiki.Web.Infrastructure.Dto;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
-namespace Domiki.Web.Controllers;
+namespace Domiki.Web.Infrastructure;
 
-[Authorize]
-[ApiController]
-public class PushController : ControllerBase
+public class PushController : GameControllerBase
 {
-    private readonly DomikManager _domikManager;
     private readonly PushManager _pushManager;
     private readonly PushSender _pushSender;
 
     public PushController(DomikManager domikManager, PushManager pushManager, PushSender pushSender)
+        : base(domikManager)
     {
-        _domikManager = domikManager;
         _pushManager = pushManager;
         _pushSender = pushSender;
     }
@@ -47,12 +41,5 @@ public class PushController : ControllerBase
         _pushManager.Unsubscribe(playerId, request?.Endpoint);
         return new()
             { Type = ResponseType.Success };
-    }
-
-    private int GetPlayerId()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var playerId = _domikManager.GetPlayerId(userId);
-        return playerId;
     }
 }
