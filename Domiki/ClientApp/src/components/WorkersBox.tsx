@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
@@ -127,16 +127,21 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
                 }
                 {workers.map(worker => {
                     const restingSeconds = worker.restUntil == null ? 0 : remainingSeconds(worker.restUntil, now);
+                    const isSick = worker.sickUntil != null && remainingSeconds(worker.sickUntil, now) > 0;
                     const stateKey = stateOf(worker);
-                    const stateLabel = stateKey === 'free' ? genderForm(worker.gender, 'Свободен', 'Свободна') : stateLabels[stateKey];
+                    const stateLabel = stateKey === 'free'
+                        ? genderForm(worker.gender, 'Свободен', 'Свободна')
+                        : stateKey === 'resting' && isSick
+                            ? genderForm(worker.gender, 'Простыл', 'Простыла')
+                            : stateLabels[stateKey];
                     const restTitle = worker.restUntil == null
                         ? undefined
-                        : `Отдыхает до ${new Date(worker.restUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${formatDuration(restingSeconds)})`;
+                        : `${isSick ? 'Простыл' : 'Отдыхает'} до ${new Date(worker.restUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${formatDuration(restingSeconds)})`;
                     const timer = (() => {
                         const build = (verb: string, seconds: number) =>
                             seconds > 0 ? { seconds, full: `${verb} через ${formatDuration(seconds)}` } : null;
                         if (stateKey === 'resting') {
-                            return build('отдохнёт', restingSeconds);
+                            return build(isSick ? 'поправится' : 'отдохнёт', restingSeconds);
                         }
                         if (stateKey === 'busy') {
                             const manufacture = domiks.flatMap(d => d.manufactures ?? []).find(m => m.id === worker.manufactureId);

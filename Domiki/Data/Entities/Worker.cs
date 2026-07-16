@@ -25,6 +25,8 @@ namespace Domiki.Web.Data
         public int WorkedSeconds { get; set; }
 
         public DateTime? RestUntil { get; set; }
+
+        public DateTime? SickUntil { get; set; }
         public Player Player { get; set; }
 
         public Trait Trait { get; set; }

@@ -13,6 +13,11 @@ namespace Domiki.Web.Business.Core
         public const int FatigueThresholdSeconds = 8 * 3600;
         public const int RestSeconds = 2 * 3600;
         public const int RestComfortMaxPercent = 50;
+        public const int SickChancePercent = 15;
+        public const int SickDurationSeconds = 8 * 3600;
+        public const int MaxSickPerPlayer = 2;
+        public const int SickImmunitySeconds = 24 * 3600;
+        public const int SickMinVillageLevel = 15;
         public const int StartingCoins = 200;
         public const int ZealStartCharges = 24;
         public const int ZealX4Threshold = 16;
@@ -477,6 +482,10 @@ namespace Domiki.Web.Business.Core
                 outputPercent += receipt.OutputBonusPercent;
             }
 
+            var sickChance = weatherPercent > 100 && _villageLevelCalculator.GetLevel(playerId).Level >= SickMinVillageLevel
+                ? SickChancePercent
+                : 0;
+
             _playerResourceManager.WriteOffResources(playerId, writeOffResources);
 
             var manufacture = new Data.Manufacture
@@ -490,6 +499,7 @@ namespace Domiki.Web.Business.Core
                 OutputPercent = outputPercent,
                 AutoRepeat = autoRepeat,
                 UseOptional = useOptionalApplied,
+                SickChance = sickChance,
             };
             _context.Manufactures.Add(manufacture);
             _context.SaveChanges();
@@ -560,7 +570,10 @@ namespace Domiki.Web.Business.Core
                     _context.PlayerDecors.Where(x => x.PlayerId == dbManufacture.DomikPlayerId).Select(x => new PlayerDecor { DecorTypeId = x.DecorTypeId, Count = x.Count }).ToArray(),
                     _resourceManager.GetDecorTypes());
                 var restSeconds = RestSeconds * (100 - Math.Min(RestComfortMaxPercent, comfort)) / 100;
+                var sickSeconds = SickDurationSeconds * (100 - Math.Min(RestComfortMaxPercent, comfort)) / 100;
                 var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
+                var sickChance = dbManufacture.SickChance;
+                var currentlySick = sickChance > 0 ? _context.Workers.Count(x => x.PlayerId == playerId && x.SickUntil > date) : 0;
                 var isTradeDomik = _resourceManager.GetDomikTypes().First(x => x.LogicName == "market").Id == dbDomik.TypeId;
                 var breadRes = _context.Resources.Local.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == 15)
                     ?? _context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == 15);
@@ -583,6 +596,21 @@ namespace Domiki.Web.Business.Core
                             worker.RestUntil = date.AddSeconds(fed ? restSeconds / 2 : restSeconds);
                             worker.WorkedSeconds = 0;
                         }
+                    }
+
+                    if (sickChance > 0
+                        && currentlySick < MaxSickPerPlayer
+                        && !traits[worker.TraitId].NoSick
+                        && !traits[worker.TraitId].NoFatigue
+                        && (worker.SickUntil == null || date >= worker.SickUntil.Value.AddSeconds(SickImmunitySeconds))
+                        && Random.Shared.Next(100) < sickChance)
+                    {
+                        worker.SickUntil = date.AddSeconds(sickSeconds);
+                        if (worker.RestUntil == null || worker.RestUntil < worker.SickUntil)
+                        {
+                            worker.RestUntil = worker.SickUntil;
+                        }
+                        currentlySick++;
                     }
 
                     worker.ManufactureId = null;

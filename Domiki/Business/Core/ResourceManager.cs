@@ -68,6 +68,7 @@ namespace Domiki.Web.Business.Core
                     Name = x.Name,
                     DurationPercent = x.DurationPercent,
                     NoFatigue = x.NoFatigue,
+                    NoSick = x.NoSick,
                     LuckWeightPercent = x.LuckWeightPercent,
                 }).ToArray();
             }

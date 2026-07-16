@@ -123,7 +123,8 @@ namespace Domiki.Web.Data
                 new Trait { Id = 2, Name = "Проворный", LogicName = "nimble", DurationPercent = -10, NoFatigue = false, LuckWeightPercent = 0 },
                 new Trait { Id = 3, Name = "Работящий", LogicName = "diligent", DurationPercent = -20, NoFatigue = false, LuckWeightPercent = 0 },
                 new Trait { Id = 4, Name = "Соня", LogicName = "sonya", DurationPercent = 25, NoFatigue = true, LuckWeightPercent = 0 },
-                new Trait { Id = 5, Name = "Везучий", LogicName = "lucky", DurationPercent = 0, NoFatigue = false, LuckWeightPercent = 100 });
+                new Trait { Id = 5, Name = "Везучий", LogicName = "lucky", DurationPercent = 0, NoFatigue = false, LuckWeightPercent = 100 },
+                new Trait { Id = 6, Name = "Крепкий", LogicName = "hardy", DurationPercent = 0, NoFatigue = false, NoSick = true, LuckWeightPercent = 0 });
 
             modelBuilder.Entity<Worker>()
                 .HasOne(s => s.Player)

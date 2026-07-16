@@ -1,4 +1,4 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 export enum ResponseType {
     Success = 1,
@@ -211,9 +211,11 @@ export const workerSchema = z.object({
     traitLogicName: z.string(),
     traitDurationPercent: z.number(),
     noFatigue: z.boolean(),
+    noSick: z.boolean(),
     manufactureId: z.number().nullable(),
     expeditionId: z.number().nullable(),
     restUntil: z.string().nullable(),
+    sickUntil: z.string().nullable(),
     skills: z.array(workerSkillSchema),
 });
 export type WorkerDto = z.infer<typeof workerSchema>;

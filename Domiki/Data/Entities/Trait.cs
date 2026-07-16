@@ -21,6 +21,8 @@ namespace Domiki.Web.Data
 
         public bool NoFatigue { get; set; }
 
+        public bool NoSick { get; set; }
+
         public int LuckWeightPercent { get; set; }
     }
 }

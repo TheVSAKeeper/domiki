@@ -16,9 +16,11 @@ namespace Domiki.Web.Models
                 TraitLogicName = worker.Trait.LogicName,
                 TraitDurationPercent = worker.Trait.DurationPercent,
                 NoFatigue = worker.Trait.NoFatigue,
+                NoSick = worker.Trait.NoSick,
                 ManufactureId = worker.ManufactureId,
                 ExpeditionId = worker.ExpeditionId,
                 RestUntil = worker.RestUntil,
+                SickUntil = worker.SickUntil,
                 Skills = worker.Skills.Select(x => new WorkerSkillDto
                 {
                     DomikTypeId = x.DomikTypeId,

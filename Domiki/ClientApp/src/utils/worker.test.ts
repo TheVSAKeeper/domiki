@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import type { DomikTypeDto, WorkerDto } from '../types/api';
 import { describeWorker } from './worker';
 
@@ -16,9 +16,11 @@ const baseWorker: WorkerDto = {
     traitLogicName: 'ordinary',
     traitDurationPercent: 0,
     noFatigue: false,
+    noSick: false,
     manufactureId: null,
     expeditionId: null,
     restUntil: null,
+    sickUntil: null,
     skills: [],
 };
 

@@ -29,5 +29,7 @@ namespace Domiki.Web.Data
         public bool AutoRepeat { get; set; }
 
         public bool UseOptional { get; set; }
+
+        public int SickChance { get; set; }
     }
 }

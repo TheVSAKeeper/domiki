@@ -151,6 +151,7 @@ namespace Domiki.Web.Business.Core
                 ExpeditionId = x.ExpeditionId,
                 WorkedSeconds = x.WorkedSeconds,
                 RestUntil = x.RestUntil,
+                SickUntil = x.SickUntil,
                 Skills = skills.GetValueOrDefault(x.Id, Array.Empty<WorkerSkill>()),
             }).ToArray();
         }

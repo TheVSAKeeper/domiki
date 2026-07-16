@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
@@ -26,7 +26,7 @@ import { useToast } from '../services/toast';
 import { disablePush, enablePush, getPushState } from '../services/push';
 import type { PushState } from '../services/push';
 import { useGameData } from '../hooks/useGameData';
-import { COIN_RESOURCE_TYPE_ID, GOLD_RESOURCE_TYPE_ID, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, resourceShortfall, sortDomiks, workerFitness } from '../utils/game';
+import { COIN_RESOURCE_TYPE_ID, GOLD_RESOURCE_TYPE_ID, SICK_CHANCE_PERCENT, SICK_MIN_VILLAGE_LEVEL, canAffordUpgrade, canInstaFinish, computeReceiptView, computeSelectedDomikView, instaFinishCost, isWorkerFree, progressPercent, resourceShortfall, sortDomiks, workerFitness } from '../utils/game';
 import type { DomikSortMode } from '../utils/game';
 import { buildDomikNamer } from '../utils/domikNames';
 import { formatDuration, remainingSeconds } from '../utils/time';
@@ -1127,6 +1127,11 @@ export const DomikiPage = () => {
                                                             {weatherEffect != null &&
                                                                 <p className="weather-modifier">
                                                                     Погода: {weatherEffect.outputPercent >= 100 ? '+' : ''}{weatherEffect.outputPercent - 100} % выход
+                                                                </p>
+                                                            }
+                                                            {weatherEffect != null && weatherEffect.outputPercent > 100 && (villageLevel?.level ?? 0) >= SICK_MIN_VILLAGE_LEVEL &&
+                                                                <p className="weather-modifier weather-modifier--risk">
+                                                                    Риск простуды {SICK_CHANCE_PERCENT} %
                                                                 </p>
                                                             }
                                                             <div className="receipt-mode">

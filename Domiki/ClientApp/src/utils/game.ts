@@ -1,10 +1,12 @@
-import type { DomikDto, DomikTypeDto, ManufactureDto, PlodderCount, ReceiptDto, ReceiptView, ResourceDto, SelectedDomikView, UpgradeView, WorkerDto } from '../types/api';
+﻿import type { DomikDto, DomikTypeDto, ManufactureDto, PlodderCount, ReceiptDto, ReceiptView, ResourceDto, SelectedDomikView, UpgradeView, WorkerDto } from '../types/api';
 import { formatDuration, remainingSeconds } from './time';
 
 export const INSTA_FINISH_SECONDS_PER_GOLD = 3600;
 export const INSTA_FINISH_MAX_GOLD = 6;
 export const GOLD_RESOURCE_TYPE_ID = 5;
 export const COIN_RESOURCE_TYPE_ID = 1;
+export const SICK_CHANCE_PERCENT = 15;
+export const SICK_MIN_VILLAGE_LEVEL = 15;
 export const ZEAL_X4_THRESHOLD = 16;
 
 export const EXPEDITION_LOOT_KIND_RESOURCE = 1;
