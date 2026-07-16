@@ -1,148 +1,16 @@
-﻿using System.Globalization;
-using System.Text;
-using Domiki.Web.Business.Core;
+﻿using Domiki.Web.Business.Core;
 using Domiki.Web.Business.Models;
-using GoalConditionType = Domiki.Web.Data.GoalConditionType;
-using StarterGoal = Domiki.Web.Data.StarterGoal;
+using Domiki.Web.Data;
+using DomikType = Domiki.Web.Business.Models.DomikType;
+using ExpeditionLoot = Domiki.Web.Business.Models.ExpeditionLoot;
+using ExpeditionType = Domiki.Web.Business.Models.ExpeditionType;
+using Neighbor = Domiki.Web.Business.Models.Neighbor;
+using Receipt = Domiki.Web.Business.Models.Receipt;
+using Resource = Domiki.Web.Business.Models.Resource;
+using Trait = Domiki.Web.Business.Models.Trait;
+using WeatherType = Domiki.Web.Business.Models.WeatherType;
 
 namespace Domiki.BalanceSim;
-
-public enum ScenarioKind
-{
-    None = 0,
-    Casual = 1,
-    Optimal = 2,
-    Extreme = 3,
-}
-
-public enum SimulationEventKind
-{
-    None = 0,
-    WeatherBoundary = 1,
-    ManufactureFinished = 2,
-    DomikFinished = 3,
-    ExpeditionReturned = 4,
-    OrderExpired = 5,
-    Login = 6,
-}
-
-public sealed class SimulationData
-{
-    public required DomikType[] DomikTypes { get; init; }
-    public required Receipt[] Receipts { get; init; }
-    public required ResourceType[] ResourceTypes { get; init; }
-    public required Neighbor[] Neighbors { get; init; }
-    public required Blueprint[] Blueprints { get; init; }
-    public required WeatherType[] WeatherTypes { get; init; }
-    public required ExpeditionType[] ExpeditionTypes { get; init; }
-    public required Trait[] Traits { get; init; }
-    public required ModificatorType[] ModificatorTypes { get; init; }
-    public required StarterGoal[] StarterGoals { get; init; }
-    public required Dictionary<int, DomikType> DomikTypeById { get; init; }
-    public required Dictionary<int, Receipt> ReceiptById { get; init; }
-    public required Dictionary<int, ResourceType> ResourceTypeById { get; init; }
-    public required Dictionary<int, Neighbor> NeighborById { get; init; }
-    public required Dictionary<int, WeatherType> WeatherTypeById { get; init; }
-    public required Dictionary<int, Trait> TraitById { get; init; }
-    public required int PlodderModificatorId { get; init; }
-
-    public static SimulationData Load(ResourceManager resourceManager)
-    {
-        var domikTypes = resourceManager.GetDomikTypes().OrderBy(x => x.Id).ToArray();
-        var receipts = resourceManager.GetReceipts().OrderBy(x => x.Id).ToArray();
-        var resourceTypes = resourceManager.GetResourceTypes().OrderBy(x => x.Id).ToArray();
-        var neighbors = resourceManager.GetNeighbors().OrderBy(x => x.Id).ToArray();
-        var blueprints = resourceManager.GetBlueprints().OrderBy(x => x.Id).ToArray();
-        var weatherTypes = resourceManager.GetWeatherTypes().OrderBy(x => x.Id).ToArray();
-        var expeditionTypes = resourceManager.GetExpeditionTypes().OrderBy(x => x.Id).ToArray();
-        var traits = resourceManager.GetTraits().OrderBy(x => x.Id).ToArray();
-        var modificatorTypes = resourceManager.GetModificatorTypes().OrderBy(x => x.Id).ToArray();
-        var starterGoals = resourceManager.GetStarterGoals().OrderBy(x => x.Ordinal).ToArray();
-        var plodder = modificatorTypes.Single(x => x.LogicName == "plodder").Id;
-
-        return new SimulationData
-        {
-            DomikTypes = domikTypes,
-            Receipts = receipts,
-            ResourceTypes = resourceTypes,
-            Neighbors = neighbors,
-            Blueprints = blueprints,
-            WeatherTypes = weatherTypes,
-            ExpeditionTypes = expeditionTypes,
-            Traits = traits,
-            ModificatorTypes = modificatorTypes,
-            StarterGoals = starterGoals,
-            DomikTypeById = domikTypes.ToDictionary(x => x.Id),
-            ReceiptById = receipts.ToDictionary(x => x.Id),
-            ResourceTypeById = resourceTypes.ToDictionary(x => x.Id),
-            NeighborById = neighbors.ToDictionary(x => x.Id),
-            WeatherTypeById = weatherTypes.ToDictionary(x => x.Id),
-            TraitById = traits.ToDictionary(x => x.Id),
-            PlodderModificatorId = plodder,
-        };
-    }
-}
-
-public sealed class BalanceSimulator
-{
-    private readonly SimulationData _data;
-
-    public BalanceSimulator(SimulationData data)
-    {
-        _data = data;
-    }
-
-    public SimulationReport Run()
-    {
-        var runs = new Dictionary<ScenarioKind, List<SimulationRunResult>>();
-        foreach (var scenario in new[] { ScenarioKind.Casual, ScenarioKind.Optimal, ScenarioKind.Extreme })
-        {
-            runs[scenario] = Enumerable.Range(1, 7)
-                .Select(seed => new SimulationRun(_data, scenario, seed).Run())
-                .ToList();
-        }
-
-        return new SimulationReport(runs);
-    }
-
-    public IReadOnlyList<SimulationRunResult> RunFtue()
-    {
-        return Enumerable.Range(1, 7)
-            .Select(seed => new SimulationRun(_data, ScenarioKind.Casual, seed, ftue: true).Run())
-            .ToArray();
-    }
-}
-
-public sealed class SimulationReport
-{
-    public SimulationReport(IReadOnlyDictionary<ScenarioKind, List<SimulationRunResult>> runs)
-    {
-        Runs = runs;
-    }
-
-    public IReadOnlyDictionary<ScenarioKind, List<SimulationRunResult>> Runs { get; }
-}
-
-public sealed class SimulationRunResult
-{
-    public required int Seed { get; init; }
-    public required Dictionary<int, int> VillageLevelTimes { get; init; }
-    public required Dictionary<int, int> FirstDomikTimes { get; init; }
-    public required Dictionary<int, int> MaxDomikLevelTimes { get; init; }
-    public required Dictionary<int, int> NeighborOpenTimes { get; init; }
-    public required Dictionary<int, int> BlueprintTimes { get; init; }
-    public required Dictionary<int, int> FinalResources { get; init; }
-    public int? ContentCompleteTime { get; set; }
-    public int MaxVillageLevel { get; set; }
-    public double IdleShare { get; set; }
-    public double RestShare { get; set; }
-    public int LongestStallSeconds { get; set; }
-    public int? FirstIncomeSeconds { get; set; }
-    public int? FirstUpgradeStartSeconds { get; set; }
-    public int ActionsFirst15Min { get; set; }
-    public int InfeasibleOrdersDay1 { get; set; }
-    public int GoalsCompleted48h { get; set; }
-}
 
 internal sealed class SimulationRun
 {
@@ -635,8 +503,8 @@ internal sealed class SimulationRun
     {
         var free = GetFreeWorkers().Count;
         return _state.Domiks.Any(d => d.Level > 0
-            && d.Manufactures.Count < GetDomikLevel(d).MaxManufactureCount
-            && GetReceipts(d).Any(r => r.PlodderCount > free));
+                                      && d.Manufactures.Count < GetDomikLevel(d).MaxManufactureCount
+                                      && GetReceipts(d).Any(r => r.PlodderCount > free));
     }
 
     private int CapacityIncrease(DomikCandidate candidate)
@@ -729,7 +597,7 @@ internal sealed class SimulationRun
 
         var receipt = GetReceipts(market)
             .FirstOrDefault(candidate => candidate.LogicName.StartsWith("buy_")
-                && candidate.OutputResources.Single().Type.Id == missingResource);
+                                         && candidate.OutputResources.Single().Type.Id == missingResource);
         if (receipt == null || GetFreeWorkers().Count < receipt.PlodderCount)
         {
             return false;
@@ -737,7 +605,7 @@ internal sealed class SimulationRun
 
         var coinCost = receipt.InputResources.Single(resource => resource.Type.Id == 1).Value;
         return GetResource(1) >= coinCost * BuyResourceCoinReserveMultiplier
-            && StartManufacture(market, receipt, false, null);
+               && StartManufacture(market, receipt, false, null);
     }
 
     private (Receipt Receipt, bool UseOptional)? SelectReceiptForStart(SimDomik domik)
@@ -813,9 +681,9 @@ internal sealed class SimulationRun
     private bool ShouldUseOptional(int domikTypeId, Receipt receipt)
     {
         return _scenario != ScenarioKind.Casual
-            && receipt.OptionalInputResources.Length > 0
-            && GetReceiptEv(receipt, true, GetWeatherOutputPercent(domikTypeId)) > GetReceiptEv(receipt, false, GetWeatherOutputPercent(domikTypeId))
-            && CanAffordResources(GetInputs(receipt, true));
+               && receipt.OptionalInputResources.Length > 0
+               && GetReceiptEv(receipt, true, GetWeatherOutputPercent(domikTypeId)) > GetReceiptEv(receipt, false, GetWeatherOutputPercent(domikTypeId))
+               && CanAffordResources(GetInputs(receipt, true));
     }
 
     private bool StartManufacture(SimDomik domik, Receipt receipt, bool useOptional, IReadOnlyList<SimWorker>? explicitWorkers)
@@ -1123,7 +991,7 @@ internal sealed class SimulationRun
     {
         var totalWeight = loot.Sum(x => ExpeditionManager.ScaleWeight(x.IsRare, x.Weight, luckPercent));
         return loot.Where(x => x.Kind == Domiki.Web.Data.ExpeditionLootKind.Resource).Sum(x => ExpeditionManager.ScaleWeight(x.IsRare, x.Weight, luckPercent) / (double)totalWeight
-            * ((x.MinValue + x.MaxValue) / 2.0) * ResourceManager.GetMarketValue(x.ResourceTypeId.Value));
+                                                                                               * ((x.MinValue + x.MaxValue) / 2.0) * ResourceManager.GetMarketValue(x.ResourceTypeId.Value));
     }
 
     private IEnumerable<Resource> GetExpeditionCost(ExpeditionType type)
@@ -1260,7 +1128,7 @@ internal sealed class SimulationRun
     private void CheckContentComplete()
     {
         if (_data.DomikTypes.All(type => _state.Domiks.Count(x => x.Type.Id == type.Id) == type.MaxCount
-            && _state.Domiks.Where(x => x.Type.Id == type.Id).All(x => x.Level == type.MaxLevel)))
+                                         && _state.Domiks.Where(x => x.Type.Id == type.Id).All(x => x.Level == type.MaxLevel)))
         {
             _result.ContentCompleteTime = _now;
             _finished = true;
@@ -1493,220 +1361,5 @@ internal sealed class SimulationRun
             var rank = Rank.CompareTo(other.Rank);
             return rank != 0 ? rank : Sequence.CompareTo(other.Sequence);
         }
-    }
-}
-
-public sealed class BalanceReport
-{
-    private static readonly CultureInfo RussianCulture = CultureInfo.GetCultureInfo("ru-RU");
-    private readonly SimulationData _data;
-    private readonly SimulationReport _report;
-
-    public BalanceReport(SimulationData data, SimulationReport report)
-    {
-        _data = data;
-        _report = report;
-    }
-
-    public string Render()
-    {
-        var output = new StringBuilder();
-        output.AppendLine($"Баланс-симулятор: домиков { _data.DomikTypes.Length }, рецептов { _data.Receipts.Length }, соседей { _data.Neighbors.Length }, экспедиций { _data.ExpeditionTypes.Length }");
-        output.AppendLine("Горизонт: 45 суток, по 7 прогонов на сценарий, сиды 1–7.");
-        foreach (var scenario in new[] { ScenarioKind.Casual, ScenarioKind.Optimal, ScenarioKind.Extreme })
-        {
-            RenderScenario(output, scenario);
-        }
-
-        RenderDiagnostics(output);
-        return output.ToString().TrimEnd();
-    }
-
-    private void RenderScenario(StringBuilder output, ScenarioKind scenario)
-    {
-        var runs = _report.Runs[scenario];
-        output.AppendLine();
-        output.AppendLine($"Сценарий: {GetScenarioName(scenario)}");
-        output.AppendLine("Обжитость");
-        output.AppendLine("  Уровень  Время, ч");
-        var maxLevel = MedianInt(runs.Select(x => x.MaxVillageLevel));
-        for (var level = 1; level <= maxLevel; level++)
-        {
-            output.AppendLine($"  {level,7}  {FormatTime(MedianTime(runs.Select(x => x.VillageLevelTimes.GetValueOrDefault(level, -1))))}");
-        }
-
-        output.AppendLine("Постройки");
-        output.AppendLine("  Тип                         Первая, ч  Макс. уровень, ч");
-        foreach (var type in _data.DomikTypes)
-        {
-            var first = MedianTime(runs.Select(x => x.FirstDomikTimes.GetValueOrDefault(type.Id, -1)));
-            var maximum = MedianTime(runs.Select(x => x.MaxDomikLevelTimes.GetValueOrDefault(type.Id, -1)));
-            output.AppendLine($"  {type.Name.PadRight(26)}  {FormatTime(first).PadLeft(9)}  {FormatTime(maximum).PadLeft(16)}");
-        }
-
-        output.AppendLine("Соседи и чертежи");
-        output.AppendLine("  Веха                        Время, ч");
-        foreach (var neighbor in _data.Neighbors)
-        {
-            var time = MedianTime(runs.Select(x => x.NeighborOpenTimes.GetValueOrDefault(neighbor.Id, -1)));
-            output.AppendLine($"  {("Сосед " + neighbor.Name).PadRight(26)}  {FormatTime(time).PadLeft(9)}");
-        }
-
-        foreach (var blueprint in _data.Blueprints)
-        {
-            var time = MedianTime(runs.Select(x => x.BlueprintTimes.GetValueOrDefault(blueprint.Id, -1)));
-            output.AppendLine($"  {("Чертёж " + blueprint.Name).PadRight(26)}  {FormatTime(time).PadLeft(9)}");
-        }
-
-        output.AppendLine($"Трудяги: простой {FormatPercent(Median(runs.Select(x => x.IdleShare)))}; отдых {FormatPercent(Median(runs.Select(x => x.RestShare)))}.");
-        output.AppendLine("Финальные стоки");
-        output.AppendLine("  Ресурс                      Кол-во  Монетный эквивалент");
-        foreach (var resourceType in _data.ResourceTypes)
-        {
-            var value = MedianInt(runs.Select(x => x.FinalResources.GetValueOrDefault(resourceType.Id)));
-            var coins = value * ResourceManager.GetMarketValue(resourceType.Id);
-            output.AppendLine($"  {resourceType.Name.PadRight(26)}  {value,6}  {coins,20}");
-        }
-
-        var total = MedianInt(runs.Select(x => x.FinalResources.Sum(resource => resource.Value * ResourceManager.GetMarketValue(resource.Key))));
-        output.AppendLine($"  {"Итого".PadRight(26)}  {string.Empty,6}  {total,20}");
-        output.AppendLine($"Весь контент выкачан: {FormatTime(MedianTime(runs.Select(x => x.ContentCompleteTime ?? -1)))}.");
-    }
-
-    private void RenderDiagnostics(StringBuilder output)
-    {
-        var casual = _report.Runs[ScenarioKind.Casual];
-        var extreme = _report.Runs[ScenarioKind.Extreme];
-        output.AppendLine();
-        output.AppendLine("Диагностика §8.7");
-        output.AppendLine("  Веха                                      Экстремал/казуал");
-        foreach (var level in new[] { 8, 20 })
-        {
-            var casualTime = MedianTime(casual.Select(x => x.VillageLevelTimes.GetValueOrDefault(level, -1)));
-            var extremeTime = MedianTime(extreme.Select(x => x.VillageLevelTimes.GetValueOrDefault(level, -1)));
-            output.AppendLine($"  {("Обжитость " + level).PadRight(40)}  {FormatRatio(extremeTime, casualTime)}");
-        }
-
-        foreach (var type in _data.DomikTypes.Where(x => x.MaxLevel > 1))
-        {
-            var casualTime = MedianTime(casual.Select(x => x.MaxDomikLevelTimes.GetValueOrDefault(type.Id, -1)));
-            var extremeTime = MedianTime(extreme.Select(x => x.MaxDomikLevelTimes.GetValueOrDefault(type.Id, -1)));
-            output.AppendLine($"  {(type.Name + ", макс. уровень").PadRight(40)}  {FormatRatio(extremeTime, casualTime)}");
-        }
-
-        var stalled = casual.Where(x => x.LongestStallSeconds > 24 * 60 * 60).ToArray();
-        if (stalled.Length == 0)
-        {
-            output.AppendLine("  Казуальный: достижимых действий не терял более чем на 24 ч.");
-            return;
-        }
-
-        var longest = stalled.Max(x => x.LongestStallSeconds);
-        output.AppendLine($"  ПРЕДУПРЕЖДЕНИЕ: казуальный стоял более 24 ч; максимум {FormatHours(longest)} ч, сиды {string.Join(", ", stalled.Select(x => x.Seed))}.");
-    }
-
-    private static string GetScenarioName(ScenarioKind scenario)
-    {
-        return scenario switch
-        {
-            ScenarioKind.Casual => "Казуальный",
-            ScenarioKind.Optimal => "Оптимальный",
-            ScenarioKind.Extreme => "Экстремальный",
-            _ => string.Empty,
-        };
-    }
-
-    private static int? MedianTime(IEnumerable<int> values)
-    {
-        var value = values.Select(x => x < 0 ? int.MaxValue : x).OrderBy(x => x).ElementAt(3);
-        return value == int.MaxValue ? null : value;
-    }
-
-    private static int MedianInt(IEnumerable<int> values)
-    {
-        return values.OrderBy(x => x).ElementAt(3);
-    }
-
-    private static double Median(IEnumerable<double> values)
-    {
-        return values.OrderBy(x => x).ElementAt(3);
-    }
-
-    private static string FormatTime(int? seconds)
-    {
-        return seconds == null ? "не достигнут" : FormatHours(seconds.Value);
-    }
-
-    private static string FormatHours(int seconds)
-    {
-        return (seconds / 3600.0).ToString("F1", RussianCulture);
-    }
-
-    private static string FormatPercent(double value)
-    {
-        return (value * 100).ToString("F1", RussianCulture) + "%";
-    }
-
-    private static string FormatRatio(int? numerator, int? denominator)
-    {
-        if (numerator == null || denominator == null || denominator == 0)
-        {
-            return "не достигнут";
-        }
-
-        return (numerator.Value / (double)denominator.Value).ToString("F2", RussianCulture) + "×";
-    }
-}
-
-public sealed class FtueReport
-{
-    private readonly IReadOnlyList<SimulationRunResult> _runs;
-
-    public FtueReport(IReadOnlyList<SimulationRunResult> runs)
-    {
-        _runs = runs;
-    }
-
-    public string Render()
-    {
-        var output = new StringBuilder();
-        output.AppendLine("FTUE-симулятор: казуальный сценарий, 48 ч, сиды 1–7.");
-        output.AppendLine("  Метрика                         Медиана      Min/max       Цель");
-        RenderTime(output, "Первое подкрепление", _runs.Select(x => x.FirstIncomeSeconds), 300);
-        RenderTime(output, "Первый старт улучшения", _runs.Select(x => x.FirstUpgradeStartSeconds), 2700);
-        RenderInt(output, "Действия за первые 15 мин", _runs.Select(x => x.ActionsFirst15Min), value => value >= 8, ">= 8");
-        RenderInt(output, "Невыполнимые заказы, день 1", _runs.Select(x => x.InfeasibleOrdersDay1), value => value == 0, "= 0");
-        RenderInt(output, "Наказов выполнено за 48 ч", _runs.Select(x => x.GoalsCompleted48h), null, "—");
-        return output.ToString().TrimEnd();
-    }
-
-    private static void RenderTime(StringBuilder output, string name, IEnumerable<int?> values, int target)
-    {
-        var all = values.ToArray();
-        var median = all.OrderBy(x => x ?? int.MaxValue).ElementAt(all.Length / 2);
-        var min = all.Min(x => x ?? int.MaxValue);
-        var max = all.Max(x => x ?? int.MaxValue);
-        var targetText = $"<= {target} с";
-        var status = median != null && median <= target ? "OK" : "FAIL";
-        output.AppendLine($"  {name.PadRight(31)}  {FormatTime(median).PadLeft(9)}  {FormatRange(min, max).PadLeft(11)}  {targetText} {status}");
-    }
-
-    private static void RenderInt(StringBuilder output, string name, IEnumerable<int> values, Func<int, bool>? success, string targetText)
-    {
-        var all = values.OrderBy(x => x).ToArray();
-        var median = all[all.Length / 2];
-        var status = success == null ? string.Empty : (success(median) ? " OK" : " FAIL");
-        var range = $"{all[0]}–{all[^1]}";
-        output.AppendLine($"  {name.PadRight(31)}  {median,9}  {range.PadLeft(11)}  {targetText}{status}");
-    }
-
-    private static string FormatTime(int? seconds)
-    {
-        return seconds == null ? "не достигнуто" : seconds.Value + " с";
-    }
-
-    private static string FormatRange(int min, int max)
-    {
-        return min == int.MaxValue ? "—" : min == max ? min + " с" : $"{min}–{max} с";
     }
 }
