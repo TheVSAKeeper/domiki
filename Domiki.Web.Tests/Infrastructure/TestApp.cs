@@ -72,7 +72,12 @@ public static class App
 
     internal static void Initialize()
     {
-        var config = TestBase.InitConfiguration().Get<Settings>()!;
+        var config = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .AddJsonFile("appsettings.Development.json", true)
+            .AddEnvironmentVariables()
+            .Build()
+            .Get<Settings>()!;
         _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
             builder.UseEnvironment("Testing");

@@ -1,33 +1,31 @@
-﻿using Domiki.Web.Data.Entities;
-using Domiki.Web.Infrastructure;
-using Resource = Domiki.Web.Reference.Models.Resource;
+﻿using Domiki.Web.Infrastructure;
+using Order = Domiki.Web.Data.Entities.Order;
 
 namespace Domiki.Web.Tests;
 
-public class GoldMiningTests : TestBase
+public sealed class GoldMiningTests
 {
-    private const int BarracksDomikTypeId = 2;
-    private const int GoldMineDomikTypeId = 4;
-    private const int GoldMineDomikId = 4;
-    private const int GoldDigReceiptId = 3;
-    private const int GoldResourceTypeId = 5;
-
     /// <summary>
     /// Суточный лимит добычи золота сбрасывается с наступлением следующего дня.
     /// </summary>
     [Test]
     public void GoldMineResetsCapOnNextDayTest()
     {
-        var playerId = CreatePlayerWithGoldMine(1);
+        const int expectedGold = 2;
+        const int expectedMinedToday = 1;
 
-        MineGold(playerId);
-        SetGoldMinedDate(playerId, DateTimeHelper.GetNowDate().AddDays(-1).Date);
-        MineGold(playerId);
+        var player = TestPlayer.Create()
+            .WithGoldMine(1);
+
+        var goldMineId = player.DomikId(DomikIds.GoldMine);
+        player.StartManufacture(goldMineId, ReceiptIds.GoldDig);
+        SetGoldMinedDate(player.Id, DateTimeHelper.GetNowDate().AddDays(-1).Date);
+        player.StartManufacture(goldMineId, ReceiptIds.GoldDig);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(2));
-            Assert.That(GetGoldMinedToday(playerId), Is.EqualTo(1));
+            Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(expectedGold));
+            Assert.That(GetGoldMinedToday(player.Id), Is.EqualTo(expectedMinedToday));
         }
     }
 
@@ -37,17 +35,23 @@ public class GoldMiningTests : TestBase
     [Test]
     public void OrderGoldIsNotLimitedByGoldMineCapTest()
     {
-        var playerId = CreatePlayerWithGoldMine(1);
-        MineGold(playerId);
-        var orderId = CreateManualOrder(playerId, 1, 1, 1, 0, 7, 1);
-        var beforeGold = ResourceValue(GetResources(playerId), GoldResourceTypeId);
+        const int rewardGold = 7;
+        const int expectedMinedToday = 1;
 
-        CompleteOrder(playerId, orderId);
+        var player = TestPlayer.Create()
+            .WithGoldMine(1);
+
+        var goldMineId = player.DomikId(DomikIds.GoldMine);
+        player.StartManufacture(goldMineId, ReceiptIds.GoldDig);
+        var orderId = CreateManualOrder(player.Id, 1, ResourceIds.Coin, 1, 0, rewardGold, 1);
+        var beforeGold = player.Resource(ResourceIds.Gold);
+
+        player.CompleteOrder(orderId);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId) - beforeGold, Is.EqualTo(7));
-            Assert.That(GetGoldMinedToday(playerId), Is.EqualTo(1));
+            Assert.That(player.Resource(ResourceIds.Gold) - beforeGold, Is.EqualTo(rewardGold));
+            Assert.That(GetGoldMinedToday(player.Id), Is.EqualTo(expectedMinedToday));
         }
     }
 
@@ -60,87 +64,41 @@ public class GoldMiningTests : TestBase
     [TestCase(5)]
     public void GoldMineGrantsAtMostMineLevelPerDayTest(int mineLevel)
     {
-        var playerId = CreatePlayerWithGoldMine(mineLevel);
-        var beforeGold = ResourceValue(GetResources(playerId), GoldResourceTypeId);
+        var player = TestPlayer.Create()
+            .WithGoldMine(mineLevel);
+
+        var goldMineId = player.DomikId(DomikIds.GoldMine);
+        var beforeGold = player.Resource(ResourceIds.Gold);
 
         for (var i = 0; i < mineLevel + 2; i++)
         {
-            MineGold(playerId);
+            player.StartManufacture(goldMineId, ReceiptIds.GoldDig);
         }
 
-        var afterGold = ResourceValue(GetResources(playerId), GoldResourceTypeId);
+        var afterGold = player.Resource(ResourceIds.Gold);
         using (Assert.EnterMultipleScope())
         {
             Assert.That(afterGold - beforeGold, Is.EqualTo(mineLevel));
-            Assert.That(GetGoldMinedToday(playerId), Is.EqualTo(mineLevel));
+            Assert.That(GetGoldMinedToday(player.Id), Is.EqualTo(mineLevel));
         }
     }
 
-    private int CreatePlayerWithGoldMine(int mineLevel)
+    private static int GetGoldMinedToday(int playerId)
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 3, BarracksDomikTypeId);
-        AddGoldMine(playerId, mineLevel);
-        return playerId;
+        return App.Read(context => context.Players.Single(x => x.Id == playerId).GoldMinedToday);
     }
 
-    private int GetPlayerId()
+    private static void SetGoldMinedDate(int playerId, DateTime value)
     {
-        using var uow = GetUow();
-        var playerId = GetDomikManager(uow).GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
-    }
-
-    private void AddGoldMine(int playerId, int mineLevel)
-    {
-        using var uow = GetUow();
-        uow.Context.Domiks.Add(new()
-        {
-            PlayerId = playerId,
-            Id = GoldMineDomikId,
-            TypeId = GoldMineDomikTypeId,
-            Level = mineLevel,
-        });
-
-        uow.Commit();
-    }
-
-    private void MineGold(int playerId)
-    {
-        using var uow = GetUow();
-        GetDomikManager(uow).StartManufacture(playerId, GoldMineDomikId, GoldDigReceiptId);
-        uow.Commit();
-    }
-
-    private Resource[] GetResources(int playerId)
-    {
-        using var uow = GetUow();
-        var resources = GetDomikManager(uow).GetResources(playerId).ToArray();
-        uow.Commit();
-        return resources;
-    }
-
-    private int GetGoldMinedToday(int playerId)
-    {
-        using var uow = GetUow();
-        var value = uow.Context.Players.Single(x => x.Id == playerId).GoldMinedToday;
-        uow.Commit();
-        return value;
-    }
-
-    private void SetGoldMinedDate(int playerId, DateTime value)
-    {
-        using var uow = GetUow();
-        var player = uow.Context.Players.Single(x => x.Id == playerId);
+        using var scope = App.Scope();
+        var player = scope.Context.Players.Single(x => x.Id == playerId);
         player.GoldMinedDate = value;
-        uow.Context.SaveChanges();
-        uow.Commit();
+        scope.Commit();
     }
 
-    private int CreateManualOrder(int playerId, int neighborId, int resourceTypeId, int value, int rewardCoins, int rewardGold, int rewardReputation)
+    private static int CreateManualOrder(int playerId, int neighborId, int resourceTypeId, int value, int rewardCoins, int rewardGold, int rewardReputation)
     {
-        using var uow = GetUow();
+        using var scope = App.Scope();
         var now = DateTimeHelper.GetNowDate();
         var order = new Order
         {
@@ -153,28 +111,25 @@ public class GoldMiningTests : TestBase
             RewardReputation = rewardReputation,
         };
 
-        uow.Context.Orders.Add(order);
-        uow.Context.SaveChanges();
-        uow.Context.OrderResources.Add(new()
+        scope.Context.Orders.Add(order);
+        scope.Context.SaveChanges();
+        scope.Context.OrderResources.Add(new()
         {
             OrderId = order.Id,
             ResourceTypeId = resourceTypeId,
             Value = value,
         });
 
-        uow.Commit();
+        scope.Commit();
         return order.Id;
     }
+}
 
-    private void CompleteOrder(int playerId, int orderId)
+file static class GoldMiningTestsActs
+{
+    public static TestPlayer WithGoldMine(this TestPlayer player, int level)
     {
-        using var uow = GetUow();
-        GetOrderManager(uow).CompleteOrder(playerId, orderId);
-        uow.Commit();
-    }
-
-    private int ResourceValue(Resource[] resources, int resourceTypeId)
-    {
-        return resources.FirstOrDefault(x => x.Type.Id == resourceTypeId)?.Value ?? 0;
+        return player.WithDomik(DomikIds.Barrack)
+            .WithDomik(DomikIds.GoldMine, level);
     }
 }

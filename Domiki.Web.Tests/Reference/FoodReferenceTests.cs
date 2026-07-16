@@ -1,8 +1,12 @@
-﻿using Domiki.Web.Reference;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Core.Models;
+using Domiki.Web.Economy.Models;
+using Domiki.Web.Reference;
+using Domiki.Web.Reference.Models;
 
 namespace Domiki.Web.Tests;
 
-file sealed class FoodReferenceTests : TestBase
+public sealed class FoodReferenceTests
 {
     /// <summary>
     /// Рецепт выпечки хлеба превращает 2 муки в 4 хлеба, без монет на входе.
@@ -10,14 +14,13 @@ file sealed class FoodReferenceTests : TestBase
     [Test]
     public void BreadReceiptResourcesTest()
     {
-        using var uow = GetUow();
-        var receipt = GetResourceManager(uow).GetReceipts().Single(x => x.Id == 55);
+        var receipt = App.Act<ResourceManager, Receipt[]>(m => m.GetReceipts()).Single(x => x.Id == ReceiptIds.MakeBread);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(receipt.LogicName, Is.EqualTo("make_bread"));
-            Assert.That(receipt.InputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(14, 2)]));
-            Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(15, 4)]));
+            Assert.That(receipt.InputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ResourceIds.Flour, 2)]));
+            Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ResourceIds.Bread, 4)]));
         }
     }
 
@@ -27,16 +30,14 @@ file sealed class FoodReferenceTests : TestBase
     [Test]
     public void DubravaFoodProfileAndBakeryBlueprintTest()
     {
-        using var uow = GetUow();
-        var resourceManager = GetResourceManager(uow);
-        var dubrava = resourceManager.GetNeighbors().Single(x => x.Id == 5);
-        var blueprint = resourceManager.GetBlueprints().Single(x => x.Id == 4);
+        var dubrava = App.Act<ResourceManager, Neighbor[]>(m => m.GetNeighbors()).Single(x => x.Id == 5);
+        var blueprint = App.Act<ResourceManager, Blueprint[]>(m => m.GetBlueprints()).Single(x => x.Id == BlueprintIds.Bakery);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(dubrava.LogicName, Is.EqualTo("dubrava"));
-            Assert.That(dubrava.SecondaryResourceTypeId, Is.EqualTo(15));
-            Assert.That(blueprint.DomikTypeId, Is.EqualTo(16));
+            Assert.That(dubrava.SecondaryResourceTypeId, Is.EqualTo(ResourceIds.Bread));
+            Assert.That(blueprint.DomikTypeId, Is.EqualTo(DomikIds.Bakery));
             Assert.That(blueprint.ReputationThreshold, Is.EqualTo(25));
             Assert.That(blueprint.NeighborId, Is.EqualTo(dubrava.Id));
         }
@@ -48,14 +49,13 @@ file sealed class FoodReferenceTests : TestBase
     [Test]
     public void GrainReceiptHasNoCoinInputTest()
     {
-        using var uow = GetUow();
-        var receipt = GetResourceManager(uow).GetReceipts().Single(x => x.Id == 50);
+        var receipt = App.Act<ResourceManager, Receipt[]>(m => m.GetReceipts()).Single(x => x.Id == ReceiptIds.GrainDig);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(receipt.LogicName, Is.EqualTo("grain_dig"));
-            Assert.That(receipt.InputResources.Any(x => x.Type.Id == 1), Is.False);
-            Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(13, 1)]));
+            Assert.That(receipt.InputResources.Any(x => x.Type.Id == ResourceIds.Coin), Is.False);
+            Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ResourceIds.Grain, 1)]));
         }
     }
 
@@ -67,16 +67,15 @@ file sealed class FoodReferenceTests : TestBase
     /// <param name="level">Уровень постройки.</param>
     /// <param name="resourceTypeId">Проверяемый тип ресурса в стоимости апгрейда.</param>
     /// <param name="expected">Ожидаемое количество ресурса.</param>
-    [TestCase(15, 1, 1, 150)]
-    [TestCase(15, 1, 11, 1)]
-    [TestCase(15, 3, 11, 1)]
-    [TestCase(15, 5, 11, 2)]
-    [TestCase(16, 1, 5, 10)]
-    [TestCase(16, 4, 12, 10)]
+    [TestCase(DomikIds.Mill, 1, ResourceIds.Coin, 150)]
+    [TestCase(DomikIds.Mill, 1, ResourceIds.Millstone, 1)]
+    [TestCase(DomikIds.Mill, 3, ResourceIds.Millstone, 1)]
+    [TestCase(DomikIds.Mill, 5, ResourceIds.Millstone, 2)]
+    [TestCase(DomikIds.Bakery, 1, ResourceIds.Gold, 10)]
+    [TestCase(DomikIds.Bakery, 4, ResourceIds.Dishes, 10)]
     public void FoodBuildingUpgradeCostsTest(int domikTypeId, int level, int resourceTypeId, int expected)
     {
-        using var uow = GetUow();
-        var domikType = GetResourceManager(uow).GetDomikTypes().Single(x => x.Id == domikTypeId);
+        var domikType = App.Act<ResourceManager, DomikType[]>(m => m.GetDomikTypes()).Single(x => x.Id == domikTypeId);
         var resources = domikType.Levels.Single(x => x.Value == level).Resources;
 
         Assert.That(resources.Single(x => x.Type.Id == resourceTypeId).Value, Is.EqualTo(expected));
@@ -87,9 +86,9 @@ file sealed class FoodReferenceTests : TestBase
     /// </summary>
     /// <param name="resourceTypeId">Тип ресурса.</param>
     /// <param name="expected">Ожидаемая рыночная стоимость.</param>
-    [TestCase(13, 10)]
-    [TestCase(14, 35)]
-    [TestCase(15, 20)]
+    [TestCase(ResourceIds.Grain, 10)]
+    [TestCase(ResourceIds.Flour, 35)]
+    [TestCase(ResourceIds.Bread, 20)]
     public void MarketValueTest(int resourceTypeId, int expected)
     {
         Assert.That(ResourceManager.GetMarketValue(resourceTypeId), Is.EqualTo(expected));

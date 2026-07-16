@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Domiki.Web.Tests;
 
-public class ResponseBufferingTests : TestBase
+public sealed class ResponseBufferingTests
 {
     /// <summary>
     /// Упавший запрос не отдаёт клиенту недописанное частичное тело ответа.
@@ -12,7 +12,8 @@ public class ResponseBufferingTests : TestBase
     [Test]
     public void FailingRequestDoesNotFlushPartialBody()
     {
-        using var uow = GetUow();
+        using var scope = App.Scope();
+        var uow = scope.Get<UnitOfWork>();
         var context = new DefaultHttpContext();
         var realBody = new MemoryStream();
         context.Response.Body = realBody;
@@ -33,7 +34,8 @@ public class ResponseBufferingTests : TestBase
     [Test]
     public async Task SuccessfulRequestFlushesBufferedBody()
     {
-        using var uow = GetUow();
+        using var scope = App.Scope();
+        var uow = scope.Get<UnitOfWork>();
         var context = new DefaultHttpContext();
         var realBody = new MemoryStream();
         context.Response.Body = realBody;

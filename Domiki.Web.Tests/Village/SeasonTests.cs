@@ -1,25 +1,15 @@
-﻿using Domiki.Web.Activities.Models;
-using Domiki.Web.Core.Scheduling;
-using Domiki.Web.Economy.Models;
+﻿using Domiki.Web.Activities;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Village;
-using Domiki.Web.Village.Dto;
 using Domiki.Web.Village.Models;
 using System.Text.Json;
 
 namespace Domiki.Web.Tests;
 
 [NonParallelizable]
-public class SeasonTests : TestBase
+public sealed class SeasonTests
 {
     private const int BridgeTolokaTypeId = 1;
-    private const int StoneResourceTypeId = 2;
-    private const int GoldResourceTypeId = 5;
-    private const int PlankResourceTypeId = 7;
-    private const int FountainDecorTypeId = 4;
-    private const int BarracksTypeId = 2;
-    private const int ScoutHutDomikTypeId = 11;
-    private const int GatheringDomikTypeId = 10;
     private const int ShortScoutId = 1;
 
     [SetUp]
@@ -40,15 +30,15 @@ public class SeasonTests : TestBase
     [Test]
     public void CompleteOrderGrowsSeasonOrdersCounterTest()
     {
-        var playerId = GetPlayerId();
-        var order = GetOrders(playerId).First();
+        var player = TestPlayer.Create();
+        var order = player.Orders().First();
         var need = order.Resources.Single();
-        GrantResource(playerId, need.Type.Id, need.Value);
-        var season = GetSeason(DateTimeHelper.GetNowDate());
+        player.WithResource(need.Type.Id, need.Value);
+        var season = CurrentSeason(DateTimeHelper.GetNowDate());
 
-        CompleteOrder(playerId, order.Id);
+        player.CompleteOrder(order.Id);
 
-        Assert.That(GetSeasonCounter(season.Number, playerId, SeasonMetric.Orders), Is.EqualTo(order.RewardCoins));
+        Assert.That(player.SeasonCounter(season.Number, SeasonMetric.Orders), Is.EqualTo(order.RewardCoins));
     }
 
     /// <summary>
@@ -57,14 +47,17 @@ public class SeasonTests : TestBase
     [Test]
     public async Task ConcurrentContributesKeepExactSeasonCounterSumTest()
     {
-        var playerId = GetUnlockedPlayerId();
-        GrantResource(playerId, StoneResourceTypeId, 1000);
-        var season = GetSeason(DateTimeHelper.GetNowDate());
+        var player = TestPlayer.Create()
+            .WithDecor(DecorIds.Fountain, 4)
+            .WithResource(ResourceIds.Coin, 800)
+            .Buy(DomikIds.Gathering)
+            .WithResource(ResourceIds.Stone, 1000);
 
-        await Task.WhenAll(Task.Run(() => Contribute(playerId, 70)),
-            Task.Run(() => Contribute(playerId, 80)));
+        var season = CurrentSeason(DateTimeHelper.GetNowDate());
 
-        Assert.That(GetSeasonCounter(season.Number, playerId, SeasonMetric.Toloka), Is.EqualTo(150));
+        await Task.WhenAll(Task.Run(() => player.Contribute(70)), Task.Run(() => player.Contribute(80)));
+
+        Assert.That(player.SeasonCounter(season.Number, SeasonMetric.Toloka), Is.EqualTo(150));
     }
 
     /// <summary>
@@ -73,13 +66,17 @@ public class SeasonTests : TestBase
     [Test]
     public void ContributeGrowsSeasonTolokaCounterTest()
     {
-        var playerId = GetUnlockedPlayerId();
-        GrantResource(playerId, StoneResourceTypeId, 100);
-        var season = GetSeason(DateTimeHelper.GetNowDate());
+        var player = TestPlayer.Create()
+            .WithDecor(DecorIds.Fountain, 4)
+            .WithResource(ResourceIds.Coin, 800)
+            .Buy(DomikIds.Gathering)
+            .WithResource(ResourceIds.Stone, 100);
 
-        Contribute(playerId, 40);
+        var season = CurrentSeason(DateTimeHelper.GetNowDate());
 
-        Assert.That(GetSeasonCounter(season.Number, playerId, SeasonMetric.Toloka), Is.EqualTo(40));
+        player.Contribute(40);
+
+        Assert.That(player.SeasonCounter(season.Number, SeasonMetric.Toloka), Is.EqualTo(40));
     }
 
     /// <summary>
@@ -88,18 +85,24 @@ public class SeasonTests : TestBase
     [Test]
     public void FinishExpeditionGrowsSeasonExpeditionsCounterTest()
     {
-        var playerId = GetPlayerId();
-        BuyBarracks(playerId, 2);
-        GrantResource(playerId, GoldResourceTypeId, 1);
-        GrantResource(playerId, PlankResourceTypeId, 2);
-        StartExpedition(playerId, ShortScoutId);
-        var expedition = GetExpeditions(playerId).Active.Single();
-        var season = GetSeason(DateTimeHelper.GetNowDate());
+        var player = TestPlayer.Create()
+            .WithDomiks(DomikIds.Barrack, 2)
+            .WithResource(ResourceIds.Gold, 1)
+            .WithResource(ResourceIds.Board, 2)
+            .WithDomik(DomikIds.ScoutHut);
 
+        using (App.PendingEvents())
+        {
+            player.StartExpedition(ShortScoutId);
+        }
+
+        var expedition = player.Expeditions().Active.Single();
+        var season = CurrentSeason(DateTimeHelper.GetNowDate());
         SetExpeditionFinish(expedition.Id, DateTimeHelper.GetNowDate().AddSeconds(-1));
-        FinishExpedition(playerId, expedition.Id, DateTimeHelper.GetNowDate());
 
-        Assert.That(GetSeasonCounter(season.Number, playerId, SeasonMetric.Expeditions), Is.EqualTo(1));
+        player.FinishExpedition(expedition.Id, DateTimeHelper.GetNowDate());
+
+        Assert.That(player.SeasonCounter(season.Number, SeasonMetric.Expeditions), Is.EqualTo(1));
     }
 
     /// <summary>
@@ -109,15 +112,19 @@ public class SeasonTests : TestBase
     [Test]
     public void GetWorldReturnsSeasonMetaAndPerVillageMetricsTest()
     {
-        var firstPlayerId = CreateNamedPlayer("Сезон Первая", 0, 1);
-        var secondPlayerId = CreateNamedPlayer("Сезон Вторая", 1, 2);
-        var season = GetSeason(DateTimeHelper.GetNowDate());
-        SetSeasonCounter(season.Number, firstPlayerId, SeasonMetric.Orders, 120);
-        SetSeasonCounter(season.Number, firstPlayerId, SeasonMetric.Toloka, 30);
-        SetSeasonCounter(season.Number, secondPlayerId, SeasonMetric.Expeditions, 4);
-        GrantDecor(firstPlayerId, FountainDecorTypeId, 2);
+        var first = TestPlayer.Create()
+            .SetVillageIdentity("Сезон Первая-" + Guid.NewGuid().ToString("N")[..6], 0, 1);
 
-        var world = GetWorld(firstPlayerId);
+        var second = TestPlayer.Create()
+            .SetVillageIdentity("Сезон Вторая-" + Guid.NewGuid().ToString("N")[..6], 1, 2);
+
+        var season = CurrentSeason(DateTimeHelper.GetNowDate());
+        first.SetSeasonCounter(season.Number, SeasonMetric.Orders, 120);
+        first.SetSeasonCounter(season.Number, SeasonMetric.Toloka, 30);
+        second.SetSeasonCounter(season.Number, SeasonMetric.Expeditions, 4);
+        first.WithDecor(DecorIds.Fountain, 2);
+
+        var world = first.World();
 
         using (Assert.EnterMultipleScope())
         {
@@ -126,7 +133,7 @@ public class SeasonTests : TestBase
             Assert.That(world.Season.EndDate, Is.EqualTo(season.EndDate));
         }
 
-        var firstVillage = world.Villages.Single(x => x.PlayerId == firstPlayerId);
+        var firstVillage = world.Villages.Single(x => x.PlayerId == first.Id);
         using (Assert.EnterMultipleScope())
         {
             Assert.That(firstVillage.SeasonOrders, Is.EqualTo(120));
@@ -135,7 +142,7 @@ public class SeasonTests : TestBase
             Assert.That(firstVillage.Comfort, Is.GreaterThan(0));
         }
 
-        var secondVillage = world.Villages.Single(x => x.PlayerId == secondPlayerId);
+        var secondVillage = world.Villages.Single(x => x.PlayerId == second.Id);
         using (Assert.EnterMultipleScope())
         {
             Assert.That(secondVillage.SeasonExpeditions, Is.EqualTo(4));
@@ -153,24 +160,24 @@ public class SeasonTests : TestBase
     [Test]
     public void SeasonKeyResetsBetweenSeasonsTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
         var firstSeasonDate = SeasonManager.SeasonEpoch.AddDays(1);
         var secondSeasonDate = SeasonManager.SeasonEpoch.AddSeconds(SeasonManager.SeasonDurationSeconds + 1);
 
-        IncrementCounter(playerId, SeasonMetric.Toloka, 40, firstSeasonDate);
-        IncrementCounter(playerId, SeasonMetric.Toloka, 15, secondSeasonDate);
+        player.IncrementCounter(SeasonMetric.Toloka, 40, firstSeasonDate);
+        player.IncrementCounter(SeasonMetric.Toloka, 15, secondSeasonDate);
 
-        var firstSeasonId = GetSeason(firstSeasonDate).Number;
-        var secondSeasonId = GetSeason(secondSeasonDate).Number;
+        var firstSeasonId = CurrentSeason(firstSeasonDate).Number;
+        var secondSeasonId = CurrentSeason(secondSeasonDate).Number;
         using (Assert.EnterMultipleScope())
         {
             Assert.That(secondSeasonId, Is.EqualTo(firstSeasonId + 1));
-            Assert.That(GetSeasonCounter(firstSeasonId, playerId, SeasonMetric.Toloka), Is.EqualTo(40));
-            Assert.That(GetSeasonCounter(secondSeasonId, playerId, SeasonMetric.Toloka), Is.EqualTo(15));
+            Assert.That(player.SeasonCounter(firstSeasonId, SeasonMetric.Toloka), Is.EqualTo(40));
+            Assert.That(player.SeasonCounter(secondSeasonId, SeasonMetric.Toloka), Is.EqualTo(15));
         }
 
         var firstSeasonCounters = GetCounters(firstSeasonId);
-        Assert.That(firstSeasonCounters[(playerId, SeasonMetric.Toloka)], Is.EqualTo(40));
+        Assert.That(firstSeasonCounters[(player.Id, SeasonMetric.Toloka)], Is.EqualTo(40));
     }
 
     /// <summary>
@@ -179,16 +186,12 @@ public class SeasonTests : TestBase
     [Test]
     public void WorldDtoWithSeasonFieldsDoesNotContainPrivateFieldsTest()
     {
-        var playerId = CreateNamedPlayer("Сезон Приват", 5, 6);
-        SetSeasonCounter(GetSeason(DateTimeHelper.GetNowDate()).Number, playerId, SeasonMetric.Orders, 10);
+        var player = TestPlayer.Create()
+            .SetVillageIdentity("Сезон Приват-" + Guid.NewGuid().ToString("N")[..6], 5, 6);
 
-        WorldDto worldDto;
-        using (var uow = GetUow())
-        {
-            var manager = GetWorldManager(uow);
-            worldDto = manager.GetWorld(playerId).ToDto();
-            uow.Commit();
-        }
+        player.SetSeasonCounter(CurrentSeason(DateTimeHelper.GetNowDate()).Number, SeasonMetric.Orders, 10);
+
+        var worldDto = player.WorldDto();
 
         var json = JsonSerializer.Serialize(worldDto);
         Assert.That(json, Does.Not.Contain("\"Name\""));
@@ -209,7 +212,7 @@ public class SeasonTests : TestBase
     {
         var date = SeasonManager.SeasonEpoch.AddSeconds(offsetSeconds);
 
-        var season = GetSeason(date);
+        var season = CurrentSeason(date);
 
         using (Assert.EnterMultipleScope())
         {
@@ -219,253 +222,30 @@ public class SeasonTests : TestBase
         }
     }
 
-    private int GetPlayerId()
+    private static Season CurrentSeason(DateTime date)
     {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
+        return App.Act<SeasonManager, Season>(m => m.GetCurrentSeason(date));
     }
 
-    private int CreateNamedPlayer(string prefix, int crestIcon, int crestColor)
+    private static Dictionary<(int PlayerId, SeasonMetric Metric), int> GetCounters(int seasonId)
     {
-        var playerId = GetPlayerId();
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        domikManager.SetVillageIdentity(playerId, TestVillageName(prefix), crestIcon, crestColor);
-        uow.Commit();
-
-        return playerId;
+        return App.Act<SeasonManager, Dictionary<(int PlayerId, SeasonMetric Metric), int>>(m => m.GetCounters(seasonId));
     }
 
-    private World GetWorld(int currentPlayerId)
+    private static void SetExpeditionFinish(int expeditionId, DateTime finishDate)
     {
-        using var uow = GetUow();
-        var manager = GetWorldManager(uow);
-        var world = manager.GetWorld(currentPlayerId);
-        uow.Commit();
-        return world;
-    }
-
-    private Order[] GetOrders(int playerId)
-    {
-        using var uow = GetUow();
-        var orderManager = GetOrderManager(uow);
-        var orders = orderManager.GetOrders(playerId).ToArray();
-        uow.Commit();
-        return orders;
-    }
-
-    private void CompleteOrder(int playerId, int orderId)
-    {
-        using var uow = GetUow();
-        var orderManager = GetOrderManager(uow);
-        orderManager.CompleteOrder(playerId, orderId);
-        uow.Commit();
-    }
-
-    private int GetUnlockedPlayerId()
-    {
-        var playerId = GetPlayerId();
-        GrantDecor(playerId, FountainDecorTypeId, 4);
-        GrantResource(playerId, 1, 800);
-        BuyDomik(playerId, GatheringDomikTypeId);
-        return playerId;
-    }
-
-    private void Contribute(int playerId, int amount)
-    {
-        using var uow = GetUow();
-        var manager = GetTolokaManager(uow);
-        manager.Contribute(playerId, amount, DateTimeHelper.GetNowDate());
-        uow.Commit();
-    }
-
-    private void GrantDecor(int playerId, int decorTypeId, int count)
-    {
-        using var uow = GetUow();
-        var decor = uow.Context.PlayerDecors.SingleOrDefault(x => x.PlayerId == playerId && x.DecorTypeId == decorTypeId);
-        if (decor == null)
-        {
-            decor = new()
-            {
-                PlayerId = playerId,
-                DecorTypeId = decorTypeId,
-            };
-
-            uow.Context.PlayerDecors.Add(decor);
-        }
-
-        decor.Count += count;
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void GrantResource(int playerId, int typeId, int value)
-    {
-        using var uow = GetUow();
-        var resource = uow.Context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
-        if (resource == null)
-        {
-            resource = new()
-            {
-                PlayerId = playerId,
-                TypeId = typeId,
-            };
-
-            uow.Context.Resources.Add(resource);
-        }
-
-        resource.Value += value;
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void BuyBarracks(int playerId, int count)
-    {
-        using var uow = GetUow();
-        var nextId = (uow.Context.Domiks.Where(x => x.PlayerId == playerId).Max(x => (int?)x.Id) ?? 0) + 1;
-        for (var i = 0; i < count; i++)
-        {
-            uow.Context.Domiks.Add(new()
-            {
-                PlayerId = playerId,
-                Id = nextId + i,
-                TypeId = BarracksTypeId,
-                Level = 1,
-            });
-        }
-
-        uow.Commit();
-    }
-
-    private void BuyDomik(int playerId, int typeId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        domikManager.BuyDomik(playerId, typeId);
-        uow.Commit();
-    }
-
-    private void AddBuiltDomik(int playerId, int typeId)
-    {
-        using var uow = GetUow();
-        if (!uow.Context.Domiks.Any(x => x.PlayerId == playerId && x.TypeId == typeId))
-        {
-            uow.Context.Domiks.Add(new()
-            {
-                PlayerId = playerId,
-                Id = -typeId,
-                TypeId = typeId,
-                Level = 1,
-            });
-
-            uow.Context.SaveChanges();
-        }
-
-        uow.Commit();
-    }
-
-    private ExpeditionState? GetExpeditions(int playerId)
-    {
-        using var uow = GetUow();
-        var manager = GetExpeditionManager(uow);
-        var state = manager.GetExpeditions(playerId);
-        uow.Commit();
-        return state;
-    }
-
-    private void StartExpedition(int playerId, int expeditionTypeId)
-    {
-        AddBuiltDomik(playerId, ScoutHutDomikTypeId);
-        using var uow = GetUow();
-        var manager = GetExpeditionManager(uow, false);
-        manager.StartExpedition(playerId, expeditionTypeId);
-        uow.Commit();
-    }
-
-    private void FinishExpedition(int playerId, int expeditionId, DateTime date)
-    {
-        using var uow = GetUow();
-        var manager = GetExpeditionManager(uow, false);
-        var result = manager.FinishExpedition(date, new()
-        {
-            PlayerId = playerId,
-            ObjectId = expeditionId,
-            Date = date,
-            Type = CalculateTypes.Expedition,
-        });
-
-        Assert.That(result, Is.True);
-        uow.Commit();
-    }
-
-    private void SetExpeditionFinish(int expeditionId, DateTime finishDate)
-    {
-        using var uow = GetUow();
-        var expedition = uow.Context.Expeditions.Single(x => x.Id == expeditionId);
+        using var scope = App.Scope();
+        var expedition = scope.Context.Expeditions.Single(x => x.Id == expeditionId);
         expedition.FinishDate = finishDate;
-        uow.Commit();
+        scope.Commit();
     }
 
-    private void SetSeasonCounter(int seasonId, int playerId, SeasonMetric metric, int value)
+    private static void ResetToloka()
     {
-        using var uow = GetUow();
-        var counter = uow.Context.SeasonCounters.SingleOrDefault(x => x.SeasonId == seasonId && x.PlayerId == playerId && x.Metric == (int)metric);
-        if (counter == null)
-        {
-            counter = new()
-            {
-                SeasonId = seasonId,
-                PlayerId = playerId,
-                Metric = (int)metric,
-            };
-
-            uow.Context.SeasonCounters.Add(counter);
-        }
-
-        counter.Value = value;
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private int GetSeasonCounter(int seasonId, int playerId, SeasonMetric metric)
-    {
-        using var uow = GetUow();
-        return uow.Context.SeasonCounters
-            .Where(x => x.SeasonId == seasonId && x.PlayerId == playerId && x.Metric == (int)metric)
-            .Select(x => x.Value)
-            .SingleOrDefault();
-    }
-
-    private void IncrementCounter(int playerId, SeasonMetric metric, int value, DateTime date)
-    {
-        using var uow = GetUow();
-        var manager = GetSeasonManager(uow);
-        manager.IncrementCounter(playerId, metric, value, date);
-        uow.Commit();
-    }
-
-    private Season GetSeason(DateTime date)
-    {
-        using var uow = GetUow();
-        return GetSeasonManager(uow).GetCurrentSeason(date);
-    }
-
-    private Dictionary<(int PlayerId, SeasonMetric Metric), int> GetCounters(int seasonId)
-    {
-        using var uow = GetUow();
-        return GetSeasonManager(uow).GetCounters(seasonId);
-    }
-
-    private void ResetToloka()
-    {
-        using var uow = GetUow();
-        uow.Context.TolokaContributions.RemoveRange(uow.Context.TolokaContributions);
-        uow.Context.Tolokas.RemoveRange(uow.Context.Tolokas);
-        uow.Context.SaveChanges();
-        uow.Context.Tolokas.Add(new()
+        using var scope = App.Scope();
+        scope.Context.TolokaContributions.RemoveRange(scope.Context.TolokaContributions);
+        scope.Context.Tolokas.RemoveRange(scope.Context.Tolokas);
+        scope.Context.Tolokas.Add(new()
         {
             TolokaTypeId = BridgeTolokaTypeId,
             Collected = 0,
@@ -474,7 +254,51 @@ public class SeasonTests : TestBase
             CompletedDate = null,
         });
 
-        uow.Context.SaveChanges();
-        uow.Commit();
+        scope.Commit();
+    }
+}
+
+file static class SeasonTestsActs
+{
+    public static TestPlayer Contribute(this TestPlayer p, int amount)
+    {
+        App.Act<TolokaManager>(m => m.Contribute(p.Id, amount, DateTimeHelper.GetNowDate()));
+        return p;
+    }
+
+    public static TestPlayer IncrementCounter(this TestPlayer p, SeasonMetric metric, int value, DateTime date)
+    {
+        App.Act<SeasonManager>(m => m.IncrementCounter(p.Id, metric, value, date));
+        return p;
+    }
+
+    public static TestPlayer SetSeasonCounter(this TestPlayer p, int seasonId, SeasonMetric metric, int value)
+    {
+        using var scope = App.Scope();
+        var counter = scope.Context.SeasonCounters.SingleOrDefault(x => x.SeasonId == seasonId && x.PlayerId == p.Id && x.Metric == (int)metric);
+        if (counter == null)
+        {
+            counter = new()
+            {
+                SeasonId = seasonId,
+                PlayerId = p.Id,
+                Metric = (int)metric,
+            };
+
+            scope.Context.SeasonCounters.Add(counter);
+        }
+
+        counter.Value = value;
+        scope.Commit();
+        return p;
+    }
+
+    public static int SeasonCounter(this TestPlayer p, int seasonId, SeasonMetric metric)
+    {
+        using var scope = App.Scope();
+        return scope.Context.SeasonCounters
+            .Where(x => x.SeasonId == seasonId && x.PlayerId == p.Id && x.Metric == (int)metric)
+            .Select(x => x.Value)
+            .SingleOrDefault();
     }
 }

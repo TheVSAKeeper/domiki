@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Domiki.Web.Tests;
 
-public class CalculatorResilienceTests
+public sealed class CalculatorResilienceTests
 {
     /// <summary>
     /// Планировщик за один проход обрабатывает все уже наступившие события и не трогает события из будущего.

@@ -1,11 +1,10 @@
 ﻿using Domiki.Web.Infrastructure;
-using Domiki.Web.Village.Dto;
 using Domiki.Web.Village.Models;
 using System.Text.Json;
 
 namespace Domiki.Web.Tests;
 
-public class WorldTests : TestBase
+public sealed class WorldTests
 {
     /// <summary>
     /// В списке мира флагом «своя» помечена ровно одна деревня – деревня запросившего игрока.
@@ -13,16 +12,19 @@ public class WorldTests : TestBase
     [Test]
     public void GetWorldMarksOnlyCurrentPlayerAsMeTest()
     {
-        var mePlayerId = CreateNamedPlayer("Мир Своя", 2, 3);
-        var otherPlayerId = CreateNamedPlayer("Мир Чужая", 3, 4);
+        var me = TestPlayer.Create()
+            .SetVillageIdentity("Мир Своя-" + Guid.NewGuid().ToString("N")[..6], 2, 3);
 
-        var world = GetWorld(mePlayerId);
+        var other = TestPlayer.Create()
+            .SetVillageIdentity("Мир Чужая-" + Guid.NewGuid().ToString("N")[..6], 3, 4);
+
+        var world = me.World();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(world.Villages.Single(x => x.PlayerId == mePlayerId).IsMe, Is.True);
-            Assert.That(world.Villages.Single(x => x.PlayerId == otherPlayerId).IsMe, Is.False);
-            Assert.That(world.Villages.Where(x => x.IsMe).Select(x => x.PlayerId), Is.EqualTo(new int?[] { mePlayerId }));
+            Assert.That(world.Villages.Single(x => x.PlayerId == me.Id).IsMe, Is.True);
+            Assert.That(world.Villages.Single(x => x.PlayerId == other.Id).IsMe, Is.False);
+            Assert.That(world.Villages.Where(x => x.IsMe).Select(x => x.PlayerId), Is.EqualTo(new int?[] { me.Id }));
         }
     }
 
@@ -33,20 +35,24 @@ public class WorldTests : TestBase
     [Test]
     public void GetWorldReturnsNamedVillagesAndNpcsSortedByLevelTest()
     {
-        var lowPlayerId = CreateNamedPlayer("Мир Низина", 0, 1);
-        var middlePlayerId = CreateNamedPlayer("Мир Средняя", 1, 2);
-        GrantDomik(middlePlayerId, 3, 2);
-        var unnamedPlayerId = GetPlayerId();
+        var low = TestPlayer.Create()
+            .SetVillageIdentity("Мир Низина-" + Guid.NewGuid().ToString("N")[..6], 0, 1);
 
-        var world = GetWorld(lowPlayerId);
+        var middle = TestPlayer.Create()
+            .SetVillageIdentity("Мир Средняя-" + Guid.NewGuid().ToString("N")[..6], 1, 2)
+            .WithDomik(DomikIds.Barrack);
+
+        var unnamed = TestPlayer.Create();
+
+        var world = low.World();
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(world.Villages.Select(x => x.Level), Is.EqualTo(world.Villages.Select(x => x.Level).OrderByDescending(x => x)));
-            Assert.That(world.Villages.Any(x => x.PlayerId == lowPlayerId), Is.True);
-            Assert.That(world.Villages.Any(x => x.PlayerId == middlePlayerId), Is.True);
-            Assert.That(world.Villages.Any(x => x.PlayerId == unnamedPlayerId), Is.False);
-            Assert.That(Array.IndexOf(world.Villages, world.Villages.Single(x => x.PlayerId == middlePlayerId)), Is.LessThan(Array.IndexOf(world.Villages, world.Villages.Single(x => x.PlayerId == lowPlayerId))));
+            Assert.That(world.Villages.Any(x => x.PlayerId == low.Id), Is.True);
+            Assert.That(world.Villages.Any(x => x.PlayerId == middle.Id), Is.True);
+            Assert.That(world.Villages.Any(x => x.PlayerId == unnamed.Id), Is.False);
+            Assert.That(Array.IndexOf(world.Villages, world.Villages.Single(x => x.PlayerId == middle.Id)), Is.LessThan(Array.IndexOf(world.Villages, world.Villages.Single(x => x.PlayerId == low.Id))));
         }
     }
 
@@ -57,9 +63,9 @@ public class WorldTests : TestBase
     [Test]
     public void GetWorldReturnsNpcRowsWithPresentationConstantsTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
 
-        var world = GetWorld(playerId);
+        var world = player.World();
         var npcs = world.Villages.Where(x => x.IsNpc).ToArray();
 
         Assert.That(npcs.Length, Is.EqualTo(5));
@@ -81,10 +87,10 @@ public class WorldTests : TestBase
     [Test]
     public void VisitVillageMissingOrUnnamedPlayerThrowsTest()
     {
-        var unnamedPlayerId = GetPlayerId();
+        var unnamed = TestPlayer.Create();
 
-        var missingEx = Assert.Throws<BusinessException>(() => VisitVillage(int.MaxValue));
-        var unnamedEx = Assert.Throws<BusinessException>(() => VisitVillage(unnamedPlayerId));
+        var missingEx = Assert.Throws<BusinessException>(() => VillageActs.VisitPlayer(int.MaxValue));
+        var unnamedEx = Assert.Throws<BusinessException>(() => unnamed.Visit());
 
         using (Assert.EnterMultipleScope())
         {
@@ -99,10 +105,13 @@ public class WorldTests : TestBase
     [Test]
     public void VisitVillageReturnsPublicFieldsAndBuildingsTest()
     {
-        var playerId = CreateNamedPlayer("Мир Визит", 4, 5);
-        GrantDomik(playerId, 3, 2);
+        var villageName = "Мир Визит-" + Guid.NewGuid().ToString("N")[..6];
 
-        var visit = VisitVillage(playerId);
+        var player = TestPlayer.Create()
+            .SetVillageIdentity(villageName, 4, 5)
+            .WithDomik(DomikIds.Barrack);
+
+        var visit = player.Visit();
 
         using (Assert.EnterMultipleScope())
         {
@@ -120,21 +129,15 @@ public class WorldTests : TestBase
     [Test]
     public void WorldDtosDoNotContainPrivatePlayerFieldsTest()
     {
-        var playerId = CreateNamedPlayer("Мир Приватность", 5, 6);
-        GrantDomik(playerId, 3, 2);
+        var player = TestPlayer.Create()
+            .SetVillageIdentity("Мир Приватность-" + Guid.NewGuid().ToString("N")[..6], 5, 6)
+            .WithDomik(DomikIds.Barrack);
 
-        WorldDto worldDto;
-        VillageVisitDto visitDto;
-        using (var uow = GetUow())
-        {
-            var manager = GetWorldManager(uow);
-            worldDto = manager.GetWorld(playerId).ToDto();
-            visitDto = manager.VisitVillage(playerId).ToDto();
-            uow.Commit();
-        }
+        var worldDto = player.WorldDto();
+        var visitDto = player.VisitDto();
 
         var worldJson = JsonSerializer.Serialize(worldDto);
-        var worldVillageJson = JsonSerializer.Serialize(worldDto.Villages.Single(x => x.PlayerId == playerId));
+        var worldVillageJson = JsonSerializer.Serialize(worldDto.Villages.Single(x => x.PlayerId == player.Id));
         var visitJson = JsonSerializer.Serialize(visitDto);
 
         AssertPrivateFieldsAbsent(worldJson);
@@ -159,47 +162,5 @@ public class WorldTests : TestBase
             Assert.That(npc.CrestColor, Is.EqualTo(crestColor));
             Assert.That(npc.NpcResourceTypeId, Is.EqualTo(resourceTypeId));
         }
-    }
-
-    private int GetPlayerId()
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
-    }
-
-    private int CreateNamedPlayer(string prefix, int crestIcon, int crestColor)
-    {
-        var playerId = GetPlayerId();
-        SetVillage(playerId, TestVillageName(prefix), crestIcon, crestColor);
-        return playerId;
-    }
-
-    private World GetWorld(int currentPlayerId)
-    {
-        using var uow = GetUow();
-        var manager = GetWorldManager(uow);
-        var world = manager.GetWorld(currentPlayerId);
-        uow.Commit();
-        return world;
-    }
-
-    private VillageVisit VisitVillage(int playerId)
-    {
-        using var uow = GetUow();
-        var manager = GetWorldManager(uow);
-        var visit = manager.VisitVillage(playerId);
-        uow.Commit();
-        return visit;
-    }
-
-    private void SetVillage(int playerId, string name, int crestIcon, int crestColor)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        domikManager.SetVillageIdentity(playerId, name, crestIcon, crestColor);
-        uow.Commit();
     }
 }

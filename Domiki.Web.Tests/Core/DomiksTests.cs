@@ -121,7 +121,7 @@ public sealed class DomiksTests
             {
                 try
                 {
-                    player.Upgrade(1);
+                    player.Upgrade(StartingDomikIds.Barrack);
                 }
                 catch (Exception ex)
                 {
@@ -181,7 +181,7 @@ public sealed class DomiksTests
     public void LevelZeroDomikDoesNotBreakManufactureTest()
     {
         var player = TestPlayer.Create();
-        var startingClayMineId = 2;
+        var startingClayMineId = StartingDomikIds.ClayMine;
         player.WithDomik(DomikIds.ClayMine, 0);
         Assert.DoesNotThrow(() => player.StartManufacture(startingClayMineId, ReceiptIds.ClayDig));
         var clay = player.Resource(ResourceIds.Clay);
@@ -217,7 +217,7 @@ public sealed class DomiksTests
     {
         var player = TestPlayer.Create();
         player.WithDomik(DomikIds.ClayMine);
-        var startingClayMineId = 2;
+        var startingClayMineId = StartingDomikIds.ClayMine;
         var boughtClayMineId = 3;
         using (TestCalculator.Defer())
         {
@@ -237,7 +237,7 @@ public sealed class DomiksTests
         var player = TestPlayer.Create();
         player.WithResource(ResourceIds.Tool, startTool);
 
-        player.StartManufacture(2, ReceiptIds.ClayDig, true);
+        player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, true);
 
         var resources = player.Resources();
         using (Assert.EnterMultipleScope())
@@ -255,7 +255,7 @@ public sealed class DomiksTests
     {
         var player = TestPlayer.Create();
 
-        Assert.Throws<BusinessException>(() => player.StartManufacture(2, ReceiptIds.ClayDig8h, true));
+        Assert.Throws<BusinessException>(() => player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h, true));
     }
 
     /// <summary>
@@ -327,7 +327,7 @@ public sealed class DomiksTests
         var types = player.DomikTypes();
         var buyType = types.First(x => x.UnlockLevel == 0);
         var beforeResources = player.Resources();
-        player.Upgrade(1);
+        player.Upgrade(StartingDomikIds.Barrack);
 
         var domiks = player.Domiks();
         var level = domiks.First().Level;
@@ -454,10 +454,10 @@ public sealed class DomiksTests
         var start = DateTimeHelper.GetNowDate();
         using (TestCalculator.Defer())
         {
-            player.StartManufacture(2, ReceiptIds.ClayDig8h, useOptional);
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h, useOptional);
         }
 
-        var manufacture = player.Manufacture(2);
+        var manufacture = player.Manufacture(StartingDomikIds.ClayMine);
         using (Assert.EnterMultipleScope())
         {
             Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(expectedDuration).Within(2));
@@ -477,7 +477,7 @@ public sealed class DomiksTests
         var player = TestPlayer.Create();
         player.WithResource(ResourceIds.Tool, 1).WithWorkerTraits();
 
-        player.StartManufacture(2, ReceiptIds.ClayDig8h, useOptional);
+        player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h, useOptional);
 
         Assert.That(player.Resource(ResourceIds.Clay), Is.EqualTo(expectedClay));
     }

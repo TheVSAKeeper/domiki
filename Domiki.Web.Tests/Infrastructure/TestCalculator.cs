@@ -4,30 +4,20 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Domiki.Web.Tests;
 
-public class TestCalculator : ICalculator
+/// <summary>
+/// Обсчитывает событие синхронно сразу при регистрации. Исключения: события внутри Defer()-блока и OrderExpire –
+/// заказы не авто-протухают, их финиширует только явный вызов (как в legacy-харнессе, где OrderManager жил с
+/// justFinishMode=false).
+/// </summary>
+public sealed class TestCalculator : ICalculator
 {
     private static readonly AsyncLocal<bool> _deferred = new();
 
-    private readonly Func<UnitOfWork>? _uowFactory;
-    private readonly Func<UnitOfWork, CalculatorTick>? _calculatorTickFactory;
-    private readonly IServiceProvider? _serviceProvider;
-
-    /// <summary>
-    /// Все события обсчитываются моментально.
-    /// </summary>
-    private readonly bool _justFinishMode;
-
-    public TestCalculator(Func<UnitOfWork> uowFactory, Func<UnitOfWork, CalculatorTick> calculatorTickFactory, bool justFinishMode = true)
-    {
-        _uowFactory = uowFactory;
-        _calculatorTickFactory = calculatorTickFactory;
-        _justFinishMode = justFinishMode;
-    }
+    private readonly IServiceProvider _serviceProvider;
 
     public TestCalculator(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
-        _justFinishMode = true;
     }
 
     public static IDisposable Defer()
@@ -38,27 +28,17 @@ public class TestCalculator : ICalculator
 
     public void Insert(CalculateInfo calcDate)
     {
-        if (!_justFinishMode || _deferred.Value)
+        if (_deferred.Value || calcDate.Type == CalculateTypes.OrderExpire)
         {
             return;
         }
 
-        if (_serviceProvider != null)
-        {
-            using var scope = _serviceProvider.CreateScope();
-            var uow = scope.ServiceProvider.GetRequiredService<UnitOfWork>();
-            var calculatorTick = scope.ServiceProvider.GetRequiredService<CalculatorTick>();
-            calculatorTick.Calculate(DateTimeHelper.GetNowDate().AddYears(217), calcDate);
-            uow.Context.SaveChanges();
-            uow.Commit();
-            return;
-        }
-
-        using var legacyUow = _uowFactory!();
-        var legacyCalculatorTick = _calculatorTickFactory!(legacyUow);
-        legacyCalculatorTick.Calculate(DateTimeHelper.GetNowDate().AddYears(217), calcDate);
-        legacyUow.Context.SaveChanges();
-        legacyUow.Commit();
+        using var scope = _serviceProvider.CreateScope();
+        var uow = scope.ServiceProvider.GetRequiredService<UnitOfWork>();
+        var calculatorTick = scope.ServiceProvider.GetRequiredService<CalculatorTick>();
+        calculatorTick.Calculate(DateTimeHelper.GetNowDate().AddYears(217), calcDate);
+        uow.Context.SaveChanges();
+        uow.Commit();
     }
 
     public void Remove(int playerId, long objectId, CalculateTypes type)

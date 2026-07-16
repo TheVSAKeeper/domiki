@@ -1,33 +1,33 @@
-﻿using Domiki.Web.Core.Models;
-using Domiki.Web.Infrastructure;
-using Domiki.Web.Reference.Models;
-using Domiki.Web.Workers.Models;
+﻿using Domiki.Web.Infrastructure;
+using Domiki.Web.Workers;
 
 namespace Domiki.Web.Tests;
 
-public class InstaFinishTests : TestBase
+public sealed class InstaFinishTests
 {
-    private const int GoldResourceTypeId = 5;
-
     /// <summary>
     /// Ускорение улучшения домика в пределах лимита завершает улучшение немедленно и списывает золото.
     /// </summary>
     [Test]
     public void HurryDomikInCapFinishesAndWritesOffGoldTest()
     {
-        var playerId = GetPlayerId();
-        BuyDomik(playerId, 7, false);
-        GrantResource(playerId, GoldResourceTypeId, 3);
-        SetDomikUpgradeFinish(playerId, 3, DateTimeHelper.GetNowDate().AddHours(2));
+        var player = TestPlayer.Create();
+        using (App.PendingEvents())
+        {
+            player.Buy(DomikIds.Market);
+        }
 
-        HurryDomik(playerId, 3);
+        player.WithResource(ResourceIds.Gold, 3);
+        SetDomikUpgradeFinish(player.Id, 3, DateTimeHelper.GetNowDate().AddHours(2));
 
-        var domik = GetDomiks(playerId).Single(x => x.Id == 3);
+        player.HurryDomik(3);
+
+        var domik = player.Domiks().Single(x => x.Id == 3);
         using (Assert.EnterMultipleScope())
         {
             Assert.That(domik.Level, Is.EqualTo(1));
             Assert.That(domik.FinishDate, Is.Null);
-            Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(1));
+            Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(1));
         }
     }
 
@@ -37,11 +37,11 @@ public class InstaFinishTests : TestBase
     [Test]
     public void HurryDomikMissingOrForeignThrowsTest()
     {
-        var playerId = GetPlayerId();
-        var otherPlayerId = GetPlayerId();
+        var player = TestPlayer.Create();
+        var otherPlayer = TestPlayer.Create();
 
-        Assert.Throws<BusinessException>(() => HurryDomik(playerId, int.MaxValue));
-        Assert.Throws<BusinessException>(() => HurryDomik(otherPlayerId, 1));
+        Assert.Throws<BusinessException>(() => player.HurryDomik(int.MaxValue));
+        Assert.Throws<BusinessException>(() => otherPlayer.HurryDomik(StartingDomikIds.Barrack));
     }
 
     /// <summary>
@@ -50,9 +50,9 @@ public class InstaFinishTests : TestBase
     [Test]
     public void HurryDomikNotUpgradingThrowsTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
 
-        var ex = Assert.Throws<BusinessException>(() => HurryDomik(playerId, 1));
+        var ex = Assert.Throws<BusinessException>(() => player.HurryDomik(StartingDomikIds.Barrack));
 
         Assert.That(ex.Message, Is.EqualTo("Домик не улучшается"));
     }
@@ -63,19 +63,18 @@ public class InstaFinishTests : TestBase
     [Test]
     public void HurryManufactureInCapFinishesAndWritesOffGoldTest()
     {
-        var playerId = CreatePlayerWithManufacture(out var manufactureId);
-        GrantResource(playerId, GoldResourceTypeId, 3);
+        var player = CreatePlayerWithManufacture(out var manufactureId);
+        player.WithResource(ResourceIds.Gold, 3);
         SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddMinutes(40));
 
-        HurryManufacture(playerId, manufactureId);
+        player.HurryManufacture(manufactureId);
 
-        var resources = GetResources(playerId);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ResourceValue(resources, GoldResourceTypeId), Is.EqualTo(2));
-            Assert.That(ResourceValue(resources, 4), Is.EqualTo(1));
-            Assert.That(GetDomiks(playerId).Single(x => x.Id == 2).Manufactures, Is.Null.Or.Empty);
-            Assert.That(GetWorkers(playerId).Single().ManufactureId, Is.Null);
+            Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(2));
+            Assert.That(player.Resource(ResourceIds.Clay), Is.EqualTo(1));
+            Assert.That(player.Domiks().Single(x => x.Id == StartingDomikIds.ClayMine).Manufactures, Is.Null.Or.Empty);
+            Assert.That(player.WorkerList().Single().ManufactureId, Is.Null);
         }
     }
 
@@ -85,11 +84,11 @@ public class InstaFinishTests : TestBase
     [Test]
     public void HurryManufactureMissingOrForeignThrowsTest()
     {
-        var playerId = CreatePlayerWithManufacture(out var manufactureId);
-        var otherPlayerId = GetPlayerId();
+        var player = CreatePlayerWithManufacture(out var manufactureId);
+        var otherPlayer = TestPlayer.Create();
 
-        Assert.Throws<BusinessException>(() => HurryManufacture(playerId, int.MaxValue));
-        Assert.Throws<BusinessException>(() => HurryManufacture(otherPlayerId, manufactureId));
+        Assert.Throws<BusinessException>(() => player.HurryManufacture(int.MaxValue));
+        Assert.Throws<BusinessException>(() => otherPlayer.HurryManufacture(manufactureId));
     }
 
     /// <summary>
@@ -98,17 +97,17 @@ public class InstaFinishTests : TestBase
     [Test]
     public void HurryManufactureOverCapThrowsAndKeepsStateTest()
     {
-        var playerId = CreatePlayerWithManufacture(out var manufactureId);
-        GrantResource(playerId, GoldResourceTypeId, 10);
+        var player = CreatePlayerWithManufacture(out var manufactureId);
+        player.WithResource(ResourceIds.Gold, 10);
         SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddHours(6).AddSeconds(1));
 
-        var ex = Assert.Throws<BusinessException>(() => HurryManufacture(playerId, manufactureId));
+        var ex = Assert.Throws<BusinessException>(() => player.HurryManufacture(manufactureId));
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(ex.Message, Is.EqualTo("До конца ещё далеко"));
-            Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(10));
-            Assert.That(GetDomiks(playerId).Single(x => x.Id == 2).Manufactures.Single().Id, Is.EqualTo(manufactureId));
+            Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(10));
+            Assert.That(player.Domiks().Single(x => x.Id == StartingDomikIds.ClayMine).Manufactures.Single().Id, Is.EqualTo(manufactureId));
         }
     }
 
@@ -119,13 +118,13 @@ public class InstaFinishTests : TestBase
     [Test]
     public void HurryManufactureUsesFixedOutputPercentTest()
     {
-        var playerId = CreatePlayerWithManufacture(out var manufactureId);
-        GrantResource(playerId, GoldResourceTypeId, 1);
+        var player = CreatePlayerWithManufacture(out var manufactureId);
+        player.WithResource(ResourceIds.Gold, 1);
         SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddMinutes(10), 200);
 
-        HurryManufacture(playerId, manufactureId);
+        player.HurryManufacture(manufactureId);
 
-        Assert.That(ResourceValue(GetResources(playerId), 4), Is.EqualTo(2));
+        Assert.That(player.Resource(ResourceIds.Clay), Is.EqualTo(2));
     }
 
     /// <summary>
@@ -134,17 +133,17 @@ public class InstaFinishTests : TestBase
     [Test]
     public void HurryManufactureWithoutGoldThrowsAndKeepsStateTest()
     {
-        var playerId = CreatePlayerWithManufacture(out var manufactureId);
-        GrantResource(playerId, GoldResourceTypeId, 1);
+        var player = CreatePlayerWithManufacture(out var manufactureId);
+        player.WithResource(ResourceIds.Gold, 1);
         SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddHours(2));
 
-        var ex = Assert.Throws<BusinessException>(() => HurryManufacture(playerId, manufactureId));
+        var ex = Assert.Throws<BusinessException>(() => player.HurryManufacture(manufactureId));
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(ex.Message, Is.EqualTo("Недостаточно Золото"));
-            Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(1));
-            Assert.That(GetDomiks(playerId).Single(x => x.Id == 2).Manufactures.Single().Id, Is.EqualTo(manufactureId));
+            Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(1));
+            Assert.That(player.Domiks().Single(x => x.Id == StartingDomikIds.ClayMine).Manufactures.Single().Id, Is.EqualTo(manufactureId));
         }
     }
 
@@ -158,135 +157,56 @@ public class InstaFinishTests : TestBase
     [TestCase(6 * 3600, 6)]
     public void HurryManufactureCostCeilsRemainingTimeTest(int remainingSeconds, int expectedCost)
     {
-        var playerId = CreatePlayerWithManufacture(out var manufactureId);
-        GrantResource(playerId, GoldResourceTypeId, 6);
+        const int startGold = 6;
+
+        var player = CreatePlayerWithManufacture(out var manufactureId);
+        player.WithResource(ResourceIds.Gold, startGold);
         SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddSeconds(remainingSeconds));
 
-        HurryManufacture(playerId, manufactureId);
+        player.HurryManufacture(manufactureId);
 
-        Assert.That(ResourceValue(GetResources(playerId), GoldResourceTypeId), Is.EqualTo(6 - expectedCost));
+        Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(startGold - expectedCost));
     }
 
-    private int CreatePlayerWithManufacture(out int manufactureId)
+    private static TestPlayer CreatePlayerWithManufacture(out int manufactureId)
     {
-        var playerId = GetPlayerId();
-        StartManufacture(playerId, 2, 1, false);
-        manufactureId = GetDomiks(playerId).Single(x => x.Id == 2).Manufactures.Single().Id;
-        return playerId;
-    }
-
-    private int GetPlayerId()
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
-    }
-
-    private Resource[] GetResources(int playerId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var resources = domikManager.GetResources(playerId).ToArray();
-        uow.Commit();
-        return resources;
-    }
-
-    private Domik[] GetDomiks(int playerId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var domiks = domikManager.GetDomiks(playerId).ToArray();
-        uow.Commit();
-        return domiks;
-    }
-
-    private Worker[] GetWorkers(int playerId)
-    {
-        using var uow = GetUow();
-        var workerManager = GetWorkerManager(uow);
-        var workers = workerManager.GetWorkers(playerId).ToArray();
-        uow.Commit();
-        return workers;
-    }
-
-    private void BuyDomik(int playerId, int domikTypeId, bool calculatorJustFinishMode = true)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow, calculatorJustFinishMode);
-        domikManager.BuyDomik(playerId, domikTypeId);
-        uow.Commit();
-    }
-
-    private void StartManufacture(int playerId, int domikId, int receiptId, bool calculatorJustFinishMode)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow, calculatorJustFinishMode);
-        domikManager.StartManufacture(playerId, domikId, receiptId);
-        uow.Commit();
-    }
-
-    private void HurryManufacture(int playerId, int manufactureId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow, false);
-        domikManager.HurryManufacture(playerId, manufactureId);
-        uow.Commit();
-    }
-
-    private void HurryDomik(int playerId, int domikId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow, false);
-        domikManager.HurryDomik(playerId, domikId);
-        uow.Commit();
-    }
-
-    private void GrantResource(int playerId, int resourceTypeId, int value)
-    {
-        using var uow = GetUow();
-        var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
-        if (resource == null)
+        var player = TestPlayer.Create();
+        using (App.PendingEvents())
         {
-            resource = new()
-            {
-                PlayerId = playerId,
-                TypeId = resourceTypeId,
-            };
-
-            uow.Context.Resources.Add(resource);
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig);
         }
 
-        resource.Value += value;
-        uow.Context.SaveChanges();
-        uow.Commit();
+        manufactureId = player.Manufacture(StartingDomikIds.ClayMine).Id;
+        return player;
     }
 
-    private void SetManufactureFinish(int manufactureId, DateTime finishDate, int? outputPercent = null)
+    private static void SetManufactureFinish(int manufactureId, DateTime finishDate, int? outputPercent = null)
     {
-        using var uow = GetUow();
-        var manufacture = uow.Context.Manufactures.Single(x => x.Id == manufactureId);
+        using var scope = App.Scope();
+        var manufacture = scope.Context.Manufactures.Single(x => x.Id == manufactureId);
         manufacture.FinishDate = finishDate;
         if (outputPercent != null)
         {
             manufacture.OutputPercent = outputPercent.Value;
         }
 
-        uow.Commit();
+        scope.Commit();
     }
 
-    private void SetDomikUpgradeFinish(int playerId, int domikId, DateTime finishDate)
+    private static void SetDomikUpgradeFinish(int playerId, int domikId, DateTime finishDate)
     {
-        using var uow = GetUow();
-        var domik = uow.Context.Domiks.Single(x => x.PlayerId == playerId && x.Id == domikId);
+        using var scope = App.Scope();
+        var domik = scope.Context.Domiks.Single(x => x.PlayerId == playerId && x.Id == domikId);
         Assert.That(domik.UpgradeSeconds, Is.Not.Null);
         domik.UpgradeCalculateDate = finishDate.AddSeconds(-domik.UpgradeSeconds!.Value);
-        uow.Commit();
+        scope.Commit();
     }
+}
 
-    private int ResourceValue(Resource[] resources, int typeId)
+file static class InstaFinishTestsActs
+{
+    public static IReadOnlyList<Domiki.Web.Workers.Models.Worker> WorkerList(this TestPlayer p)
     {
-        return resources.FirstOrDefault(x => x.Type.Id == typeId)?.Value ?? 0;
+        return App.Act<WorkerManager, IReadOnlyList<Domiki.Web.Workers.Models.Worker>>(m => m.GetWorkers(p.Id).ToList());
     }
 }

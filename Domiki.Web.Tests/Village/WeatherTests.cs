@@ -1,28 +1,13 @@
-﻿using Domiki.Web.Core.Scheduling;
-using Domiki.Web.Infrastructure;
+﻿using Domiki.Web.Infrastructure;
 using Domiki.Web.Village;
 using Domiki.Web.Village.Models;
-using Domik = Domiki.Web.Core.Models.Domik;
-using Resource = Domiki.Web.Reference.Models.Resource;
 using WeatherPeriod = Domiki.Web.Data.Entities.WeatherPeriod;
 
 namespace Domiki.Web.Tests;
 
 [NonParallelizable]
-public class WeatherTests : TestBase
+public sealed class WeatherTests
 {
-    private const int ClearWeatherTypeId = 1;
-    private const int RainWeatherTypeId = 2;
-    private const int DroughtWeatherTypeId = 3;
-    private const int ClayMineDomikTypeId = 5;
-    private const int LumberMillDomikTypeId = 6;
-    private const int StoneMineDomikTypeId = 3;
-    private const int ClayDig8hReceiptId = 14;
-    private const int WoodDig8hReceiptId = 16;
-    private const int StoneDig8hReceiptId = 15;
-    private const int ClayResourceTypeId = 4;
-    private const int WoodResourceTypeId = 3;
-
     [TearDown]
     public void TearDown()
     {
@@ -60,7 +45,7 @@ public class WeatherTests : TestBase
     {
         ClearWeatherSchedule();
         var now = DateTimeHelper.GetNowDate();
-        InsertWeatherPeriod(ClearWeatherTypeId, now, now.AddSeconds(WeatherManager.WeatherPeriodSeconds));
+        InsertWeatherPeriod(WeatherIds.Clear, now, now.AddSeconds(WeatherManager.WeatherPeriodSeconds));
 
         EnsureWeatherSchedule();
 
@@ -81,7 +66,7 @@ public class WeatherTests : TestBase
     {
         ClearWeatherSchedule();
         var now = DateTimeHelper.GetNowDate();
-        InsertWeatherPeriod(ClearWeatherTypeId, now.AddHours(-16), now.AddHours(-8));
+        InsertWeatherPeriod(WeatherIds.Clear, now.AddHours(-16), now.AddHours(-8));
 
         EnsureWeatherSchedule();
 
@@ -99,17 +84,14 @@ public class WeatherTests : TestBase
     [Test]
     public void FinishManufactureCutsOutputUnderRainAtLumberMillTest()
     {
-        var playerId = GetPlayerId();
-        BuyDomik(playerId, 2);
-        BuyDomik(playerId, LumberMillDomikTypeId);
-        SetWeather(RainWeatherTypeId);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .WithDomik(DomikIds.LumberMill);
 
-        StartManufacture(playerId, 4, WoodDig8hReceiptId, false);
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 4).Manufactures.Single();
-        FinishManufacture(playerId, manufacture.Id, manufacture.FinishDate.AddSeconds(1));
+        SetWeather(WeatherIds.Rain);
+        player.StartManufacture(4, ReceiptIds.WoodDig8h);
 
-        var wood = GetResources(playerId).First(x => x.Type.Id == WoodResourceTypeId);
-        Assert.That(wood.Value, Is.EqualTo(6));
+        Assert.That(player.Resource(ResourceIds.Wood), Is.EqualTo(6));
     }
 
     /// <summary>
@@ -118,17 +100,14 @@ public class WeatherTests : TestBase
     [Test]
     public void FinishManufactureGrantsBonusOutputUnderRainAtClayMineTest()
     {
-        var playerId = GetPlayerId();
-        BuyDomik(playerId, 2);
-        BuyDomik(playerId, ClayMineDomikTypeId);
-        SetWeather(RainWeatherTypeId);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .WithDomik(DomikIds.ClayMine);
 
-        StartManufacture(playerId, 2, ClayDig8hReceiptId, false);
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
-        FinishManufacture(playerId, manufacture.Id, manufacture.FinishDate.AddSeconds(1));
+        SetWeather(WeatherIds.Rain);
+        player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
 
-        var clay = GetResources(playerId).First(x => x.Type.Id == ClayResourceTypeId);
-        Assert.That(clay.Value, Is.EqualTo(12));
+        Assert.That(player.Resource(ResourceIds.Clay), Is.EqualTo(12));
     }
 
     /// <summary>
@@ -138,19 +117,23 @@ public class WeatherTests : TestBase
     [Test]
     public void FinishManufactureMaxGuardPreventsZeroGrantTest()
     {
-        var playerId = GetPlayerId();
-        BuyDomik(playerId, 2);
-        BuyDomik(playerId, ClayMineDomikTypeId);
-        SetWeather(ClearWeatherTypeId);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .WithDomik(DomikIds.ClayMine);
 
-        StartManufacture(playerId, 2, ClayDig8hReceiptId, false);
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+        SetWeather(WeatherIds.Clear);
+
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
+        }
+
+        var manufacture = player.Manufacture(StartingDomikIds.ClayMine);
         SetManufactureOutputPercent(manufacture.Id, 1);
 
-        FinishManufacture(playerId, manufacture.Id, manufacture.FinishDate.AddSeconds(1));
+        player.FinishManufacture(manufacture.Id, manufacture.FinishDate.AddSeconds(1));
 
-        var clay = GetResources(playerId).First(x => x.Type.Id == ClayResourceTypeId);
-        Assert.That(clay.Value, Is.EqualTo(1));
+        Assert.That(player.Resource(ResourceIds.Clay), Is.EqualTo(1));
     }
 
     /// <summary>
@@ -160,19 +143,22 @@ public class WeatherTests : TestBase
     [Test]
     public void FinishManufactureUsesOutputPercentFixedAtStartNotAtFinishTest()
     {
-        var playerId = GetPlayerId();
-        BuyDomik(playerId, 2);
-        BuyDomik(playerId, ClayMineDomikTypeId);
-        SetWeather(RainWeatherTypeId);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .WithDomik(DomikIds.ClayMine);
 
-        StartManufacture(playerId, 2, ClayDig8hReceiptId, false);
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+        SetWeather(WeatherIds.Rain);
 
-        SetWeather(ClearWeatherTypeId);
-        FinishManufacture(playerId, manufacture.Id, manufacture.FinishDate.AddSeconds(1));
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
+        }
 
-        var clay = GetResources(playerId).First(x => x.Type.Id == ClayResourceTypeId);
-        Assert.That(clay.Value, Is.EqualTo(12));
+        var manufacture = player.Manufacture(StartingDomikIds.ClayMine);
+        SetWeather(WeatherIds.Clear);
+        player.FinishManufacture(manufacture.Id, manufacture.FinishDate.AddSeconds(1));
+
+        Assert.That(player.Resource(ResourceIds.Clay), Is.EqualTo(12));
     }
 
     /// <summary>
@@ -212,20 +198,24 @@ public class WeatherTests : TestBase
     /// <param name="domikTypeId">Тип домика-добытчика.</param>
     /// <param name="receiptId">Рецепт добычи.</param>
     /// <param name="expectedOutputPercent">Ожидаемый процент выхода ресурса.</param>
-    [TestCase(RainWeatherTypeId, ClayMineDomikTypeId, ClayDig8hReceiptId, 150)]
-    [TestCase(RainWeatherTypeId, LumberMillDomikTypeId, WoodDig8hReceiptId, 75)]
-    [TestCase(DroughtWeatherTypeId, LumberMillDomikTypeId, WoodDig8hReceiptId, 150)]
-    [TestCase(DroughtWeatherTypeId, ClayMineDomikTypeId, ClayDig8hReceiptId, 75)]
+    [TestCase(WeatherIds.Rain, DomikIds.ClayMine, ReceiptIds.ClayDig8h, 150)]
+    [TestCase(WeatherIds.Rain, DomikIds.LumberMill, ReceiptIds.WoodDig8h, 75)]
+    [TestCase(WeatherIds.Drought, DomikIds.LumberMill, ReceiptIds.WoodDig8h, 150)]
+    [TestCase(WeatherIds.Drought, DomikIds.ClayMine, ReceiptIds.ClayDig8h, 75)]
     public void StartManufactureAppliesWeatherOutputPercentTest(int weatherTypeId, int domikTypeId, int receiptId, int expectedOutputPercent)
     {
-        var playerId = GetPlayerId();
-        BuyDomik(playerId, 2);
-        BuyDomik(playerId, domikTypeId);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .WithDomik(domikTypeId);
+
         SetWeather(weatherTypeId);
 
-        StartManufacture(playerId, 4, receiptId, false);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(4, receiptId);
+        }
 
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 4).Manufactures.Single();
+        var manufacture = player.Manufacture(4);
         Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(expectedOutputPercent));
     }
 
@@ -235,153 +225,82 @@ public class WeatherTests : TestBase
     /// <param name="weatherTypeId">Тип погоды на момент запуска.</param>
     /// <param name="domikTypeId">Тип домика-добытчика.</param>
     /// <param name="receiptId">Рецепт добычи.</param>
-    [TestCase(ClearWeatherTypeId, ClayMineDomikTypeId, ClayDig8hReceiptId)]
-    [TestCase(ClearWeatherTypeId, LumberMillDomikTypeId, WoodDig8hReceiptId)]
-    [TestCase(RainWeatherTypeId, StoneMineDomikTypeId, StoneDig8hReceiptId)]
-    [TestCase(DroughtWeatherTypeId, StoneMineDomikTypeId, StoneDig8hReceiptId)]
+    [TestCase(WeatherIds.Clear, DomikIds.ClayMine, ReceiptIds.ClayDig8h)]
+    [TestCase(WeatherIds.Clear, DomikIds.LumberMill, ReceiptIds.WoodDig8h)]
+    [TestCase(WeatherIds.Rain, DomikIds.StoneMine, ReceiptIds.StoneDig8h)]
+    [TestCase(WeatherIds.Drought, DomikIds.StoneMine, ReceiptIds.StoneDig8h)]
     public void StartManufactureWithoutWeatherEffectKeepsOutputPercent100Test(int weatherTypeId, int domikTypeId, int receiptId)
     {
-        var playerId = GetPlayerId();
-        BuyDomik(playerId, 2);
-        BuyDomik(playerId, 2);
-        BuyDomik(playerId, domikTypeId);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .WithDomik(DomikIds.Barrack)
+            .WithDomik(domikTypeId);
+
         SetWeather(weatherTypeId);
 
-        StartManufacture(playerId, 5, receiptId, false);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(5, receiptId);
+        }
 
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 5).Manufactures.Single();
+        var manufacture = player.Manufacture(5);
         Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(100));
     }
 
-    private int GetPlayerId()
+    private static int GetManufactureOutputPercent(int manufactureId)
     {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
+        using var scope = App.Scope();
+        return scope.Context.Manufactures.Single(x => x.Id == manufactureId).OutputPercent;
     }
 
-    private Domik[] GetDomiks(int playerId)
+    private static void SetManufactureOutputPercent(int manufactureId, int percent)
     {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var domiks = domikManager.GetDomiks(playerId).ToArray();
-        uow.Commit();
-        return domiks;
-    }
-
-    private Resource[] GetResources(int playerId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var resources = domikManager.GetResources(playerId).ToArray();
-        uow.Commit();
-        return resources;
-    }
-
-    private void BuyDomik(int playerId, int domikTypeId)
-    {
-        using var uow = GetUow();
-        var nextId = (uow.Context.Domiks.Where(x => x.PlayerId == playerId).Max(x => (int?)x.Id) ?? 0) + 1;
-        uow.Context.Domiks.Add(new()
-        {
-            PlayerId = playerId,
-            Id = nextId,
-            TypeId = domikTypeId,
-            Level = 1,
-        });
-
-        uow.Commit();
-    }
-
-    private void StartManufacture(int playerId, int domikId, int receiptId, bool calculatorJustFinishMode)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow, calculatorJustFinishMode);
-        domikManager.StartManufacture(playerId, domikId, receiptId);
-        uow.Commit();
-    }
-
-    private void FinishManufacture(int playerId, int manufactureId, DateTime date)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var result = domikManager.FinishManufacture(date, new()
-        {
-            PlayerId = playerId,
-            ObjectId = manufactureId,
-            Date = date,
-            Type = CalculateTypes.Manufacture,
-        });
-
-        Assert.That(result, Is.True);
-        uow.Commit();
-    }
-
-    private int GetManufactureOutputPercent(int manufactureId)
-    {
-        using var uow = GetUow();
-        return uow.Context.Manufactures.Single(x => x.Id == manufactureId).OutputPercent;
-    }
-
-    private void SetManufactureOutputPercent(int manufactureId, int percent)
-    {
-        using var uow = GetUow();
-        var manufacture = uow.Context.Manufactures.Single(x => x.Id == manufactureId);
+        using var scope = App.Scope();
+        var manufacture = scope.Context.Manufactures.Single(x => x.Id == manufactureId);
         manufacture.OutputPercent = percent;
-        uow.Commit();
+        scope.Commit();
     }
 
-    private void SetWeather(int weatherTypeId)
+    private static void SetWeather(int weatherTypeId)
     {
         ClearWeatherSchedule();
         var now = DateTimeHelper.GetNowDate();
         InsertWeatherPeriod(weatherTypeId, now, now.AddSeconds(WeatherManager.WeatherPeriodSeconds));
     }
 
-    private void ClearWeatherSchedule()
+    private static void ClearWeatherSchedule()
     {
-        using var uow = GetUow();
-        uow.Context.WeatherPeriods.RemoveRange(uow.Context.WeatherPeriods);
-        uow.Context.SaveChanges();
-        uow.Commit();
+        using var scope = App.Scope();
+        scope.Context.WeatherPeriods.RemoveRange(scope.Context.WeatherPeriods);
+        scope.Commit();
     }
 
-    private void InsertWeatherPeriod(int weatherTypeId, DateTime startDate, DateTime endDate)
+    private static void InsertWeatherPeriod(int weatherTypeId, DateTime startDate, DateTime endDate)
     {
-        using var uow = GetUow();
-        uow.Context.WeatherPeriods.Add(new()
+        using var scope = App.Scope();
+        scope.Context.WeatherPeriods.Add(new()
         {
             WeatherTypeId = weatherTypeId,
             StartDate = startDate,
             EndDate = endDate,
         });
 
-        uow.Context.SaveChanges();
-        uow.Commit();
+        scope.Commit();
     }
 
-    private WeatherPeriod[] GetWeatherPeriods()
+    private static WeatherPeriod[] GetWeatherPeriods()
     {
-        using var uow = GetUow();
-        return uow.Context.WeatherPeriods.OrderBy(x => x.StartDate).ToArray();
+        using var scope = App.Scope();
+        return scope.Context.WeatherPeriods.OrderBy(x => x.StartDate).ToArray();
     }
 
-    private void EnsureWeatherSchedule()
+    private static void EnsureWeatherSchedule()
     {
-        using var uow = GetUow();
-        var weatherManager = GetWeatherManager(uow);
-        weatherManager.EnsureWeatherSchedule(DateTimeHelper.GetNowDate());
-        uow.Commit();
+        App.Act<WeatherManager>(m => m.EnsureWeatherSchedule(DateTimeHelper.GetNowDate()));
     }
 
-    private WeatherState GetWeather()
+    private static WeatherState GetWeather()
     {
-        using var uow = GetUow();
-        var weatherManager = GetWeatherManager(uow);
-        var weather = weatherManager.GetWeather(DateTimeHelper.GetNowDate());
-        uow.Commit();
-        return weather;
+        return App.Act<WeatherManager, WeatherState>(m => m.GetWeather(DateTimeHelper.GetNowDate()));
     }
 }

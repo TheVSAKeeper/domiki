@@ -1,32 +1,27 @@
 ﻿using Domiki.Web.Core;
 using Domiki.Web.Data.Entities;
+using Domiki.Web.Workers;
 
 namespace Domiki.Web.Tests;
 
-public class ZealChargesTests : TestBase
+public sealed class ZealChargesTests
 {
-    private const int ClayMineDomikId = 2;
-    private const int ClayDigReceiptId = 1;
-    private const int ClayDigEightHoursReceiptId = 14;
-    private const int MarketTypeId = 7;
-    private const int SellClayReceiptId = 6;
-    private const int ClayResourceTypeId = 4;
-
     /// <summary>
     /// Копка глины тратит заряд рвения и идёт вчетверо быстрее обычного.
     /// </summary>
     [Test]
     public void ClayDigUsesFourfoldZealSpeedupAndChargeTest()
     {
-        var playerId = CreatePlayer();
-        SetWorkersToOrdinary(playerId);
+        var player = TestPlayer.Create();
+        SetWorkersToOrdinary(player.Id);
+        SetZealCharges(player.Id, DomikManager.ZealStartCharges);
 
-        var manufacture = StartManufacture(playerId, ClayMineDomikId, ClayDigReceiptId, false);
+        var manufacture = StartManufactureWithDuration(player.Id, StartingDomikIds.ClayMine, ReceiptIds.ClayDig);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(manufacture.DurationSeconds, Is.EqualTo(900));
-            Assert.That(GetZealCharges(playerId), Is.EqualTo(23));
+            Assert.That(GetZealCharges(player.Id), Is.EqualTo(23));
         }
     }
 
@@ -36,15 +31,16 @@ public class ZealChargesTests : TestBase
     [Test]
     public void EightHourClayDigDoesNotUseZealTest()
     {
-        var playerId = CreatePlayer();
-        SetWorkersToOrdinary(playerId);
+        var player = TestPlayer.Create();
+        SetWorkersToOrdinary(player.Id);
+        SetZealCharges(player.Id, DomikManager.ZealStartCharges);
 
-        var manufacture = StartManufacture(playerId, ClayMineDomikId, ClayDigEightHoursReceiptId, false);
+        var manufacture = StartManufactureWithDuration(player.Id, StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(manufacture.DurationSeconds, Is.EqualTo(28800));
-            Assert.That(GetZealCharges(playerId), Is.EqualTo(24));
+            Assert.That(GetZealCharges(player.Id), Is.EqualTo(DomikManager.ZealStartCharges));
         }
     }
 
@@ -54,19 +50,20 @@ public class ZealChargesTests : TestBase
     [Test]
     public void MarketSaleDoesNotUseZealTest()
     {
-        var playerId = CreatePlayer();
-        GrantAllResources(playerId, 1000);
-        BuyDomik(playerId, MarketTypeId);
-        GrantResource(playerId, ClayResourceTypeId, 10);
-        SetWorkersToOrdinary(playerId);
+        var player = TestPlayer.Create();
+        GrantAllResources(player.Id, 1000);
+        player.Buy(DomikIds.Market);
+        player.WithResource(ResourceIds.Clay, 10);
+        SetWorkersToOrdinary(player.Id);
+        SetZealCharges(player.Id, DomikManager.ZealStartCharges);
 
-        var marketId = GetDomikId(playerId, MarketTypeId);
-        var manufacture = StartManufacture(playerId, marketId, SellClayReceiptId, false);
+        var marketId = player.DomikId(DomikIds.Market);
+        var manufacture = StartManufactureWithDuration(player.Id, marketId, ReceiptIds.SellClay);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(manufacture.DurationSeconds, Is.EqualTo(60));
-            Assert.That(GetZealCharges(playerId), Is.EqualTo(24));
+            Assert.That(GetZealCharges(player.Id), Is.EqualTo(DomikManager.ZealStartCharges));
         }
     }
 
@@ -76,7 +73,8 @@ public class ZealChargesTests : TestBase
     [Test]
     public void NewPlayerStartsWithTwentyFourZealChargesTest()
     {
-        Assert.That(GetZealCharges(CreatePlayer()), Is.EqualTo(DomikManager.ZealStartCharges));
+        var playerId = CreatePlayerWithDefaultFtue();
+        Assert.That(GetZealCharges(playerId), Is.EqualTo(DomikManager.ZealStartCharges));
     }
 
     /// <summary>
@@ -92,81 +90,72 @@ public class ZealChargesTests : TestBase
     [TestCase(0, 3600, 0)]
     public void ClayDigAppliesThresholdSpeedupWithoutNegativeChargesTest(int initialCharges, int expectedDuration, int expectedCharges)
     {
-        var playerId = CreatePlayer();
-        SetWorkersToOrdinary(playerId);
-        SetZealCharges(playerId, initialCharges);
+        var player = TestPlayer.Create();
+        SetWorkersToOrdinary(player.Id);
+        SetZealCharges(player.Id, initialCharges);
 
-        var manufacture = StartManufacture(playerId, ClayMineDomikId, ClayDigReceiptId, false);
+        var manufacture = StartManufactureWithDuration(player.Id, StartingDomikIds.ClayMine, ReceiptIds.ClayDig);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(manufacture.DurationSeconds, Is.EqualTo(expectedDuration));
-            Assert.That(GetZealCharges(playerId), Is.EqualTo(expectedCharges));
+            Assert.That(GetZealCharges(player.Id), Is.EqualTo(expectedCharges));
         }
     }
 
-    private int CreatePlayer()
+    /// <summary>
+    /// Заводит игрока напрямую через DomikManager, минуя TestPlayer.Create – FTUE-квесты не подавляются, а значит заряды
+    /// рвения остаются равны стартовому значению из DomikManager, а не обнулёнными.
+    /// </summary>
+    private static int CreatePlayerWithDefaultFtue()
     {
-        using var uow = GetUow();
-        var playerId = GetDomikManager(uow).GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
+        using var scope = App.Scope();
+        var playerId = scope.Get<DomikManager>().GetPlayerId($"testUser_{App.RunId}_{Guid.NewGuid()}");
+        scope.Commit();
         return playerId;
     }
 
-    private Manufacture StartManufacture(int playerId, int domikId, int receiptId, bool justFinish)
+    private static Manufacture StartManufactureWithDuration(int playerId, int domikId, int receiptId)
     {
-        using var uow = GetUow();
-        GetDomikManager(uow, justFinish).StartManufacture(playerId, domikId, receiptId);
-        var manufacture = uow.Context.Manufactures.Single(x => x.DomikPlayerId == playerId && x.DomikId == domikId);
-        uow.Commit();
+        using var scope = App.Scope();
+        scope.Get<DomikManager>().StartManufacture(playerId, domikId, receiptId);
+        var manufacture = scope.Context.Manufactures.Single(x => x.DomikPlayerId == playerId && x.DomikId == domikId);
+        scope.Commit();
         return manufacture;
     }
 
-    private void BuyDomik(int playerId, int typeId)
+    private static void SetWorkersToOrdinary(int playerId)
     {
-        using var uow = GetUow();
-        GetDomikManager(uow).BuyDomik(playerId, typeId);
-        uow.Commit();
-    }
-
-    private void SetWorkersToOrdinary(int playerId)
-    {
-        using var uow = GetUow();
-        GetWorkerManager(uow).EnsureWorkers(playerId);
-        uow.Context.WorkerSkills.RemoveRange(uow.Context.WorkerSkills.Where(x => x.Worker.PlayerId == playerId));
-        foreach (var worker in uow.Context.Workers.Where(x => x.PlayerId == playerId))
+        using var scope = App.Scope();
+        scope.Get<WorkerManager>().EnsureWorkers(playerId);
+        scope.Context.WorkerSkills.RemoveRange(scope.Context.WorkerSkills.Where(x => x.Worker.PlayerId == playerId));
+        foreach (var worker in scope.Context.Workers.Where(x => x.PlayerId == playerId))
         {
             worker.TraitId = 1;
         }
 
-        uow.Commit();
+        scope.Commit();
     }
 
-    private int GetZealCharges(int playerId)
+    private static int GetZealCharges(int playerId)
     {
-        using var uow = GetUow();
-        return uow.Context.Players.Single(x => x.Id == playerId).ZealCharges;
+        using var scope = App.Scope();
+        return scope.Context.Players.Single(x => x.Id == playerId).ZealCharges;
     }
 
-    private void SetZealCharges(int playerId, int value)
+    private static void SetZealCharges(int playerId, int value)
     {
-        using var uow = GetUow();
-        uow.Context.Players.Single(x => x.Id == playerId).ZealCharges = value;
-        uow.Commit();
+        using var scope = App.Scope();
+        scope.Context.Players.Single(x => x.Id == playerId).ZealCharges = value;
+        scope.Commit();
     }
 
-    private int GetDomikId(int playerId, int typeId)
+    private static void GrantAllResources(int playerId, int value)
     {
-        using var uow = GetUow();
-        return uow.Context.Domiks.Single(x => x.PlayerId == playerId && x.TypeId == typeId).Id;
-    }
-
-    private void GrantAllResources(int playerId, int value)
-    {
-        using var uow = GetUow();
-        foreach (var typeId in uow.Context.ResourceTypes.Select(x => x.Id).ToArray())
+        using var scope = App.Scope();
+        foreach (var typeId in scope.Context.ResourceTypes.Select(x => x.Id).ToArray())
         {
-            var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
+            var resource = scope.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
             if (resource == null)
             {
                 resource = new()
@@ -175,31 +164,12 @@ public class ZealChargesTests : TestBase
                     TypeId = typeId,
                 };
 
-                uow.Context.Resources.Add(resource);
+                scope.Context.Resources.Add(resource);
             }
 
             resource.Value += value;
         }
 
-        uow.Commit();
-    }
-
-    private void GrantResource(int playerId, int typeId, int value)
-    {
-        using var uow = GetUow();
-        var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
-        if (resource == null)
-        {
-            resource = new()
-            {
-                PlayerId = playerId,
-                TypeId = typeId,
-            };
-
-            uow.Context.Resources.Add(resource);
-        }
-
-        resource.Value += value;
-        uow.Commit();
+        scope.Commit();
     }
 }

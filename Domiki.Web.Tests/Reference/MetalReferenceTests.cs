@@ -1,29 +1,20 @@
-﻿using Domiki.Web.Data.Entities;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Core.Models;
 using Domiki.Web.Reference;
+using Domiki.Web.Reference.Models;
+using Domiki.Web.Village.Models;
 
 namespace Domiki.Web.Tests;
 
-public class MetalReferenceTests : TestBase
+public sealed class MetalReferenceTests
 {
-    private const int ForgeTypeId = 1;
-    private const int MineTypeId = 4;
-    private const int MarketTypeId = 7;
-    private const int CoinResourceTypeId = 1;
-    private const int OreResourceTypeId = 16;
-    private const int IronResourceTypeId = 17;
-    private const int ToolResourceTypeId = 8;
-    private const int BoardResourceTypeId = 7;
-    private const int BrickResourceTypeId = 6;
-    private const int LanternDecorTypeId = 9;
-
     /// <summary>
     /// Кузница открывается только с 20 уровня игрока.
     /// </summary>
     [Test]
     public void ForgeUnlockLevelIsTwentyTest()
     {
-        using var uow = GetUow();
-        var forge = GetResourceManager(uow).GetDomikTypes().Single(x => x.Id == ForgeTypeId);
+        var forge = App.Act<ResourceManager, DomikType[]>(m => m.GetDomikTypes()).Single(x => x.Id == DomikIds.Forge);
 
         Assert.That(forge.UnlockLevel, Is.EqualTo(20));
     }
@@ -34,14 +25,13 @@ public class MetalReferenceTests : TestBase
     [Test]
     public void LanternHasExpectedComfortAndCostTest()
     {
-        using var uow = GetUow();
-        var lantern = GetResourceManager(uow).GetDecorTypes().Single(x => x.Id == LanternDecorTypeId);
+        var lantern = App.Act<ResourceManager, DecorType[]>(m => m.GetDecorTypes()).Single(x => x.Id == DecorIds.Lantern);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(lantern.LogicName, Is.EqualTo("lantern"));
             Assert.That(lantern.ComfortPoints, Is.EqualTo(5));
-            Assert.That(lantern.Cost.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(IronResourceTypeId, 10), (BoardResourceTypeId, 4)]));
+            Assert.That(lantern.Cost.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ResourceIds.Iron, 10), (ResourceIds.Board, 4)]));
         }
     }
 
@@ -51,8 +41,7 @@ public class MetalReferenceTests : TestBase
     [Test]
     public void MineIsRenamedTest()
     {
-        using var uow = GetUow();
-        var mine = GetResourceManager(uow).GetDomikTypes().Single(x => x.Id == MineTypeId);
+        var mine = App.Act<ResourceManager, DomikType[]>(m => m.GetDomikTypes()).Single(x => x.Id == DomikIds.GoldMine);
 
         Assert.That(mine.Name, Is.EqualTo("Рудник"));
     }
@@ -63,14 +52,13 @@ public class MetalReferenceTests : TestBase
     [Test]
     public void OreDigHasNoInputsTest()
     {
-        using var uow = GetUow();
-        var receipt = GetResourceManager(uow).GetReceipts().Single(x => x.Id == 59);
+        var receipt = App.Act<ResourceManager, Receipt[]>(m => m.GetReceipts()).Single(x => x.Id == ReceiptIds.OreDig);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(receipt.InputResources, Is.Empty);
             Assert.That(receipt.OptionalInputResources, Is.Empty);
-            Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(OreResourceTypeId, 1)]));
+            Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ResourceIds.Ore, 1)]));
         }
     }
 
@@ -80,12 +68,11 @@ public class MetalReferenceTests : TestBase
     /// <param name="resourceTypeId">Тип ресурса.</param>
     /// <param name="logicName">Ожидаемое логическое имя ресурса.</param>
     /// <param name="marketValue">Ожидаемая рыночная стоимость.</param>
-    [TestCase(OreResourceTypeId, "ore", 10)]
-    [TestCase(IronResourceTypeId, "iron", 35)]
+    [TestCase(ResourceIds.Ore, "ore", 10)]
+    [TestCase(ResourceIds.Iron, "iron", 35)]
     public void MetalResourceTypesAndMarketValuesTest(int resourceTypeId, string logicName, int marketValue)
     {
-        using var uow = GetUow();
-        var resourceType = GetResourceManager(uow).GetResourceTypes().Single(x => x.Id == resourceTypeId);
+        var resourceType = App.Act<ResourceManager, ResourceType[]>(m => m.GetResourceTypes()).Single(x => x.Id == resourceTypeId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -99,18 +86,17 @@ public class MetalReferenceTests : TestBase
     /// </summary>
     /// <param name="receiptId">Проверяемый рецепт изготовления инструмента.</param>
     /// <param name="value">Количество каждого входного ресурса и полученного инструмента.</param>
-    [TestCase(24, 1)]
-    [TestCase(49, 8)]
+    [TestCase(ReceiptIds.MakeTool, 1)]
+    [TestCase(ReceiptIds.MakeTool8h, 8)]
     public void ToolReceiptsRequireIronAndBoardsTest(int receiptId, int value)
     {
-        using var uow = GetUow();
-        var receipt = GetResourceManager(uow).GetReceipts().Single(x => x.Id == receiptId);
+        var receipt = App.Act<ResourceManager, Receipt[]>(m => m.GetReceipts()).Single(x => x.Id == receiptId);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(receipt.InputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(IronResourceTypeId, value), (BoardResourceTypeId, value)]));
-            Assert.That(receipt.InputResources.Any(x => x.Type.Id == BrickResourceTypeId), Is.False);
-            Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ToolResourceTypeId, value)]));
+            Assert.That(receipt.InputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ResourceIds.Iron, value), (ResourceIds.Board, value)]));
+            Assert.That(receipt.InputResources.Any(x => x.Type.Id == ResourceIds.Brick), Is.False);
+            Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ResourceIds.Tool, value)]));
         }
     }
 
@@ -121,13 +107,13 @@ public class MetalReferenceTests : TestBase
     /// <param name="level">Уровень кузницы.</param>
     /// <param name="receiptId">Проверяемый рецепт плавки железа.</param>
     /// <param name="expected">Ожидается ли привязка.</param>
-    [TestCase(1, 62, true)]
-    [TestCase(2, 62, true)]
-    [TestCase(3, 63, true)]
-    [TestCase(2, 63, false)]
+    [TestCase(1, ReceiptIds.MakeIron, true)]
+    [TestCase(2, ReceiptIds.MakeIron, true)]
+    [TestCase(3, ReceiptIds.MakeIron8h, true)]
+    [TestCase(2, ReceiptIds.MakeIron8h, false)]
     public void IronReceiptsHaveExpectedForgeBindingsTest(int level, int receiptId, bool expected)
     {
-        AssertBinding(ForgeTypeId, level, receiptId, expected);
+        AssertBinding(DomikIds.Forge, level, receiptId, expected);
     }
 
     /// <summary>
@@ -135,15 +121,15 @@ public class MetalReferenceTests : TestBase
     /// </summary>
     /// <param name="level">Проверяемый уровень шахты.</param>
     /// <param name="receiptId">Проверяемый рецепт добычи руды.</param>
-    [TestCase(1, 59)]
-    [TestCase(5, 59)]
-    [TestCase(1, 60)]
-    [TestCase(5, 60)]
-    [TestCase(1, 61)]
-    [TestCase(5, 61)]
+    [TestCase(1, ReceiptIds.OreDig)]
+    [TestCase(5, ReceiptIds.OreDig)]
+    [TestCase(1, ReceiptIds.OreDig8h)]
+    [TestCase(5, ReceiptIds.OreDig8h)]
+    [TestCase(1, ReceiptIds.OreDig24h)]
+    [TestCase(5, ReceiptIds.OreDig24h)]
     public void OreReceiptsHaveExpectedMineBindingsTest(int level, int receiptId)
     {
-        AssertBinding(MineTypeId, level, receiptId, true);
+        AssertBinding(DomikIds.GoldMine, level, receiptId, true);
     }
 
     /// <summary>
@@ -151,18 +137,17 @@ public class MetalReferenceTests : TestBase
     /// </summary>
     /// <param name="receiptId">Проверяемый рецепт долгой смены добычи руды.</param>
     /// <param name="outputValue">Количество монет на входе и руды на выходе.</param>
-    [TestCase(60, 8)]
-    [TestCase(61, 24)]
+    [TestCase(ReceiptIds.OreDig8h, 8)]
+    [TestCase(ReceiptIds.OreDig24h, 24)]
     public void OreShiftsHaveOptionalToolTest(int receiptId, int outputValue)
     {
-        using var uow = GetUow();
-        var receipt = GetResourceManager(uow).GetReceipts().Single(x => x.Id == receiptId);
+        var receipt = App.Act<ResourceManager, Receipt[]>(m => m.GetReceipts()).Single(x => x.Id == receiptId);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(receipt.OptionalInputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ToolResourceTypeId, 1)]));
-            Assert.That(receipt.InputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(CoinResourceTypeId, outputValue)]));
-            Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(OreResourceTypeId, outputValue)]));
+            Assert.That(receipt.OptionalInputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ResourceIds.Tool, 1)]));
+            Assert.That(receipt.InputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ResourceIds.Coin, outputValue)]));
+            Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ResourceIds.Ore, outputValue)]));
             Assert.That(receipt.OutputBonusPercent, Is.EqualTo(40));
         }
     }
@@ -173,11 +158,11 @@ public class MetalReferenceTests : TestBase
     /// <param name="level">Уровень рынка.</param>
     /// <param name="receiptId">Проверяемый рецепт оптовой продажи руды.</param>
     /// <param name="expected">Ожидается ли привязка.</param>
-    [TestCase(5, 67, true)]
-    [TestCase(4, 67, false)]
+    [TestCase(5, ReceiptIds.SellOreX10, true)]
+    [TestCase(4, ReceiptIds.SellOreX10, false)]
     public void OreBulkSellIsBoundToMarketLevelFiveTest(int level, int receiptId, bool expected)
     {
-        AssertBinding(MarketTypeId, level, receiptId, expected);
+        AssertBinding(DomikIds.Market, level, receiptId, expected);
     }
 
     /// <summary>
@@ -188,16 +173,15 @@ public class MetalReferenceTests : TestBase
     /// <param name="inputValue">Количество входного ресурса.</param>
     /// <param name="outputResourceTypeId">Тип выходного ресурса.</param>
     /// <param name="outputValue">Количество выходного ресурса.</param>
-    [TestCase(62, OreResourceTypeId, 2, IronResourceTypeId, 1)]
-    [TestCase(63, OreResourceTypeId, 16, IronResourceTypeId, 8)]
-    [TestCase(64, OreResourceTypeId, 1, CoinResourceTypeId, 10)]
-    [TestCase(65, IronResourceTypeId, 1, CoinResourceTypeId, 35)]
-    [TestCase(66, IronResourceTypeId, 10, CoinResourceTypeId, 350)]
-    [TestCase(67, OreResourceTypeId, 10, CoinResourceTypeId, 100)]
+    [TestCase(ReceiptIds.MakeIron, ResourceIds.Ore, 2, ResourceIds.Iron, 1)]
+    [TestCase(ReceiptIds.MakeIron8h, ResourceIds.Ore, 16, ResourceIds.Iron, 8)]
+    [TestCase(ReceiptIds.SellOre, ResourceIds.Ore, 1, ResourceIds.Coin, 10)]
+    [TestCase(ReceiptIds.SellIron, ResourceIds.Iron, 1, ResourceIds.Coin, 35)]
+    [TestCase(ReceiptIds.SellIronX10, ResourceIds.Iron, 10, ResourceIds.Coin, 350)]
+    [TestCase(ReceiptIds.SellOreX10, ResourceIds.Ore, 10, ResourceIds.Coin, 100)]
     public void MetalReceiptsHaveExpectedInputsAndOutputsTest(int receiptId, int inputResourceTypeId, int inputValue, int outputResourceTypeId, int outputValue)
     {
-        using var uow = GetUow();
-        var receipt = GetResourceManager(uow).GetReceipts().Single(x => x.Id == receiptId);
+        var receipt = App.Act<ResourceManager, Receipt[]>(m => m.GetReceipts()).Single(x => x.Id == receiptId);
 
         using (Assert.EnterMultipleScope())
         {
@@ -214,16 +198,14 @@ public class MetalReferenceTests : TestBase
     [TestCase(2)]
     public void OreIsInExpeditionResourceLootTest(int expeditionTypeId)
     {
-        using var uow = GetUow();
-        var expedition = GetResourceManager(uow).GetExpeditionTypes().Single(x => x.Id == expeditionTypeId);
+        var expedition = App.Act<ResourceManager, ExpeditionType[]>(m => m.GetExpeditionTypes()).Single(x => x.Id == expeditionTypeId);
 
-        Assert.That(expedition.Loot.Any(x => x.Kind == ExpeditionLootKind.Resource && x.ResourceTypeId == OreResourceTypeId), Is.True);
+        Assert.That(expedition.Loot.Any(x => x.Kind == Domiki.Web.Data.Entities.ExpeditionLootKind.Resource && x.ResourceTypeId == ResourceIds.Ore), Is.True);
     }
 
-    private void AssertBinding(int domikTypeId, int level, int receiptId, bool expected)
+    private static void AssertBinding(int domikTypeId, int level, int receiptId, bool expected)
     {
-        using var uow = GetUow();
-        var domikType = GetResourceManager(uow).GetDomikTypes().Single(x => x.Id == domikTypeId);
+        var domikType = App.Act<ResourceManager, DomikType[]>(m => m.GetDomikTypes()).Single(x => x.Id == domikTypeId);
         var receiptIds = domikType.Levels.Single(x => x.Value == level).Receipts.Select(x => x.Id);
 
         Assert.That(receiptIds.Contains(receiptId), Is.EqualTo(expected));

@@ -1,13 +1,12 @@
-﻿using Domiki.Web.Core.Scheduling;
-using Domiki.Web.Economy.Models;
+﻿using Domiki.Web.Economy.Models;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Reference.Models;
 using Domiki.Web.Village;
-using Domiki.Web.Village.Models;
+using Order = Domiki.Web.Data.Entities.Order;
 
 namespace Domiki.Web.Tests;
 
-public class OrdersTests : TestBase
+public sealed class OrdersTests
 {
     /// <summary>
     /// Выполнить чужой заказ нельзя: бросается ошибка, а заказ остаётся на доске исходного игрока.
@@ -15,15 +14,17 @@ public class OrdersTests : TestBase
     [Test]
     public void CompleteForeignOrderThrowsTest()
     {
-        var firstPlayerId = GetPlayerId();
-        var secondPlayerId = GetPlayerId();
-        var order = GetOrders(firstPlayerId).First();
+        var firstPlayer = TestPlayer.Create();
+
+        var secondPlayer = TestPlayer.Create();
+
+        var order = firstPlayer.Orders().First();
         var need = order.Resources.Single();
-        GrantResource(secondPlayerId, need.Type.Id, need.Value);
+        secondPlayer.WithResource(need.Type.Id, need.Value);
 
-        Assert.Throws<BusinessException>(() => CompleteOrder(secondPlayerId, order.Id));
+        Assert.Throws<BusinessException>(() => secondPlayer.CompleteOrder(order.Id));
 
-        Assert.That(GetOrders(firstPlayerId).Any(x => x.Id == order.Id), Is.True);
+        Assert.That(firstPlayer.Orders().Any(x => x.Id == order.Id), Is.True);
     }
 
     /// <summary>
@@ -32,9 +33,9 @@ public class OrdersTests : TestBase
     [Test]
     public void CompleteMissingOrderThrowsTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
 
-        Assert.Throws<BusinessException>(() => CompleteOrder(playerId, int.MaxValue));
+        Assert.Throws<BusinessException>(() => player.CompleteOrder(int.MaxValue));
     }
 
     /// <summary>
@@ -43,15 +44,17 @@ public class OrdersTests : TestBase
     [Test]
     public void CompleteOrderHoldsSlotOnRepeatedFetchTest()
     {
-        var playerId = GetPlayerId();
-        var order = GetOrders(playerId).First();
+        const int expectedOrderCount = 2;
+
+        var player = TestPlayer.Create();
+        var order = player.Orders().First();
         var need = order.Resources.Single();
-        GrantResource(playerId, need.Type.Id, need.Value);
+        player.WithResource(need.Type.Id, need.Value);
 
-        CompleteOrder(playerId, order.Id);
+        player.CompleteOrder(order.Id);
 
-        var orders = GetOrders(playerId);
-        Assert.That(orders.Length, Is.EqualTo(2));
+        var orders = player.Orders();
+        Assert.That(orders.Count, Is.EqualTo(expectedOrderCount));
         Assert.That(orders.Any(x => x.Id == order.Id), Is.False);
     }
 
@@ -62,27 +65,29 @@ public class OrdersTests : TestBase
     [Test]
     public void CompleteOrderWithEnoughResourcesWritesOffRewardsAndHoldsSlotTest()
     {
-        var playerId = GetPlayerId();
-        var order = GetOrders(playerId).First();
+        const int expectedOrderCount = 2;
+
+        var player = TestPlayer.Create();
+        var order = player.Orders().First();
         var need = order.Resources.Single();
-        GrantResource(playerId, need.Type.Id, need.Value);
-        var beforeResources = GetResources(playerId);
-        var beforeReputation = GetReputation(playerId).First(x => x.Neighbor.Id == order.Neighbor.Id).Points;
+        player.WithResource(need.Type.Id, need.Value);
+        var beforeResources = player.Resources();
+        var beforeReputation = player.Reputation().First(x => x.Neighbor.Id == order.Neighbor.Id).Points;
 
-        CompleteOrder(playerId, order.Id);
+        player.CompleteOrder(order.Id);
 
-        var afterResources = GetResources(playerId);
-        var afterReputation = GetReputation(playerId).First(x => x.Neighbor.Id == order.Neighbor.Id).Points;
+        var afterResources = player.Resources();
+        var afterReputation = player.Reputation().First(x => x.Neighbor.Id == order.Neighbor.Id).Points;
         using (Assert.EnterMultipleScope())
         {
             Assert.That(ResourceValue(beforeResources, need.Type.Id) - ResourceValue(afterResources, need.Type.Id), Is.EqualTo(need.Value));
-            Assert.That(ResourceValue(afterResources, 1) - ResourceValue(beforeResources, 1), Is.EqualTo(order.RewardCoins));
-            Assert.That(ResourceValue(afterResources, 5) - ResourceValue(beforeResources, 5), Is.EqualTo(order.RewardGold));
+            Assert.That(ResourceValue(afterResources, ResourceIds.Coin) - ResourceValue(beforeResources, ResourceIds.Coin), Is.EqualTo(order.RewardCoins));
+            Assert.That(ResourceValue(afterResources, ResourceIds.Gold) - ResourceValue(beforeResources, ResourceIds.Gold), Is.EqualTo(order.RewardGold));
             Assert.That(afterReputation - beforeReputation, Is.EqualTo(order.RewardReputation));
         }
 
-        var orders = GetOrders(playerId);
-        Assert.That(orders.Length, Is.EqualTo(2));
+        var orders = player.Orders();
+        Assert.That(orders.Count, Is.EqualTo(expectedOrderCount));
         Assert.That(orders.Any(x => x.Id == order.Id), Is.False);
     }
 
@@ -92,21 +97,23 @@ public class OrdersTests : TestBase
     [Test]
     public void CompleteOrderWithoutResourcesThrowsAndKeepsStateTest()
     {
-        var playerId = GetPlayerId();
-        var order = GetOrders(playerId).First();
-        var beforeResources = GetResources(playerId);
-        var beforeReputation = GetReputation(playerId).Select(x => (x.Neighbor.Id, x.Points)).ToArray();
+        const int expectedOrderCount = 3;
 
-        Assert.Throws<BusinessException>(() => CompleteOrder(playerId, order.Id));
+        var player = TestPlayer.Create();
+        var order = player.Orders().First();
+        var beforeResources = player.Resources();
+        var beforeReputation = player.Reputation().Select(x => (x.Neighbor.Id, x.Points)).ToArray();
 
-        var afterResources = GetResources(playerId);
-        var afterReputation = GetReputation(playerId).Select(x => (x.Neighbor.Id, x.Points)).ToArray();
-        var orders = GetOrders(playerId);
+        Assert.Throws<BusinessException>(() => player.CompleteOrder(order.Id));
+
+        var afterResources = player.Resources();
+        var afterReputation = player.Reputation().Select(x => (x.Neighbor.Id, x.Points)).ToArray();
+        var orders = player.Orders();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(afterResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo(beforeResources.Select(x => (x.Type.Id, x.Value))));
             Assert.That(afterReputation, Is.EquivalentTo(beforeReputation));
-            Assert.That(orders.Length, Is.EqualTo(3));
+            Assert.That(orders.Count, Is.EqualTo(expectedOrderCount));
         }
 
         Assert.That(orders.Any(x => x.Id == order.Id), Is.True);
@@ -118,14 +125,16 @@ public class OrdersTests : TestBase
     [Test]
     public void ConcurrentGetOrdersSerializesWithoutConcurrencyExceptionTest()
     {
+        const int expectedOrderCount = 3;
+
         for (var i = 1; i <= 30; i++)
         {
-            var playerId = GetPlayerId();
+            var player = TestPlayer.Create();
             var numbers = Enumerable.Range(0, 8).ToList();
 
-            Assert.DoesNotThrow(() => Parallel.ForEach(numbers, _ => GetOrders(playerId)), "iteration " + i);
+            Assert.DoesNotThrow(() => Parallel.ForEach(numbers, _ => player.Orders()), "iteration " + i);
 
-            Assert.That(GetOrders(playerId).Length, Is.EqualTo(3), "iteration " + i);
+            Assert.That(player.Orders().Count, Is.EqualTo(expectedOrderCount), "iteration " + i);
         }
     }
 
@@ -135,13 +144,15 @@ public class OrdersTests : TestBase
     [Test]
     public void FinishOrderRemovesExpiredOrderAndHoldsSlotTest()
     {
-        var playerId = GetPlayerId();
-        var order = GetOrders(playerId).First();
+        const int expectedOrderCount = 2;
 
-        FinishOrder(playerId, order.Id, order.ExpireDate.AddSeconds(1));
+        var player = TestPlayer.Create();
+        var order = player.Orders().First();
 
-        var orders = GetOrders(playerId);
-        Assert.That(orders.Length, Is.EqualTo(2));
+        player.FinishOrder(order.Id, order.ExpireDate.AddSeconds(1));
+
+        var orders = player.Orders();
+        Assert.That(orders.Count, Is.EqualTo(expectedOrderCount));
         Assert.That(orders.Any(x => x.Id == order.Id), Is.False);
     }
 
@@ -151,11 +162,13 @@ public class OrdersTests : TestBase
     [Test]
     public void GetOrdersNewPlayerCreatesThreeOrdersTest()
     {
-        var playerId = GetPlayerId();
+        const int expectedOrderCount = 3;
 
-        var orders = GetOrders(playerId);
+        var player = TestPlayer.Create();
 
-        Assert.That(orders.Length, Is.EqualTo(3));
+        var orders = player.Orders();
+
+        Assert.That(orders.Count, Is.EqualTo(expectedOrderCount));
         Assert.That(orders.All(x => x.Resources.Length == 1), Is.True);
     }
 
@@ -165,11 +178,13 @@ public class OrdersTests : TestBase
     [Test]
     public void NewPlayerWithoutBuildingsStillGetsOrdersTest()
     {
-        var playerId = GetPlayerId();
+        const int expectedOrderCount = 3;
 
-        var orders = GetOrders(playerId).ToArray();
+        var player = TestPlayer.Create();
 
-        Assert.That(orders.Length, Is.EqualTo(3));
+        var orders = player.Orders();
+
+        Assert.That(orders.Count, Is.EqualTo(expectedOrderCount));
     }
 
     /// <summary>
@@ -178,16 +193,18 @@ public class OrdersTests : TestBase
     [Test]
     public void OrderBoardRefillsAfterDelayElapsesTest()
     {
-        var playerId = GetPlayerId();
-        var order = GetOrders(playerId).First();
+        const int expectedOrderCount = 3;
+
+        var player = TestPlayer.Create();
+        var order = player.Orders().First();
         var need = order.Resources.Single();
-        GrantResource(playerId, need.Type.Id, need.Value);
+        player.WithResource(need.Type.Id, need.Value);
 
-        CompleteOrder(playerId, order.Id);
-        SetOrderRefillAt(playerId, DateTimeHelper.GetNowDate().AddSeconds(-1));
+        player.CompleteOrder(order.Id);
+        SetOrderRefillAt(player.Id, DateTimeHelper.GetNowDate().AddSeconds(-1));
 
-        var orders = GetOrders(playerId);
-        Assert.That(orders.Length, Is.EqualTo(3));
+        var orders = player.Orders();
+        Assert.That(orders.Count, Is.EqualTo(expectedOrderCount));
     }
 
     /// <summary>
@@ -196,18 +213,18 @@ public class OrdersTests : TestBase
     [Test]
     public void OrdersOnlyAskProducibleResourcesTest()
     {
-        var playerId = GetPlayerId();
-        GrantResource(playerId, 1, 10000);
-        RaiseVillageLevelTo(playerId, 10);
-        BuyDomik(playerId, 5);
-        BuyDomik(playerId, 6);
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Coin, 10000);
+
+        RaiseVillageLevelTo(player.Id, 10);
+        player.Buy(DomikIds.ClayMine).Buy(DomikIds.LumberMill);
 
         for (var i = 0; i < 15; i++)
         {
-            var orders = GetOrders(playerId).ToArray();
+            var orders = player.Orders();
             var resourceTypeIds = orders.SelectMany(x => x.Resources).Select(x => x.Type.Id).Distinct().ToArray();
-            Assert.That(resourceTypeIds, Is.SubsetOf([3, 4]));
-            DeleteAllOrders(playerId);
+            Assert.That(resourceTypeIds, Is.SubsetOf(new[] { ResourceIds.Wood, ResourceIds.Clay }));
+            ClearOrders(player.Id);
         }
     }
 
@@ -217,100 +234,25 @@ public class OrdersTests : TestBase
     [Test]
     public void ReputationAccumulatesForSameNeighborTest()
     {
-        var playerId = GetPlayerId();
-        var neighborId = 1;
-        var resourceTypeId = 6;
-        var firstOrderId = CreateManualOrder(playerId, neighborId, resourceTypeId, 2, 100, 1, 3);
-        var secondOrderId = CreateManualOrder(playerId, neighborId, resourceTypeId, 3, 150, 2, 4);
-        GrantResource(playerId, resourceTypeId, 5);
+        const int neighborId = 1;
+        const int resourceTypeId = ResourceIds.Brick;
+        const int expectedReputation = 7;
 
-        CompleteOrder(playerId, firstOrderId);
-        CompleteOrder(playerId, secondOrderId);
+        var player = TestPlayer.Create();
+        var firstOrderId = CreateManualOrder(player.Id, neighborId, resourceTypeId, 2, 100, 1, 3);
+        var secondOrderId = CreateManualOrder(player.Id, neighborId, resourceTypeId, 3, 150, 2, 4);
+        player.WithResource(resourceTypeId, 5);
 
-        var reputation = GetReputation(playerId).First(x => x.Neighbor.Id == neighborId);
-        Assert.That(reputation.Points, Is.EqualTo(7));
+        player.CompleteOrder(firstOrderId);
+        player.CompleteOrder(secondOrderId);
+
+        var reputation = player.Reputation().First(x => x.Neighbor.Id == neighborId);
+        Assert.That(reputation.Points, Is.EqualTo(expectedReputation));
     }
 
-    private int GetPlayerId()
+    private static void RaiseVillageLevelTo(int playerId, int targetLevel)
     {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
-    }
-
-    private Order[] GetOrders(int playerId)
-    {
-        using var uow = GetUow();
-        var orderManager = GetOrderManager(uow);
-        var orders = orderManager.GetOrders(playerId).ToArray();
-        uow.Commit();
-        return orders;
-    }
-
-    private NeighborReputation[] GetReputation(int playerId)
-    {
-        using var uow = GetUow();
-        var orderManager = GetOrderManager(uow);
-        var reputation = orderManager.GetReputation(playerId).ToArray();
-        uow.Commit();
-        return reputation;
-    }
-
-    private Resource[] GetResources(int playerId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var resources = domikManager.GetResources(playerId).ToArray();
-        uow.Commit();
-        return resources;
-    }
-
-    private void CompleteOrder(int playerId, int orderId)
-    {
-        using var uow = GetUow();
-        var orderManager = GetOrderManager(uow);
-        orderManager.CompleteOrder(playerId, orderId);
-        uow.Commit();
-    }
-
-    private void FinishOrder(int playerId, int orderId, DateTime date)
-    {
-        using var uow = GetUow();
-        var orderManager = GetOrderManager(uow);
-        var result = orderManager.FinishOrder(date, new()
-        {
-            PlayerId = playerId,
-            ObjectId = orderId,
-            Date = date,
-            Type = CalculateTypes.OrderExpire,
-        });
-
-        Assert.That(result, Is.True);
-        uow.Commit();
-    }
-
-    private void BuyDomik(int playerId, int domikTypeId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        domikManager.BuyDomik(playerId, domikTypeId);
-        uow.Commit();
-    }
-
-    private VillageLevel GetVillageLevel(int playerId)
-    {
-        using var uow = GetUow();
-        var calculator = GetVillageLevelCalculator(uow);
-        var level = calculator.GetLevel(playerId);
-        uow.Commit();
-        return level;
-    }
-
-    private void RaiseVillageLevelTo(int playerId, int targetLevel)
-    {
-        var current = GetVillageLevel(playerId).Level;
+        var current = App.Act<VillageLevelCalculator, int>(m => m.GetLevel(playerId).Level);
         if (current >= targetLevel)
         {
             return;
@@ -320,10 +262,10 @@ public class OrdersTests : TestBase
         GrantReputation(playerId, 1, milestones * VillageLevelCalculator.ReputationPointsPerMilestone);
     }
 
-    private void GrantReputation(int playerId, int neighborId, int points)
+    private static void GrantReputation(int playerId, int neighborId, int points)
     {
-        using var uow = GetUow();
-        var reputation = uow.Context.NeighborReputations.SingleOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId);
+        using var scope = App.Scope();
+        var reputation = scope.Context.NeighborReputations.SingleOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId);
         if (reputation == null)
         {
             reputation = new()
@@ -332,57 +274,37 @@ public class OrdersTests : TestBase
                 NeighborId = neighborId,
             };
 
-            uow.Context.NeighborReputations.Add(reputation);
+            scope.Context.NeighborReputations.Add(reputation);
         }
 
         reputation.Points += points;
-        uow.Context.SaveChanges();
-        uow.Commit();
+        scope.Commit();
     }
 
-    private void DeleteAllOrders(int playerId)
+    private static void ClearOrders(int playerId)
     {
-        using var uow = GetUow();
-        var dbOrders = uow.Context.Orders.Where(x => x.PlayerId == playerId).ToArray();
-        uow.Context.Orders.RemoveRange(dbOrders);
-        uow.Context.SaveChanges();
-        uow.Commit();
+        using var scope = App.Scope();
+        var orders = scope.Context.Orders.Where(x => x.PlayerId == playerId).ToArray();
+        var orderIds = orders.Select(x => x.Id).ToArray();
+        var resources = scope.Context.OrderResources.Where(x => orderIds.Contains(x.OrderId)).ToArray();
+        scope.Context.OrderResources.RemoveRange(resources);
+        scope.Context.Orders.RemoveRange(orders);
+        scope.Commit();
     }
 
-    private void SetOrderRefillAt(int playerId, DateTime value)
+    private static void SetOrderRefillAt(int playerId, DateTime value)
     {
-        using var uow = GetUow();
-        var player = uow.Context.Players.Single(x => x.Id == playerId);
+        using var scope = App.Scope();
+        var player = scope.Context.Players.Single(x => x.Id == playerId);
         player.NextOrderRefillAt = value;
-        uow.Context.SaveChanges();
-        uow.Commit();
+        scope.Commit();
     }
 
-    private void GrantResource(int playerId, int typeId, int value)
+    private static int CreateManualOrder(int playerId, int neighborId, int resourceTypeId, int value, int rewardCoins, int rewardGold, int rewardReputation)
     {
-        using var uow = GetUow();
-        var resource = uow.Context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
-        if (resource == null)
-        {
-            resource = new()
-            {
-                PlayerId = playerId,
-                TypeId = typeId,
-            };
-
-            uow.Context.Resources.Add(resource);
-        }
-
-        resource.Value += value;
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private int CreateManualOrder(int playerId, int neighborId, int resourceTypeId, int value, int rewardCoins, int rewardGold, int rewardReputation)
-    {
-        using var uow = GetUow();
+        using var scope = App.Scope();
         var now = DateTimeHelper.GetNowDate();
-        var order = new Data.Entities.Order
+        var order = new Order
         {
             PlayerId = playerId,
             NeighborId = neighborId,
@@ -393,20 +315,20 @@ public class OrdersTests : TestBase
             RewardReputation = rewardReputation,
         };
 
-        uow.Context.Orders.Add(order);
-        uow.Context.SaveChanges();
-        uow.Context.OrderResources.Add(new()
+        scope.Context.Orders.Add(order);
+        scope.Context.SaveChanges();
+        scope.Context.OrderResources.Add(new()
         {
             OrderId = order.Id,
             ResourceTypeId = resourceTypeId,
             Value = value,
         });
 
-        uow.Commit();
+        scope.Commit();
         return order.Id;
     }
 
-    private int ResourceValue(Resource[] resources, int typeId)
+    private static int ResourceValue(IReadOnlyList<Resource> resources, int typeId)
     {
         return resources.FirstOrDefault(x => x.Type.Id == typeId)?.Value ?? 0;
     }

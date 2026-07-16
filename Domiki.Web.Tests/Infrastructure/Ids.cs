@@ -41,6 +41,15 @@ public static class DomikIds
     public const int Bakery = 16;
 }
 
+/// <summary>
+/// Id экземпляров построек стартового набора игрока (Domik.Id при PK PlayerId+Id), не путать с id типов из DomikIds.
+/// </summary>
+public static class StartingDomikIds
+{
+    public const int Barrack = 1;
+    public const int ClayMine = 2;
+}
+
 public static class DecorIds
 {
     public const int Fence = 1;

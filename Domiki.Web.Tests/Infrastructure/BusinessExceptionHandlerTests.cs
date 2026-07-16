@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace Domiki.Web.Tests;
 
-public class BusinessExceptionHandlerTests
+public sealed class BusinessExceptionHandlerTests
 {
     /// <summary>
     /// BusinessException отдаётся клиенту как 400 с телом-конвертом { type = ErrorMessage, content = текст исключения }.

@@ -5,7 +5,7 @@ using Domiki.Web.Reference;
 
 namespace Domiki.Web.Tests;
 
-public class PacingTests : TestBase
+public sealed class PacingTests
 {
     /// <summary>
     /// Заказы, сгенерированные доской (включая заказы на передельные ресурсы), сохраняют количество и награду строго по
@@ -14,19 +14,20 @@ public class PacingTests : TestBase
     [Test]
     public void CreateOrderPersistsNormalizedQuantityAndRewardTest()
     {
-        var playerId = GetPlayerId();
-        GrantDecor(playerId, 4, 4);
-        GrantBlueprint(playerId, 3);
-        GrantResource(playerId, 1, 600);
-        BuyDomik(playerId, 13);
+        var player = TestPlayer.Create()
+            .WithDecor(DecorIds.Fountain, 4)
+            .WithBlueprint(BlueprintIds.Pottery)
+            .WithResource(ResourceIds.Coin, 600)
+            .Buy(DomikIds.Pottery);
+
         for (var attempt = 0; attempt < 25; attempt++)
         {
-            EnsureOrderBoard(playerId);
-            var orders = LoadOrders(playerId);
+            player.EnsureOrderBoard();
+            var orders = LoadOrders(player.Id);
             foreach (var (order, resource) in orders)
             {
                 var tier = OrderManager.Tiers.Single(candidate => candidate.RewardReputation == order.RewardReputation);
-                var capacity = GetCapacity(playerId, resource.ResourceTypeId);
+                var capacity = player.Capacity(resource.ResourceTypeId);
                 var expectedQuantity = OrderManager.GetEffectiveQuantity(tier, resource.ResourceTypeId, capacity);
                 var expectedReward = (int)Math.Round(expectedQuantity * ResourceManager.GetMarketValue(resource.ResourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero);
                 using (Assert.EnterMultipleScope())
@@ -36,12 +37,12 @@ public class PacingTests : TestBase
                 }
             }
 
-            if (orders.Any(x => x.Resource.ResourceTypeId is 6 or 7))
+            if (orders.Any(x => x.Resource.ResourceTypeId is ResourceIds.Brick or ResourceIds.Board))
             {
                 return;
             }
 
-            ClearOrders(playerId);
+            ClearOrders(player.Id);
         }
 
         Assert.Fail("Заказ на передел не сгенерирован за 25 переборов доски");
@@ -54,29 +55,29 @@ public class PacingTests : TestBase
     /// <param name="resourceTypeId">Тип запрашиваемого ресурса.</param>
     /// <param name="expectedQuantity">Ожидаемое нормированное количество ресурса.</param>
     /// <param name="expectedRewardCoins">Ожидаемая награда в монетах.</param>
-    [TestCase(6, 1, 53)]
-    [TestCase(6, 4, 280)]
-    [TestCase(6, 9, 945)]
-    [TestCase(7, 1, 53)]
-    [TestCase(7, 4, 280)]
-    [TestCase(7, 9, 945)]
+    [TestCase(ResourceIds.Brick, 1, 53)]
+    [TestCase(ResourceIds.Brick, 4, 280)]
+    [TestCase(ResourceIds.Brick, 9, 945)]
+    [TestCase(ResourceIds.Board, 1, 53)]
+    [TestCase(ResourceIds.Board, 4, 280)]
+    [TestCase(ResourceIds.Board, 9, 945)]
     public void ProcessedResourceOrderUsesNormalizedQuantityAndRewardTest(int resourceTypeId, int expectedQuantity, int expectedRewardCoins)
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
         var tier = OrderManager.Tiers.Single(candidate => OrderManager.GetOrderQuantity(candidate, resourceTypeId) == expectedQuantity);
         var quantity = OrderManager.GetOrderQuantity(tier, resourceTypeId);
         var rewardCoins = (int)Math.Round(quantity * ResourceManager.GetMarketValue(resourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero);
-        var orderId = CreateOrder(playerId, resourceTypeId, quantity, rewardCoins, tier.RewardGold, tier.RewardReputation);
-        GrantResource(playerId, resourceTypeId, quantity);
-        var coinsBefore = GetResource(playerId, 1);
+        var orderId = CreateManualOrder(player.Id, 1, resourceTypeId, quantity, rewardCoins, tier.RewardGold, tier.RewardReputation);
+        player.WithResource(resourceTypeId, quantity);
+        var coinsBefore = player.Resource(ResourceIds.Coin);
 
-        CompleteOrder(playerId, orderId);
+        player.CompleteOrder(orderId);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(quantity, Is.EqualTo(expectedQuantity));
             Assert.That(rewardCoins, Is.EqualTo(expectedRewardCoins));
-            Assert.That(GetResource(playerId, 1) - coinsBefore, Is.EqualTo(rewardCoins));
+            Assert.That(player.Resource(ResourceIds.Coin) - coinsBefore, Is.EqualTo(rewardCoins));
         }
     }
 
@@ -85,76 +86,44 @@ public class PacingTests : TestBase
     /// </summary>
     /// <param name="receiptId">Идентификатор рецепта.</param>
     /// <param name="resourceTypeId">Тип производимого ресурса.</param>
-    [TestCase(32, 2)]
-    [TestCase(33, 3)]
-    [TestCase(34, 4)]
+    [TestCase(ReceiptIds.BuyStone, ResourceIds.Stone)]
+    [TestCase(ReceiptIds.BuyWood, ResourceIds.Wood)]
+    [TestCase(ReceiptIds.BuyClay, ResourceIds.Clay)]
     public void BuyReceiptWritesOffCoinsAndProducesResourceTest(int receiptId, int resourceTypeId)
     {
-        var playerId = GetPlayerId();
-        BuyDomik(playerId, 7);
-        GrantResource(playerId, 1, 20);
-        UpgradeDomik(playerId, 3);
-        GrantResource(playerId, 1, 505);
-        GrantResource(playerId, 2, 15);
-        GrantResource(playerId, 3, 15);
-        UpgradeDomik(playerId, 3);
-        var coinsBefore = GetResource(playerId, 1);
-        var resourceBefore = GetResource(playerId, resourceTypeId);
+        const int purchaseCost = 35;
+        const int producedAmount = 1;
 
-        StartManufacture(playerId, 3, receiptId);
+        var player = TestPlayer.Create()
+            .Buy(DomikIds.Market)
+            .WithResource(ResourceIds.Coin, 20);
+
+        var marketId = player.DomikId(DomikIds.Market);
+        player.Upgrade(marketId);
+        player.WithResource(ResourceIds.Coin, 505)
+            .WithResource(ResourceIds.Stone, 15)
+            .WithResource(ResourceIds.Wood, 15);
+        player.Upgrade(marketId);
+        var coinsBefore = player.Resource(ResourceIds.Coin);
+        var resourceBefore = player.Resource(resourceTypeId);
+
+        player.StartManufacture(marketId, receiptId);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(coinsBefore - GetResource(playerId, 1), Is.EqualTo(35));
-            Assert.That(GetResource(playerId, resourceTypeId) - resourceBefore, Is.EqualTo(1));
+            Assert.That(coinsBefore - player.Resource(ResourceIds.Coin), Is.EqualTo(purchaseCost));
+            Assert.That(player.Resource(resourceTypeId) - resourceBefore, Is.EqualTo(producedAmount));
         }
     }
 
-    private int GetPlayerId()
+    private static int CreateManualOrder(int playerId, int neighborId, int resourceTypeId, int quantity, int rewardCoins, int rewardGold, int rewardReputation)
     {
-        using var uow = GetUow();
-        var playerId = GetDomikManager(uow).GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        MuteFtue(playerId);
-        return playerId;
-    }
-
-    private void BuyDomik(int playerId, int typeId)
-    {
-        using var uow = GetUow();
-        GetDomikManager(uow).BuyDomik(playerId, typeId);
-        uow.Commit();
-    }
-
-    private void UpgradeDomik(int playerId, int domikId)
-    {
-        using var uow = GetUow();
-        GetDomikManager(uow).UpgradeDomik(playerId, domikId);
-        uow.Commit();
-    }
-
-    private void StartManufacture(int playerId, int domikId, int receiptId)
-    {
-        using var uow = GetUow();
-        GetDomikManager(uow).StartManufacture(playerId, domikId, receiptId);
-        uow.Commit();
-    }
-
-    private void CompleteOrder(int playerId, int orderId)
-    {
-        using var uow = GetUow();
-        GetOrderManager(uow).CompleteOrder(playerId, orderId);
-        uow.Commit();
-    }
-
-    private int CreateOrder(int playerId, int resourceTypeId, int quantity, int rewardCoins, int rewardGold, int rewardReputation)
-    {
-        using var uow = GetUow();
+        using var scope = App.Scope();
         var now = DateTimeHelper.GetNowDate();
         var order = new Order
         {
             PlayerId = playerId,
-            NeighborId = 1,
+            NeighborId = neighborId,
             CreateDate = now,
             ExpireDate = now.AddHours(4),
             RewardCoins = rewardCoins,
@@ -162,117 +131,36 @@ public class PacingTests : TestBase
             RewardReputation = rewardReputation,
         };
 
-        uow.Context.Orders.Add(order);
-        uow.Context.SaveChanges();
-        uow.Context.OrderResources.Add(new()
+        scope.Context.Orders.Add(order);
+        scope.Context.SaveChanges();
+        scope.Context.OrderResources.Add(new()
         {
             OrderId = order.Id,
             ResourceTypeId = resourceTypeId,
             Value = quantity,
         });
 
-        uow.Commit();
+        scope.Commit();
         return order.Id;
     }
 
-    private void GrantBlueprint(int playerId, int blueprintId)
+    private static (Order Order, OrderResource Resource)[] LoadOrders(int playerId)
     {
-        using var uow = GetUow();
-        uow.Context.PlayerBlueprints.Add(new()
-        {
-            PlayerId = playerId,
-            BlueprintId = blueprintId,
-        });
-
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void GrantDecor(int playerId, int decorTypeId, int count)
-    {
-        using var uow = GetUow();
-        var decor = uow.Context.PlayerDecors.SingleOrDefault(candidate => candidate.PlayerId == playerId && candidate.DecorTypeId == decorTypeId);
-        if (decor == null)
-        {
-            decor = new()
-            {
-                PlayerId = playerId,
-                DecorTypeId = decorTypeId,
-            };
-
-            uow.Context.PlayerDecors.Add(decor);
-        }
-
-        decor.Count += count;
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private int GetCapacity(int playerId, int resourceTypeId)
-    {
-        using var uow = GetUow();
-        var capacity = GetOrderManager(uow).GetCapacity(playerId, resourceTypeId);
-        uow.Commit();
-        return capacity;
-    }
-
-    private void EnsureOrderBoard(int playerId)
-    {
-        using var uow = GetUow();
-        GetOrderManager(uow).EnsureOrderBoard(playerId);
-        uow.Commit();
-    }
-
-    private (Order Order, OrderResource Resource)[] LoadOrders(int playerId)
-    {
-        using var uow = GetUow();
-        var orders = uow.Context.Orders.Where(candidate => candidate.PlayerId == playerId)
-            .Join(uow.Context.OrderResources, order => order.Id, resource => resource.OrderId, (order, resource) => new { order, resource })
+        return App.Read(context => context.Orders.Where(x => x.PlayerId == playerId)
+            .Join(context.OrderResources, order => order.Id, resource => resource.OrderId, (order, resource) => new { order, resource })
             .ToArray()
             .Select(x => (x.order, x.resource))
-            .ToArray();
-
-        uow.Commit();
-        return orders;
+            .ToArray());
     }
 
-    private void ClearOrders(int playerId)
+    private static void ClearOrders(int playerId)
     {
-        using var uow = GetUow();
-        var orders = uow.Context.Orders.Where(candidate => candidate.PlayerId == playerId).ToArray();
-        var orderIds = orders.Select(order => order.Id).ToArray();
-        var resources = uow.Context.OrderResources.Where(candidate => orderIds.Contains(candidate.OrderId)).ToArray();
-        uow.Context.OrderResources.RemoveRange(resources);
-        uow.Context.Orders.RemoveRange(orders);
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void GrantResource(int playerId, int resourceTypeId, int value)
-    {
-        using var uow = GetUow();
-        var resource = uow.Context.Resources.SingleOrDefault(candidate => candidate.PlayerId == playerId && candidate.TypeId == resourceTypeId);
-        if (resource == null)
-        {
-            resource = new()
-            {
-                PlayerId = playerId,
-                TypeId = resourceTypeId,
-            };
-
-            uow.Context.Resources.Add(resource);
-        }
-
-        resource.Value += value;
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private int GetResource(int playerId, int resourceTypeId)
-    {
-        using var uow = GetUow();
-        var value = uow.Context.Resources.SingleOrDefault(candidate => candidate.PlayerId == playerId && candidate.TypeId == resourceTypeId)?.Value ?? 0;
-        uow.Commit();
-        return value;
+        using var scope = App.Scope();
+        var orders = scope.Context.Orders.Where(x => x.PlayerId == playerId).ToArray();
+        var orderIds = orders.Select(x => x.Id).ToArray();
+        var resources = scope.Context.OrderResources.Where(x => orderIds.Contains(x.OrderId)).ToArray();
+        scope.Context.OrderResources.RemoveRange(resources);
+        scope.Context.Orders.RemoveRange(orders);
+        scope.Commit();
     }
 }

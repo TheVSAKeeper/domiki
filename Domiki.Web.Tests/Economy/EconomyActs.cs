@@ -68,4 +68,45 @@ public static class EconomyActs
     {
         return App.Act<MarketManager, MarketState?>(m => m.GetMarket(p.Id));
     }
+
+    public static IReadOnlyList<Order> Orders(this TestPlayer p)
+    {
+        return App.Act<OrderManager, IReadOnlyList<Order>>(m => m.GetOrders(p.Id).ToList());
+    }
+
+    public static TestPlayer CompleteOrder(this TestPlayer p, int orderId)
+    {
+        App.Act<OrderManager>(m => m.CompleteOrder(p.Id, orderId));
+        return p;
+    }
+
+    public static TestPlayer FinishOrder(this TestPlayer p, int orderId, DateTime date)
+    {
+        var result = App.Act<OrderManager, bool>(m => m.FinishOrder(date, new()
+        {
+            PlayerId = p.Id,
+            ObjectId = orderId,
+            Date = date,
+            Type = CalculateTypes.OrderExpire,
+        }));
+
+        Assert.That(result, Is.True);
+        return p;
+    }
+
+    public static IReadOnlyList<NeighborReputation> Reputation(this TestPlayer p)
+    {
+        return App.Act<OrderManager, IReadOnlyList<NeighborReputation>>(m => m.GetReputation(p.Id).ToList());
+    }
+
+    public static int Capacity(this TestPlayer p, int resourceTypeId)
+    {
+        return App.Act<OrderManager, int>(m => m.GetCapacity(p.Id, resourceTypeId));
+    }
+
+    public static TestPlayer EnsureOrderBoard(this TestPlayer p)
+    {
+        App.Act<OrderManager>(m => m.EnsureOrderBoard(p.Id));
+        return p;
+    }
 }

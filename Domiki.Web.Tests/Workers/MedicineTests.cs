@@ -1,21 +1,12 @@
 ﻿using Domiki.Web.Core;
-using Domiki.Web.Core.Models;
-using Domiki.Web.Core.Scheduling;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Village;
-using Domiki.Web.Workers.Models;
 
 namespace Domiki.Web.Tests;
 
 [NonParallelizable]
-public class MedicineTests : TestBase
+public sealed class MedicineTests
 {
-    private const int ClearWeatherTypeId = 1;
-    private const int RainWeatherTypeId = 2;
-    private const int ClayMineDomikTypeId = 5;
-    private const int LumberMillDomikTypeId = 6;
-    private const int ClayDig8hReceiptId = 14;
-    private const int WoodDig8hReceiptId = 16;
     private const int OrdinaryTraitId = 1;
     private const int SonyaTraitId = 4;
     private const int HardyTraitId = 6;
@@ -32,21 +23,25 @@ public class MedicineTests : TestBase
     [Test]
     public void FinishManufactureDoesNotExceedMaxSickPerPlayerTest()
     {
-        var playerId = GetPlayerId();
-        var defaultWorker = GetWorkers(playerId).Single();
-        SetWorkerTrait(defaultWorker.Id, OrdinaryTraitId);
-        var alreadySickA = InsertWorker(playerId, "Хворый-А");
-        var alreadySickB = InsertWorker(playerId, "Хворый-Б");
+        var player = TestPlayer.Create();
+        var defaultWorker = player.Workers().Single();
+        player.SetWorkerTrait(defaultWorker.Id, OrdinaryTraitId);
+        var alreadySickA = InsertWorker(player.Id, "Хворый-А");
+        var alreadySickB = InsertWorker(player.Id, "Хворый-Б");
         var future = DateTimeHelper.GetNowDate().AddHours(24);
         SetWorkerSick(alreadySickA, future);
         SetWorkerSick(alreadySickB, future);
 
-        StartManufacture(playerId, 2, ClayDig8hReceiptId, false, [defaultWorker.Id]);
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
-        SetManufactureSickChance(manufacture.Id, 100);
-        FinishManufacture(playerId, manufacture.Id, manufacture.FinishDate.AddSeconds(1));
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h, [defaultWorker.Id]);
+        }
 
-        var worker = GetWorkers(playerId).Single(x => x.Id == defaultWorker.Id);
+        var manufacture = player.Manufacture(StartingDomikIds.ClayMine);
+        SetManufactureSickChance(manufacture.Id, 100);
+        player.FinishManufacture(manufacture.Id, manufacture.FinishDate.AddSeconds(1));
+
+        var worker = player.Workers().Single(x => x.Id == defaultWorker.Id);
         Assert.That(worker.SickUntil, Is.Null);
     }
 
@@ -56,15 +51,21 @@ public class MedicineTests : TestBase
     [Test]
     public void SickChanceStaysFixedAtStartWhenWeatherChangesTest()
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 20, ClayMineDomikTypeId);
-        RaiseVillageToSickGate(playerId);
-        SetWeather(RainWeatherTypeId);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.ClayMine);
 
-        StartManufacture(playerId, 20, ClayDig8hReceiptId, false);
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 20).Manufactures.Single();
+        var domikId = player.DomikId(DomikIds.ClayMine);
+        RaiseVillageToSickGate(player);
+        SetWeather(WeatherIds.Rain);
 
-        SetWeather(ClearWeatherTypeId);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(domikId, ReceiptIds.ClayDig8h);
+        }
+
+        var manufacture = player.Manufacture(domikId);
+
+        SetWeather(WeatherIds.Clear);
 
         Assert.That(GetManufactureSickChance(manufacture.Id), Is.EqualTo(DomikManager.SickChancePercent));
     }
@@ -78,28 +79,33 @@ public class MedicineTests : TestBase
     /// <param name="receiptId">Рецепт производства.</param>
     /// <param name="highVillage">Поднята ли деревня до порога простуды.</param>
     /// <param name="expectedSickChance">Ожидаемый зафиксированный шанс заболеть.</param>
-    [TestCase(RainWeatherTypeId, ClayMineDomikTypeId, ClayDig8hReceiptId, true, DomikManager.SickChancePercent)]
-    [TestCase(ClearWeatherTypeId, ClayMineDomikTypeId, ClayDig8hReceiptId, true, 0)]
-    [TestCase(RainWeatherTypeId, LumberMillDomikTypeId, WoodDig8hReceiptId, true, 0)]
-    [TestCase(RainWeatherTypeId, ClayMineDomikTypeId, ClayDig8hReceiptId, false, 0)]
+    [TestCase(WeatherIds.Rain, DomikIds.ClayMine, ReceiptIds.ClayDig8h, true, DomikManager.SickChancePercent)]
+    [TestCase(WeatherIds.Clear, DomikIds.ClayMine, ReceiptIds.ClayDig8h, true, 0)]
+    [TestCase(WeatherIds.Rain, DomikIds.LumberMill, ReceiptIds.WoodDig8h, true, 0)]
+    [TestCase(WeatherIds.Rain, DomikIds.ClayMine, ReceiptIds.ClayDig8h, false, 0)]
     public void StartManufactureFixesSickChanceFromWeatherAndVillageTest(int weatherTypeId, int domikTypeId, int receiptId, bool highVillage, int expectedSickChance)
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 20, domikTypeId);
+        var player = TestPlayer.Create()
+            .WithDomik(domikTypeId);
+
+        var domikId = player.DomikId(domikTypeId);
         if (highVillage)
         {
-            RaiseVillageToSickGate(playerId);
+            RaiseVillageToSickGate(player);
         }
         else
         {
-            Assert.That(GetVillageLevel(playerId), Is.LessThan(DomikManager.SickMinVillageLevel));
+            Assert.That(GetVillageLevel(player.Id), Is.LessThan(DomikManager.SickMinVillageLevel));
         }
 
         SetWeather(weatherTypeId);
 
-        StartManufacture(playerId, 20, receiptId, false);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(domikId, receiptId);
+        }
 
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 20).Manufactures.Single();
+        var manufacture = player.Manufacture(domikId);
         Assert.That(GetManufactureSickChance(manufacture.Id), Is.EqualTo(expectedSickChance));
     }
 
@@ -113,24 +119,28 @@ public class MedicineTests : TestBase
     [TestCase(0, false)]
     public void FinishManufactureRollSendsWorkerToSickTest(int sickChance, bool expectSick)
     {
-        var playerId = GetPlayerId();
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerTrait(worker.Id, OrdinaryTraitId);
+        var player = TestPlayer.Create();
+        var worker = player.Workers().Single();
+        player.SetWorkerTrait(worker.Id, OrdinaryTraitId);
 
-        StartManufacture(playerId, 2, ClayDig8hReceiptId, false);
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
+        }
+
+        var manufacture = player.Manufacture(StartingDomikIds.ClayMine);
         SetManufactureSickChance(manufacture.Id, sickChance);
         var finishDate = manufacture.FinishDate.AddSeconds(1);
-        FinishManufacture(playerId, manufacture.Id, finishDate);
+        player.FinishManufacture(manufacture.Id, finishDate);
 
-        worker = GetWorkers(playerId).Single();
+        worker = player.Workers().Single();
         if (expectSick)
         {
             using (Assert.EnterMultipleScope())
             {
                 Assert.That(worker.SickUntil, Is.Not.Null);
                 Assert.That(worker.RestUntil, Is.EqualTo(worker.SickUntil));
-                Assert.That((worker.SickUntil.Value - finishDate).TotalSeconds, Is.EqualTo(DomikManager.SickDurationSeconds).Within(2));
+                Assert.That((worker.SickUntil!.Value - finishDate).TotalSeconds, Is.EqualTo(DomikManager.SickDurationSeconds).Within(2));
             }
         }
         else
@@ -149,19 +159,23 @@ public class MedicineTests : TestBase
     [TestCase(-25, true)]
     public void FinishManufactureRespectsSickImmunityTest(int priorSickOffsetHours, bool expectResick)
     {
-        var playerId = GetPlayerId();
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerTrait(worker.Id, OrdinaryTraitId);
+        var player = TestPlayer.Create();
+        var worker = player.Workers().Single();
+        player.SetWorkerTrait(worker.Id, OrdinaryTraitId);
         var priorSickUntil = DateTimeHelper.GetNowDate().AddHours(priorSickOffsetHours);
         SetWorkerSick(worker.Id, priorSickUntil);
 
-        StartManufacture(playerId, 2, ClayDig8hReceiptId, false);
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
+        }
+
+        var manufacture = player.Manufacture(StartingDomikIds.ClayMine);
         SetManufactureSickChance(manufacture.Id, 100);
         var finishDate = manufacture.FinishDate.AddSeconds(1);
-        FinishManufacture(playerId, manufacture.Id, finishDate);
+        player.FinishManufacture(manufacture.Id, finishDate);
 
-        worker = GetWorkers(playerId).Single();
+        worker = player.Workers().Single();
         if (expectResick)
         {
             Assert.That(worker.SickUntil, Is.GreaterThan(finishDate));
@@ -180,122 +194,61 @@ public class MedicineTests : TestBase
     [TestCase(HardyTraitId)]
     public void ImmuneTraitsDoNotGetSickTest(int traitId)
     {
-        var playerId = GetPlayerId();
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerTrait(worker.Id, traitId);
+        var player = TestPlayer.Create();
+        var worker = player.Workers().Single();
+        player.SetWorkerTrait(worker.Id, traitId);
 
-        StartManufacture(playerId, 2, ClayDig8hReceiptId, false);
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
+        }
+
+        var manufacture = player.Manufacture(StartingDomikIds.ClayMine);
         SetManufactureSickChance(manufacture.Id, 100);
-        FinishManufacture(playerId, manufacture.Id, manufacture.FinishDate.AddSeconds(1));
+        player.FinishManufacture(manufacture.Id, manufacture.FinishDate.AddSeconds(1));
 
-        worker = GetWorkers(playerId).Single();
+        worker = player.Workers().Single();
         Assert.That(worker.SickUntil, Is.Null);
     }
 
-    private int GetPlayerId()
+    private static int GetVillageLevel(int playerId)
     {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
+        return App.Act<VillageLevelCalculator, int>(m => m.GetLevel(playerId).Level);
     }
 
-    private Worker[] GetWorkers(int playerId)
+    private static void RaiseVillageToSickGate(TestPlayer player)
     {
-        using var uow = GetUow();
-        var workerManager = GetWorkerManager(uow);
-        var workers = workerManager.GetWorkers(playerId).ToArray();
-        uow.Commit();
-        return workers;
-    }
-
-    private Domik[] GetDomiks(int playerId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var domiks = domikManager.GetDomiks(playerId).ToArray();
-        uow.Commit();
-        return domiks;
-    }
-
-    private void StartManufacture(int playerId, int domikId, int receiptId, bool calculatorJustFinishMode, int[]? workerIds = null)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow, calculatorJustFinishMode);
-        domikManager.StartManufacture(playerId, domikId, receiptId, workerIds: workerIds);
-        uow.Commit();
-    }
-
-    private void FinishManufacture(int playerId, int manufactureId, DateTime date)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var result = domikManager.FinishManufacture(date, new()
+        while (GetVillageLevel(player.Id) < DomikManager.SickMinVillageLevel)
         {
-            PlayerId = playerId,
-            ObjectId = manufactureId,
-            Date = date,
-            Type = CalculateTypes.Manufacture,
-        });
-
-        Assert.That(result, Is.True);
-        uow.Commit();
-    }
-
-    private int GetManufactureSickChance(int manufactureId)
-    {
-        using var uow = GetUow();
-        return uow.Context.Manufactures.Single(x => x.Id == manufactureId).SickChance;
-    }
-
-    private void SetManufactureSickChance(int manufactureId, int chance)
-    {
-        using var uow = GetUow();
-        var manufacture = uow.Context.Manufactures.Single(x => x.Id == manufactureId);
-        manufacture.SickChance = chance;
-        uow.Commit();
-    }
-
-    private int GetVillageLevel(int playerId)
-    {
-        using var uow = GetUow();
-        var calculator = GetVillageLevelCalculator(uow);
-        var level = calculator.GetLevel(playerId).Level;
-        uow.Commit();
-        return level;
-    }
-
-    private void RaiseVillageToSickGate(int playerId)
-    {
-        var nextId = 30;
-        while (GetVillageLevel(playerId) < DomikManager.SickMinVillageLevel)
-        {
-            GrantDomik(playerId, nextId++, ClayMineDomikTypeId);
+            player.WithDomik(DomikIds.ClayMine);
         }
     }
 
-    private void SetWorkerTrait(int workerId, int traitId)
+    private static int GetManufactureSickChance(int manufactureId)
     {
-        using var uow = GetUow();
-        var worker = uow.Context.Workers.Single(x => x.Id == workerId);
-        worker.TraitId = traitId;
-        uow.Commit();
+        return App.Read(context => context.Manufactures.Single(x => x.Id == manufactureId).SickChance);
     }
 
-    private void SetWorkerSick(int workerId, DateTime sickUntil)
+    private static void SetManufactureSickChance(int manufactureId, int chance)
     {
-        using var uow = GetUow();
-        var worker = uow.Context.Workers.Single(x => x.Id == workerId);
+        using var scope = App.Scope();
+        var manufacture = scope.Context.Manufactures.Single(x => x.Id == manufactureId);
+        manufacture.SickChance = chance;
+        scope.Commit();
+    }
+
+    private static void SetWorkerSick(int workerId, DateTime sickUntil)
+    {
+        using var scope = App.Scope();
+        var worker = scope.Context.Workers.Single(x => x.Id == workerId);
         worker.SickUntil = sickUntil;
         worker.RestUntil = sickUntil;
-        uow.Commit();
+        scope.Commit();
     }
 
-    private int InsertWorker(int playerId, string name)
+    private static int InsertWorker(int playerId, string name)
     {
-        using var uow = GetUow();
+        using var scope = App.Scope();
         var worker = new Data.Entities.Worker
         {
             PlayerId = playerId,
@@ -303,33 +256,30 @@ public class MedicineTests : TestBase
             TraitId = OrdinaryTraitId,
         };
 
-        uow.Context.Workers.Add(worker);
-        uow.Context.SaveChanges();
-        uow.Commit();
+        scope.Context.Workers.Add(worker);
+        scope.Commit();
         return worker.Id;
     }
 
-    private void SetWeather(int weatherTypeId)
+    private static void SetWeather(int weatherTypeId)
     {
         ClearWeatherSchedule();
         var now = DateTimeHelper.GetNowDate();
-        using var uow = GetUow();
-        uow.Context.WeatherPeriods.Add(new()
+        using var scope = App.Scope();
+        scope.Context.WeatherPeriods.Add(new()
         {
             WeatherTypeId = weatherTypeId,
             StartDate = now,
             EndDate = now.AddSeconds(WeatherManager.WeatherPeriodSeconds),
         });
 
-        uow.Context.SaveChanges();
-        uow.Commit();
+        scope.Commit();
     }
 
-    private void ClearWeatherSchedule()
+    private static void ClearWeatherSchedule()
     {
-        using var uow = GetUow();
-        uow.Context.WeatherPeriods.RemoveRange(uow.Context.WeatherPeriods);
-        uow.Context.SaveChanges();
-        uow.Commit();
+        using var scope = App.Scope();
+        scope.Context.WeatherPeriods.RemoveRange(scope.Context.WeatherPeriods);
+        scope.Commit();
     }
 }

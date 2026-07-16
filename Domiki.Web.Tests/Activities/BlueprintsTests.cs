@@ -1,24 +1,12 @@
-﻿using Domiki.Web.Activities.Models;
-using Domiki.Web.Core.Models;
+﻿using Domiki.Web.Activities;
+using Domiki.Web.Activities.Models;
 using Domiki.Web.Infrastructure;
-using Domiki.Web.Reference.Models;
 
 namespace Domiki.Web.Tests;
 
-public class BlueprintsTests : TestBase
+public sealed class BlueprintsTests
 {
-    private const int BlueprintId = 1;
     private const int BorovoeId = 2;
-    private const int WorkshopDomikTypeId = 8;
-    private const int BarracksDomikTypeId = 2;
-    private const int MarketDomikTypeId = 7;
-    private const int CoinResourceTypeId = 1;
-    private const int BoardResourceTypeId = 7;
-    private const int FurnitureResourceTypeId = 9;
-    private const int MakeFurnitureReceiptId = 29;
-    private const int SellFurnitureReceiptId = 31;
-    private const int StonecutterDomikTypeId = 12;
-    private const int StonecutterBlueprintId = 2;
 
     /// <summary>
     /// Покупка каменотёсни без владения её чертежом бросает исключение с упоминанием чертежа.
@@ -26,9 +14,10 @@ public class BlueprintsTests : TestBase
     [Test]
     public void BuyStonecutterWithoutBlueprintThrowsTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Coin, 1000);
 
-        var ex = Assert.Throws<BusinessException>(() => BuyDomik(playerId, StonecutterDomikTypeId));
+        var ex = Assert.Throws<BusinessException>(() => player.Buy(DomikIds.Stonecutter));
 
         Assert.That(ex!.Message, Does.Contain("чертёж"));
     }
@@ -39,16 +28,18 @@ public class BlueprintsTests : TestBase
     [Test]
     public void BuyWorkshopLazilyGrantsBlueprintTest()
     {
-        var playerId = GetPlayerId();
-        GrantReputation(playerId, BorovoeId, 30);
-        Assert.That(PlayerBlueprintCount(playerId), Is.Zero);
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Coin, 1000)
+            .WithReputation(BorovoeId, 30);
 
-        BuyDomik(playerId, WorkshopDomikTypeId);
+        Assert.That(player.BlueprintCount(BlueprintIds.Workshop), Is.Zero);
+
+        player.Buy(DomikIds.Workshop);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(PlayerBlueprintCount(playerId), Is.EqualTo(1));
-            Assert.That(GetDomikCount(playerId, WorkshopDomikTypeId), Is.EqualTo(1));
+            Assert.That(player.BlueprintCount(BlueprintIds.Workshop), Is.EqualTo(1));
+            Assert.That(player.Domiks().Count(x => x.Type.Id == DomikIds.Workshop), Is.EqualTo(1));
         }
     }
 
@@ -58,15 +49,16 @@ public class BlueprintsTests : TestBase
     [Test]
     public void BuyWorkshopWithBlueprintSucceedsTest()
     {
-        var playerId = GetPlayerId();
-        GrantReputation(playerId, BorovoeId, 30);
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Coin, 1000)
+            .WithReputation(BorovoeId, 30);
 
-        BuyDomik(playerId, WorkshopDomikTypeId);
+        player.Buy(DomikIds.Workshop);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(GetDomikCount(playerId, WorkshopDomikTypeId), Is.EqualTo(1));
-            Assert.That(PlayerBlueprintCount(playerId), Is.EqualTo(1));
+            Assert.That(player.Domiks().Count(x => x.Type.Id == DomikIds.Workshop), Is.EqualTo(1));
+            Assert.That(player.BlueprintCount(BlueprintIds.Workshop), Is.EqualTo(1));
         }
     }
 
@@ -76,17 +68,18 @@ public class BlueprintsTests : TestBase
     [Test]
     public void BuyWorkshopWithoutBlueprintThrowsAndKeepsResourcesTest()
     {
-        var playerId = GetPlayerId();
-        GrantReputation(playerId, BorovoeId, 29);
-        var before = GetResources(playerId);
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Coin, 1000)
+            .WithReputation(BorovoeId, 29);
 
-        var ex = Assert.Throws<BusinessException>(() => BuyDomik(playerId, WorkshopDomikTypeId));
+        var before = player.Resources();
+        var ex = Assert.Throws<BusinessException>(() => player.Buy(DomikIds.Workshop));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex.Message, Is.EqualTo("Нужен чертёж (репутация Боровое 30)"));
-            Assert.That(GetResources(playerId).Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo(before.Select(x => (x.Type.Id, x.Value))));
-            Assert.That(GetDomikCount(playerId, WorkshopDomikTypeId), Is.Zero);
+            Assert.That(ex!.Message, Is.EqualTo("Нужен чертёж (репутация Боровое 30)"));
+            Assert.That(player.Resources().Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo(before.Select(x => (x.Type.Id, x.Value))));
+            Assert.That(player.Domiks().Count(x => x.Type.Id == DomikIds.Workshop), Is.Zero);
         }
     }
 
@@ -96,29 +89,30 @@ public class BlueprintsTests : TestBase
     [Test]
     public void FurnitureRecipeAndSaleTest()
     {
-        var playerId = GetPlayerId();
-        GrantReputation(playerId, BorovoeId, 30);
-        GrantResource(playerId, BoardResourceTypeId, 2);
-        BuyDomik(playerId, BarracksDomikTypeId);
-        BuyDomik(playerId, MarketDomikTypeId);
-        BuyDomik(playerId, WorkshopDomikTypeId);
-        var workshop = GetDomiks(playerId).Single(x => x.Type.Id == WorkshopDomikTypeId);
+        const int furnitureSaleCoins = 95;
 
-        StartManufacture(playerId, workshop.Id, MakeFurnitureReceiptId);
-        var afterMake = GetResources(playerId);
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Coin, 700)
+            .WithReputation(BorovoeId, 30)
+            .WithResource(ResourceIds.Board, 2);
+
+        player.Buy(DomikIds.Barrack).Buy(DomikIds.Market).Buy(DomikIds.Workshop);
+        var workshopId = player.DomikId(DomikIds.Workshop);
+
+        player.StartManufacture(workshopId, ReceiptIds.MakeFurniture);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ResourceValue(afterMake, BoardResourceTypeId), Is.Zero);
-            Assert.That(ResourceValue(afterMake, FurnitureResourceTypeId), Is.EqualTo(1));
+            Assert.That(player.Resource(ResourceIds.Board), Is.Zero);
+            Assert.That(player.Resource(ResourceIds.Furniture), Is.EqualTo(1));
         }
 
-        var market = GetDomiks(playerId).First(x => x.Type.Id == MarketDomikTypeId && x.Level > 0);
-        StartManufacture(playerId, market.Id, SellFurnitureReceiptId);
-        var afterSell = GetResources(playerId);
+        var coinBeforeSell = player.Resource(ResourceIds.Coin);
+        var marketId = player.Domiks().First(x => x.Type.Id == DomikIds.Market && x.Level > 0).Id;
+        player.StartManufacture(marketId, ReceiptIds.SellFurniture);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ResourceValue(afterSell, FurnitureResourceTypeId), Is.Zero);
-            Assert.That(ResourceValue(afterSell, CoinResourceTypeId) - ResourceValue(afterMake, CoinResourceTypeId), Is.EqualTo(95));
+            Assert.That(player.Resource(ResourceIds.Furniture), Is.Zero);
+            Assert.That(player.Resource(ResourceIds.Coin) - coinBeforeSell, Is.EqualTo(furnitureSaleCoins));
         }
     }
 
@@ -128,13 +122,13 @@ public class BlueprintsTests : TestBase
     [Test]
     public void GetBlueprintsNewPlayerReturnsWorkshopBlueprintLockedTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
 
-        var blueprint = GetBlueprints(playerId).Single(x => x.Blueprint.Id == BlueprintId);
+        var blueprint = player.Blueprints().Single(x => x.Blueprint.Id == BlueprintIds.Workshop);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(blueprint.Blueprint.DomikTypeId, Is.EqualTo(WorkshopDomikTypeId));
+            Assert.That(blueprint.Blueprint.DomikTypeId, Is.EqualTo(DomikIds.Workshop));
             Assert.That(blueprint.Neighbor.Id, Is.EqualTo(BorovoeId));
             Assert.That(blueprint.CurrentReputation, Is.Zero);
             Assert.That(blueprint.Owned, Is.False);
@@ -147,16 +141,16 @@ public class BlueprintsTests : TestBase
     [Test]
     public void GrantBlueprintIsIdempotentTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
 
-        var first = GrantBlueprint(playerId, StonecutterBlueprintId);
-        var second = GrantBlueprint(playerId, StonecutterBlueprintId);
+        var first = player.GrantBlueprint(BlueprintIds.Stonecutter);
+        var second = player.GrantBlueprint(BlueprintIds.Stonecutter);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(first, Is.True);
             Assert.That(second, Is.False);
-            Assert.That(IsOwned(playerId, StonecutterBlueprintId), Is.True);
+            Assert.That(player.OwnsBlueprint(BlueprintIds.Stonecutter), Is.True);
         }
     }
 
@@ -170,127 +164,40 @@ public class BlueprintsTests : TestBase
     [TestCase(31, true)]
     public void ReputationThresholdGrantsBlueprintOnceTest(int reputation, bool expectedOwned)
     {
-        var playerId = GetPlayerId();
-        GrantReputation(playerId, BorovoeId, reputation);
+        var player = TestPlayer.Create()
+            .WithReputation(BorovoeId, reputation);
 
-        var first = GetBlueprints(playerId).Single(x => x.Blueprint.Id == BlueprintId);
-        var second = GetBlueprints(playerId).Single(x => x.Blueprint.Id == BlueprintId);
+        var first = player.Blueprints().Single(x => x.Blueprint.Id == BlueprintIds.Workshop);
+        var second = player.Blueprints().Single(x => x.Blueprint.Id == BlueprintIds.Workshop);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(first.Owned, Is.EqualTo(expectedOwned));
             Assert.That(second.Owned, Is.EqualTo(expectedOwned));
-            Assert.That(PlayerBlueprintCount(playerId), Is.EqualTo(expectedOwned ? 1 : 0));
+            Assert.That(player.BlueprintCount(BlueprintIds.Workshop), Is.EqualTo(expectedOwned ? 1 : 0));
         }
     }
+}
 
-    private int GetPlayerId()
+file static class BlueprintsTestsActs
+{
+    public static PlayerBlueprint[] Blueprints(this TestPlayer p)
     {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
-        new PlayerResourceManager(uow.Context, GetResourceManager(uow)).GrantResource(playerId, CoinResourceTypeId, 1000);
-        uow.Commit();
-        MuteFtue(playerId);
-        return playerId;
+        return App.Act<BlueprintManager, PlayerBlueprint[]>(m => m.GetBlueprints(p.Id).ToArray());
     }
 
-    private PlayerBlueprint[] GetBlueprints(int playerId)
+    public static bool GrantBlueprint(this TestPlayer p, int blueprintId)
     {
-        using var uow = GetUow();
-        var manager = GetBlueprintManager(uow);
-        var blueprints = manager.GetBlueprints(playerId).ToArray();
-        uow.Commit();
-        return blueprints;
+        return App.Act<BlueprintManager, bool>(m => m.GrantBlueprint(p.Id, blueprintId));
     }
 
-    private void BuyDomik(int playerId, int typeId)
+    public static bool OwnsBlueprint(this TestPlayer p, int blueprintId)
     {
-        using var uow = GetUow();
-        var manager = GetDomikManager(uow);
-        manager.BuyDomik(playerId, typeId);
-        uow.Commit();
+        return App.Act<BlueprintManager, bool>(m => m.IsOwned(p.Id, blueprintId));
     }
 
-    private void StartManufacture(int playerId, int domikId, int receiptId)
+    public static int BlueprintCount(this TestPlayer p, int blueprintId)
     {
-        using var uow = GetUow();
-        var manager = GetDomikManager(uow);
-        manager.StartManufacture(playerId, domikId, receiptId);
-        uow.Commit();
-    }
-
-    private Domik[] GetDomiks(int playerId)
-    {
-        using var uow = GetUow();
-        var manager = GetDomikManager(uow);
-        var domiks = manager.GetDomiks(playerId).ToArray();
-        uow.Commit();
-        return domiks;
-    }
-
-    private Resource[] GetResources(int playerId)
-    {
-        using var uow = GetUow();
-        var manager = GetDomikManager(uow);
-        var resources = manager.GetResources(playerId).ToArray();
-        uow.Commit();
-        return resources;
-    }
-
-    private void GrantReputation(int playerId, int neighborId, int points)
-    {
-        using var uow = GetUow();
-        var resourceManager = GetResourceManager(uow);
-        var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
-        playerResourceManager.GrantReputation(playerId, neighborId, points);
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void GrantResource(int playerId, int typeId, int value)
-    {
-        using var uow = GetUow();
-        var resourceManager = GetResourceManager(uow);
-        var playerResourceManager = new PlayerResourceManager(uow.Context, resourceManager);
-        playerResourceManager.GrantResource(playerId, typeId, value);
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private bool GrantBlueprint(int playerId, int blueprintId)
-    {
-        using var uow = GetUow();
-        var manager = GetBlueprintManager(uow);
-        var granted = manager.GrantBlueprint(playerId, blueprintId);
-        uow.Commit();
-        return granted;
-    }
-
-    private bool IsOwned(int playerId, int blueprintId)
-    {
-        using var uow = GetUow();
-        var manager = GetBlueprintManager(uow);
-        var owned = manager.IsOwned(playerId, blueprintId);
-        uow.Commit();
-        return owned;
-    }
-
-    private int PlayerBlueprintCount(int playerId)
-    {
-        using var uow = GetUow();
-        var count = uow.Context.PlayerBlueprints.Count(x => x.PlayerId == playerId && x.BlueprintId == BlueprintId);
-        uow.Commit();
-        return count;
-    }
-
-    private int GetDomikCount(int playerId, int typeId)
-    {
-        return GetDomiks(playerId).Count(x => x.Type.Id == typeId);
-    }
-
-    private int ResourceValue(Resource[] resources, int typeId)
-    {
-        return resources.FirstOrDefault(x => x.Type.Id == typeId)?.Value ?? 0;
+        return App.Read(context => context.PlayerBlueprints.Count(x => x.PlayerId == p.Id && x.BlueprintId == blueprintId));
     }
 }

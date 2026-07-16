@@ -1,10 +1,11 @@
 ﻿using Domiki.Web.Data.Entities;
 using Domiki.Web.Infrastructure;
+using Domiki.Web.Infrastructure.Models;
 
 namespace Domiki.Web.Tests;
 
 [NonParallelizable]
-public class OfflineRecapTests : TestBase
+public sealed class OfflineRecapTests
 {
     /// <summary>
     /// Принятие лота покупателем кладёт продавцу в офлайн-сводку событие продажи (LotSold).
@@ -12,24 +13,20 @@ public class OfflineRecapTests : TestBase
     [Test]
     public void AcceptedLotIsDeliveredToSellerTest()
     {
-        var sellerId = CreateUnlockedMarketPlayer();
-        var buyerId = CreateUnlockedMarketPlayer();
-        GrantResource(sellerId, 4, 20);
-        GrantResource(buyerId, 5, 3);
-        var lotId = PostLot(sellerId, 4, 20, 5, 3);
+        var seller = TestPlayer.Create()
+            .WithDomik(DomikIds.MarketYard)
+            .WithResource(ResourceIds.Clay, 20);
 
-        using (var uow = GetUow())
-        {
-            GetMarketManager(uow).AcceptLot(buyerId, lotId, DateTimeHelper.GetNowDate());
-            uow.Commit();
-        }
+        var buyer = TestPlayer.Create()
+            .WithDomik(DomikIds.MarketYard)
+            .WithResource(ResourceIds.Gold, 3);
 
-        using (var uow = GetUow())
-        {
-            var recap = GetPlayerEventManager(uow).TakeRecap(sellerId, DateTimeHelper.GetNowDate());
-            Assert.That(recap.Events.Select(x => x.Type), Does.Contain(PlayerEventType.LotSold));
-            uow.Commit();
-        }
+        seller.PostLot(ResourceIds.Clay, 20, ResourceIds.Gold, 3);
+        var lotId = seller.LastLot().Id;
+        buyer.AcceptLot(lotId);
+
+        var recap = seller.TakeRecap(DateTimeHelper.GetNowDate());
+        Assert.That(recap.Events.Select(x => x.Type), Does.Contain(PlayerEventType.LotSold));
     }
 
     /// <summary>
@@ -39,85 +36,29 @@ public class OfflineRecapTests : TestBase
     [Test]
     public void FinishedManufactureIsDeliveredOnceTest()
     {
-        var playerId = CreatePlayer();
+        var player = TestPlayer.Create();
+        player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig);
 
-        using (var uow = GetUow())
-        {
-            GetDomikManager(uow).StartManufacture(playerId, 2, 1);
-            uow.Commit();
-        }
+        var recap = player.TakeRecap(DateTimeHelper.GetNowDate());
+        Assert.That(recap.Events.Select(x => x.Type), Does.Contain(PlayerEventType.ManufactureFinished));
 
-        using (var uow = GetUow())
-        {
-            var recap = GetPlayerEventManager(uow).TakeRecap(playerId, DateTimeHelper.GetNowDate());
-            Assert.That(recap.Events.Select(x => x.Type), Does.Contain(PlayerEventType.ManufactureFinished));
-            uow.Commit();
-        }
+        var secondRecap = player.TakeRecap(DateTimeHelper.GetNowDate());
+        Assert.That(secondRecap.Events, Is.Empty);
 
-        using (var uow = GetUow())
-        {
-            var recap = GetPlayerEventManager(uow).TakeRecap(playerId, DateTimeHelper.GetNowDate());
-            Assert.That(recap.Events, Is.Empty);
-            uow.Commit();
-        }
+        var recentEvents = player.RecentEvents();
+        Assert.That(recentEvents.Select(x => x.Type), Does.Contain(PlayerEventType.ManufactureFinished));
+    }
+}
 
-        using (var uow = GetUow())
-        {
-            var recentEvents = GetPlayerEventManager(uow).GetRecentEvents(playerId);
-            Assert.That(recentEvents.Select(x => x.Type), Does.Contain(PlayerEventType.ManufactureFinished));
-            uow.Commit();
-        }
+file static class OfflineRecapTestsActs
+{
+    public static RecapModel TakeRecap(this TestPlayer p, DateTime now)
+    {
+        return App.Act<PlayerEventManager, RecapModel>(m => m.TakeRecap(p.Id, now));
     }
 
-    private int CreatePlayer()
+    public static List<RecapEventModel> RecentEvents(this TestPlayer p)
     {
-        using var uow = GetUow();
-        var playerId = GetDomikManager(uow).GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
-    }
-
-    private int CreateUnlockedMarketPlayer()
-    {
-        var playerId = CreatePlayer();
-        using var uow = GetUow();
-        uow.Context.Domiks.Add(new()
-        {
-            PlayerId = playerId,
-            Id = -9,
-            TypeId = 9,
-            Level = 1,
-        });
-
-        uow.Commit();
-
-        return playerId;
-    }
-
-    private void GrantResource(int playerId, int resourceTypeId, int value)
-    {
-        using var uow = GetUow();
-        var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
-        if (resource == null)
-        {
-            resource = new()
-            {
-                PlayerId = playerId,
-                TypeId = resourceTypeId,
-            };
-
-            uow.Context.Resources.Add(resource);
-        }
-
-        resource.Value += value;
-        uow.Commit();
-    }
-
-    private int PostLot(int playerId, int giveResourceTypeId, int giveValue, int wantResourceTypeId, int wantValue)
-    {
-        using var uow = GetUow();
-        GetMarketManager(uow).PostLot(playerId, giveResourceTypeId, giveValue, wantResourceTypeId, wantValue, DateTimeHelper.GetNowDate());
-        uow.Commit();
-        return uow.Context.TradeLots.OrderByDescending(x => x.Id).First().Id;
+        return App.Act<PlayerEventManager, List<RecapEventModel>>(m => m.GetRecentEvents(p.Id));
     }
 }

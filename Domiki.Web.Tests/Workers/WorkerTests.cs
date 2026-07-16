@@ -1,33 +1,36 @@
-﻿using Domiki.Web.Core.Models;
-using Domiki.Web.Core.Scheduling;
-using Domiki.Web.Infrastructure;
+﻿using Domiki.Web.Infrastructure;
 using Domiki.Web.Workers;
-using Domiki.Web.Workers.Models;
 
 namespace Domiki.Web.Tests;
 
-public class WorkerTests : TestBase
+public sealed class WorkerTests
 {
+    private const int OrdinaryTraitId = 1;
+    private const int HardworkingTraitId = 3;
+    private const int SonyaTraitId = 4;
+
     /// <summary>
     /// Автовыбор трудяги отдаёт предпочтение более эффективному по черте трудяге, а не первому по id.
     /// </summary>
     [Test]
     public void AutoSelectsWorkerWithBestFitnessOverFirstByIdTest()
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 3, 2);
-        GrantDomik(playerId, 4, 2);
-        GrantDomik(playerId, 5, 5);
+        var player = TestPlayer.Create()
+            .WithDomiks(DomikIds.Barrack, 2)
+            .WithDomik(DomikIds.ClayMine);
 
-        var workers = GetWorkers(playerId);
+        var workers = player.Workers();
         var weakWorker = workers[0];
         var strongWorker = workers[1];
-        SetWorkerTrait(weakWorker.Id, 1);
-        SetWorkerTrait(strongWorker.Id, 3);
+        player.SetWorkerTrait(weakWorker.Id, OrdinaryTraitId);
+        player.SetWorkerTrait(strongWorker.Id, HardworkingTraitId);
 
-        StartManufacture(playerId, 5, 1, false);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(5, ReceiptIds.ClayDig);
+        }
 
-        var busyWorker = GetWorkers(playerId).Single(x => x.ManufactureId != null);
+        var busyWorker = player.Workers().Single(x => x.ManufactureId != null);
         Assert.That(busyWorker.Id, Is.EqualTo(strongWorker.Id));
     }
 
@@ -37,15 +40,15 @@ public class WorkerTests : TestBase
     [Test]
     public void ConcurrentGetWorkersDoesNotThrowTest()
     {
-        var playerId = GetPlayerId();
-        Assert.That(GetWorkers(playerId).Length, Is.EqualTo(1));
+        var player = TestPlayer.Create();
+        Assert.That(player.Workers().Length, Is.EqualTo(1));
 
         var errorCount = 0;
         Parallel.ForEach(Enumerable.Range(0, 16), _ =>
         {
             try
             {
-                Assert.That(GetWorkers(playerId).Length, Is.EqualTo(1));
+                Assert.That(player.Workers().Length, Is.EqualTo(1));
             }
             catch (Exception)
             {
@@ -62,11 +65,14 @@ public class WorkerTests : TestBase
     [Test]
     public void EmptyManualSelectionFallsBackToAutoTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
 
-        StartManufacture(playerId, 2, 1, false, []);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, []);
+        }
 
-        var busyWorker = GetWorkers(playerId).Single();
+        var busyWorker = player.Workers().Single();
         Assert.That(busyWorker.ManufactureId, Is.Not.Null);
     }
 
@@ -77,16 +83,18 @@ public class WorkerTests : TestBase
     [Test]
     public void FinishManufactureAccumulatesActualWorkerWorkedSecondsTest()
     {
-        var playerId = GetPlayerId();
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerTrait(worker.Id, 3);
+        const int expectedWorkedSeconds = 23040;
 
-        StartManufacture(playerId, 2, 14, true);
+        var player = TestPlayer.Create();
+        var worker = player.Workers().Single();
+        player.SetWorkerTrait(worker.Id, HardworkingTraitId);
 
-        worker = GetWorkers(playerId).Single();
+        player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
+
+        worker = player.Workers().Single();
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(worker.WorkedSeconds, Is.EqualTo(23040));
+            Assert.That(worker.WorkedSeconds, Is.EqualTo(expectedWorkedSeconds));
             Assert.That(worker.RestUntil, Is.Null);
         }
     }
@@ -97,16 +105,20 @@ public class WorkerTests : TestBase
     [Test]
     public void FinishManufactureIncrementsWorkerSkillUsesTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
 
-        StartManufacture(playerId, 2, 1, false);
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
-        FinishManufacture(playerId, manufacture.Id, manufacture.FinishDate.AddSeconds(1));
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig);
+        }
 
-        var skill = GetWorkers(playerId).Single().Skills.Single();
+        var manufacture = player.Manufacture(StartingDomikIds.ClayMine);
+        player.FinishManufacture(manufacture.Id, manufacture.FinishDate.AddSeconds(1));
+
+        var skill = player.Workers().Single().Skills.Single();
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(skill.DomikTypeId, Is.EqualTo(5));
+            Assert.That(skill.DomikTypeId, Is.EqualTo(DomikIds.ClayMine));
             Assert.That(skill.Uses, Is.EqualTo(1));
             Assert.That(skill.BonusPercent, Is.EqualTo(WorkerSkillCalculator.GetBonusPercent(1)));
         }
@@ -118,13 +130,12 @@ public class WorkerTests : TestBase
     [Test]
     public void GetWorkersMatchesBedCapacityTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
+        Assert.That(player.Workers().Length, Is.EqualTo(1));
 
-        Assert.That(GetWorkers(playerId).Length, Is.EqualTo(1));
+        player.WithDomik(DomikIds.Barrack);
 
-        GrantDomik(playerId, 3, 2);
-
-        var workers = GetWorkers(playerId);
+        var workers = player.Workers();
         Assert.That(workers.Length, Is.EqualTo(2));
         Assert.That(workers.All(x => x.ManufactureId == null), Is.True);
     }
@@ -135,23 +146,24 @@ public class WorkerTests : TestBase
     [Test]
     public void GroupRecipeAssignsReceiptPlodderCountWorkersTest()
     {
-        var playerId = GetPlayerId();
-        GrantResource(playerId, 1, 100);
-        for (var i = 0; i < 4; i++)
+        const int expectedBusyWorkers = 5;
+
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Coin, 100)
+            .WithDomiks(DomikIds.Barrack, 4)
+            .WithDomik(DomikIds.ClayMine)
+            .Upgrade(7);
+
+        using (App.PendingEvents())
         {
-            GrantDomik(playerId, 3 + i, 2);
+            player.StartManufacture(7, ReceiptIds.ClayDigTogether);
         }
 
-        GrantDomik(playerId, 7, 5);
-        UpgradeDomik(playerId, 7);
-
-        StartManufacture(playerId, 7, 2, false);
-
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 7).Manufactures.Single();
-        var workers = GetWorkers(playerId);
+        var manufacture = player.Manufacture(7);
+        var workers = player.Workers();
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(workers.Count(x => x.ManufactureId == manufacture.Id), Is.EqualTo(5));
+            Assert.That(workers.Count(x => x.ManufactureId == manufacture.Id), Is.EqualTo(expectedBusyWorkers));
             Assert.That(workers.Count(x => x.ManufactureId == null), Is.Zero);
         }
     }
@@ -162,19 +174,22 @@ public class WorkerTests : TestBase
     [Test]
     public void ManualSelectionAssignsExplicitWorkerTest()
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 3, 2);
-        GrantDomik(playerId, 4, 5);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .WithDomik(DomikIds.ClayMine);
 
-        var workers = GetWorkers(playerId);
+        var workers = player.Workers();
         var weakWorker = workers[0];
         var strongWorker = workers[1];
-        SetWorkerTrait(weakWorker.Id, 1);
-        SetWorkerTrait(strongWorker.Id, 3);
+        player.SetWorkerTrait(weakWorker.Id, OrdinaryTraitId);
+        player.SetWorkerTrait(strongWorker.Id, HardworkingTraitId);
 
-        StartManufacture(playerId, 4, 1, false, [weakWorker.Id]);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(4, ReceiptIds.ClayDig, [weakWorker.Id]);
+        }
 
-        var busyWorker = GetWorkers(playerId).Single(x => x.ManufactureId != null);
+        var busyWorker = player.Workers().Single(x => x.ManufactureId != null);
         Assert.That(busyWorker.Id, Is.EqualTo(weakWorker.Id));
     }
 
@@ -184,24 +199,25 @@ public class WorkerTests : TestBase
     [Test]
     public void ManualSelectionForGroupRecipeReservesExactWorkersTest()
     {
-        var playerId = GetPlayerId();
-        GrantResource(playerId, 1, 200);
-        for (var i = 0; i < 4; i++)
+        const int chosenCount = 5;
+
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Coin, 200)
+            .WithDomiks(DomikIds.Barrack, 4)
+            .Upgrade(StartingDomikIds.Barrack)
+            .WithDomik(DomikIds.ClayMine)
+            .Upgrade(7);
+
+        var workers = player.Workers();
+        var chosen = workers.Take(chosenCount).Select(x => x.Id).ToArray();
+        var excludedWorkerId = workers[chosenCount].Id;
+
+        using (App.PendingEvents())
         {
-            GrantDomik(playerId, 3 + i, 2);
+            player.StartManufacture(7, ReceiptIds.ClayDigTogether, chosen);
         }
 
-        UpgradeDomik(playerId, 1);
-        GrantDomik(playerId, 7, 5);
-        UpgradeDomik(playerId, 7);
-
-        var workers = GetWorkers(playerId);
-        var chosen = workers.Take(5).Select(x => x.Id).ToArray();
-        var excludedWorkerId = workers[5].Id;
-
-        StartManufacture(playerId, 7, 2, false, chosen);
-
-        var updatedWorkers = GetWorkers(playerId);
+        var updatedWorkers = player.Workers();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(updatedWorkers.Where(x => chosen.Contains(x.Id)).All(x => x.ManufactureId != null), Is.True);
@@ -215,14 +231,17 @@ public class WorkerTests : TestBase
     [Test]
     public void ManualSelectionWithBusyWorkerThrowsTest()
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 3, 2);
-        GrantDomik(playerId, 4, 5);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .WithDomik(DomikIds.ClayMine);
 
-        var busyWorkerId = GetWorkers(playerId)[0].Id;
-        StartManufacture(playerId, 2, 1, false, [busyWorkerId]);
+        var busyWorkerId = player.Workers()[0].Id;
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, [busyWorkerId]);
+        }
 
-        var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 4, 1, false, [busyWorkerId]));
+        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(4, ReceiptIds.ClayDig, [busyWorkerId]));
         Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
     }
 
@@ -232,20 +251,18 @@ public class WorkerTests : TestBase
     [Test]
     public void ManualSelectionWithDuplicateWorkerThrowsTest()
     {
-        var playerId = GetPlayerId();
-        GrantResource(playerId, 1, 100);
-        for (var i = 0; i < 4; i++)
-        {
-            GrantDomik(playerId, 3 + i, 2);
-        }
+        const int chosenCount = 5;
 
-        GrantDomik(playerId, 7, 5);
-        UpgradeDomik(playerId, 7);
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Coin, 100)
+            .WithDomiks(DomikIds.Barrack, 4)
+            .WithDomik(DomikIds.ClayMine)
+            .Upgrade(7);
 
-        var workerId = GetWorkers(playerId).First().Id;
-        var workerIds = Enumerable.Repeat(workerId, 5).ToArray();
+        var workerId = player.Workers().First().Id;
+        var workerIds = Enumerable.Repeat(workerId, chosenCount).ToArray();
 
-        var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 7, 2, false, workerIds));
+        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(7, ReceiptIds.ClayDigTogether, workerIds));
         Assert.That(ex.Message, Is.EqualTo("Дублирующиеся трудяги"));
     }
 
@@ -255,12 +272,11 @@ public class WorkerTests : TestBase
     [Test]
     public void ManualSelectionWithForeignWorkerThrowsTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
+        var other = TestPlayer.Create();
+        var foreignWorkerId = other.Workers().Single().Id;
 
-        var otherPlayerId = GetPlayerId();
-        var foreignWorkerId = GetWorkers(otherPlayerId).Single().Id;
-
-        var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 2, 1, false, [foreignWorkerId]));
+        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, [foreignWorkerId]));
         Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
     }
 
@@ -270,13 +286,13 @@ public class WorkerTests : TestBase
     [Test]
     public void ManualSelectionWithRestingWorkerThrowsTest()
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 3, 2);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack);
 
-        var restingWorkerId = GetWorkers(playerId)[0].Id;
-        SetWorkerRest(restingWorkerId, DateTimeHelper.GetNowDate().AddHours(1));
+        var restingWorkerId = player.Workers()[0].Id;
+        player.SetWorkerRest(restingWorkerId, DateTimeHelper.GetNowDate().AddHours(1));
 
-        var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 2, 1, false, [restingWorkerId]));
+        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, [restingWorkerId]));
         Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
     }
 
@@ -287,13 +303,13 @@ public class WorkerTests : TestBase
     [Test]
     public void ManualSelectionWithWrongCountThrowsTest()
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 3, 2);
-        GrantDomik(playerId, 4, 5);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .WithDomik(DomikIds.ClayMine);
 
-        var workerIds = GetWorkers(playerId).Select(x => x.Id).ToArray();
+        var workerIds = player.Workers().Select(x => x.Id).ToArray();
 
-        var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 4, 1, false, workerIds));
+        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(4, ReceiptIds.ClayDig, workerIds));
         Assert.That(ex.Message, Is.EqualTo("Неверное число трудяг"));
     }
 
@@ -303,15 +319,20 @@ public class WorkerTests : TestBase
     [Test]
     public void SonyaTraitLengthensManufactureDurationByTwentyFivePercentTest()
     {
-        var playerId = GetPlayerId();
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerTrait(worker.Id, 4);
+        const int expectedDuration = 36000;
+
+        var player = TestPlayer.Create();
+        var worker = player.Workers().Single();
+        player.SetWorkerTrait(worker.Id, SonyaTraitId);
 
         var start = DateTimeHelper.GetNowDate();
-        StartManufacture(playerId, 2, 14, false);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
+        }
 
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
-        Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(36000).Within(2));
+        var manufacture = player.Manufacture(StartingDomikIds.ClayMine);
+        Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(expectedDuration).Within(2));
     }
 
     /// <summary>
@@ -320,17 +341,20 @@ public class WorkerTests : TestBase
     [Test]
     public void StartManufactureAssignsAndFinishReleasesWorkerTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
 
-        StartManufacture(playerId, 2, 1, false);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig);
+        }
 
-        var busyWorker = GetWorkers(playerId).Single();
+        var busyWorker = player.Workers().Single();
         Assert.That(busyWorker.ManufactureId, Is.Not.Null);
 
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
-        FinishManufacture(playerId, manufacture.Id, manufacture.FinishDate.AddSeconds(1));
+        var manufacture = player.Manufacture(StartingDomikIds.ClayMine);
+        player.FinishManufacture(manufacture.Id, manufacture.FinishDate.AddSeconds(1));
 
-        Assert.That(GetWorkers(playerId).Single().ManufactureId, Is.Null);
+        Assert.That(player.Workers().Single().ManufactureId, Is.Null);
     }
 
     /// <summary>
@@ -339,11 +363,15 @@ public class WorkerTests : TestBase
     [Test]
     public void StartManufactureWithoutFreeWorkersThrowsTest()
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 3, 5);
-        StartManufacture(playerId, 2, 1, false);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.ClayMine);
 
-        var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 3, 1, false));
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig);
+        }
+
+        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(3, ReceiptIds.ClayDig));
         Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
     }
 
@@ -353,15 +381,16 @@ public class WorkerTests : TestBase
     [Test]
     public void TradeManufactureDoesNotAccumulateFatigueTest()
     {
-        var playerId = GetPlayerId();
-        BuyDomik(playerId, 7);
-        GrantResource(playerId, 6, 1);
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerTrait(worker.Id, 1);
+        var player = TestPlayer.Create()
+            .Buy(DomikIds.Market)
+            .WithResource(ResourceIds.Brick, 1);
 
-        StartManufacture(playerId, 3, 25, true);
+        var worker = player.Workers().Single();
+        player.SetWorkerTrait(worker.Id, OrdinaryTraitId);
 
-        worker = GetWorkers(playerId).Single();
+        player.StartManufacture(3, ReceiptIds.SellBrick);
+
+        worker = player.Workers().Single();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(worker.WorkedSeconds, Is.Zero);
@@ -375,13 +404,14 @@ public class WorkerTests : TestBase
     [Test]
     public void UpgradeBarracksAddsWorkerTest()
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 3, 2);
-        Assert.That(GetWorkers(playerId).Length, Is.EqualTo(2));
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack);
 
-        UpgradeDomik(playerId, 1);
+        Assert.That(player.Workers().Length, Is.EqualTo(2));
 
-        Assert.That(GetWorkers(playerId).Length, Is.EqualTo(3));
+        player.Upgrade(StartingDomikIds.Barrack);
+
+        Assert.That(player.Workers().Length, Is.EqualTo(3));
     }
 
     /// <summary>
@@ -411,17 +441,23 @@ public class WorkerTests : TestBase
     [Test]
     public void WorkerSkillForOtherDomikTypeDoesNotShortenManufactureDurationTest()
     {
-        var playerId = GetPlayerId();
-        BuyDomik(playerId, 6);
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerTrait(worker.Id, 1);
-        SetWorkerSkill(worker.Id, 5, 10);
+        const int expectedDuration = 28800;
+
+        var player = TestPlayer.Create()
+            .Buy(DomikIds.LumberMill);
+
+        var worker = player.Workers().Single();
+        player.SetWorkerTrait(worker.Id, OrdinaryTraitId);
+        player.SetWorkerSkill(worker.Id, DomikIds.ClayMine, 10);
 
         var start = DateTimeHelper.GetNowDate();
-        StartManufacture(playerId, 3, 16, false);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(3, ReceiptIds.WoodDig8h);
+        }
 
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 3).Manufactures.Single();
-        Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(28800).Within(2));
+        var manufacture = player.Manufacture(3);
+        Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(expectedDuration).Within(2));
     }
 
     /// <summary>
@@ -430,16 +466,21 @@ public class WorkerTests : TestBase
     [Test]
     public void WorkerSkillShortensManufactureDurationTest()
     {
-        var playerId = GetPlayerId();
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerTrait(worker.Id, 1);
-        SetWorkerSkill(worker.Id, 5, 10);
+        const int expectedDuration = 26208;
+
+        var player = TestPlayer.Create();
+        var worker = player.Workers().Single();
+        player.SetWorkerTrait(worker.Id, OrdinaryTraitId);
+        player.SetWorkerSkill(worker.Id, DomikIds.ClayMine, 10);
 
         var start = DateTimeHelper.GetNowDate();
-        StartManufacture(playerId, 2, 14, false);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
+        }
 
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
-        Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(26208).Within(2));
+        var manufacture = player.Manufacture(StartingDomikIds.ClayMine);
+        Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(expectedDuration).Within(2));
     }
 
     /// <summary>
@@ -448,16 +489,21 @@ public class WorkerTests : TestBase
     [Test]
     public void WorkerTraitAndSkillStackMultiplicativelyTest()
     {
-        var playerId = GetPlayerId();
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerTrait(worker.Id, 3);
-        SetWorkerSkill(worker.Id, 5, 10);
+        const int expectedDuration = 20967;
+
+        var player = TestPlayer.Create();
+        var worker = player.Workers().Single();
+        player.SetWorkerTrait(worker.Id, HardworkingTraitId);
+        player.SetWorkerSkill(worker.Id, DomikIds.ClayMine, 10);
 
         var start = DateTimeHelper.GetNowDate();
-        StartManufacture(playerId, 2, 14, false);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
+        }
 
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
-        Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(20967).Within(2));
+        var manufacture = player.Manufacture(StartingDomikIds.ClayMine);
+        Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(expectedDuration).Within(2));
     }
 
     /// <summary>
@@ -466,31 +512,36 @@ public class WorkerTests : TestBase
     [Test]
     public void WorkerTraitShortensManufactureDurationTest()
     {
-        var playerId = GetPlayerId();
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerTrait(worker.Id, 3);
+        const int expectedDuration = 23040;
+
+        var player = TestPlayer.Create();
+        var worker = player.Workers().Single();
+        player.SetWorkerTrait(worker.Id, HardworkingTraitId);
 
         var start = DateTimeHelper.GetNowDate();
-        StartManufacture(playerId, 2, 14, false);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
+        }
 
-        var manufacture = GetDomiks(playerId).First(x => x.Id == 2).Manufactures.Single();
-        Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(23040).Within(2));
+        var manufacture = player.Manufacture(StartingDomikIds.ClayMine);
+        Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(expectedDuration).Within(2));
     }
 
     /// <summary>
     /// По достижении порога усталости трудяга сбрасывает наработку и уходит отдыхать до будущей даты.
     /// </summary>
     /// <param name="receiptId">Рецепт, чья длительность выводит трудягу на порог усталости.</param>
-    [TestCase(14)]
+    [TestCase(ReceiptIds.ClayDig8h)]
     public void FinishManufactureFatigueThresholdSendsWorkerToRestTest(int receiptId)
     {
-        var playerId = GetPlayerId();
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerTrait(worker.Id, 1);
+        var player = TestPlayer.Create();
+        var worker = player.Workers().Single();
+        player.SetWorkerTrait(worker.Id, OrdinaryTraitId);
 
-        StartManufacture(playerId, 2, receiptId, true);
+        player.StartManufacture(StartingDomikIds.ClayMine, receiptId);
 
-        worker = GetWorkers(playerId).Single();
+        worker = player.Workers().Single();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(worker.WorkedSeconds, Is.Zero);
@@ -504,14 +555,14 @@ public class WorkerTests : TestBase
     /// Отдыхающий трудяга недоступен для нового производства, запуск падает ошибкой «Недостаточно трудяг».
     /// </summary>
     /// <param name="receiptId">Рецепт запускаемого производства.</param>
-    [TestCase(14)]
+    [TestCase(ReceiptIds.ClayDig8h)]
     public void RestingWorkerDoesNotStartManufactureTest(int receiptId)
     {
-        var playerId = GetPlayerId();
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerRest(worker.Id, DateTimeHelper.GetNowDate().AddHours(1));
+        var player = TestPlayer.Create();
+        var worker = player.Workers().Single();
+        player.SetWorkerRest(worker.Id, DateTimeHelper.GetNowDate().AddHours(1));
 
-        var ex = Assert.Throws<BusinessException>(() => StartManufacture(playerId, 2, receiptId, false));
+        var ex = Assert.Throws<BusinessException>(() => player.StartManufacture(StartingDomikIds.ClayMine, receiptId));
         Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
     }
 
@@ -519,16 +570,19 @@ public class WorkerTests : TestBase
     /// Трудяга с истёкшим временем отдыха снова доступен для назначения на производство.
     /// </summary>
     /// <param name="receiptId">Рецепт запускаемого производства.</param>
-    [TestCase(14)]
+    [TestCase(ReceiptIds.ClayDig8h)]
     public void WorkerWithExpiredRestUntilStartsManufactureTest(int receiptId)
     {
-        var playerId = GetPlayerId();
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerRest(worker.Id, DateTimeHelper.GetNowDate().AddSeconds(-1));
+        var player = TestPlayer.Create();
+        var worker = player.Workers().Single();
+        player.SetWorkerRest(worker.Id, DateTimeHelper.GetNowDate().AddSeconds(-1));
 
-        StartManufacture(playerId, 2, receiptId, false);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, receiptId);
+        }
 
-        worker = GetWorkers(playerId).Single();
+        worker = player.Workers().Single();
         Assert.That(worker.ManufactureId, Is.Not.Null);
     }
 
@@ -536,153 +590,21 @@ public class WorkerTests : TestBase
     /// Трудяга с чертой «Соня» не накапливает усталость и не уходит отдыхать после производства.
     /// </summary>
     /// <param name="receiptId">Рецепт запускаемого производства.</param>
-    [TestCase(18)]
+    [TestCase(ReceiptIds.ClayDig24h)]
     public void SonyaWorkerDoesNotAccumulateFatigueTest(int receiptId)
     {
-        var playerId = GetPlayerId();
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerTrait(worker.Id, 4);
-        SetWorkerWorked(worker.Id, 0);
+        var player = TestPlayer.Create();
+        var worker = player.Workers().Single();
+        player.SetWorkerTrait(worker.Id, SonyaTraitId);
+        player.SetWorkerWorked(worker.Id, 0);
 
-        StartManufacture(playerId, 2, receiptId, true);
+        player.StartManufacture(StartingDomikIds.ClayMine, receiptId);
 
-        worker = GetWorkers(playerId).Single();
+        worker = player.Workers().Single();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(worker.WorkedSeconds, Is.Zero);
             Assert.That(worker.RestUntil, Is.Null);
         }
-    }
-
-    private int GetPlayerId()
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
-    }
-
-    private Worker[] GetWorkers(int playerId)
-    {
-        using var uow = GetUow();
-        var workerManager = GetWorkerManager(uow);
-        var workers = workerManager.GetWorkers(playerId).ToArray();
-        uow.Commit();
-        return workers;
-    }
-
-    private Domik[] GetDomiks(int playerId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var domiks = domikManager.GetDomiks(playerId).ToArray();
-        uow.Commit();
-        return domiks;
-    }
-
-    private void BuyDomik(int playerId, int domikTypeId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        domikManager.BuyDomik(playerId, domikTypeId);
-        uow.Commit();
-    }
-
-    private void UpgradeDomik(int playerId, int domikId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        domikManager.UpgradeDomik(playerId, domikId);
-        uow.Commit();
-    }
-
-    private void StartManufacture(int playerId, int domikId, int receiptId, bool calculatorJustFinishMode, int[]? workerIds = null)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow, calculatorJustFinishMode);
-        domikManager.StartManufacture(playerId, domikId, receiptId, workerIds: workerIds);
-        uow.Commit();
-    }
-
-    private void FinishManufacture(int playerId, int manufactureId, DateTime date)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var result = domikManager.FinishManufacture(date, new()
-        {
-            PlayerId = playerId,
-            ObjectId = manufactureId,
-            Date = date,
-            Type = CalculateTypes.Manufacture,
-        });
-
-        Assert.That(result, Is.True);
-        uow.Commit();
-    }
-
-    private void GrantResource(int playerId, int resourceTypeId, int value)
-    {
-        using var uow = GetUow();
-        var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
-        if (resource == null)
-        {
-            resource = new()
-            {
-                PlayerId = playerId,
-                TypeId = resourceTypeId,
-            };
-
-            uow.Context.Resources.Add(resource);
-        }
-
-        resource.Value += value;
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void SetWorkerTrait(int workerId, int traitId)
-    {
-        using var uow = GetUow();
-        var worker = uow.Context.Workers.Single(x => x.Id == workerId);
-        worker.TraitId = traitId;
-        uow.Commit();
-    }
-
-    private void SetWorkerWorked(int workerId, int workedSeconds)
-    {
-        using var uow = GetUow();
-        var worker = uow.Context.Workers.Single(x => x.Id == workerId);
-        worker.WorkedSeconds = workedSeconds;
-        uow.Commit();
-    }
-
-    private void SetWorkerRest(int workerId, DateTime? restUntil)
-    {
-        using var uow = GetUow();
-        var worker = uow.Context.Workers.Single(x => x.Id == workerId);
-        worker.RestUntil = restUntil;
-        uow.Commit();
-    }
-
-    private void SetWorkerSkill(int workerId, int domikTypeId, int uses)
-    {
-        using var uow = GetUow();
-        var skill = uow.Context.WorkerSkills.SingleOrDefault(x => x.WorkerId == workerId && x.DomikTypeId == domikTypeId);
-        if (skill == null)
-        {
-            uow.Context.WorkerSkills.Add(new()
-            {
-                WorkerId = workerId,
-                DomikTypeId = domikTypeId,
-                Uses = uses,
-            });
-        }
-        else
-        {
-            skill.Uses = uses;
-        }
-
-        uow.Commit();
     }
 }

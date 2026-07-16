@@ -1,12 +1,11 @@
 ﻿using Domiki.Web.Core.Models;
 using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference;
 using Domiki.Web.Reference.Models;
-using Domiki.Web.Workers.Models;
-using Manufacture = Domiki.Web.Data.Entities.Manufacture;
 
 namespace Domiki.Web.Tests;
 
-public class BalanceRecalibrationTests : TestBase
+public sealed class BalanceRecalibrationTests
 {
     /// <summary>
     /// Черта характера и наработанный навык рабочего множат длительность производства уже после применения бонуса инструмента.
@@ -14,19 +13,26 @@ public class BalanceRecalibrationTests : TestBase
     [Test]
     public void DurationMultiplierUsesTraitsAndSkillAfterToolTest()
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 3, 5);
-        GrantResource(playerId, 8, 1);
-        var worker = GetWorkers(playerId).Single();
-        SetWorkerTrait(worker.Id, 3);
-        SetWorkerSkill(worker.Id, 5, 100);
+        const int expectedDurationSeconds = 19584;
+
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.ClayMine)
+            .WithResource(ResourceIds.Tool, 1);
+
+        var clayMineId = player.DomikId(DomikIds.ClayMine);
+        var worker = player.Workers().Single();
+        player.SetWorkerTrait(worker.Id, 3)
+            .SetWorkerSkill(worker.Id, DomikIds.ClayMine, 100);
+
         var start = DateTimeHelper.GetNowDate();
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(clayMineId, ReceiptIds.ClayDig8h, [worker.Id], true);
+        }
 
-        StartManufacture(playerId, 3, 14, false, true, [worker.Id]);
-
-        var manufacture = GetManufactures(playerId).Single();
-        var durationSeconds = (manufacture.FinishDate - start).TotalSeconds;
-        Assert.That(durationSeconds, Is.EqualTo(19584).Within(1));
+        var manufacture = player.Manufacture(clayMineId);
+        // 8ч база (28800с), умноженная на модификаторы черты характера и наработанного навыка рабочего после бонуса инструмента
+        Assert.That((manufacture.FinishDate - start).TotalSeconds, Is.EqualTo(expectedDurationSeconds).Within(1));
     }
 
     /// <summary>
@@ -38,19 +44,19 @@ public class BalanceRecalibrationTests : TestBase
     {
         var types = GetDomikTypes();
 
-        var goldMineReceiptIds = types.Single(x => x.Id == 4)
+        var goldMineReceiptIds = types.Single(x => x.Id == DomikIds.GoldMine)
             .Levels
             .SelectMany(x => x.Receipts)
             .Select(x => x.Id)
             .ToArray();
 
-        var marketReceiptIds = types.Single(x => x.Id == 7)
+        var marketReceiptIds = types.Single(x => x.Id == DomikIds.Market)
             .Levels
             .SelectMany(x => x.Receipts)
             .Select(x => x.Id)
             .ToArray();
 
-        Assert.That(goldMineReceiptIds, Does.Contain(3));
+        Assert.That(goldMineReceiptIds, Does.Contain(ReceiptIds.GoldDig));
         Assert.That(goldMineReceiptIds, Does.Not.Contain(17));
         using (Assert.EnterMultipleScope())
         {
@@ -67,24 +73,27 @@ public class BalanceRecalibrationTests : TestBase
     [Test]
     public void PotteryBrickShiftConsumesClayAndProducesBricksTest()
     {
-        var playerId = GetPlayerId();
-        GrantResource(playerId, 1, 700);
-        GrantBlueprint(playerId, 3);
-        GrantDomik(playerId, 3, 2);
-        GrantDomik(playerId, 4, 2);
-        GrantDomik(playerId, 5, 2);
-        BuyDomik(playerId, 13);
-        UpgradeDomik(playerId, 6);
-        GrantResource(playerId, 4, 16);
-        var before = GetResources(playerId);
+        const int consumedClay = 16;
+        const int producedBricks = 8;
 
-        StartManufacture(playerId, 6, 27, true);
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Coin, 700)
+            .WithBlueprint(BlueprintIds.Pottery)
+            .WithDomiks(DomikIds.Barrack, 3)
+            .Buy(DomikIds.Pottery);
 
-        var after = GetResources(playerId);
+        var potteryId = player.DomikId(DomikIds.Pottery);
+        player.Upgrade(potteryId);
+        player.WithResource(ResourceIds.Clay, consumedClay);
+        var before = player.Resources();
+
+        player.StartManufacture(potteryId, ReceiptIds.MakeBrick8h);
+
+        var after = player.Resources();
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ResourceValue(before, 4) - ResourceValue(after, 4), Is.EqualTo(16));
-            Assert.That(ResourceValue(after, 6) - ResourceValue(before, 6), Is.EqualTo(8));
+            Assert.That(ResourceValue(before, ResourceIds.Clay) - ResourceValue(after, ResourceIds.Clay), Is.EqualTo(consumedClay));
+            Assert.That(ResourceValue(after, ResourceIds.Brick) - ResourceValue(before, ResourceIds.Brick), Is.EqualTo(producedBricks));
         }
     }
 
@@ -94,13 +103,10 @@ public class BalanceRecalibrationTests : TestBase
     [Test]
     public void WorkerNamesAreUniquePerPlayerTest()
     {
-        var playerId = GetPlayerId();
-        for (var i = 0; i < 4; i++)
-        {
-            GrantDomik(playerId, 3 + i, 2);
-        }
+        var player = TestPlayer.Create()
+            .WithDomiks(DomikIds.Barrack, 4);
 
-        var workers = GetWorkers(playerId);
+        var workers = player.Workers();
 
         Assert.That(workers.Select(x => x.Name).Distinct().Count(), Is.EqualTo(workers.Length));
     }
@@ -125,17 +131,17 @@ public class BalanceRecalibrationTests : TestBase
                 continue;
             }
 
-            if (type.Id is 9 or 10 or 11)
+            if (type.Id is DomikIds.MarketYard or DomikIds.Gathering or DomikIds.ScoutHut)
             {
                 continue;
             }
 
-            if (type.Id is 4 or 7)
+            if (type.Id is DomikIds.GoldMine or DomikIds.Market)
             {
                 continue;
             }
 
-            var coinCost = typeLevel.Resources.Single(x => x.Type.Id == 1).Value;
+            var coinCost = typeLevel.Resources.Single(x => x.Type.Id == ResourceIds.Coin).Value;
             Assert.That(coinCost, Is.EqualTo(expectedCoins), $"domik type {type.Id}");
         }
     }
@@ -153,145 +159,20 @@ public class BalanceRecalibrationTests : TestBase
     {
         var types = GetDomikTypes();
 
-        foreach (var typeId in new[] { 4, 7 })
+        foreach (var typeId in new[] { DomikIds.GoldMine, DomikIds.Market })
         {
             var typeLevel = types.Single(x => x.Id == typeId).Levels.Single(x => x.Value == level);
-            var coinCost = typeLevel.Resources.Single(x => x.Type.Id == 1).Value;
+            var coinCost = typeLevel.Resources.Single(x => x.Type.Id == ResourceIds.Coin).Value;
             Assert.That(coinCost, Is.EqualTo(expectedCoins), $"domik type {typeId}");
         }
     }
 
-    private DomikType[] GetDomikTypes()
+    private static DomikType[] GetDomikTypes()
     {
-        using var uow = GetUow();
-        var resourceManager = GetResourceManager(uow);
-        var result = resourceManager.GetDomikTypes();
-        uow.Commit();
-        return result;
+        return App.Act<ResourceManager, DomikType[]>(m => m.GetDomikTypes());
     }
 
-    private int GetPlayerId()
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
-    }
-
-    private Worker[] GetWorkers(int playerId)
-    {
-        using var uow = GetUow();
-        var workerManager = GetWorkerManager(uow);
-        var workers = workerManager.GetWorkers(playerId).ToArray();
-        uow.Commit();
-        return workers;
-    }
-
-    private Resource[] GetResources(int playerId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var resources = domikManager.GetResources(playerId).ToArray();
-        uow.Commit();
-        return resources;
-    }
-
-    private Manufacture[] GetManufactures(int playerId)
-    {
-        using var uow = GetUow();
-        var manufactures = uow.Context.Manufactures.Where(x => x.DomikPlayerId == playerId).ToArray();
-        uow.Commit();
-        return manufactures;
-    }
-
-    private void BuyDomik(int playerId, int domikTypeId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        domikManager.BuyDomik(playerId, domikTypeId);
-        uow.Commit();
-    }
-
-    private void UpgradeDomik(int playerId, int domikId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        domikManager.UpgradeDomik(playerId, domikId);
-        uow.Commit();
-    }
-
-    private void StartManufacture(int playerId, int domikId, int receiptId, bool calculatorJustFinishMode, bool useOptional = false, int[]? workerIds = null)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow, calculatorJustFinishMode);
-        domikManager.StartManufacture(playerId, domikId, receiptId, useOptional, workerIds);
-        uow.Commit();
-    }
-
-    private void GrantResource(int playerId, int resourceTypeId, int value)
-    {
-        using var uow = GetUow();
-        var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == resourceTypeId);
-        if (resource == null)
-        {
-            resource = new()
-            {
-                PlayerId = playerId,
-                TypeId = resourceTypeId,
-            };
-
-            uow.Context.Resources.Add(resource);
-        }
-
-        resource.Value += value;
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void GrantBlueprint(int playerId, int blueprintId)
-    {
-        using var uow = GetUow();
-        uow.Context.PlayerBlueprints.Add(new()
-        {
-            PlayerId = playerId,
-            BlueprintId = blueprintId,
-        });
-
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void SetWorkerTrait(int workerId, int traitId)
-    {
-        using var uow = GetUow();
-        var worker = uow.Context.Workers.Single(x => x.Id == workerId);
-        worker.TraitId = traitId;
-        uow.Commit();
-    }
-
-    private void SetWorkerSkill(int workerId, int domikTypeId, int uses)
-    {
-        using var uow = GetUow();
-        var skill = uow.Context.WorkerSkills.SingleOrDefault(x => x.WorkerId == workerId && x.DomikTypeId == domikTypeId);
-        if (skill == null)
-        {
-            uow.Context.WorkerSkills.Add(new()
-            {
-                WorkerId = workerId,
-                DomikTypeId = domikTypeId,
-                Uses = uses,
-            });
-        }
-        else
-        {
-            skill.Uses = uses;
-        }
-
-        uow.Commit();
-    }
-
-    private int ResourceValue(Resource[] resources, int typeId)
+    private static int ResourceValue(IReadOnlyList<Resource> resources, int typeId)
     {
         return resources.FirstOrDefault(x => x.Type.Id == typeId)?.Value ?? 0;
     }

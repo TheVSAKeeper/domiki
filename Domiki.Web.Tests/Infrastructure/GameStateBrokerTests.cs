@@ -2,7 +2,7 @@
 
 namespace Domiki.Web.Tests;
 
-public class GameStateBrokerTests
+public sealed class GameStateBrokerTests
 {
     /// <summary>
     /// Широковещательная рассылка доставляет один и тот же скоуп всем активным подпискам.

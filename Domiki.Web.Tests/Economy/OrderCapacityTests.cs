@@ -2,11 +2,8 @@
 
 namespace Domiki.Web.Tests;
 
-public class OrderCapacityTests : TestBase
+public sealed class OrderCapacityTests
 {
-    private const int ClayResourceTypeId = 4;
-    private const int StoneResourceTypeId = 2;
-
     /// <summary>
     /// Стартовая производственная мощность по глине (1 в сутки) ограничивает объём заказа для любого тира спроса.
     /// </summary>
@@ -17,15 +14,17 @@ public class OrderCapacityTests : TestBase
     [TestCase(2, 16)]
     public void NewPlayerClayOrderQuantityIsCappedByStartingCapacityTest(int tierIndex, int expectedQuantity)
     {
-        var playerId = GetPlayerId();
+        const int expectedCapacity = 1;
+
+        var player = TestPlayer.Create();
         var tier = OrderManager.Tiers[tierIndex];
 
-        var capacity = GetCapacity(playerId, ClayResourceTypeId);
-        var quantity = OrderManager.GetEffectiveQuantity(tier, ClayResourceTypeId, capacity);
+        var capacity = player.Capacity(ResourceIds.Clay);
+        var quantity = OrderManager.GetEffectiveQuantity(tier, ResourceIds.Clay, capacity);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(capacity, Is.EqualTo(1));
+            Assert.That(capacity, Is.EqualTo(expectedCapacity));
             Assert.That(quantity, Is.EqualTo(expectedQuantity));
         }
     }
@@ -40,32 +39,18 @@ public class OrderCapacityTests : TestBase
     [TestCase(2)]
     public void PlayerWithoutMatchingBuildingFloorsAtTwoTest(int tierIndex)
     {
-        var playerId = GetPlayerId();
+        const int expectedQuantity = 2;
+
+        var player = TestPlayer.Create();
         var tier = OrderManager.Tiers[tierIndex];
 
-        var capacity = GetCapacity(playerId, StoneResourceTypeId);
-        var quantity = OrderManager.GetEffectiveQuantity(tier, StoneResourceTypeId, capacity);
+        var capacity = player.Capacity(ResourceIds.Stone);
+        var quantity = OrderManager.GetEffectiveQuantity(tier, ResourceIds.Stone, capacity);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(capacity, Is.Zero);
-            Assert.That(quantity, Is.EqualTo(2));
+            Assert.That(quantity, Is.EqualTo(expectedQuantity));
         }
-    }
-
-    private int GetPlayerId()
-    {
-        using var uow = GetUow();
-        var playerId = GetDomikManager(uow).GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
-    }
-
-    private int GetCapacity(int playerId, int resourceTypeId)
-    {
-        using var uow = GetUow();
-        var capacity = GetOrderManager(uow).GetCapacity(playerId, resourceTypeId);
-        uow.Commit();
-        return capacity;
     }
 }

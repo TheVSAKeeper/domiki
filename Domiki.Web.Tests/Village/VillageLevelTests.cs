@@ -1,13 +1,12 @@
-﻿using Domiki.Web.Economy.Models;
-using Domiki.Web.Infrastructure;
+﻿using Domiki.Web.Infrastructure;
 using Domiki.Web.Village;
-using Domiki.Web.Village.Models;
-using Domiki.Web.Workers.Models;
 
 namespace Domiki.Web.Tests;
 
-public class VillageLevelTests : TestBase
+public sealed class VillageLevelTests
 {
+    private const int GoldMineNeighborId = 4;
+
     /// <summary>
     /// После порога умного автоподбора автоматический выбор трудяги на производство берёт того, чья черта характера лучше
     /// всего подходит под работу, а не с меньшим id.
@@ -15,19 +14,21 @@ public class VillageLevelTests : TestBase
     [Test]
     public void AutoWorkerSelectionIsByFitnessAfterSmartAutoThresholdTest()
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 3, 2);
-        GrantDomik(playerId, 4, 2);
+        var player = TestPlayer.Create()
+            .WithDomiks(DomikIds.Barrack, 2);
 
-        var workers = GetWorkers(playerId);
+        var workers = player.Workers();
         var weakWorker = workers[0];
         var strongWorker = workers[1];
-        SetWorkerTrait(weakWorker.Id, 1);
-        SetWorkerTrait(strongWorker.Id, 3);
+        player.SetWorkerTrait(weakWorker.Id, 1);
+        player.SetWorkerTrait(strongWorker.Id, 3);
 
-        StartManufacture(playerId, 2, 1, false);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig);
+        }
 
-        var busyWorker = GetWorkers(playerId).Single(x => x.ManufactureId != null);
+        var busyWorker = player.Workers().Single(x => x.ManufactureId != null);
         Assert.That(busyWorker.Id, Is.EqualTo(strongWorker.Id));
     }
 
@@ -38,18 +39,21 @@ public class VillageLevelTests : TestBase
     [Test]
     public void AutoWorkerSelectionIsByIdBeforeSmartAutoThresholdTest()
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 3, 2);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack);
 
-        var workers = GetWorkers(playerId);
+        var workers = player.Workers();
         var weakWorker = workers[0];
         var strongWorker = workers[1];
-        SetWorkerTrait(weakWorker.Id, 1);
-        SetWorkerTrait(strongWorker.Id, 3);
+        player.SetWorkerTrait(weakWorker.Id, 1);
+        player.SetWorkerTrait(strongWorker.Id, 3);
 
-        StartManufacture(playerId, 2, 1, false);
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig);
+        }
 
-        var busyWorker = GetWorkers(playerId).Single(x => x.ManufactureId != null);
+        var busyWorker = player.Workers().Single(x => x.ManufactureId != null);
         Assert.That(busyWorker.Id, Is.EqualTo(weakWorker.Id));
     }
 
@@ -60,15 +64,14 @@ public class VillageLevelTests : TestBase
     [Test]
     public void BuyDomikGateBlocksBeforeThresholdAndAllowsAfterTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
 
-        var ex = Assert.Throws<BusinessException>(() => BuyDomik(playerId, 3));
+        var ex = Assert.Throws<BusinessException>(() => player.Buy(DomikIds.StoneMine));
         Assert.That(ex.Message, Is.EqualTo("Откроется при обжитости 6"));
 
-        GrantDomik(playerId, 3, 2);
-        GrantDomik(playerId, 4, 2);
+        player.WithDomiks(DomikIds.Barrack, 2);
 
-        Assert.DoesNotThrow(() => BuyDomik(playerId, 3));
+        Assert.DoesNotThrow(() => player.Buy(DomikIds.StoneMine));
     }
 
     /// <summary>
@@ -78,15 +81,15 @@ public class VillageLevelTests : TestBase
     [Test]
     public void OrderBoardCanUseUnlockedNeighborsAfterThresholdTest()
     {
-        var playerId = GetPlayerId();
-        GrantDomik(playerId, 3, 2);
-        BuyDomik(playerId, 3);
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .Buy(DomikIds.StoneMine);
 
         var sawGatedNeighbor = false;
         for (var i = 0; i < 40 && !sawGatedNeighbor; i++)
         {
-            ClearOrders(playerId);
-            var orders = GetOrders(playerId);
+            player.ClearOrders();
+            var orders = player.Orders();
             Assert.That(orders.All(x => x.Neighbor.UnlockLevel <= 8), Is.True);
             sawGatedNeighbor = orders.Any(x => x.Neighbor.UnlockLevel > 0);
         }
@@ -100,9 +103,9 @@ public class VillageLevelTests : TestBase
     [Test]
     public void OrderBoardUsesOnlyUnlockedNeighborsBeforeThresholdTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
 
-        var orders = GetOrders(playerId);
+        var orders = player.Orders();
 
         Assert.That(orders, Is.Not.Empty);
         Assert.That(orders.All(x => x.Neighbor.UnlockLevel == 0), Is.True);
@@ -115,13 +118,13 @@ public class VillageLevelTests : TestBase
     [Test]
     public void VillageLevelGrowsFromBuildingsResidentsAndReputationTest()
     {
-        var playerId = GetPlayerId();
+        var player = TestPlayer.Create();
 
-        var initial = GetVillageLevel(playerId);
+        var initial = player.GetVillageLevel();
         Assert.That(initial.Level, Is.EqualTo(4));
 
-        GrantDomik(playerId, 3, 2);
-        var withBarracks = GetVillageLevel(playerId);
+        player.WithDomik(DomikIds.Barrack);
+        var withBarracks = player.GetVillageLevel();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(withBarracks.Buildings, Is.EqualTo(3));
@@ -131,8 +134,8 @@ public class VillageLevelTests : TestBase
             Assert.That(withBarracks.Level, Is.EqualTo(7));
         }
 
-        GrantReputation(playerId, 4, 10);
-        var withReputation = GetVillageLevel(playerId);
+        player.WithReputation(GoldMineNeighborId, 10);
+        var withReputation = player.GetVillageLevel();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(withReputation.Reputation, Is.EqualTo(1));
@@ -152,93 +155,16 @@ public class VillageLevelTests : TestBase
     {
         Assert.That(VillageLevelCalculator.ComputeLevel(0, 0, 0, comfort), Is.EqualTo(expectedContribution));
     }
+}
 
-    private int GetPlayerId()
+file static class VillageLevelTestsActs
+{
+    public static TestPlayer ClearOrders(this TestPlayer p)
     {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        var playerId = domikManager.GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
-    }
-
-    private VillageLevel GetVillageLevel(int playerId)
-    {
-        using var uow = GetUow();
-        var calculator = GetVillageLevelCalculator(uow);
-        var level = calculator.GetLevel(playerId);
-        uow.Commit();
-        return level;
-    }
-
-    private Order[] GetOrders(int playerId)
-    {
-        using var uow = GetUow();
-        var orderManager = GetOrderManager(uow);
-        var orders = orderManager.GetOrders(playerId).ToArray();
-        uow.Commit();
-        return orders;
-    }
-
-    private Worker[] GetWorkers(int playerId)
-    {
-        using var uow = GetUow();
-        var workerManager = GetWorkerManager(uow);
-        var workers = workerManager.GetWorkers(playerId).ToArray();
-        uow.Commit();
-        return workers;
-    }
-
-    private void BuyDomik(int playerId, int domikTypeId)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow);
-        domikManager.BuyDomik(playerId, domikTypeId);
-        uow.Commit();
-    }
-
-    private void StartManufacture(int playerId, int domikId, int receiptId, bool useOptional)
-    {
-        using var uow = GetUow();
-        var domikManager = GetDomikManager(uow, false);
-        domikManager.StartManufacture(playerId, domikId, receiptId, useOptional);
-        uow.Commit();
-    }
-
-    private void GrantReputation(int playerId, int neighborId, int points)
-    {
-        using var uow = GetUow();
-        var reputation = uow.Context.NeighborReputations.SingleOrDefault(x => x.PlayerId == playerId && x.NeighborId == neighborId);
-        if (reputation == null)
-        {
-            reputation = new()
-            {
-                PlayerId = playerId,
-                NeighborId = neighborId,
-            };
-
-            uow.Context.NeighborReputations.Add(reputation);
-        }
-
-        reputation.Points += points;
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void ClearOrders(int playerId)
-    {
-        using var uow = GetUow();
-        var orders = uow.Context.Orders.Where(x => x.PlayerId == playerId).ToArray();
-        uow.Context.Orders.RemoveRange(orders);
-        uow.Context.SaveChanges();
-        uow.Commit();
-    }
-
-    private void SetWorkerTrait(int workerId, int traitId)
-    {
-        using var uow = GetUow();
-        var worker = uow.Context.Workers.Single(x => x.Id == workerId);
-        worker.TraitId = traitId;
-        uow.Commit();
+        using var scope = App.Scope();
+        var orders = scope.Context.Orders.Where(x => x.PlayerId == p.Id).ToArray();
+        scope.Context.Orders.RemoveRange(orders);
+        scope.Commit();
+        return p;
     }
 }

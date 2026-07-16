@@ -1,21 +1,13 @@
 ﻿using Domiki.Web.Activities;
-using Domiki.Web.Activities.Models;
-using Domiki.Web.Core.Scheduling;
 using Domiki.Web.Infrastructure;
-using Domiki.Web.Workers.Models;
 
 namespace Domiki.Web.Tests;
 
-public class ProvisionsTests : TestBase
+public sealed class ProvisionsTests
 {
     private const int ShortScoutId = 1;
     private const int FootScoutId = 3;
     private const int OrdinaryTraitId = 1;
-    private const int BarracksTypeId = 2;
-    private const int ScoutHutDomikTypeId = 11;
-    private const int GoldResourceTypeId = 5;
-    private const int PlankResourceTypeId = 7;
-    private const int BreadResourceTypeId = 15;
 
     /// <summary>
     /// На типе экспедиции без опционального снаряжения флаг провианта не освобождает трудяг от отдыха и хлеб не списывается.
@@ -23,20 +15,20 @@ public class ProvisionsTests : TestBase
     [Test]
     public void ProvisionsFlagOnExpeditionWithoutOptionalEquipmentDoesNotSkipRestTest()
     {
-        var playerId = GetPlayerId();
-        AddWorkerCapacity(playerId);
-        SetAllWorkersOrdinary(playerId);
+        var player = TestPlayer.Create()
+            .WithScoutingCapacity()
+            .WithWorkerTraits(OrdinaryTraitId);
 
-        StartExpedition(playerId, FootScoutId, true);
-        var expedition = GetExpeditions(playerId)!.Active.Single();
-        var assignedWorkerIds = GetWorkers(playerId).Where(x => x.ExpeditionId == expedition.Id).Select(x => x.Id).ToArray();
-        FinishExpedition(playerId, expedition.Id, expedition.FinishDate.AddSeconds(1));
+        player.StartExpedition(FootScoutId, provisions: true);
+        var expedition = player.Expeditions().Active.Single();
+        var assignedWorkerIds = player.Workers().Where(x => x.ExpeditionId == expedition.Id).Select(x => x.Id).ToArray();
+        player.FinishExpedition(expedition.Id, expedition.FinishDate.AddSeconds(1));
 
-        var workers = GetWorkers(playerId).Where(x => assignedWorkerIds.Contains(x.Id)).ToArray();
+        var workers = player.Workers().Where(x => assignedWorkerIds.Contains(x.Id)).ToArray();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(workers.All(x => x.RestUntil != null), Is.True);
-            Assert.That(GetResource(playerId, BreadResourceTypeId), Is.Zero);
+            Assert.That(player.Resource(ResourceIds.Bread), Is.Zero);
         }
     }
 
@@ -46,12 +38,12 @@ public class ProvisionsTests : TestBase
     [Test]
     public void StartingProvisionedExpeditionWithoutBreadThrowsTest()
     {
-        var playerId = GetPlayerId();
-        AddWorkerCapacity(playerId);
-        GrantResource(playerId, GoldResourceTypeId, 1);
-        GrantResource(playerId, PlankResourceTypeId, 2);
+        var player = TestPlayer.Create()
+            .WithScoutingCapacity()
+            .WithResource(ResourceIds.Gold, 1)
+            .WithResource(ResourceIds.Board, 2);
 
-        Assert.Throws<BusinessException>(() => StartExpedition(playerId, ShortScoutId, true));
+        Assert.Throws<BusinessException>(() => player.StartExpedition(ShortScoutId, provisions: true));
     }
 
     /// <summary>
@@ -65,19 +57,19 @@ public class ProvisionsTests : TestBase
     [TestCase(false, 2, false)]
     public void ExpeditionProvisionsControlRestAndBreadWriteOffTest(bool provisions, int expectedBread, bool expectedNoRest)
     {
-        var playerId = GetPlayerId();
-        AddWorkerCapacity(playerId);
-        SetAllWorkersOrdinary(playerId);
-        GrantResource(playerId, GoldResourceTypeId, 1);
-        GrantResource(playerId, PlankResourceTypeId, 2);
-        GrantResource(playerId, BreadResourceTypeId, 2);
+        var player = TestPlayer.Create()
+            .WithScoutingCapacity()
+            .WithWorkerTraits(OrdinaryTraitId)
+            .WithResource(ResourceIds.Gold, 1)
+            .WithResource(ResourceIds.Board, 2)
+            .WithResource(ResourceIds.Bread, 2);
 
-        StartExpedition(playerId, ShortScoutId, provisions);
-        var expedition = GetExpeditions(playerId)!.Active.Single();
-        var assignedWorkerIds = GetWorkers(playerId).Where(x => x.ExpeditionId == expedition.Id).Select(x => x.Id).ToArray();
-        FinishExpedition(playerId, expedition.Id, expedition.FinishDate.AddSeconds(1));
+        player.StartExpedition(ShortScoutId, provisions: provisions);
+        var expedition = player.Expeditions().Active.Single();
+        var assignedWorkerIds = player.Workers().Where(x => x.ExpeditionId == expedition.Id).Select(x => x.Id).ToArray();
+        player.FinishExpedition(expedition.Id, expedition.FinishDate.AddSeconds(1));
 
-        var workers = GetWorkers(playerId).Where(x => assignedWorkerIds.Contains(x.Id)).ToArray();
+        var workers = player.Workers().Where(x => assignedWorkerIds.Contains(x.Id)).ToArray();
         if (expectedNoRest)
         {
             Assert.That(workers.All(x => x.RestUntil == null), Is.True);
@@ -95,120 +87,15 @@ public class ProvisionsTests : TestBase
             }
         }
 
-        Assert.That(GetResource(playerId, BreadResourceTypeId), Is.EqualTo(expectedBread));
+        Assert.That(player.Resource(ResourceIds.Bread), Is.EqualTo(expectedBread));
     }
+}
 
-    private int GetPlayerId()
+file static class ProvisionsTestsActs
+{
+    public static TestPlayer WithScoutingCapacity(this TestPlayer player)
     {
-        using var uow = GetUow();
-        var playerId = GetDomikManager(uow).GetPlayerId("testUser_" + Guid.NewGuid());
-        uow.Commit();
-        return playerId;
-    }
-
-    private void AddWorkerCapacity(int playerId)
-    {
-        using (var uow = GetUow())
-        {
-            var nextId = (uow.Context.Domiks.Where(x => x.PlayerId == playerId).Max(x => (int?)x.Id) ?? 0) + 1;
-            uow.Context.Domiks.Add(new()
-            {
-                PlayerId = playerId,
-                Id = nextId,
-                TypeId = BarracksTypeId,
-                Level = 1,
-            });
-
-            uow.Commit();
-        }
-
-        using var scoutHutUow = GetUow();
-        scoutHutUow.Context.Domiks.Add(new()
-        {
-            PlayerId = playerId,
-            Id = -ScoutHutDomikTypeId,
-            TypeId = ScoutHutDomikTypeId,
-            Level = 1,
-        });
-
-        scoutHutUow.Commit();
-    }
-
-    private Worker[] GetWorkers(int playerId)
-    {
-        using var uow = GetUow();
-        var workers = GetWorkerManager(uow).GetWorkers(playerId).ToArray();
-        uow.Commit();
-        return workers;
-    }
-
-    private void SetAllWorkersOrdinary(int playerId)
-    {
-        var ids = GetWorkers(playerId).Select(x => x.Id).ToArray();
-        using var uow = GetUow();
-        foreach (var worker in uow.Context.Workers.Where(x => ids.Contains(x.Id)))
-        {
-            worker.TraitId = OrdinaryTraitId;
-        }
-
-        uow.Commit();
-    }
-
-    private ExpeditionState? GetExpeditions(int playerId)
-    {
-        using var uow = GetUow();
-        var expeditions = GetExpeditionManager(uow).GetExpeditions(playerId);
-        uow.Commit();
-        return expeditions;
-    }
-
-    private int GetResource(int playerId, int typeId)
-    {
-        using var uow = GetUow();
-        var value = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId)?.Value ?? 0;
-        uow.Commit();
-        return value;
-    }
-
-    private void GrantResource(int playerId, int typeId, int value)
-    {
-        using var uow = GetUow();
-        var resource = uow.Context.Resources.SingleOrDefault(x => x.PlayerId == playerId && x.TypeId == typeId);
-        if (resource == null)
-        {
-            resource = new()
-            {
-                PlayerId = playerId,
-                TypeId = typeId,
-            };
-
-            uow.Context.Resources.Add(resource);
-        }
-
-        resource.Value += value;
-        uow.Commit();
-    }
-
-    private void StartExpedition(int playerId, int expeditionTypeId, bool provisions)
-    {
-        using var uow = GetUow();
-        GetExpeditionManager(uow, false).StartExpedition(playerId, expeditionTypeId, provisions: provisions);
-        uow.Commit();
-    }
-
-    private void FinishExpedition(int playerId, int expeditionId, DateTime date)
-    {
-        using var uow = GetUow();
-        var result = GetExpeditionManager(uow)
-            .FinishExpedition(date, new()
-            {
-                PlayerId = playerId,
-                ObjectId = expeditionId,
-                Date = date,
-                Type = CalculateTypes.Expedition,
-            });
-
-        Assert.That(result, Is.True);
-        uow.Commit();
+        return player.WithDomik(DomikIds.Barrack)
+            .WithDomik(DomikIds.ScoutHut);
     }
 }

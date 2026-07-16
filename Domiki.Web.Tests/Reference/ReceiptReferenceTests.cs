@@ -1,26 +1,19 @@
-﻿using Domiki.Web.Reference;
+﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Core.Models;
+using Domiki.Web.Economy.Models;
+using Domiki.Web.Reference;
 
 namespace Domiki.Web.Tests;
 
-public class ReceiptReferenceTests : TestBase
+public sealed class ReceiptReferenceTests
 {
-    private const int ForgeTypeId = 1;
-    private const int MarketTypeId = 7;
-    private const int StonecutterTypeId = 12;
-    private const int PotteryTypeId = 13;
-    private const int MakeBrickReceiptId = 22;
-    private const int MakeBrick8hReceiptId = 27;
-    private const int MakeToolReceiptId = 24;
-    private const int MakeTool8hReceiptId = 49;
-
     /// <summary>
     /// Чертежи открываются по возрастающей лестнице репутации: гончарня с 15, камнерез с 20, мастерская с 30.
     /// </summary>
     [Test]
     public void BlueprintLadderTest()
     {
-        using var uow = GetUow();
-        var blueprints = GetResourceManager(uow).GetBlueprints();
+        var blueprints = App.Act<ResourceManager, Blueprint[]>(m => m.GetBlueprints());
 
         using (Assert.EnterMultipleScope())
         {
@@ -37,16 +30,15 @@ public class ReceiptReferenceTests : TestBase
     [Test]
     public void SecondaryProfilesTest()
     {
-        using var uow = GetUow();
-        var neighbors = GetResourceManager(uow).GetNeighbors();
+        var neighbors = App.Act<ResourceManager, Neighbor[]>(m => m.GetNeighbors());
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(neighbors.Single(x => x.LogicName == "glinischi").SecondaryResourceTypeId, Is.EqualTo(12));
-            Assert.That(neighbors.Single(x => x.LogicName == "kamenka").SecondaryResourceTypeId, Is.EqualTo(10));
-            Assert.That(neighbors.Single(x => x.LogicName == "zarechye").SecondaryResourceTypeId, Is.EqualTo(2));
-            Assert.That(neighbors.Single(x => x.LogicName == "borovoe").SecondaryResourceTypeId, Is.EqualTo(9));
-            Assert.That(neighbors.Single(x => x.LogicName == "dubrava").SecondaryResourceTypeId, Is.EqualTo(15));
+            Assert.That(neighbors.Single(x => x.LogicName == "glinischi").SecondaryResourceTypeId, Is.EqualTo(ResourceIds.Dishes));
+            Assert.That(neighbors.Single(x => x.LogicName == "kamenka").SecondaryResourceTypeId, Is.EqualTo(ResourceIds.Block));
+            Assert.That(neighbors.Single(x => x.LogicName == "zarechye").SecondaryResourceTypeId, Is.EqualTo(ResourceIds.Stone));
+            Assert.That(neighbors.Single(x => x.LogicName == "borovoe").SecondaryResourceTypeId, Is.EqualTo(ResourceIds.Furniture));
+            Assert.That(neighbors.Single(x => x.LogicName == "dubrava").SecondaryResourceTypeId, Is.EqualTo(ResourceIds.Bread));
         }
     }
 
@@ -58,28 +50,26 @@ public class ReceiptReferenceTests : TestBase
     /// <param name="level">Уровень постройки.</param>
     /// <param name="receiptId">Проверяемый рецепт.</param>
     /// <param name="expected">Ожидается ли привязка.</param>
-    [TestCase(PotteryTypeId, 1, MakeBrickReceiptId, true)]
-    [TestCase(PotteryTypeId, 2, MakeBrick8hReceiptId, true)]
-    [TestCase(PotteryTypeId, 1, MakeBrick8hReceiptId, false)]
-    [TestCase(ForgeTypeId, 1, MakeBrickReceiptId, false)]
-    [TestCase(ForgeTypeId, 5, MakeBrick8hReceiptId, false)]
-    [TestCase(ForgeTypeId, 1, MakeToolReceiptId, true)]
-    [TestCase(ForgeTypeId, 3, MakeTool8hReceiptId, true)]
-    [TestCase(ForgeTypeId, 2, MakeTool8hReceiptId, false)]
-    [TestCase(StonecutterTypeId, 1, 40, true)]
-    [TestCase(StonecutterTypeId, 1, 41, false)]
-    [TestCase(StonecutterTypeId, 2, 41, true)]
-    [TestCase(StonecutterTypeId, 3, 42, true)]
-    [TestCase(MarketTypeId, 1, 44, true)]
-    [TestCase(MarketTypeId, 1, 45, true)]
-    [TestCase(MarketTypeId, 4, 47, false)]
-    [TestCase(MarketTypeId, 5, 47, true)]
-    [TestCase(MarketTypeId, 5, 48, true)]
+    [TestCase(DomikIds.Pottery, 1, ReceiptIds.MakeBrick, true)]
+    [TestCase(DomikIds.Pottery, 2, ReceiptIds.MakeBrick8h, true)]
+    [TestCase(DomikIds.Pottery, 1, ReceiptIds.MakeBrick8h, false)]
+    [TestCase(DomikIds.Forge, 1, ReceiptIds.MakeBrick, false)]
+    [TestCase(DomikIds.Forge, 5, ReceiptIds.MakeBrick8h, false)]
+    [TestCase(DomikIds.Forge, 1, ReceiptIds.MakeTool, true)]
+    [TestCase(DomikIds.Forge, 3, ReceiptIds.MakeTool8h, true)]
+    [TestCase(DomikIds.Forge, 2, ReceiptIds.MakeTool8h, false)]
+    [TestCase(DomikIds.Stonecutter, 1, ReceiptIds.MakeBlock, true)]
+    [TestCase(DomikIds.Stonecutter, 1, ReceiptIds.MakeBlock8h, false)]
+    [TestCase(DomikIds.Stonecutter, 2, ReceiptIds.MakeBlock8h, true)]
+    [TestCase(DomikIds.Stonecutter, 3, ReceiptIds.MakeMillstone, true)]
+    [TestCase(DomikIds.Market, 1, ReceiptIds.SellBlock, true)]
+    [TestCase(DomikIds.Market, 1, ReceiptIds.SellDishes, true)]
+    [TestCase(DomikIds.Market, 4, ReceiptIds.SellBlockX10, false)]
+    [TestCase(DomikIds.Market, 5, ReceiptIds.SellBlockX10, true)]
+    [TestCase(DomikIds.Market, 5, ReceiptIds.SellDishesX10, true)]
     public void ReceiptBindingTest(int domikTypeId, int level, int receiptId, bool expected)
     {
-        using var uow = GetUow();
-        var resourceManager = GetResourceManager(uow);
-        var domikType = resourceManager.GetDomikTypes().First(x => x.Id == domikTypeId);
+        var domikType = App.Act<ResourceManager, DomikType[]>(m => m.GetDomikTypes()).First(x => x.Id == domikTypeId);
         var receiptIds = domikType.Levels.First(x => x.Value == level).Receipts.Select(x => x.Id);
 
         Assert.That(receiptIds.Contains(receiptId), Is.EqualTo(expected));
@@ -90,9 +80,9 @@ public class ReceiptReferenceTests : TestBase
     /// </summary>
     /// <param name="resourceTypeId">Тип ресурса.</param>
     /// <param name="expected">Ожидаемая рыночная стоимость.</param>
-    [TestCase(10, 35)]
-    [TestCase(11, 150)]
-    [TestCase(12, 45)]
+    [TestCase(ResourceIds.Block, 35)]
+    [TestCase(ResourceIds.Millstone, 150)]
+    [TestCase(ResourceIds.Dishes, 45)]
     public void MarketValueTest(int resourceTypeId, int expected)
     {
         Assert.That(ResourceManager.GetMarketValue(resourceTypeId), Is.EqualTo(expected));

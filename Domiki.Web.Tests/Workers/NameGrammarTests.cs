@@ -3,7 +3,7 @@
 namespace Domiki.Web.Tests;
 
 [TestFixture]
-public class NameGrammarTests
+public sealed class NameGrammarTests
 {
     /// <summary>
     /// Грамматический род формы глагола определяется по имени трудяги: мужское имя даёт мужское окончание, женское – женское.

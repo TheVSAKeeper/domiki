@@ -19,10 +19,14 @@ public class TestPlayer
 
     public int Id { get; }
 
-    public static TestPlayer Create()
+    public static TestPlayer Create(bool muteFtue = true)
     {
         var id = App.Act<DomikManager, int>(m => m.GetPlayerId($"testUser_{App.RunId}_{Guid.NewGuid()}"));
-        MuteFtue(id);
+        if (muteFtue)
+        {
+            MuteFtue(id);
+        }
+
         return new(id);
     }
 
