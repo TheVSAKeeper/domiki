@@ -5,7 +5,7 @@ import {
     tolokaStateSchema,
     marketStateSchema,
     gameStateSchema,
-    ResponseType,
+    problemDetailsSchema,
     responseEnvelopeSchema,
     villageSchema,
     worldSchema,
@@ -25,8 +25,6 @@ export class ApiError extends Error {
         this.name = 'ApiError';
     }
 }
-
-const errorMessageType: number = ResponseType.ErrorMessage;
 
 async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType<T> | null, signal?: AbortSignal, body?: unknown): Promise<T> {
     let res: Response;
@@ -53,6 +51,12 @@ async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType
         return new Promise<T>(() => {});
     }
 
+    if (!res.ok) {
+        const body: unknown = await res.json().catch(() => null);
+        const problem = problemDetailsSchema.safeParse(body);
+        throw new ApiError(problem.success && problem.data.detail != null ? problem.data.detail : 'Неизвестная ошибка сервера.');
+    }
+
     let json: unknown;
     try {
         json = await res.json();
@@ -63,11 +67,6 @@ async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType
     const envelope = responseEnvelopeSchema.safeParse(json);
     if (!envelope.success) {
         throw new ApiError('Некорректный ответ сервера.');
-    }
-
-    if (envelope.data.type === errorMessageType) {
-        const message = typeof envelope.data.content === 'string' ? envelope.data.content : 'Неизвестная ошибка сервера.';
-        throw new ApiError(message);
     }
 
     if (schema == null) {

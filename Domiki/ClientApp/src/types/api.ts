@@ -11,6 +11,14 @@ export const responseEnvelopeSchema = z.object({
 });
 export type ResponseEnvelope = z.infer<typeof responseEnvelopeSchema>;
 
+export const problemDetailsSchema = z.object({
+    type: z.string().optional(),
+    title: z.string().optional(),
+    status: z.number().optional(),
+    detail: z.string().optional(),
+});
+export type ProblemDetails = z.infer<typeof problemDetailsSchema>;
+
 export const resourceSchema = z.object({
     typeId: z.number(),
     value: z.number(),

@@ -7,24 +7,27 @@ namespace Domiki.Web.Tests;
 public sealed class HttpSmokeTests
 {
     /// <summary>
-    /// BusinessException из менеджера доходит через HTTP-конвейер как 400 с конвертом { type = ErrorMessage }, а
-    /// UnitOfWorkMiddleware
-    /// откатывает транзакцию, не коммитя частичных изменений.
+    /// BusinessException из менеджера доходит через HTTP-конвейер как 400 application/problem+json с текстом ошибки в
+    /// поле detail.
     /// </summary>
     [Test]
-    public async Task BuyUnknownDomikTypeReturnsErrorEnvelopeTest()
+    public async Task BuyUnknownDomikTypeReturnsProblemDetailsTest()
     {
         var client = App.Client();
         await client.PostAsync("/authentication/demo", null);
 
         var response = await client.PostAsync("/Domiki/BuyDomik/999999", null);
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/problem+json"));
+        }
 
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(json.RootElement.GetProperty("type").GetInt32(), Is.EqualTo((int)ResponseType.ErrorMessage));
-            Assert.That(json.RootElement.GetProperty("content").GetString(), Is.Not.Empty);
+            Assert.That(json.RootElement.GetProperty("status").GetInt32(), Is.EqualTo((int)HttpStatusCode.BadRequest));
+            Assert.That(json.RootElement.GetProperty("detail").GetString(), Is.Not.Empty);
         }
     }
 

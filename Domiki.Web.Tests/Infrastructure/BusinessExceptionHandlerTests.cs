@@ -1,5 +1,6 @@
 ﻿using Domiki.Web.Infrastructure;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using System.Text;
 using System.Text.Json;
 
@@ -8,16 +9,23 @@ namespace Domiki.Web.Tests;
 public sealed class BusinessExceptionHandlerTests
 {
     /// <summary>
-    /// BusinessException отдаётся клиенту как 400 с телом-конвертом { type = ErrorMessage, content = текст исключения }.
+    /// BusinessException отдаётся клиенту как 400 ProblemDetails с текстом исключения в поле detail.
     /// </summary>
     [Test]
-    public async Task BusinessExceptionIsWrittenAsErrorEnvelope()
+    public async Task BusinessExceptionIsWrittenAsProblemDetails()
     {
+        var services = new ServiceCollection();
+        services.AddProblemDetails();
+        services.AddLogging();
+        var provider = services.BuildServiceProvider();
+
         var context = new DefaultHttpContext();
         var body = new MemoryStream();
         context.Response.Body = body;
+        context.RequestServices = provider;
+        context.Request.Headers.Accept = "application/json";
 
-        var handled = await new BusinessExceptionHandler()
+        var handled = await new BusinessExceptionHandler(provider.GetRequiredService<IProblemDetailsService>())
             .TryHandleAsync(context, new BusinessException("Не хватает монет"), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
@@ -29,8 +37,8 @@ public sealed class BusinessExceptionHandlerTests
         using var json = JsonDocument.Parse(Encoding.UTF8.GetString(body.ToArray()));
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(json.RootElement.GetProperty("type").GetInt32(), Is.EqualTo((int)ResponseType.ErrorMessage));
-            Assert.That(json.RootElement.GetProperty("content").GetString(), Is.EqualTo("Не хватает монет"));
+            Assert.That(json.RootElement.GetProperty("status").GetInt32(), Is.EqualTo(StatusCodes.Status400BadRequest));
+            Assert.That(json.RootElement.GetProperty("detail").GetString(), Is.EqualTo("Не хватает монет"));
         }
     }
 
@@ -41,7 +49,12 @@ public sealed class BusinessExceptionHandlerTests
     [Test]
     public async Task OtherExceptionsAreNotHandled()
     {
-        var handled = await new BusinessExceptionHandler()
+        var services = new ServiceCollection();
+        services.AddProblemDetails();
+        services.AddLogging();
+        var provider = services.BuildServiceProvider();
+
+        var handled = await new BusinessExceptionHandler(provider.GetRequiredService<IProblemDetailsService>())
             .TryHandleAsync(new DefaultHttpContext(), new InvalidOperationException("boom"), CancellationToken.None);
 
         Assert.That(handled, Is.False);

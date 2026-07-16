@@ -392,6 +392,7 @@ app.MapGet("/Domiki/Stream", async (HttpContext http, GameStateBroker broker) =>
 app.MapFallbackToFile("index.html");
 
 app.UseExceptionHandler();
+app.UseStatusCodePages();
 app.UseWhen(context => !context.Request.Path.StartsWithSegments("/Domiki/Stream"),
     branch => branch.UseMiddleware<UnitOfWorkMiddleware>());
 
