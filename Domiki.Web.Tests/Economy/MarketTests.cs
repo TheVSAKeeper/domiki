@@ -5,16 +5,8 @@ using Domiki.Web.Infrastructure;
 namespace Domiki.Web.Tests;
 
 [NonParallelizable]
-public class MarketTests
+public sealed class MarketTests
 {
-    private const int CoinResourceTypeId = 1;
-    private const int StoneResourceTypeId = 2;
-    private const int WoodResourceTypeId = 3;
-    private const int ClayResourceTypeId = 4;
-    private const int GoldResourceTypeId = 5;
-    private const int FountainDecorTypeId = 4;
-    private const int MarketYardDomikTypeId = 9;
-
     [SetUp]
     public void SetUp()
     {
@@ -34,10 +26,23 @@ public class MarketTests
     [Test]
     public void AcceptLotInvalidCasesDoNotTransferTest()
     {
-        var seller = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100);
-        var buyer = GetUnlockedPlayer().WithResource(GoldResourceTypeId, 1);
-        var lockedBuyer = TestPlayer.Create().WithResource(GoldResourceTypeId, 10);
-        seller.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        const int startClay = 100;
+        const int giveClay = 20;
+        const int askGold = 3;
+        const int buyerGold = 1;
+
+        var seller = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Clay, startClay);
+
+        var buyer = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Gold, buyerGold);
+
+        var lockedBuyer = TestPlayer.Create()
+            .WithResource(ResourceIds.Gold, 10);
+
+        seller.PostLot(ResourceIds.Clay, giveClay, ResourceIds.Gold, askGold);
         var lotId = seller.LastLot().Id;
 
         Assert.Throws<BusinessException>(() => seller.AcceptLot(lotId));
@@ -47,9 +52,9 @@ public class MarketTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(seller.Market()!.MyLots.Single().Id, Is.EqualTo(lotId));
-            Assert.That(seller.Resource(ClayResourceTypeId), Is.EqualTo(80));
-            Assert.That(buyer.Resource(GoldResourceTypeId), Is.EqualTo(1));
+            Assert.That(seller.Market().MyLots.Single().Id, Is.EqualTo(lotId));
+            Assert.That(seller.Resource(ResourceIds.Clay), Is.EqualTo(startClay - giveClay));
+            Assert.That(buyer.Resource(ResourceIds.Gold), Is.EqualTo(buyerGold));
         }
     }
 
@@ -59,23 +64,34 @@ public class MarketTests
     [Test]
     public void AcceptLotTransfersResourcesAndDeletesLotTest()
     {
-        var seller = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100);
-        var buyer = GetUnlockedPlayer().WithResource(GoldResourceTypeId, 10);
-        var sellerCoins = seller.Resource(CoinResourceTypeId);
-        seller.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        const int startClay = 100;
+        const int startGold = 10;
+        const int giveClay = 20;
+        const int askGold = 3;
+
+        var seller = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Clay, startClay);
+
+        var buyer = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Gold, startGold);
+
+        var sellerCoins = seller.Resource(ResourceIds.Coin);
+        seller.PostLot(ResourceIds.Clay, giveClay, ResourceIds.Gold, askGold);
         var lotId = seller.LastLot().Id;
 
         buyer.AcceptLot(lotId);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(buyer.Resource(GoldResourceTypeId), Is.EqualTo(7));
-            Assert.That(buyer.Resource(ClayResourceTypeId), Is.EqualTo(20));
-            Assert.That(seller.Resource(GoldResourceTypeId), Is.EqualTo(3));
-            Assert.That(seller.Resource(ClayResourceTypeId), Is.EqualTo(80));
-            Assert.That(seller.Resource(CoinResourceTypeId), Is.EqualTo(sellerCoins - Commission(ClayResourceTypeId, 20)));
-            Assert.That(seller.Market()!.MyLots, Is.Empty);
-            Assert.That(buyer.Market()!.Lots, Is.Empty);
+            Assert.That(buyer.Resource(ResourceIds.Gold), Is.EqualTo(startGold - askGold));
+            Assert.That(buyer.Resource(ResourceIds.Clay), Is.EqualTo(giveClay));
+            Assert.That(seller.Resource(ResourceIds.Gold), Is.EqualTo(askGold));
+            Assert.That(seller.Resource(ResourceIds.Clay), Is.EqualTo(startClay - giveClay));
+            Assert.That(seller.Resource(ResourceIds.Coin), Is.EqualTo(sellerCoins - Commission(ResourceIds.Clay, giveClay)));
+            Assert.That(seller.Market().MyLots, Is.Empty);
+            Assert.That(buyer.Market().Lots, Is.Empty);
         }
     }
 
@@ -85,10 +101,19 @@ public class MarketTests
     [Test]
     public void CancelLotReturnsEscrowButNotCommissionTest()
     {
-        var seller = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100);
-        var other = GetUnlockedPlayer();
-        var sellerCoins = seller.Resource(CoinResourceTypeId);
-        seller.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        const int startClay = 100;
+        const int giveClay = 20;
+        const int askGold = 3;
+
+        var seller = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Clay, startClay);
+
+        var other = TestPlayer.Create()
+            .WithMarketUnlocked();
+
+        var sellerCoins = seller.Resource(ResourceIds.Coin);
+        seller.PostLot(ResourceIds.Clay, giveClay, ResourceIds.Gold, askGold);
         var lotId = seller.LastLot().Id;
 
         Assert.Throws<BusinessException>(() => other.CancelLot(lotId));
@@ -96,9 +121,9 @@ public class MarketTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(seller.Resource(ClayResourceTypeId), Is.EqualTo(100));
-            Assert.That(seller.Resource(CoinResourceTypeId), Is.EqualTo(sellerCoins - Commission(ClayResourceTypeId, 20)));
-            Assert.That(seller.Market()!.MyLots, Is.Empty);
+            Assert.That(seller.Resource(ResourceIds.Clay), Is.EqualTo(startClay));
+            Assert.That(seller.Resource(ResourceIds.Coin), Is.EqualTo(sellerCoins - Commission(ResourceIds.Clay, giveClay)));
+            Assert.That(seller.Market().MyLots, Is.Empty);
         }
     }
 
@@ -108,10 +133,24 @@ public class MarketTests
     [Test]
     public async Task ConcurrentAcceptOneLotAllowsOneSuccessTest()
     {
-        var seller = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100);
-        var firstBuyer = GetUnlockedPlayer().WithResource(GoldResourceTypeId, 10);
-        var secondBuyer = GetUnlockedPlayer().WithResource(GoldResourceTypeId, 10);
-        seller.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        const int startClay = 100;
+        const int startGold = 10;
+        const int giveClay = 20;
+        const int askGold = 3;
+
+        var seller = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Clay, startClay);
+
+        var firstBuyer = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Gold, startGold);
+
+        var secondBuyer = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Gold, startGold);
+
+        seller.PostLot(ResourceIds.Clay, giveClay, ResourceIds.Gold, askGold);
         var lotId = seller.LastLot().Id;
 
         var results = await Task.WhenAll(Task.Run(() => TryAcceptLot(firstBuyer, lotId)),
@@ -120,9 +159,9 @@ public class MarketTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(results.Count(x => x), Is.EqualTo(1));
-            Assert.That(seller.Market()!.MyLots, Is.Empty);
-            Assert.That(seller.Resource(GoldResourceTypeId), Is.EqualTo(3));
-            Assert.That(firstBuyer.Resource(ClayResourceTypeId) + secondBuyer.Resource(ClayResourceTypeId), Is.EqualTo(20));
+            Assert.That(seller.Market().MyLots, Is.Empty);
+            Assert.That(seller.Resource(ResourceIds.Gold), Is.EqualTo(askGold));
+            Assert.That(firstBuyer.Resource(ResourceIds.Clay) + secondBuyer.Resource(ResourceIds.Clay), Is.EqualTo(giveClay));
         }
     }
 
@@ -132,11 +171,19 @@ public class MarketTests
     [Test]
     public async Task CrossAcceptLotsDoesNotDeadlockTest()
     {
-        var first = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100).WithResource(WoodResourceTypeId, 100);
-        var second = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100).WithResource(WoodResourceTypeId, 100);
-        first.PostLot(ClayResourceTypeId, 20, WoodResourceTypeId, 10);
+        var first = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Clay, 100)
+            .WithResource(ResourceIds.Wood, 100);
+
+        var second = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Clay, 100)
+            .WithResource(ResourceIds.Wood, 100);
+
+        first.PostLot(ResourceIds.Clay, 20, ResourceIds.Wood, 10);
         var firstLotId = first.LastLot().Id;
-        second.PostLot(WoodResourceTypeId, 10, ClayResourceTypeId, 20);
+        second.PostLot(ResourceIds.Wood, 10, ResourceIds.Clay, 20);
         var secondLotId = second.LastLot().Id;
 
         var results = await Task.WhenAll(Task.Run(() => TryAcceptLot(first, secondLotId)),
@@ -145,8 +192,8 @@ public class MarketTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(results, Is.All.True);
-            Assert.That(first.Market()!.MyLots, Is.Empty);
-            Assert.That(second.Market()!.MyLots, Is.Empty);
+            Assert.That(first.Market().MyLots, Is.Empty);
+            Assert.That(second.Market().MyLots, Is.Empty);
         }
     }
 
@@ -156,9 +203,16 @@ public class MarketTests
     [Test]
     public void ExpiredLotReturnsEscrowButNotCommissionTest()
     {
-        var seller = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 100);
-        var sellerCoins = seller.Resource(CoinResourceTypeId);
-        seller.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        const int startClay = 100;
+        const int giveClay = 20;
+        const int askGold = 3;
+
+        var seller = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Clay, startClay);
+
+        var sellerCoins = seller.Resource(ResourceIds.Coin);
+        seller.PostLot(ResourceIds.Clay, giveClay, ResourceIds.Gold, askGold);
         var lotId = seller.LastLot().Id;
         var expireDate = DateTimeHelper.GetNowDate().AddSeconds(-1);
         SetTradeLotExpire(lotId, expireDate);
@@ -167,9 +221,9 @@ public class MarketTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(seller.Resource(ClayResourceTypeId), Is.EqualTo(100));
-            Assert.That(seller.Resource(CoinResourceTypeId), Is.EqualTo(sellerCoins - Commission(ClayResourceTypeId, 20)));
-            Assert.That(seller.Market()!.MyLots, Is.Empty);
+            Assert.That(seller.Resource(ResourceIds.Clay), Is.EqualTo(startClay));
+            Assert.That(seller.Resource(ResourceIds.Coin), Is.EqualTo(sellerCoins - Commission(ResourceIds.Clay, giveClay)));
+            Assert.That(seller.Market().MyLots, Is.Empty);
         }
     }
 
@@ -181,7 +235,7 @@ public class MarketTests
     {
         var player = TestPlayer.Create();
 
-        var market = player.Market();
+        var market = player.MarketOrNull();
 
         Assert.That(market, Is.Null);
     }
@@ -193,9 +247,10 @@ public class MarketTests
     [Test]
     public void GetMarketWithBuildingReturnsEmptyTest()
     {
-        var player = GetUnlockedPlayer();
+        var player = TestPlayer.Create()
+            .WithMarketUnlocked();
 
-        var market = player.Market()!;
+        var market = player.Market();
 
         using (Assert.EnterMultipleScope())
         {
@@ -215,12 +270,14 @@ public class MarketTests
     [Test]
     public void MarketYardLevelOneAllowsTwoActiveLotsOnlyTest()
     {
-        var player = GetUnlockedPlayer().WithResource(ClayResourceTypeId, 3);
+        var player = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Clay, 3);
 
-        player.PostLot(ClayResourceTypeId, 1, GoldResourceTypeId, 1);
-        player.PostLot(ClayResourceTypeId, 1, GoldResourceTypeId, 1);
+        player.PostLot(ResourceIds.Clay, 1, ResourceIds.Gold, 1);
+        player.PostLot(ResourceIds.Clay, 1, ResourceIds.Gold, 1);
 
-        var ex = Assert.Throws<BusinessException>(() => player.PostLot(ClayResourceTypeId, 1, GoldResourceTypeId, 1));
+        var ex = Assert.Throws<BusinessException>(() => player.PostLot(ResourceIds.Clay, 1, ResourceIds.Gold, 1));
         Assert.That(ex!.Message, Is.EqualTo("Все места на прилавке заняты – улучшите Торговый двор"));
     }
 
@@ -231,19 +288,22 @@ public class MarketTests
     [Test]
     public void PostLotInvalidOrInsufficientDoesNotCreateLotTest()
     {
-        var player = GetUnlockedPlayer();
+        const int startClay = 10;
 
-        Assert.Throws<BusinessException>(() => player.PostLot(ClayResourceTypeId, 1, GoldResourceTypeId, 1));
-        Assert.Throws<BusinessException>(() => player.PostLot(ClayResourceTypeId, 0, GoldResourceTypeId, 1));
-        player.WithResource(ClayResourceTypeId, 10);
-        Assert.Throws<BusinessException>(() => player.PostLot(ClayResourceTypeId, 1, ClayResourceTypeId, 1));
-        SetResource(player.Id, CoinResourceTypeId, 0);
-        Assert.Throws<BusinessException>(() => player.PostLot(ClayResourceTypeId, 1, GoldResourceTypeId, 1));
+        var player = TestPlayer.Create()
+            .WithMarketUnlocked();
+
+        Assert.Throws<BusinessException>(() => player.PostLot(ResourceIds.Clay, 1, ResourceIds.Gold, 1));
+        Assert.Throws<BusinessException>(() => player.PostLot(ResourceIds.Clay, 0, ResourceIds.Gold, 1));
+        player.WithResource(ResourceIds.Clay, startClay);
+        Assert.Throws<BusinessException>(() => player.PostLot(ResourceIds.Clay, 1, ResourceIds.Clay, 1));
+        SetResource(player.Id, ResourceIds.Coin, 0);
+        Assert.Throws<BusinessException>(() => player.PostLot(ResourceIds.Clay, 1, ResourceIds.Gold, 1));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(player.Market()!.MyLots, Is.Empty);
-            Assert.That(player.Resource(ClayResourceTypeId), Is.EqualTo(10));
+            Assert.That(player.Market().MyLots, Is.Empty);
+            Assert.That(player.Resource(ResourceIds.Clay), Is.EqualTo(startClay));
         }
     }
 
@@ -253,16 +313,17 @@ public class MarketTests
     [Test]
     public void PostLotWithoutBuildingThrowsAndDoesNotWriteOffTest()
     {
-        var player = TestPlayer.Create().WithResource(ClayResourceTypeId, 100);
-        var before = player.Resource(ClayResourceTypeId);
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Clay, 100);
 
-        var ex = Assert.Throws<BusinessException>(() => player.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3))!;
+        var before = player.Resource(ResourceIds.Clay);
+        var ex = Assert.Throws<BusinessException>(() => player.PostLot(ResourceIds.Clay, 20, ResourceIds.Gold, 3))!;
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(ex.Message, Is.EqualTo("Нужен Торговый двор"));
-            Assert.That(player.Market(), Is.Null);
-            Assert.That(player.Resource(ClayResourceTypeId), Is.EqualTo(before));
+            Assert.That(player.MarketOrNull(), Is.Null);
+            Assert.That(player.Resource(ResourceIds.Clay), Is.EqualTo(before));
         }
     }
 
@@ -273,31 +334,41 @@ public class MarketTests
     [Test]
     public void PostLotWritesOffEscrowAndCommissionAndVisibleToOtherPlayerTest()
     {
-        var seller = GetUnlockedPlayer();
-        var buyer = GetUnlockedPlayer();
-        var villageName = "TestVillage-" + Guid.NewGuid().ToString("N")[..8];
-        SetVillage(seller.Id, villageName, 2, 3);
-        seller.WithResource(ClayResourceTypeId, 100);
-        var coinBefore = seller.Resource(CoinResourceTypeId);
+        const int startClay = 100;
+        const int giveClay = 20;
+        const int askGold = 3;
+        const int crestIcon = 2;
+        const int crestColor = 3;
 
-        seller.PostLot(ClayResourceTypeId, 20, GoldResourceTypeId, 3);
+        var seller = TestPlayer.Create()
+            .WithMarketUnlocked();
+
+        var buyer = TestPlayer.Create()
+            .WithMarketUnlocked();
+
+        var villageName = "TestVillage-" + Guid.NewGuid().ToString("N")[..8];
+        SetVillage(seller.Id, villageName, crestIcon, crestColor);
+        seller.WithResource(ResourceIds.Clay, startClay);
+        var coinBefore = seller.Resource(ResourceIds.Coin);
+
+        seller.PostLot(ResourceIds.Clay, giveClay, ResourceIds.Gold, askGold);
         var lotId = seller.LastLot().Id;
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(seller.Resource(ClayResourceTypeId), Is.EqualTo(80));
-            Assert.That(seller.Resource(CoinResourceTypeId), Is.EqualTo(coinBefore - Commission(ClayResourceTypeId, 20)));
+            Assert.That(seller.Resource(ResourceIds.Clay), Is.EqualTo(startClay - giveClay));
+            Assert.That(seller.Resource(ResourceIds.Coin), Is.EqualTo(coinBefore - Commission(ResourceIds.Clay, giveClay)));
         }
 
-        var sellerMarket = seller.Market()!;
+        var sellerMarket = seller.Market();
         Assert.That(sellerMarket.MyLots.Single().Id, Is.EqualTo(lotId));
-        var buyerLot = buyer.Market()!.Lots.Single();
+        var buyerLot = buyer.Market().Lots.Single();
         using (Assert.EnterMultipleScope())
         {
             Assert.That(buyerLot.Id, Is.EqualTo(lotId));
             Assert.That(buyerLot.SellerVillageName, Is.EqualTo(villageName));
-            Assert.That(buyerLot.SellerCrestIcon, Is.EqualTo(2));
-            Assert.That(buyerLot.SellerCrestColor, Is.EqualTo(3));
+            Assert.That(buyerLot.SellerCrestIcon, Is.EqualTo(crestIcon));
+            Assert.That(buyerLot.SellerCrestColor, Is.EqualTo(crestColor));
         }
     }
 
@@ -308,12 +379,12 @@ public class MarketTests
     /// <param name="giveResourceTypeId">Тип отдаваемого ресурса.</param>
     /// <param name="giveValue">Количество отдаваемого ресурса.</param>
     /// <param name="expected">Ожидаемая комиссия в монетах.</param>
-    [TestCase(1, 4, 20, 16)]
-    [TestCase(5, 4, 20, 6)]
-    [TestCase(1, 6, 1, 3)]
-    [TestCase(6, 6, 1, 2)]
-    [TestCase(1, 4, 1, 2)]
-    [TestCase(6, 4, 100, 30)]
+    [TestCase(1, ResourceIds.Clay, 20, 16)]
+    [TestCase(5, ResourceIds.Clay, 20, 6)]
+    [TestCase(1, ResourceIds.Brick, 1, 3)]
+    [TestCase(6, ResourceIds.Brick, 1, 2)]
+    [TestCase(1, ResourceIds.Clay, 1, 2)]
+    [TestCase(6, ResourceIds.Clay, 100, 30)]
     public void ComputeCommissionByLevelTest(int level, int giveResourceTypeId, int giveValue, int expected)
     {
         Assert.That(MarketManager.ComputeCommission(level, giveResourceTypeId, giveValue), Is.EqualTo(expected));
@@ -322,11 +393,6 @@ public class MarketTests
     private static int Commission(int giveResourceTypeId, int giveValue)
     {
         return MarketManager.ComputeCommission(1, giveResourceTypeId, giveValue);
-    }
-
-    private static TestPlayer GetUnlockedPlayer()
-    {
-        return TestPlayer.Create().WithDecor(FountainDecorTypeId, 4).WithResource(CoinResourceTypeId, 800).Buy(MarketYardDomikTypeId);
     }
 
     private static bool TryAcceptLot(TestPlayer player, int lotId)
@@ -379,5 +445,15 @@ public class MarketTests
         using var scope = App.Scope();
         scope.Context.TradeLots.RemoveRange(scope.Context.TradeLots);
         scope.Commit();
+    }
+}
+
+file static class MarketTestsActs
+{
+    public static TestPlayer WithMarketUnlocked(this TestPlayer player)
+    {
+        return player.WithDecor(DecorIds.Fountain, 4)
+            .WithResource(ResourceIds.Coin, 800)
+            .Buy(DomikIds.MarketYard);
     }
 }

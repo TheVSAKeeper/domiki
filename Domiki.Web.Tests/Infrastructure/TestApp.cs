@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 namespace Domiki.Web.Tests;
 
 [SetUpFixture]
-public class TestAppSetup
+public sealed class TestAppSetup
 {
     [OneTimeSetUp]
     public void OneTimeSetUp()

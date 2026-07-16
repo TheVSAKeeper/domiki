@@ -57,7 +57,14 @@ public static class EconomyActs
         return App.Read(context => context.TradeLots.Where(x => x.SellerId == p.Id).OrderByDescending(x => x.Id).First());
     }
 
-    public static MarketState? Market(this TestPlayer p)
+    public static MarketState Market(this TestPlayer p)
+    {
+        var market = App.Act<MarketManager, MarketState?>(m => m.GetMarket(p.Id));
+        Assert.That(market, Is.Not.Null);
+        return market!;
+    }
+
+    public static MarketState? MarketOrNull(this TestPlayer p)
     {
         return App.Act<MarketManager, MarketState?>(m => m.GetMarket(p.Id));
     }

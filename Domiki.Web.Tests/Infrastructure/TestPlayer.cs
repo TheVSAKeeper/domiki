@@ -118,17 +118,17 @@ public class TestPlayer
         return this;
     }
 
-    public IEnumerable<Resource> Resources()
+    public IReadOnlyList<Resource> Resources()
     {
-        return App.Act<DomikManager, IEnumerable<Resource>>(m => m.GetResources(Id));
+        return App.Act<DomikManager, IReadOnlyList<Resource>>(m => m.GetResources(Id).ToList());
     }
 
-    public IEnumerable<Domik> Domiks()
+    public IReadOnlyList<Domik> Domiks()
     {
-        return App.Act<DomikManager, IEnumerable<Domik>>(m => m.GetDomiks(Id));
+        return App.Act<DomikManager, IReadOnlyList<Domik>>(m => m.GetDomiks(Id).ToList());
     }
 
-    public IEnumerable<DomikType> DomikTypes()
+    public IReadOnlyList<DomikType> DomikTypes()
     {
         return App.Act<ResourceManager, DomikType[]>(m => m.GetDomikTypes());
     }

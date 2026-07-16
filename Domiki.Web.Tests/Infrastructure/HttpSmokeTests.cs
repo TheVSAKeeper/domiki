@@ -4,7 +4,7 @@ using System.Text.Json;
 
 namespace Domiki.Web.Tests;
 
-public class HttpSmokeTests
+public sealed class HttpSmokeTests
 {
     /// <summary>
     /// BusinessException из менеджера доходит через HTTP-конвейер как 400 с конвертом { type = ErrorMessage }, а
