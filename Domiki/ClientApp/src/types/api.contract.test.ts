@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'vitest';
@@ -14,7 +14,7 @@ type ContractSchema = {
     shape: Record<string, unknown>;
 };
 
-const modelsDirectory = resolve(fileURLToPath(import.meta.url), '../../../../Models');
+const backendDirectory = resolve(fileURLToPath(import.meta.url), '../../../..');
 
 const mappings: Record<string, ContractSchema> = {
     ActiveGoalDto: { schemaName: 'activeGoalSchema', shape: api.activeGoalSchema.shape },
@@ -147,9 +147,13 @@ const parseDtoClasses = (source: string): DtoClass[] => {
     return dtoClasses;
 };
 
-const readDtoClasses = (): DtoClass[] => readdirSync(modelsDirectory)
-    .filter(fileName => fileName.endsWith('.cs') && fileName !== 'ApplicationUser.cs')
-    .flatMap(fileName => parseDtoClasses(readFileSync(resolve(modelsDirectory, fileName), 'utf8')));
+const readDtoClasses = (): DtoClass[] => readdirSync(backendDirectory, { withFileTypes: true })
+    .filter(entry => entry.isDirectory())
+    .map(entry => resolve(backendDirectory, entry.name, 'Dto'))
+    .filter(dtoDirectory => existsSync(dtoDirectory))
+    .flatMap(dtoDirectory => readdirSync(dtoDirectory)
+        .filter(fileName => fileName.endsWith('.cs'))
+        .flatMap(fileName => parseDtoClasses(readFileSync(resolve(dtoDirectory, fileName), 'utf8'))));
 
 describe('C# DTO and zod schema contracts', () => {
     it('models every serialized DTO property and every schema key', () => {
