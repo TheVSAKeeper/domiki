@@ -110,6 +110,7 @@ builder.Services.AddControllersWithViews(options =>
     options.OutputFormatters.RemoveType<HttpNoContentOutputFormatter>();
 });
 builder.Services.AddRazorPages();
+builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<BusinessExceptionHandler>();
 builder.Services.AddScoped<UnitOfWork>();
@@ -181,6 +182,7 @@ app.UseForwardedHeaders(forwardedHeadersOptions);
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
+    app.MapOpenApi();
 }
 else
 {
