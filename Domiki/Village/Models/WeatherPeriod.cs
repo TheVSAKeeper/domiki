@@ -1,4 +1,4 @@
-namespace Domiki.Web.Business.Models
+﻿namespace Domiki.Web.Business.Models
 {
     public class WeatherPeriod
     {

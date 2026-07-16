@@ -1,4 +1,4 @@
-namespace Domiki.Web.Models
+﻿namespace Domiki.Web.Models
 {
     public class WeatherStateDto
     {
