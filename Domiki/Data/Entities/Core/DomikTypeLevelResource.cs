@@ -38,10 +38,10 @@ public class DomikTypeLevelResource
     /// <summary>
     /// Уровень домика, для перехода на который нужен ресурс.
     /// </summary>
-    public DomikTypeLevel DomikTypeLevel { get; set; }
+    public DomikTypeLevel DomikTypeLevel { get; set; } = null!;
 
     /// <summary>
     /// Тип требуемого ресурса.
     /// </summary>
-    public ResourceType ResourceType { get; set; }
+    public ResourceType ResourceType { get; set; } = null!;
 }

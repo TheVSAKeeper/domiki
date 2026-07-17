@@ -58,15 +58,15 @@ public class Order
     /// <summary>
     /// Игрок, которому принадлежит заказ.
     /// </summary>
-    public Player Player { get; set; }
+    public Player Player { get; set; } = null!;
 
     /// <summary>
     /// Навигационное свойство к соседу из <see cref="NeighborId"/>.
     /// </summary>
-    public Neighbor Neighbor { get; set; }
+    public Neighbor Neighbor { get; set; } = null!;
 
     /// <summary>
     /// Ресурсы и их количество, которые нужно сдать, чтобы выполнить заказ.
     /// </summary>
-    public ICollection<OrderResource> Resources { get; set; }
+    public ICollection<OrderResource> Resources { get; set; } = new List<OrderResource>();
 }

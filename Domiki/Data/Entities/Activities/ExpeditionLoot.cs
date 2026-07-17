@@ -85,5 +85,5 @@ public class ExpeditionLoot
     /// <summary>
     /// Навигационное свойство к типу похода.
     /// </summary>
-    public ExpeditionType ExpeditionType { get; set; }
+    public ExpeditionType ExpeditionType { get; set; } = null!;
 }

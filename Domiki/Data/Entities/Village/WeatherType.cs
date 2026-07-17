@@ -19,12 +19,12 @@ public class WeatherType
     /// Отображаемое название погоды.
     /// </summary>
     [MaxLength(100)]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Технический код типа погоды – по нему код находит конкретную погоду по смыслу, а не по <see cref="Id"/>.
     /// </summary>
-    public string LogicName { get; set; }
+    public required string LogicName { get; set; }
 
     /// <summary>
     /// Вес типа при взвешенном случайном выборе следующего отрезка расписания.

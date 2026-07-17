@@ -34,10 +34,10 @@ public class PlayerDecor
     /// <summary>
     /// Навигационное свойство к игроку-владельцу.
     /// </summary>
-    public Player Player { get; set; }
+    public Player Player { get; set; } = null!;
 
     /// <summary>
     /// Навигационное свойство к типу декора.
     /// </summary>
-    public DecorType DecorType { get; set; }
+    public DecorType DecorType { get; set; } = null!;
 }

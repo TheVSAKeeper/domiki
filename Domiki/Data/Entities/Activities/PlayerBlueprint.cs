@@ -29,10 +29,10 @@ public class PlayerBlueprint
     /// <summary>
     /// Навигационное свойство к игроку-владельцу.
     /// </summary>
-    public Player Player { get; set; }
+    public Player Player { get; set; } = null!;
 
     /// <summary>
     /// Навигационное свойство к полученному чертежу.
     /// </summary>
-    public Blueprint Blueprint { get; set; }
+    public Blueprint Blueprint { get; set; } = null!;
 }

@@ -50,10 +50,10 @@ public class Expedition
     /// <summary>
     /// Навигационное свойство к игроку-владельцу отряда.
     /// </summary>
-    public Player Player { get; set; }
+    public Player Player { get; set; } = null!;
 
     /// <summary>
     /// Навигационное свойство к типу похода.
     /// </summary>
-    public ExpeditionType ExpeditionType { get; set; }
+    public ExpeditionType ExpeditionType { get; set; } = null!;
 }

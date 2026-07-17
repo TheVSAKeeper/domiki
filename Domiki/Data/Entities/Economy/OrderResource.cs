@@ -31,10 +31,10 @@ public class OrderResource
     /// <summary>
     /// Заказ, к которому относится требование.
     /// </summary>
-    public Order Order { get; set; }
+    public Order Order { get; set; } = null!;
 
     /// <summary>
     /// Тип требуемого ресурса.
     /// </summary>
-    public ResourceType ResourceType { get; set; }
+    public ResourceType ResourceType { get; set; } = null!;
 }

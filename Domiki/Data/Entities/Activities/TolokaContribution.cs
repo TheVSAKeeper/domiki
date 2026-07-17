@@ -34,10 +34,10 @@ public class TolokaContribution
     /// <summary>
     /// Навигационное свойство к инстанции толоки.
     /// </summary>
-    public Toloka Toloka { get; set; }
+    public Toloka Toloka { get; set; } = null!;
 
     /// <summary>
     /// Навигационное свойство к игроку-участнику.
     /// </summary>
-    public Player Player { get; set; }
+    public Player Player { get; set; } = null!;
 }

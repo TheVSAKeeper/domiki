@@ -18,12 +18,12 @@ public class Blueprint
     /// <summary>
     /// Отображаемое название чертежа.
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Технический код чертежа – по нему код находит конкретный чертёж по смыслу, а не по <see cref="Id"/>.
     /// </summary>
-    public string LogicName { get; set; }
+    public required string LogicName { get; set; }
 
     /// <summary>
     /// Тип постройки, покупка которой становится доступна после получения чертежа.
@@ -46,10 +46,10 @@ public class Blueprint
     /// <summary>
     /// Навигационное свойство к типу постройки, который открывает чертёж.
     /// </summary>
-    public DomikType DomikType { get; set; }
+    public DomikType DomikType { get; set; } = null!;
 
     /// <summary>
     /// Навигационное свойство к соседу-источнику чертежа.
     /// </summary>
-    public Neighbor Neighbor { get; set; }
+    public Neighbor Neighbor { get; set; } = null!;
 }

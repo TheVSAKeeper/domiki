@@ -29,19 +29,19 @@ public class PlayerPushSubscription
     /// <see cref="Infrastructure.PushManager"/> ищет по нему при повторной <see cref="Infrastructure.PushManager.Subscribe"/>.
     /// </remarks>
     [Required(AllowEmptyStrings = false)]
-    public string Endpoint { get; set; }
+    public required string Endpoint { get; set; }
 
     /// <summary>
     /// Публичный ключ шифрования payload для этой подписки (часть Web Push API).
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string P256dh { get; set; }
+    public required string P256dh { get; set; }
 
     /// <summary>
     /// Секрет аутентификации для этой подписки (часть Web Push API).
     /// </summary>
     [Required(AllowEmptyStrings = false)]
-    public string Auth { get; set; }
+    public required string Auth { get; set; }
 
     /// <summary>
     /// Момент создания подписки.

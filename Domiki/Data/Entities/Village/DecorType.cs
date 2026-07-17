@@ -22,12 +22,12 @@ public class DecorType
     /// Отображаемое название декора.
     /// </summary>
     [MaxLength(100)]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Технический код типа декора – по нему код находит конкретный декор по смыслу, а не по <see cref="Id"/>.
     /// </summary>
-    public string LogicName { get; set; }
+    public required string LogicName { get; set; }
 
     /// <summary>
     /// Сколько очков уюта даёт одна единица этого декора (см. <see cref="Village.DecorCalculator.GetComfort"/>).

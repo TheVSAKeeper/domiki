@@ -19,12 +19,12 @@ public class Neighbor
     /// Отображаемое имя соседа.
     /// </summary>
     [MaxLength(100)]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Технический код соседа – по нему код находит конкретного соседа по смыслу, а не по <see cref="Id"/>.
     /// </summary>
-    public string LogicName { get; set; }
+    public required string LogicName { get; set; }
 
     /// <summary>
     /// Тип ресурса, который сосед просит в заказах в первую очередь.

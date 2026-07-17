@@ -19,12 +19,12 @@ public class TolokaType
     /// Отображаемое название толоки.
     /// </summary>
     [MaxLength(100)]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Технический код типа толоки – по нему код находит конкретную толоку по смыслу, а не по <see cref="Id"/>.
     /// </summary>
-    public string LogicName { get; set; }
+    public required string LogicName { get; set; }
 
     /// <summary>
     /// Тип ресурса, который игроки сдают в счётчик этой толоки.
@@ -50,5 +50,5 @@ public class TolokaType
     /// <summary>
     /// Навигационное свойство к типу собираемого ресурса.
     /// </summary>
-    public ResourceType ResourceType { get; set; }
+    public ResourceType ResourceType { get; set; } = null!;
 }

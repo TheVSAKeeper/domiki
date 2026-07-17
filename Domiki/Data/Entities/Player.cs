@@ -27,13 +27,13 @@ public class Player
     /// </summary>
     [MaxLength(100)]
     [Required(AllowEmptyStrings = false)]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Название деревни игрока, задаётся отдельно от имени игрока (см. <see cref="Core.DomikManager.SetVillageIdentity"/>).
     /// </summary>
     [MaxLength(100)]
-    public string VillageName { get; set; }
+    public string? VillageName { get; set; }
 
     /// <summary>
     /// Индекс выбранной игроком иконки герба деревни.
@@ -117,7 +117,7 @@ public class Player
     /// </summary>
     [MaxLength(450)]
     [Required(AllowEmptyStrings = false)]
-    public string AspNetUserId { get; set; }
+    public required string AspNetUserId { get; set; }
 
     /// <summary>
     /// Служебное поле пессимистичной блокировки – не игровые данные.
@@ -132,5 +132,5 @@ public class Player
     /// <summary>
     /// Ресурсы, накопленные игроком.
     /// </summary>
-    public ICollection<Resource> Resources { get; set; }
+    public ICollection<Resource> Resources { get; set; } = new List<Resource>();
 }

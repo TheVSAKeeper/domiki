@@ -18,10 +18,10 @@ public class ResourceType
     /// <summary>
     /// Отображаемое название ресурса.
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Технический код типа ресурса – по нему код находит конкретный ресурс по смыслу, а не по <see cref="Id"/>.
     /// </summary>
-    public string LogicName { get; set; }
+    public required string LogicName { get; set; }
 }

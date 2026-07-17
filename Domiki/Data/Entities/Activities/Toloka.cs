@@ -53,5 +53,5 @@ public class Toloka
     /// <summary>
     /// Навигационное свойство к типу толоки.
     /// </summary>
-    public TolokaType TolokaType { get; set; }
+    public TolokaType TolokaType { get; set; } = null!;
 }

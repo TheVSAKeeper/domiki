@@ -50,10 +50,10 @@ public class ReceiptResource
     /// <summary>
     /// Рецепт, к которому относится ресурс.
     /// </summary>
-    public Receipt Receipt { get; set; }
+    public Receipt Receipt { get; set; } = null!;
 
     /// <summary>
     /// Тип ресурса.
     /// </summary>
-    public ResourceType ResourceType { get; set; }
+    public ResourceType ResourceType { get; set; } = null!;
 }

@@ -56,5 +56,5 @@ public class Domik
     /// <summary>
     /// Производства, запущенные в этом домике.
     /// </summary>
-    public ICollection<Manufacture> Manufactures { get; set; }
+    public ICollection<Manufacture> Manufactures { get; set; } = new List<Manufacture>();
 }

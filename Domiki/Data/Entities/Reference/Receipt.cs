@@ -18,12 +18,12 @@ public class Receipt
     /// <summary>
     /// Отображаемое название рецепта.
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Технический код рецепта – по нему код находит конкретный рецепт по смыслу, а не по <see cref="Id"/>.
     /// </summary>
-    public string LogicName { get; set; }
+    public required string LogicName { get; set; }
 
     /// <summary>
     /// Базовая длительность производства в секундах, до бонусов трудяг и стартовых модификаторов.
@@ -50,5 +50,5 @@ public class Receipt
     /// <remarks>
     /// Различаются флагами <see cref="ReceiptResource.IsInput"/> и <see cref="ReceiptResource.IsOptional"/>.
     /// </remarks>
-    public ICollection<ReceiptResource> Resources { get; set; }
+    public ICollection<ReceiptResource> Resources { get; set; } = new List<ReceiptResource>();
 }

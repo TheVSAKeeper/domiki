@@ -66,5 +66,5 @@ public class TradeLot
     /// <summary>
     /// Навигационное свойство к продавцу из <see cref="SellerId"/>.
     /// </summary>
-    public Player Seller { get; set; }
+    public Player Seller { get; set; } = null!;
 }

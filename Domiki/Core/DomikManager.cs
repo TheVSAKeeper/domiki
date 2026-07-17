@@ -95,9 +95,12 @@ public class DomikManager
         var dbPlayer = _context.Players.FirstOrDefault(x => x.AspNetUserId == aspNetUserId);
         if (dbPlayer == null)
         {
-            dbPlayer = new();
-            dbPlayer.AspNetUserId = aspNetUserId;
-            dbPlayer.Name = "Держатель домиков";
+            dbPlayer = new()
+            {
+                AspNetUserId = aspNetUserId,
+                Name = "Держатель домиков",
+            };
+
             _context.Players.Add(dbPlayer);
             _context.Resources.Add(new()
                 { TypeId = 1, Player = dbPlayer, Value = StartingCoins });

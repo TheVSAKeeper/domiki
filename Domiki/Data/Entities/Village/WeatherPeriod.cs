@@ -40,5 +40,5 @@ public class WeatherPeriod
     /// <summary>
     /// Навигационное свойство к типу погоды.
     /// </summary>
-    public WeatherType WeatherType { get; set; }
+    public WeatherType WeatherType { get; set; } = null!;
 }

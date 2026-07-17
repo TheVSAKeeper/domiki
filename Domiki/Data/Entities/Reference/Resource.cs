@@ -31,5 +31,5 @@ public class Resource
     /// <summary>
     /// Игрок-владелец запаса.
     /// </summary>
-    public Player Player { get; set; }
+    public Player Player { get; set; } = null!;
 }

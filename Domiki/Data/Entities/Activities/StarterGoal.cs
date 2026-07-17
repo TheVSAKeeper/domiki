@@ -29,7 +29,7 @@ public class StarterGoal
     /// </summary>
     [MaxLength(200)]
     [Required(AllowEmptyStrings = false)]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Условие, закрывающее наказ.

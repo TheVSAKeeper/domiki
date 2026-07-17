@@ -45,7 +45,7 @@ public class PlayerEvent
     /// См. модели-конверты в <see cref="Infrastructure.PlayerEventManager"/>/<see cref="Infrastructure.Models.RecapModel"/>.
     /// </remarks>
     [Required(AllowEmptyStrings = false)]
-    public string Data { get; set; }
+    public required string Data { get; set; }
 
     /// <summary>
     /// Событие уже было отдано игроку через <see cref="Infrastructure.PlayerEventManager.TakeRecap"/>.

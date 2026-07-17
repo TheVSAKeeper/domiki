@@ -18,10 +18,10 @@ public class ModificatorType
     /// <summary>
     /// Отображаемое название модификатора.
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Технический код вида модификатора – по нему код находит нужный <see cref="DomikTypeLevelModificator"/>, а не по <see cref="Id"/>.
     /// </summary>
-    public string LogicName { get; set; }
+    public required string LogicName { get; set; }
 }

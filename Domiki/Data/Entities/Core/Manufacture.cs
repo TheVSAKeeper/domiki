@@ -42,7 +42,7 @@ public class Manufacture
     /// <summary>
     /// Домик, в котором идёт производство.
     /// </summary>
-    public Domik Domik { get; set; }
+    public Domik Domik { get; set; } = null!;
 
     /// <summary>
     /// Момент, когда планировщик <see cref="Core.Scheduling.Calculator"/> должен завершить производство и выдать ресурсы.

@@ -44,5 +44,5 @@ public class SeasonCounter
     /// <summary>
     /// Навигационное свойство к игроку.
     /// </summary>
-    public Player Player { get; set; }
+    public Player Player { get; set; } = null!;
 }

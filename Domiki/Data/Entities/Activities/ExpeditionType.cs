@@ -22,12 +22,12 @@ public class ExpeditionType
     /// Отображаемое название похода.
     /// </summary>
     [MaxLength(100)]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Технический код типа похода – по нему код находит конкретный поход по смыслу, а не по <see cref="Id"/>.
     /// </summary>
-    public string LogicName { get; set; }
+    public required string LogicName { get; set; }
 
     /// <summary>
     /// Сколько секунд длится поход от отправки до возвращения отряда.

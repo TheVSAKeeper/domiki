@@ -36,5 +36,5 @@ public class DomikTypeLevel
     /// <summary>
     /// Тип домика, которому принадлежит уровень.
     /// </summary>
-    public DomikType DomikType { get; set; }
+    public DomikType DomikType { get; set; } = null!;
 }

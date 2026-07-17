@@ -33,10 +33,10 @@ public class DomikTypeLevelReceipt
     /// <summary>
     /// Уровень домика, на котором открывается рецепт.
     /// </summary>
-    public DomikTypeLevel DomikTypeLevel { get; set; }
+    public DomikTypeLevel DomikTypeLevel { get; set; } = null!;
 
     /// <summary>
     /// Рецепт, открывающийся на этом уровне.
     /// </summary>
-    public Receipt Receipt { get; set; }
+    public Receipt Receipt { get; set; } = null!;
 }

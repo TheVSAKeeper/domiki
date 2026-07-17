@@ -38,10 +38,10 @@ public class DomikTypeLevelModificator
     /// <summary>
     /// Уровень домика, к которому привязан модификатор.
     /// </summary>
-    public DomikTypeLevel DomikTypeLevel { get; set; }
+    public DomikTypeLevel DomikTypeLevel { get; set; } = null!;
 
     /// <summary>
     /// Вид модификатора.
     /// </summary>
-    public ModificatorType ModificatorType { get; set; }
+    public ModificatorType ModificatorType { get; set; } = null!;
 }

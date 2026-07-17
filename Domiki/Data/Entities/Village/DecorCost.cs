@@ -34,10 +34,10 @@ public class DecorCost
     /// <summary>
     /// Навигационное свойство к типу декора.
     /// </summary>
-    public DecorType DecorType { get; set; }
+    public DecorType DecorType { get; set; } = null!;
 
     /// <summary>
     /// Навигационное свойство к типу ресурса цены.
     /// </summary>
-    public ResourceType ResourceType { get; set; }
+    public ResourceType ResourceType { get; set; } = null!;
 }

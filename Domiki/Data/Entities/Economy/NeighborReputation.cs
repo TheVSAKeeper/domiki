@@ -34,10 +34,10 @@ public class NeighborReputation
     /// <summary>
     /// Игрок, которому принадлежит репутация.
     /// </summary>
-    public Player Player { get; set; }
+    public Player Player { get; set; } = null!;
 
     /// <summary>
     /// Сосед, у которого накапливается репутация.
     /// </summary>
-    public Neighbor Neighbor { get; set; }
+    public Neighbor Neighbor { get; set; } = null!;
 }

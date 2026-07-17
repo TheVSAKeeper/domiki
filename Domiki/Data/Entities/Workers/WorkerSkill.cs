@@ -30,5 +30,5 @@ public class WorkerSkill
     /// <summary>
     /// Навигационное свойство к трудяге.
     /// </summary>
-    public Worker Worker { get; set; }
+    public Worker Worker { get; set; } = null!;
 }

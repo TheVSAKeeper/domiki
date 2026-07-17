@@ -20,7 +20,7 @@ public class Trait
     /// </summary>
     [MaxLength(100)]
     [Required(AllowEmptyStrings = false)]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Технический код черты – по нему код находит конкретную черту по смыслу, а не по <see cref="Id"/>.
@@ -30,7 +30,7 @@ public class Trait
     /// </remarks>
     [MaxLength(100)]
     [Required(AllowEmptyStrings = false)]
-    public string LogicName { get; set; }
+    public required string LogicName { get; set; }
 
     /// <summary>
     /// Изменение длительности производства в процентах.

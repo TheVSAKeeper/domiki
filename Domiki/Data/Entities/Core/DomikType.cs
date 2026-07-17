@@ -18,7 +18,7 @@ public class DomikType
     /// <summary>
     /// Отображаемое название постройки.
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Технический код типа – по нему код находит конкретную постройку по смыслу, а не по <see cref="Id"/>.
@@ -26,7 +26,7 @@ public class DomikType
     /// <remarks>
     /// Например, <c>market</c>, <c>market_yard</c>.
     /// </remarks>
-    public string LogicName { get; set; }
+    public required string LogicName { get; set; }
 
     /// <summary>
     /// Сколько экземпляров этого типа домика игрок может построить всего.
@@ -41,5 +41,5 @@ public class DomikType
     /// <summary>
     /// Уровни этого типа домика – что и когда открывается при улучшении.
     /// </summary>
-    public ICollection<DomikTypeLevel> Levels { get; set; }
+    public ICollection<DomikTypeLevel> Levels { get; set; } = new List<DomikTypeLevel>();
 }

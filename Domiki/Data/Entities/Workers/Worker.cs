@@ -29,7 +29,7 @@ public class Worker
     /// </remarks>
     [MaxLength(100)]
     [Required(AllowEmptyStrings = false)]
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Черта трудяги – ссылка на <see cref="Trait"/>.
@@ -83,25 +83,25 @@ public class Worker
     /// <summary>
     /// Навигационное свойство к игроку-владельцу.
     /// </summary>
-    public Player Player { get; set; }
+    public Player Player { get; set; } = null!;
 
     /// <summary>
     /// Навигационное свойство к черте трудяги.
     /// </summary>
-    public Trait Trait { get; set; }
+    public Trait Trait { get; set; } = null!;
 
     /// <summary>
     /// Навигационное свойство к производству, в котором занят трудяга.
     /// </summary>
-    public Manufacture Manufacture { get; set; }
+    public Manufacture? Manufacture { get; set; }
 
     /// <summary>
     /// Навигационное свойство к экспедиции, в которой участвует трудяга.
     /// </summary>
-    public Expedition Expedition { get; set; }
+    public Expedition? Expedition { get; set; }
 
     /// <summary>
     /// Прокачка трудяги по типам домиков – накопленное число использований и производный бонус к выходу.
     /// </summary>
-    public ICollection<WorkerSkill> Skills { get; set; }
+    public ICollection<WorkerSkill> Skills { get; set; } = new List<WorkerSkill>();
 }
