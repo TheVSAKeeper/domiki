@@ -27,19 +27,19 @@ public class ResourceManager
     public const int BaseMarketValue = 10;
 
     // todo избавится от статиков
-    private static ModificatorType[] _modificatorTypes;
-    private static ResourceType[] _resourceTypes;
-    private static Receipt[] _receipts;
-    private static DomikType[] _domikTypes;
-    private static DomikTypeCountGate[] _domikTypeCountGates;
-    private static Neighbor[] _neighbors;
-    private static Trait[] _traits;
-    private static WeatherType[] _weatherTypes;
-    private static Blueprint[] _blueprints;
-    private static ExpeditionType[] _expeditionTypes;
-    private static DecorType[] _decorTypes;
-    private static TolokaType[] _tolokaTypes;
-    private static StarterGoal[] _starterGoals;
+    private static ModificatorType[]? _modificatorTypes;
+    private static ResourceType[]? _resourceTypes;
+    private static Receipt[]? _receipts;
+    private static DomikType[]? _domikTypes;
+    private static DomikTypeCountGate[]? _domikTypeCountGates;
+    private static Neighbor[]? _neighbors;
+    private static Trait[]? _traits;
+    private static WeatherType[]? _weatherTypes;
+    private static Blueprint[]? _blueprints;
+    private static ExpeditionType[]? _expeditionTypes;
+    private static DecorType[]? _decorTypes;
+    private static TolokaType[]? _tolokaTypes;
+    private static StarterGoal[]? _starterGoals;
     private readonly ApplicationDbContext _context;
 
     public ResourceManager(ApplicationDbContext context)

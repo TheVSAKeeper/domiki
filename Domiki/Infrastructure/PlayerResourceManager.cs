@@ -81,6 +81,6 @@ public class PlayerResourceManager
 
     private string GetResourceName(Resource resource, ResourceType[] resourceTypes)
     {
-        return resource.Type.Name ?? resourceTypes.First(x => x.Id == resource.Type.Id).Name;
+        return resource.Type.Name ?? resourceTypes.First(x => x.Id == resource.Type.Id).Name ?? "ресурса";
     }
 }

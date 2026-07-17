@@ -79,7 +79,7 @@ public class WeatherManager
         };
     }
 
-    public WeatherPeriod GetCurrentPeriod(DateTime date)
+    public WeatherPeriod? GetCurrentPeriod(DateTime date)
     {
         var dbPeriod = _context.WeatherPeriods.SingleOrDefault(x => x.StartDate <= date && date < x.EndDate);
         if (dbPeriod == null)

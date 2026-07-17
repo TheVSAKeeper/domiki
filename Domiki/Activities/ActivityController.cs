@@ -30,7 +30,7 @@ public class ActivityController : GameControllerBase
 
     [HttpGet]
     [Route("/Domiki/GetToloka")]
-    public TolokaStateDto GetToloka()
+    public TolokaStateDto? GetToloka()
     {
         var playerId = GetPlayerId();
 
@@ -47,7 +47,7 @@ public class ActivityController : GameControllerBase
 
     [HttpGet]
     [Route("/Domiki/GetExpeditions")]
-    public ExpeditionStateDto GetExpeditions()
+    public ExpeditionStateDto? GetExpeditions()
     {
         var playerId = GetPlayerId();
 
@@ -56,7 +56,7 @@ public class ActivityController : GameControllerBase
 
     [HttpPost]
     [Route("/Domiki/StartExpedition/{expeditionTypeId}")]
-    public void StartExpedition(int expeditionTypeId, [FromQuery] int[] workerIds = null, [FromQuery] bool provisions = false)
+    public void StartExpedition(int expeditionTypeId, [FromQuery] int[]? workerIds = null, [FromQuery] bool provisions = false)
     {
         var playerId = GetPlayerId();
         _expeditionManager.StartExpedition(playerId, expeditionTypeId, workerIds, provisions);

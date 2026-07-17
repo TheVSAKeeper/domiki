@@ -71,7 +71,7 @@ public class DomikController : GameControllerBase
 
     [HttpPost]
     [Route("/Domiki/StartManufacture/{domikId}/{receiptId}")]
-    public void StartManufacture(int domikId, int receiptId, [FromQuery] bool useOptional = false, [FromQuery] int[] workerIds = null, [FromQuery] bool autoRepeat = false)
+    public void StartManufacture(int domikId, int receiptId, [FromQuery] bool useOptional = false, [FromQuery] int[]? workerIds = null, [FromQuery] bool autoRepeat = false)
     {
         var playerId = GetPlayerId();
         _domikManager.StartManufacture(playerId, domikId, receiptId, useOptional, workerIds, autoRepeat);

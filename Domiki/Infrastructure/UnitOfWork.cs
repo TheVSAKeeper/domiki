@@ -17,7 +17,7 @@ public class UnitOfWork : IDisposable
     public IDbContextTransaction Transaction { get; }
     public ApplicationDbContext Context { get; }
 
-    public Action AfterEventAction { get; set; }
+    public Action? AfterEventAction { get; set; }
 
     public void Commit()
     {

@@ -37,7 +37,7 @@ public class TolokaManager
         return (6 + 2 * level) * 3600;
     }
 
-    public TolokaState GetToloka(DateTime date, int playerId)
+    public TolokaState? GetToloka(DateTime date, int playerId)
     {
         if (!HasBuilding(playerId, "gathering"))
         {
@@ -237,7 +237,7 @@ public class TolokaManager
         var buffSeconds = GetBuffSeconds(Math.Max(1, GetGatheringLevel(playerId)));
         return _context.TolokaContributions
             .Where(x => x.PlayerId == playerId && x.Toloka.CompletedDate != null && x.Toloka.CompletedDate > date.AddSeconds(-buffSeconds))
-            .Select(x => new { x.Toloka.TolokaTypeId, Completed = x.Toloka.CompletedDate.Value })
+            .Select(x => new { x.Toloka.TolokaTypeId, Completed = x.Toloka.CompletedDate!.Value })
             .ToArray()
             .GroupBy(x => x.TolokaTypeId)
             .Select(g => (g.Key, g.Max(x => x.Completed).AddSeconds(buffSeconds)))

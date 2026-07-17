@@ -7,9 +7,9 @@ namespace Domiki.Web.Infrastructure;
 
 public class PushSender
 {
-    private readonly string _vapidPublicKey;
-    private readonly string _vapidPrivateKey;
-    private readonly string _subject;
+    private readonly string? _vapidPublicKey;
+    private readonly string? _vapidPrivateKey;
+    private readonly string? _subject;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<PushSender> _logger;
     private readonly WebPushClient _webPushClient = new();

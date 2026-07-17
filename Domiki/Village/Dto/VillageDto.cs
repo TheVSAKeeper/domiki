@@ -40,7 +40,7 @@ public sealed record SetVillageDto
     /// <summary>
     /// Новое название деревни.
     /// </summary>
-    public string Name { get; init; }
+    public string? Name { get; init; }
 
     /// <summary>
     /// Новый индекс пиктограммы герба.

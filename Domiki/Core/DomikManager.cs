@@ -139,7 +139,7 @@ public class DomikManager
         dbPlayer.FeedWorkers = enabled;
     }
 
-    public void SetVillageIdentity(int playerId, string name, int crestIcon, int crestColor)
+    public void SetVillageIdentity(int playerId, string? name, int crestIcon, int crestColor)
     {
         _playerResourceManager.LockDbPlayerRow(playerId);
 
@@ -223,7 +223,7 @@ public class DomikManager
                     Id = domik.Id,
                     Type = domikTypes.First(y => y.Id == domik.TypeId),
                     Level = domik.Level,
-                    FinishDate = domik.UpgradeSeconds == null ? null : domik.UpgradeCalculateDate.Value.AddSeconds((int)domik.UpgradeSeconds),
+                    FinishDate = domik.UpgradeSeconds == null ? null : domik.UpgradeCalculateDate!.Value.AddSeconds((int)domik.UpgradeSeconds),
                     UpgradeSeconds = (int?)domik.UpgradeSeconds,
                     Manufactures = manufactureGroups.FirstOrDefault(m => m.Key == domik.Id)
                         ?.Select(x => new Manufacture
@@ -349,7 +349,7 @@ public class DomikManager
         var dbDomik = _context.Domiks.Single(x => x.Id == calcInfo.ObjectId && x.PlayerId == calcInfo.PlayerId);
         if (dbDomik.UpgradeSeconds != null)
         {
-            var period = (date - (DateTime)dbDomik.UpgradeCalculateDate).TotalSeconds;
+            var period = (date - dbDomik.UpgradeCalculateDate!.Value).TotalSeconds;
             var lostTime = dbDomik.UpgradeSeconds - period;
             if (lostTime <= 0)
             {
@@ -412,7 +412,7 @@ public class DomikManager
         _uow.AfterEventAction = () => _calculator.Remove(playerId, domikId, CalculateTypes.Domiks);
     }
 
-    public void StartManufacture(int playerId, int domikId, int receiptId, bool useOptional = false, int[] workerIds = null, bool autoRepeat = false)
+    public void StartManufacture(int playerId, int domikId, int receiptId, bool useOptional = false, int[]? workerIds = null, bool autoRepeat = false)
     {
         var date = DateTimeHelper.GetNowDate();
 
@@ -460,7 +460,7 @@ public class DomikManager
         var useOptionalApplied = useOptional && receipt.OptionalInputResources is not null && receipt.OptionalInputResources.Length > 0;
         if (useOptionalApplied)
         {
-            writeOffResources = writeOffResources.Concat(receipt.OptionalInputResources).ToArray();
+            writeOffResources = writeOffResources.Concat(receipt.OptionalInputResources!).ToArray();
         }
 
         Worker[] selectedWorkers;
@@ -641,7 +641,7 @@ public class DomikManager
                         var fed = dbPlayer.FeedWorkers && breadRes?.Value >= 1;
                         if (fed)
                         {
-                            breadRes.Value -= 1;
+                            breadRes!.Value -= 1;
                         }
 
                         worker.RestUntil = date.AddSeconds(fed ? restSeconds / 2 : restSeconds);
@@ -827,7 +827,7 @@ public class DomikManager
         });
     }
 
-    private string NormalizeVillageName(string name)
+    private string NormalizeVillageName(string? name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {

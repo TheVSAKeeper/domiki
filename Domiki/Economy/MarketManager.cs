@@ -50,7 +50,7 @@ public class MarketManager
         return Math.Max(MinCommissionCoins, (int)Math.Round(coinValue * rate, MidpointRounding.AwayFromZero));
     }
 
-    public MarketState GetMarket(int playerId)
+    public MarketState? GetMarket(int playerId)
     {
         var level = GetMarketYardLevel(playerId);
         if (level < 1)
@@ -289,7 +289,7 @@ public class MarketManager
         }
     }
 
-    private Data.Entities.TradeLot LockTradeLot(int lotId)
+    private Data.Entities.TradeLot? LockTradeLot(int lotId)
     {
         _context.Database.ExecuteSqlRaw(@"SELECT 1 FROM ""TradeLots"" WHERE ""Id"" = {0} FOR UPDATE", lotId);
         return _context.TradeLots.FirstOrDefault(x => x.Id == lotId);

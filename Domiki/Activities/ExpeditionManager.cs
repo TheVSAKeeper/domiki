@@ -61,7 +61,7 @@ public class ExpeditionManager
         return isRare ? weight * (100 + luckPercent) / 100 : weight;
     }
 
-    public ExpeditionState GetExpeditions(int playerId)
+    public ExpeditionState? GetExpeditions(int playerId)
     {
         if (!HasBuilding(playerId, "scout_hut"))
         {
@@ -95,7 +95,7 @@ public class ExpeditionManager
         };
     }
 
-    public void StartExpedition(int playerId, int expeditionTypeId, int[] workerIds = null, bool provisions = false)
+    public void StartExpedition(int playerId, int expeditionTypeId, int[]? workerIds = null, bool provisions = false)
     {
         var date = DateTimeHelper.GetNowDate();
         _playerResourceManager.LockDbPlayerRow(playerId);
@@ -280,7 +280,8 @@ public class ExpeditionManager
         switch (entry.Kind)
         {
             case ExpeditionLootKind.Decor:
-                _decorManager.GrantDecor(playerId, entry.DecorTypeId.Value, 1);
+                var decorTypeId = entry.DecorTypeId ?? throw new InvalidOperationException("Не задан тип декора добычи экспедиции");
+                _decorManager.GrantDecor(playerId, decorTypeId, 1);
                 return new { kind = (int)ExpeditionLootKind.Decor, decorTypeId = entry.DecorTypeId, isRare = entry.IsRare };
 
             case ExpeditionLootKind.TraitUpgrade:
@@ -290,8 +291,9 @@ public class ExpeditionManager
                 return ApplyBlueprintLoot(playerId, type, entry, squadWorkers, traits, groupLuck, entry.IsRare);
 
             default:
+                var resourceTypeId = entry.ResourceTypeId ?? throw new InvalidOperationException("Не задан тип ресурса добычи экспедиции");
                 var value = Random.Shared.Next(entry.MinValue, entry.MaxValue + 1);
-                _playerResourceManager.GrantResource(playerId, entry.ResourceTypeId.Value, value);
+                _playerResourceManager.GrantResource(playerId, resourceTypeId, value);
                 return new { kind = (int)ExpeditionLootKind.Resource, resourceTypeId = entry.ResourceTypeId, value, isRare = entry.IsRare };
         }
     }

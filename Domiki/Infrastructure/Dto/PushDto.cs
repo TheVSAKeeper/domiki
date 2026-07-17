@@ -11,17 +11,17 @@ public sealed record PushSubscribeDto
     /// <summary>
     /// URL push-сервиса браузера, на который отправляются уведомления.
     /// </summary>
-    public string Endpoint { get; init; }
+    public string? Endpoint { get; init; }
 
     /// <summary>
     /// Публичный ключ подписки для шифрования payload (Web Push, P-256 ECDH).
     /// </summary>
-    public string P256dh { get; init; }
+    public string? P256dh { get; init; }
 
     /// <summary>
     /// Секрет аутентификации подписки (Web Push).
     /// </summary>
-    public string Auth { get; init; }
+    public string? Auth { get; init; }
 }
 
 /// <summary>
@@ -35,5 +35,5 @@ public sealed record PushUnsubscribeDto
     /// <summary>
     /// URL push-сервиса браузера, подписку на который нужно снять.
     /// </summary>
-    public string Endpoint { get; init; }
+    public string? Endpoint { get; init; }
 }

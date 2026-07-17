@@ -1,5 +1,6 @@
 ﻿using Domiki.Web.Infrastructure;
 using Domiki.Web.Village;
+using System.Diagnostics.CodeAnalysis;
 using System.Timers;
 using Timer = System.Timers.Timer;
 
@@ -13,10 +14,10 @@ public class Calculator : ICalculator
 
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<Calculator> _logger;
-    private List<CalculateInfo> _datas;
-    private Timer t;
+    private List<CalculateInfo>? _datas;
+    private Timer t = null!;
     private bool _isInit;
-    private CalculateInfo _failingEvent;
+    private CalculateInfo? _failingEvent;
     private int _failingCount;
 
     public Calculator(IServiceProvider serviceProvider, ILogger<Calculator> logger)
@@ -93,7 +94,7 @@ public class Calculator : ICalculator
 
     internal void RunDue(DateTime date)
     {
-        if (_datas.Count == 0)
+        if (_datas!.Count == 0)
         {
             MinDateForTest = null;
             return;
@@ -201,7 +202,7 @@ public class Calculator : ICalculator
         }
     }
 
-    private void Tick(object sender, ElapsedEventArgs e)
+    private void Tick(object? sender, ElapsedEventArgs e)
     {
         if (MinDateForTest == null)
         {
@@ -225,6 +226,7 @@ public class Calculator : ICalculator
         }
     }
 
+    [MemberNotNull(nameof(_datas))]
     private void Init()
     {
         _datas = GetCalculateDates();
@@ -251,7 +253,7 @@ public class Calculator : ICalculator
             var dbDomiks = uow.Context.Domiks.Where(s => s.UpgradeSeconds != null).ToList();
             foreach (var dbStorage in dbDomiks)
             {
-                var compliteDate = ((DateTime)dbStorage.UpgradeCalculateDate).AddSeconds((double)dbStorage.UpgradeSeconds);
+                var compliteDate = dbStorage.UpgradeCalculateDate!.Value.AddSeconds(dbStorage.UpgradeSeconds!.Value);
                 dates.Add(new()
                 {
                     PlayerId = dbStorage.PlayerId,
@@ -328,7 +330,7 @@ public class Calculator : ICalculator
         }
     }
 
-    internal IReadOnlyList<CalculateInfo> PendingForTest => _datas;
+    internal IReadOnlyList<CalculateInfo> PendingForTest => _datas!;
 
     internal DateTime? MinDateForTest { get; private set; }
 }

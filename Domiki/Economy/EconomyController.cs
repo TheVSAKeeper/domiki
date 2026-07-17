@@ -45,7 +45,7 @@ public class EconomyController : GameControllerBase
 
     [HttpGet]
     [Route("/Domiki/GetMarket")]
-    public MarketStateDto GetMarket()
+    public MarketStateDto? GetMarket()
     {
         var playerId = GetPlayerId();
 

@@ -19,6 +19,6 @@ public abstract class GameControllerBase : ControllerBase
     protected int GetPlayerId()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return _domikManager.GetPlayerId(userId);
+        return _domikManager.GetPlayerId(userId!);
     }
 }

@@ -159,9 +159,9 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-var demoUserName = app.Configuration["Demo:UserName"];
-var demoEmail = app.Configuration["Demo:Email"];
-var demoPassword = app.Configuration["Demo:Password"];
+var demoUserName = app.Configuration["Demo:UserName"]!;
+var demoEmail = app.Configuration["Demo:Email"]!;
+var demoPassword = app.Configuration["Demo:Password"]!;
 
 using (var scope = app.Services.CreateScope())
 {
@@ -350,7 +350,7 @@ app.MapGet("/Domiki/Stream", async (HttpContext http, GameStateBroker broker) =>
         using (var scope = http.RequestServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
         {
             var domikManager = scope.ServiceProvider.GetRequiredService<DomikManager>();
-            playerId = domikManager.GetPlayerId(http.User.FindFirstValue(ClaimTypes.NameIdentifier));
+            playerId = domikManager.GetPlayerId(http.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             scope.ServiceProvider.GetRequiredService<UnitOfWork>().Commit();
         }
 

@@ -71,7 +71,7 @@ public class GoalManager
         Advance(playerId, goal => goal.ConditionType == GoalConditionType.CompleteAnyOrder);
     }
 
-    private void Advance(int playerId, Func<StarterGoal, bool> actionMatch)
+    private void Advance(int playerId, Func<StarterGoal, bool>? actionMatch)
     {
         var goals = _resourceManager.GetStarterGoals();
         var completedGoalIds = _context.PlayerGoals
@@ -90,7 +90,7 @@ public class GoalManager
                 break;
             }
 
-            var actionCompleted = actionAvailable && actionMatch(goal);
+            var actionCompleted = actionAvailable && actionMatch != null && actionMatch(goal);
             if (!actionCompleted && !IsStateConditionMet(playerId, goal))
             {
                 break;

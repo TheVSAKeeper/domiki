@@ -12,6 +12,6 @@ public class CalculateInfo
 
     public CalculateTypes Type { get; set; }
 
-    public string PushTitle { get; set; }
-    public string PushBody { get; set; }
+    public string? PushTitle { get; set; }
+    public string? PushBody { get; set; }
 }

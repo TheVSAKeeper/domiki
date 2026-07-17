@@ -28,7 +28,12 @@ public class PushController : GameControllerBase
     public void Subscribe([FromBody] PushSubscribeDto request)
     {
         var playerId = GetPlayerId();
-        _pushManager.Subscribe(playerId, request?.Endpoint, request?.P256dh, request?.Auth);
+        if (request?.Endpoint == null || request.P256dh == null || request.Auth == null)
+        {
+            throw new BusinessException("Некорректные данные подписки на уведомления");
+        }
+
+        _pushManager.Subscribe(playerId, request.Endpoint, request.P256dh, request.Auth);
     }
 
     [HttpPost]
@@ -36,6 +41,11 @@ public class PushController : GameControllerBase
     public void Unsubscribe([FromBody] PushUnsubscribeDto request)
     {
         var playerId = GetPlayerId();
-        _pushManager.Unsubscribe(playerId, request?.Endpoint);
+        if (request?.Endpoint == null)
+        {
+            throw new BusinessException("Некорректные данные отписки от уведомлений");
+        }
+
+        _pushManager.Unsubscribe(playerId, request.Endpoint);
     }
 }
