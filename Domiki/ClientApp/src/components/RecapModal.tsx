@@ -17,6 +17,7 @@ import { genderForm, traitLabel } from '../utils/gender';
 import { pickGiftText } from '../utils/giftTexts';
 import { DomikSprite } from './sprites';
 import { ResourceChip } from './ResourceChip';
+import { GiftVisitDots } from './GiftVisitDots';
 
 interface RecapModalProps {
     awaySeconds: number;
@@ -117,9 +118,7 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
                                     </div>
                                 }
                                 <div className="gift-visits">
-                                    <span className="gift-visit-dots" aria-hidden="true">
-                                        {Array.from({ length: 7 }, (_, index) => <span key={index} className={gift.big || index < gift.visitIndex ? 'gift-visit-dot is-filled' : 'gift-visit-dot'} />)}
-                                    </span>
+                                    <GiftVisitDots visitIndex={gift.visitIndex} big={gift.big} />
                                     <span className="gift-visit-label">{gift.big ? 'Большой гостинец!' : 'Большой гостинец – каждый 7-й визит'}</span>
                                 </div>
                             </div>

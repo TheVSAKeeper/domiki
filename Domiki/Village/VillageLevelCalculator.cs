@@ -38,6 +38,10 @@ public class VillageLevelCalculator
 
     public VillageLevel GetLevel(int playerId)
     {
+        var visitsSinceBigGift = _context.Players
+            .Where(x => x.Id == playerId)
+            .Select(x => x.VisitsSinceBigGift)
+            .Single();
         var buildings = _context.Domiks.Where(x => x.PlayerId == playerId).Sum(x => x.Level);
         var residents = _workerManager.GetCapacity(playerId);
         var reputation = _context.NeighborReputations
@@ -57,6 +61,7 @@ public class VillageLevelCalculator
             Residents = residents,
             Reputation = reputation,
             Comfort = comfort,
+            VisitsSinceBigGift = visitsSinceBigGift,
             UpcomingUnlocks = GetUpcomingUnlocks(playerId, level),
         };
     }

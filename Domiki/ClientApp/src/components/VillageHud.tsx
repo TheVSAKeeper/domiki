@@ -9,6 +9,7 @@ import { remainingSeconds } from '../utils/time';
 import { DomikSprite, MechanicSprite, WeatherSprite } from './sprites';
 import { HudResource } from './HudResource';
 import { ProgressBar } from './ProgressBar';
+import { GiftVisitDots } from './GiftVisitDots';
 
 interface VillageHudProps {
     resources: ResourceDto[];
@@ -141,6 +142,12 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, vill
                                 ))}
                             </div>,
                             document.body)}
+                        {villageLevel.visitsSinceBigGift > 0 &&
+                            <div className="hud-gift-strip" role="img"
+                                aria-label={`До большого гостинца визитов: ${7 - villageLevel.visitsSinceBigGift}`}
+                                title={`До большого гостинца визитов: ${7 - villageLevel.visitsSinceBigGift}`}>
+                                <GiftVisitDots visitIndex={villageLevel.visitsSinceBigGift} />
+                            </div>}
                         {nextGoal != null &&
                             <div className="hud-goal"
                                 title={`Откроется при обжитости ${nextGoal.level}: ${nextGoal.label}`}>

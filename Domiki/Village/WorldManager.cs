@@ -92,12 +92,15 @@ public class WorldManager
             throw new BusinessException("Деревня не найдена");
         }
 
+        var level = _villageLevelCalculator.GetLevel(targetPlayerId);
+        level.VisitsSinceBigGift = 0;
+
         return new()
         {
             VillageName = player.VillageName,
             CrestIcon = player.CrestIcon,
             CrestColor = player.CrestColor,
-            Level = _villageLevelCalculator.GetLevel(targetPlayerId),
+            Level = level,
             Buildings = _domikManager.GetDomiks(targetPlayerId)
                 .Select(x => new VisitBuilding
                 {

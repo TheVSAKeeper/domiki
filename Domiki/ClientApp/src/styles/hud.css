@@ -70,6 +70,10 @@
     width: auto;
 }
 
+.hud-gift-strip {
+    --accent: #9a6a84;
+}
+
 .village-level {
     position: relative;
     display: inline-flex;

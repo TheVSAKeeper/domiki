@@ -13,6 +13,7 @@ public static class VillageLevelDtoExtensions
             Residents = villageLevel.Residents,
             Reputation = villageLevel.Reputation,
             Comfort = villageLevel.Comfort,
+            VisitsSinceBigGift = villageLevel.VisitsSinceBigGift,
             UpcomingUnlocks = villageLevel.UpcomingUnlocks.Select(x => x.ToDto()).ToArray(),
         };
     }

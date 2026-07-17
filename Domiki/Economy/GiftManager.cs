@@ -12,6 +12,8 @@ public class GiftManager
     private const int BigGiftEvery = 7;
     private const int BaseGiftValue = 40;
     private const int RepBonusThreshold = 25;
+    private const int RepWeightPerPoint = 25;
+    private const int RepWeightCap = 3;
     private const int GiftCountCap = 10;
     private static readonly int[] BigGiftDecorPool = [2, 5, 9];
 
@@ -52,7 +54,13 @@ public class GiftManager
             return;
         }
 
-        var neighbor = neighbors[Random.Shared.Next(neighbors.Length)];
+        var reputations = _context.NeighborReputations
+            .Where(x => x.PlayerId == playerId)
+            .ToArray();
+        var weights = neighbors
+            .Select(neighbor => RepWeight(reputations.FirstOrDefault(x => x.NeighborId == neighbor.Id)?.Points ?? 0))
+            .ToArray();
+        var neighbor = neighbors[PickWeightedIndex(weights, Random.Shared.NextDouble())];
         var visitIndex = player.VisitsSinceBigGift + 1;
         if (visitIndex >= BigGiftEvery)
         {
@@ -74,11 +82,7 @@ public class GiftManager
                 ? neighbor.SecondaryResourceTypeId.Value
                 : neighbor.PrimaryResourceTypeId;
 
-            var reputation = _context.NeighborReputations
-                                 .Where(x => x.PlayerId == playerId && x.NeighborId == neighbor.Id)
-                                 .Select(x => (int?)x.Points)
-                                 .FirstOrDefault()
-                             ?? 0;
+            var reputation = reputations.FirstOrDefault(x => x.NeighborId == neighbor.Id)?.Points ?? 0;
 
             var target = reputation >= RepBonusThreshold ? BaseGiftValue * 3 / 2 : BaseGiftValue;
             var count = Math.Clamp((int)Math.Ceiling((double)target / ResourceManager.GetMarketValue(resourceTypeId)), 1, GiftCountCap);
@@ -95,5 +99,32 @@ public class GiftManager
         }
 
         _context.SaveChanges();
+    }
+
+    internal static int RepWeight(int points)
+    {
+        return 1 + Math.Clamp(points, 0, (RepWeightCap - 1) * RepWeightPerPoint) / RepWeightPerPoint;
+    }
+
+    internal static int PickWeightedIndex(int[] weights, double roll)
+    {
+        var totalWeight = weights.Sum();
+        if (totalWeight <= 0)
+        {
+            return 0;
+        }
+
+        var target = roll * totalWeight;
+        var cumulativeWeight = 0;
+        for (var index = 0; index < weights.Length; index++)
+        {
+            cumulativeWeight += weights[index];
+            if (target < cumulativeWeight)
+            {
+                return index;
+            }
+        }
+
+        return weights.Length - 1;
     }
 }

@@ -143,6 +143,7 @@ export const villageLevelSchema = z.object({
     residents: z.number(),
     reputation: z.number(),
     comfort: z.number(),
+    visitsSinceBigGift: z.number(),
     upcomingUnlocks: z.array(villageLevelUnlockSchema),
 });
 export type VillageLevelDto = z.infer<typeof villageLevelSchema>;

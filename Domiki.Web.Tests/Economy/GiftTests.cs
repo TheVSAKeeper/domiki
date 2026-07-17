@@ -10,6 +10,40 @@ namespace Domiki.Web.Tests;
 public sealed class GiftTests
 {
     /// <summary>
+    /// Сосед занимает полуинтервал кумулятивного веса: бросок ровно на границе достаётся следующему соседу.
+    /// </summary>
+    /// <param name="weights">Веса соседей.</param>
+    /// <param name="roll">Детерминированный бросок.</param>
+    /// <param name="expectedIndex">Ожидаемый индекс соседа.</param>
+    [TestCase(new[] { 1, 3 }, 0.0, 0)]
+    [TestCase(new[] { 1, 3 }, 0.24, 0)]
+    [TestCase(new[] { 1, 3 }, 0.25, 1)]
+    [TestCase(new[] { 1, 3 }, 0.26, 1)]
+    [TestCase(new[] { 1, 3 }, 0.99, 1)]
+    [TestCase(new[] { 1 }, 0.99, 0)]
+    public void WeightedIndexTest(int[] weights, double roll, int expectedIndex)
+    {
+        Assert.That(GiftManager.PickWeightedIndex(weights, roll), Is.EqualTo(expectedIndex));
+    }
+
+    /// <summary>
+    /// Вес соседа растёт на единицу с каждыми двадцатью пятью очками репутации и упирается в тройку.
+    /// </summary>
+    /// <param name="points">Репутация с соседом.</param>
+    /// <param name="expectedWeight">Ожидаемый вес соседа при выборе дарящего.</param>
+    [TestCase(0, 1)]
+    [TestCase(24, 1)]
+    [TestCase(25, 2)]
+    [TestCase(49, 2)]
+    [TestCase(50, 3)]
+    [TestCase(100, 3)]
+    [TestCase(-5, 1)]
+    public void RepWeightTest(int points, int expectedWeight)
+    {
+        Assert.That(GiftManager.RepWeight(points), Is.EqualTo(expectedWeight));
+    }
+
+    /// <summary>
     /// После отлучки на семь часов соседский гостинец стоит не меньше сорока монет, попадает в сводку и начинает счётчик
     /// визитов с единицы.
     /// </summary>
@@ -38,6 +72,23 @@ public sealed class GiftTests
             Assert.That(gift.Data.GetProperty("visitIndex").GetInt32(), Is.EqualTo(1));
             Assert.That(VisitsSinceBigGift(player.Id), Is.EqualTo(1));
         }
+    }
+
+    /// <summary>
+    /// После гостинца счётчик визитов отображается в состоянии обжитости.
+    /// </summary>
+    [Test]
+    public void VisitsVisibleInLevelTest()
+    {
+        const int awayHours = 7;
+
+        var player = TestPlayer.Create();
+        var now = DateTimeHelper.GetNowDate();
+        SetLastSeen(player.Id, now.AddHours(-awayHours));
+
+        player.TryGrantGift(now);
+
+        Assert.That(player.GetVillageLevel().VisitsSinceBigGift, Is.EqualTo(1));
     }
 
     /// <summary>
