@@ -88,7 +88,7 @@ public sealed class DomiksTests
                 {
                     player.Buy(domikTypeId);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
             });
@@ -123,7 +123,7 @@ public sealed class DomiksTests
                 {
                     player.Upgrade(StartingDomikIds.Barrack);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     errorCount++;
                 }

@@ -73,7 +73,7 @@ public sealed class BalanceReport
         {
             var value = MedianInt(runs.Select(x => x.FinalResources.GetValueOrDefault(resourceType.Id)));
             var coins = value * ResourceManager.GetMarketValue(resourceType.Id);
-            output.AppendLine($"  {resourceType.Name.PadRight(26)}  {value,6}  {coins,20}");
+            output.AppendLine($"  {resourceType.Name!.PadRight(26)}  {value,6}  {coins,20}");
         }
 
         var total = MedianInt(runs.Select(x => x.FinalResources.Sum(resource => resource.Value * ResourceManager.GetMarketValue(resource.Key))));

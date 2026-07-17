@@ -20,9 +20,9 @@ public class ResetPasswordModel : PageModel
     }
 
     [BindProperty]
-    public InputModel Input { get; set; }
+    public InputModel Input { get; set; } = default!;
 
-    public IActionResult OnGet(string code = null)
+    public IActionResult OnGet(string? code = null)
     {
         if (code == null)
         {
@@ -68,18 +68,18 @@ public class ResetPasswordModel : PageModel
     {
         [Required(ErrorMessage = "Укажите почту")]
         [EmailAddress(ErrorMessage = "Некорректная почта")]
-        public string Email { get; set; }
+        public string Email { get; set; } = default!;
 
         [Required(ErrorMessage = "Укажите пароль")]
         [StringLength(100, ErrorMessage = "Пароль должен быть не короче {2} символов.", MinimumLength = 6)]
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public string Password { get; set; } = default!;
 
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Пароли не совпадают.")]
-        public string ConfirmPassword { get; set; }
+        public string? ConfirmPassword { get; set; }
 
         [Required]
-        public string Code { get; set; }
+        public string Code { get; set; } = default!;
     }
 }

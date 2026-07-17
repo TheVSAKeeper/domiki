@@ -606,7 +606,7 @@ internal sealed class SimulationRun
         }
 
         var receipt = GetReceipts(market)
-            .FirstOrDefault(candidate => candidate.LogicName.StartsWith("buy_")
+            .FirstOrDefault(candidate => candidate.LogicName!.StartsWith("buy_")
                                          && candidate.OutputResources.Single().Type.Id == missingResource);
         if (receipt == null || GetFreeWorkers().Count < receipt.PlodderCount)
         {
@@ -951,7 +951,7 @@ internal sealed class SimulationRun
             gotRare |= loot.IsRare;
             if (loot.Kind == Domiki.Web.Data.Entities.ExpeditionLootKind.Resource)
             {
-                AddResource(loot.ResourceTypeId.Value, _random.Next(loot.MinValue, loot.MaxValue + 1));
+                AddResource(loot.ResourceTypeId!.Value, _random.Next(loot.MinValue, loot.MaxValue + 1));
             }
         }
 
@@ -1001,7 +1001,7 @@ internal sealed class SimulationRun
     {
         var totalWeight = loot.Sum(x => ExpeditionManager.ScaleWeight(x.IsRare, x.Weight, luckPercent));
         return loot.Where(x => x.Kind == Domiki.Web.Data.Entities.ExpeditionLootKind.Resource).Sum(x => ExpeditionManager.ScaleWeight(x.IsRare, x.Weight, luckPercent) / (double)totalWeight
-                                                                                               * ((x.MinValue + x.MaxValue) / 2.0) * ResourceManager.GetMarketValue(x.ResourceTypeId.Value));
+                                                                                               * ((x.MinValue + x.MaxValue) / 2.0) * ResourceManager.GetMarketValue(x.ResourceTypeId!.Value));
     }
 
     private IEnumerable<Resource> GetExpeditionCost(ExpeditionType type)

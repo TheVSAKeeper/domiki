@@ -23,28 +23,28 @@ public class LoginModel : PageModel
     /// directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [BindProperty]
-    public InputModel Input { get; set; }
+    public InputModel Input { get; set; } = default!;
 
     /// <summary>
     /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
     /// directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public IList<AuthenticationScheme> ExternalLogins { get; set; }
+    public IList<AuthenticationScheme> ExternalLogins { get; set; } = default!;
 
     /// <summary>
     /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
     /// directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public string ReturnUrl { get; set; }
+    public string? ReturnUrl { get; set; }
 
     /// <summary>
     /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
     /// directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [TempData]
-    public string ErrorMessage { get; set; }
+    public string? ErrorMessage { get; set; }
 
-    public async Task OnGetAsync(string returnUrl = null, string remoteError = null)
+    public async Task OnGetAsync(string? returnUrl = null, string? remoteError = null)
     {
         if (!string.IsNullOrEmpty(remoteError))
         {
@@ -66,7 +66,7 @@ public class LoginModel : PageModel
         ReturnUrl = returnUrl;
     }
 
-    public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+    public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
         returnUrl ??= Url.Content("~/");
 
@@ -118,7 +118,7 @@ public class LoginModel : PageModel
         /// </summary>
         [Required(ErrorMessage = "Укажите почту")]
         [EmailAddress(ErrorMessage = "Некорректная почта")]
-        public string Email { get; set; }
+        public string Email { get; set; } = default!;
 
         /// <summary>
         /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -126,7 +126,7 @@ public class LoginModel : PageModel
         /// </summary>
         [Required(ErrorMessage = "Укажите пароль")]
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public string Password { get; set; } = default!;
 
         /// <summary>
         /// This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used

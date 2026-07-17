@@ -38,28 +38,28 @@ public class ExternalLoginModel : PageModel
     }
 
     [BindProperty]
-    public InputModel Input { get; set; }
+    public InputModel Input { get; set; } = default!;
 
-    public string ProviderDisplayName { get; set; }
+    public string? ProviderDisplayName { get; set; }
 
-    public string ReturnUrl { get; set; }
+    public string? ReturnUrl { get; set; }
 
     [TempData]
-    public string ErrorMessage { get; set; }
+    public string? ErrorMessage { get; set; }
 
     public IActionResult OnGet()
     {
         return RedirectToPage("./Login");
     }
 
-    public IActionResult OnPost(string provider, string returnUrl = null)
+    public IActionResult OnPost(string provider, string? returnUrl = null)
     {
         var redirectUrl = Url.Page("./ExternalLogin", "Callback", new { returnUrl });
         var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
         return new ChallengeResult(provider, properties);
     }
 
-    public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null)
+    public async Task<IActionResult> OnGetCallbackAsync(string? returnUrl = null, string? remoteError = null)
     {
         returnUrl = returnUrl ?? Url.Content("~/");
         if (remoteError != null)
@@ -78,7 +78,7 @@ public class ExternalLoginModel : PageModel
         var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
         if (result.Succeeded)
         {
-            _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity.Name, info.LoginProvider);
+            _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity?.Name, info.LoginProvider);
             return LocalRedirect(returnUrl);
         }
 
@@ -93,14 +93,14 @@ public class ExternalLoginModel : PageModel
         {
             Input = new()
             {
-                Email = info.Principal.FindFirstValue(ClaimTypes.Email),
+                Email = info.Principal.FindFirstValue(ClaimTypes.Email)!,
             };
         }
 
         return Page();
     }
 
-    public async Task<IActionResult> OnPostConfirmationAsync(string returnUrl = null)
+    public async Task<IActionResult> OnPostConfirmationAsync(string? returnUrl = null)
     {
         returnUrl = returnUrl ?? Url.Content("~/");
         var info = await _signInManager.GetExternalLoginInfoAsync();
@@ -140,7 +140,7 @@ public class ExternalLoginModel : PageModel
                         Request.Scheme);
 
                     await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl!)}'>clicking here</a>.");
 
                     if (_userManager.Options.SignIn.RequireConfirmedAccount)
                     {
@@ -192,6 +192,6 @@ public class ExternalLoginModel : PageModel
     {
         [Required(ErrorMessage = "Укажите почту")]
         [EmailAddress(ErrorMessage = "Некорректная почта")]
-        public string Email { get; set; }
+        public string Email { get; set; } = default!;
     }
 }
