@@ -8,30 +8,30 @@ namespace Domiki.Web.Core.Dto;
 /// <remarks>
 /// Стоимость перехода, эффекты и доступные на этом уровне рецепты.
 /// </remarks>
-public class UpgradeLevelDto
+public sealed record UpgradeLevelDto
 {
     /// <summary>
     /// Значение уровня.
     /// </summary>
-    public int Value { get; set; }
+    public required int Value { get; init; }
 
     /// <summary>
     /// Сколько нужно ресурсов для перехода на этот уровень.
     /// </summary>
-    public ResourceDto[] Resources { get; set; }
+    public required ResourceDto[] Resources { get; init; }
 
     /// <summary>
     /// Что нам даёт этот уровень.
     /// </summary>
-    public ModificatorDto[] Modificators { get; set; }
+    public required ModificatorDto[] Modificators { get; init; }
 
     /// <summary>
     /// Что можно производить в постройке.
     /// </summary>
-    public int[] ReceiptIds { get; set; }
+    public required int[] ReceiptIds { get; init; }
 
     /// <summary>
     /// Сколько производств можно держать запущенными в домике одновременно на этом уровне.
     /// </summary>
-    public int MaxManufactureCount { get; set; }
+    public required int MaxManufactureCount { get; init; }
 }

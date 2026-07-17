@@ -3,37 +3,37 @@
 /// <summary>
 /// Лот на ярмарке – продавец отдаёт один ресурс, хочет взамен другой.
 /// </summary>
-public class TradeLotDto
+public sealed record TradeLotDto
 {
     /// <summary>
     /// Идентификатор лота.
     /// </summary>
-    public int Id { get; set; }
+    public required int Id { get; init; }
 
     /// <summary>
     /// Игрок-продавец.
     /// </summary>
-    public int SellerId { get; set; }
+    public required int SellerId { get; init; }
 
     /// <summary>
     /// Название деревни продавца.
     /// </summary>
-    public string SellerVillageName { get; set; }
+    public required string SellerVillageName { get; init; }
 
     /// <summary>
     /// Иконка герба деревни продавца.
     /// </summary>
-    public int SellerCrestIcon { get; set; }
+    public required int SellerCrestIcon { get; init; }
 
     /// <summary>
     /// Цвет герба деревни продавца.
     /// </summary>
-    public int SellerCrestColor { get; set; }
+    public required int SellerCrestColor { get; init; }
 
     /// <summary>
     /// Тип ресурса, который продавец отдаёт – ссылка на <see cref="Reference.Dto.ResourceTypeDto.Id"/>.
     /// </summary>
-    public int GiveResourceTypeId { get; set; }
+    public required int GiveResourceTypeId { get; init; }
 
     /// <summary>
     /// Количество отдаваемого ресурса, которое продавец обязался передать по лоту.
@@ -41,17 +41,17 @@ public class TradeLotDto
     /// <remarks>
     /// Уже списано со склада продавца и удерживается в эскроу лота до принятия или истечения.
     /// </remarks>
-    public int GiveValue { get; set; }
+    public required int GiveValue { get; init; }
 
     /// <summary>
     /// Тип ресурса, который продавец хочет получить – ссылка на <see cref="Reference.Dto.ResourceTypeDto.Id"/>.
     /// </summary>
-    public int WantResourceTypeId { get; set; }
+    public required int WantResourceTypeId { get; init; }
 
     /// <summary>
     /// Количество желаемого ресурса.
     /// </summary>
-    public int WantValue { get; set; }
+    public required int WantValue { get; init; }
 
     /// <summary>
     /// Монеты, удержанные комиссией при выставлении лота.
@@ -59,7 +59,7 @@ public class TradeLotDto
     /// <remarks>
     /// Не возвращаются продавцу даже при отмене лота (см. <see cref="Economy.MarketManager.CancelLot"/>).
     /// </remarks>
-    public int CommissionCoins { get; set; }
+    public required int CommissionCoins { get; init; }
 
     /// <summary>
     /// Момент истечения лота.
@@ -68,13 +68,13 @@ public class TradeLotDto
     /// <remarks>
     /// После истечения отдаваемый ресурс возвращается продавцу (см. <see cref="Economy.MarketManager.FinishTradeLot"/>).
     /// </remarks>
-    public DateTime ExpireDate { get; set; }
+    public required DateTime ExpireDate { get; init; }
 }
 
 /// <summary>
 /// Состояние ярмарки игрока – доска чужих лотов, свои лоты и текущие условия торговли.
 /// </summary>
-public class MarketStateDto
+public sealed record MarketStateDto
 {
     /// <summary>
     /// Лоты других игроков, доступные для принятия.
@@ -82,7 +82,7 @@ public class MarketStateDto
     /// <remarks>
     /// Принять чужой лот можно через <see cref="Economy.MarketManager.AcceptLot"/>.
     /// </remarks>
-    public TradeLotDto[] Lots { get; set; }
+    public required TradeLotDto[] Lots { get; init; }
 
     /// <summary>
     /// Собственные выставленные лоты игрока.
@@ -90,7 +90,7 @@ public class MarketStateDto
     /// <remarks>
     /// Отменить свой лот можно через <see cref="Economy.MarketManager.CancelLot"/>.
     /// </remarks>
-    public TradeLotDto[] MyLots { get; set; }
+    public required TradeLotDto[] MyLots { get; init; }
 
     /// <summary>
     /// Уровень Торгового двора игрока.
@@ -98,18 +98,18 @@ public class MarketStateDto
     /// <remarks>
     /// Определяет <see cref="CommissionRate"/> и <see cref="MaxLots"/>.
     /// </remarks>
-    public int BuildingLevel { get; set; }
+    public required int BuildingLevel { get; init; }
 
     /// <summary>
     /// Текущая ставка комиссии при выставлении лота.
     /// </summary>
     /// <value>Доля от рыночной стоимости отдаваемого ресурса, не проценты.</value>
-    public double CommissionRate { get; set; }
+    public required double CommissionRate { get; init; }
 
     /// <summary>
     /// Минимальная комиссия в монетах, ниже которой она не опускается даже для дешёвых лотов.
     /// </summary>
-    public int CommissionMin { get; set; }
+    public required int CommissionMin { get; init; }
 
     /// <summary>
     /// Ставка комиссии на следующем уровне Торгового двора.
@@ -117,7 +117,7 @@ public class MarketStateDto
     /// <remarks>
     /// <see langword="null"/> – <see cref="BuildingLevel"/> уже максимальный.
     /// </remarks>
-    public double? NextCommissionRate { get; set; }
+    public double? NextCommissionRate { get; init; }
 
     /// <summary>
     /// Сколько лотов игрок может держать выставленными одновременно.
@@ -125,5 +125,5 @@ public class MarketStateDto
     /// <remarks>
     /// Вычисляется как <c>MaxLots = BuildingLevel + 1</c>.
     /// </remarks>
-    public int MaxLots { get; set; }
+    public required int MaxLots { get; init; }
 }

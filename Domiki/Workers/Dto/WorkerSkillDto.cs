@@ -3,12 +3,12 @@
 /// <summary>
 /// Профессиональный опыт трудяги в одном типе построек.
 /// </summary>
-public class WorkerSkillDto
+public sealed record WorkerSkillDto
 {
     /// <summary>
     /// Тип построек, в котором накоплен опыт, – ссылка на <see cref="Core.Dto.DomikTypeDto.Id"/>.
     /// </summary>
-    public int DomikTypeId { get; set; }
+    public required int DomikTypeId { get; init; }
 
     /// <summary>
     /// Число завершённых производств этого типа, накопивших опыт.
@@ -17,7 +17,7 @@ public class WorkerSkillDto
     /// Растёт на <c>1</c> за каждое завершение (см. <see cref="Core.DomikManager.IncrementWorkerSkill"/>); определяет
     /// <see cref="BonusPercent"/> (см. <see cref="Workers.WorkerSkillCalculator.GetBonusPercent"/>).
     /// </remarks>
-    public int Uses { get; set; }
+    public required int Uses { get; init; }
 
     /// <summary>
     /// Ускорение производства от опыта в процентах.
@@ -26,5 +26,5 @@ public class WorkerSkillDto
     /// <remarks>
     /// Вычисляется из <see cref="Uses"/> функцией <see cref="Workers.WorkerSkillCalculator.GetBonusPercent"/>.
     /// </remarks>
-    public int BonusPercent { get; set; }
+    public required int BonusPercent { get; init; }
 }

@@ -3,28 +3,28 @@
 /// <summary>
 /// Запущенное в домике производство по рецепту.
 /// </summary>
-public class ManufactureDto
+public sealed record ManufactureDto
 {
     /// <summary>
     /// Идентификатор производства.
     /// </summary>
-    public int Id { get; set; }
+    public required int Id { get; init; }
 
     /// <summary>
     /// Момент завершения производства.
     /// </summary>
     /// <value>Момент в UTC.</value>
-    public DateTime FinishDate { get; set; }
+    public required DateTime FinishDate { get; init; }
 
     /// <summary>
     /// Сколько трудяг занято в этом производстве.
     /// </summary>
-    public int PlodderCount { get; set; }
+    public required int PlodderCount { get; init; }
 
     /// <summary>
     /// Рецепт, по которому идёт производство – ссылка на <see cref="Reference.Dto.ReceiptDto.Id"/>.
     /// </summary>
-    public int ReceiptId { get; set; }
+    public required int ReceiptId { get; init; }
 
     /// <summary>
     /// Перезапускать ли рецепт автоматически по завершении.
@@ -32,5 +32,5 @@ public class ManufactureDto
     /// <remarks>
     /// Работает, пока хватает ресурсов и свободных трудяг.
     /// </remarks>
-    public bool AutoRepeat { get; set; }
+    public required bool AutoRepeat { get; init; }
 }

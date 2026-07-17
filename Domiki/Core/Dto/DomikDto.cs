@@ -3,17 +3,17 @@
 /// <summary>
 /// Экземпляр домика игрока в снимке состояния игры – тип, уровень и идущее улучшение.
 /// </summary>
-public class DomikDto
+public sealed record DomikDto
 {
     /// <summary>
     /// Номер домика, уникальный в пределах игрока.
     /// </summary>
-    public int Id { get; set; }
+    public required int Id { get; init; }
 
     /// <summary>
     /// Тип постройки – ссылка на <see cref="DomikTypeDto.Id"/>.
     /// </summary>
-    public int TypeId { get; set; }
+    public required int TypeId { get; init; }
 
     /// <summary>
     /// Текущий уровень домика.
@@ -21,7 +21,7 @@ public class DomikDto
     /// <remarks>
     /// <c>Level == 0</c> – домик ещё строится и к производству недоступен.
     /// </remarks>
-    public int Level { get; set; }
+    public required int Level { get; init; }
 
     /// <summary>
     /// Момент завершения текущего улучшения.
@@ -30,7 +30,7 @@ public class DomikDto
     /// <remarks>
     /// <see langword="null"/> – улучшение не идёт.
     /// </remarks>
-    public DateTime? FinishDate { get; set; }
+    public DateTime? FinishDate { get; init; }
 
     /// <summary>
     /// Длительность текущего улучшения.
@@ -39,7 +39,7 @@ public class DomikDto
     /// <remarks>
     /// <see langword="null"/> – улучшение не идёт.
     /// </remarks>
-    public int? UpgradeSeconds { get; set; }
+    public int? UpgradeSeconds { get; init; }
 
     /// <summary>
     /// Производства, запущенные в этом домике.
@@ -47,5 +47,5 @@ public class DomikDto
     /// <remarks>
     /// Пустой массив, если ничего не производится.
     /// </remarks>
-    public ManufactureDto[] Manufactures { get; set; }
+    public required ManufactureDto[] Manufactures { get; init; }
 }

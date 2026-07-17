@@ -6,22 +6,22 @@
 /// <remarks>
 /// Персонализация: доступное количество, чертёж, гейты.
 /// </remarks>
-public class DomikTypeDto
+public sealed record DomikTypeDto
 {
     /// <summary>
     /// Идентификатор типа постройки.
     /// </summary>
-    public int Id { get; set; }
+    public required int Id { get; init; }
 
     /// <summary>
     /// Отображаемое название.
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; init; }
 
     /// <summary>
     /// Техническое имя типа, используется как ключ на клиенте (иконки, тексты).
     /// </summary>
-    public string LogicName { get; set; }
+    public required string LogicName { get; init; }
 
     /// <summary>
     /// Сколько домиков этого типа игрок может иметь одновременно.
@@ -29,22 +29,22 @@ public class DomikTypeDto
     /// <remarks>
     /// С учётом уже открытых гейтов количества.
     /// </remarks>
-    public int MaxCount { get; internal set; }
+    public required int MaxCount { get; init; }
 
     /// <summary>
     /// Сколько домиков этого типа ещё можно купить прямо сейчас.
     /// </summary>
-    public int AvailableCount { get; internal set; }
+    public required int AvailableCount { get; init; }
 
     /// <summary>
     /// Потолок уровня для построек этого типа.
     /// </summary>
-    public int MaxLevel { get; internal set; }
+    public required int MaxLevel { get; init; }
 
     /// <summary>
     /// Обжитость деревни, начиная с которой тип открывается в магазине построек.
     /// </summary>
-    public int UnlockLevel { get; internal set; }
+    public required int UnlockLevel { get; init; }
 
     /// <summary>
     /// Чертёж, дающий право построить этот тип.
@@ -52,7 +52,7 @@ public class DomikTypeDto
     /// <remarks>
     /// <see langword="null"/> – тип доступен без чертежа.
     /// </remarks>
-    public int? BlueprintId { get; internal set; }
+    public int? BlueprintId { get; init; }
 
     /// <summary>
     /// Обжитость, на которой откроется следующий слот сверх текущего <see cref="MaxCount"/>.
@@ -60,10 +60,10 @@ public class DomikTypeDto
     /// <remarks>
     /// <see langword="null"/> – приростов количества больше нет.
     /// </remarks>
-    public int? NextCountGateLevel { get; internal set; }
+    public int? NextCountGateLevel { get; init; }
 
     /// <summary>
     /// Параметры каждого уровня апгрейда – стоимость, модификаторы, доступные рецепты.
     /// </summary>
-    public UpgradeLevelDto[] Levels { get; set; }
+    public required UpgradeLevelDto[] Levels { get; init; }
 }

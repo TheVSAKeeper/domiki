@@ -7,22 +7,22 @@
 /// Очки накапливаются за сданные заказы (см. <see cref="Economy.OrderManager.CompleteOrder"/>) и открывают чертежи
 /// (<see cref="Activities.Dto.BlueprintDto.ReputationThreshold"/>) и декор (<see cref="Village.Dto.DecorTypeDto.ReputationThreshold"/>).
 /// </remarks>
-public class NeighborReputationDto
+public sealed record NeighborReputationDto
 {
     /// <summary>
     /// Идентификатор соседа.
     /// </summary>
-    public int NeighborId { get; set; }
+    public required int NeighborId { get; init; }
 
     /// <summary>
     /// Отображаемое имя соседа.
     /// </summary>
-    public string NeighborName { get; set; }
+    public required string NeighborName { get; init; }
 
     /// <summary>
     /// Техническое имя соседа, используется как ключ на клиенте.
     /// </summary>
-    public string NeighborLogicName { get; set; }
+    public required string NeighborLogicName { get; init; }
 
     /// <summary>
     /// Очки репутации у соседа.
@@ -31,5 +31,5 @@ public class NeighborReputationDto
     /// <c>0</c>, если строка репутации у игрока ещё не заведена. Сравниваются с <see cref="Activities.Dto.BlueprintDto.ReputationThreshold"/>
     /// и <see cref="Village.Dto.DecorTypeDto.ReputationThreshold"/> при открытии чертежей и декора.
     /// </remarks>
-    public int Points { get; set; }
+    public required int Points { get; init; }
 }

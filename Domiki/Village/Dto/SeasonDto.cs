@@ -3,18 +3,18 @@
 /// <summary>
 /// Текущий сезонный период рейтингов экрана «Мир».
 /// </summary>
-public class SeasonDto
+public sealed record SeasonDto
 {
     /// <summary>
     /// Порядковый номер сезона, начиная с <c>1</c>.
     /// </summary>
-    public int Number { get; set; }
+    public required int Number { get; init; }
 
     /// <summary>
     /// Момент начала сезона.
     /// </summary>
     /// <value>Момент в UTC.</value>
-    public DateTime StartDate { get; set; }
+    public required DateTime StartDate { get; init; }
 
     /// <summary>
     /// Момент окончания сезона.
@@ -24,5 +24,5 @@ public class SeasonDto
     /// По этому моменту подводятся итоги номинаций (см. <see cref="WorldVillageDto.SeasonOrders"/>, <see cref="WorldVillageDto.SeasonToloka"/>
     /// и <see cref="WorldVillageDto.SeasonExpeditions"/>).
     /// </remarks>
-    public DateTime EndDate { get; set; }
+    public required DateTime EndDate { get; init; }
 }

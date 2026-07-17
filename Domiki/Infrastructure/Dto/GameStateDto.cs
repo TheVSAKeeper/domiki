@@ -13,7 +13,7 @@ namespace Domiki.Web.Infrastructure.Dto;
 /// <remarks>
 /// Единственный ответ, который реально зовёт SPA за игровыми данными – <see cref="Infrastructure.GameStateController.GetGameState"/>.
 /// </remarks>
-public class GameStateDto
+public sealed record GameStateDto
 {
     /// <summary>
     /// Справочник типов построек вместе с персонализацией под игрока.
@@ -21,27 +21,27 @@ public class GameStateDto
     /// <remarks>
     /// Персонализация – доступное количество, привязанный чертёж и гейты открытия (см. <see cref="DomikTypeDto"/>).
     /// </remarks>
-    public DomikTypeDto[] DomikTypes { get; set; }
+    public required DomikTypeDto[] DomikTypes { get; init; }
 
     /// <summary>
     /// Справочник типов ресурсов.
     /// </summary>
-    public ResourceTypeDto[] ResourceTypes { get; set; }
+    public required ResourceTypeDto[] ResourceTypes { get; init; }
 
     /// <summary>
     /// Справочник рецептов производства.
     /// </summary>
-    public ReceiptDto[] Receipts { get; set; }
+    public required ReceiptDto[] Receipts { get; init; }
 
     /// <summary>
     /// Домики игрока.
     /// </summary>
-    public DomikDto[] Domiks { get; set; }
+    public required DomikDto[] Domiks { get; init; }
 
     /// <summary>
     /// Остатки ресурсов на складе игрока.
     /// </summary>
-    public ResourceDto[] Resources { get; set; }
+    public required ResourceDto[] Resources { get; init; }
 
     /// <summary>
     /// Активные заказы на доске заказов игрока.
@@ -49,32 +49,32 @@ public class GameStateDto
     /// <remarks>
     /// Не более <see cref="Economy.OrderManager.BoardSize"/> одновременно.
     /// </remarks>
-    public OrderDto[] Orders { get; set; }
+    public required OrderDto[] Orders { get; init; }
 
     /// <summary>
     /// Репутация игрока у всех соседей.
     /// </summary>
-    public NeighborReputationDto[] Reputation { get; set; }
+    public required NeighborReputationDto[] Reputation { get; init; }
 
     /// <summary>
     /// Чертежи и их владение игроком.
     /// </summary>
-    public BlueprintDto[] Blueprints { get; set; }
+    public required BlueprintDto[] Blueprints { get; init; }
 
     /// <summary>
     /// Общее состояние деревни игрока.
     /// </summary>
-    public VillageDto Village { get; set; }
+    public required VillageDto Village { get; init; }
 
     /// <summary>
     /// Обжитость деревни и её слагаемые.
     /// </summary>
-    public VillageLevelDto VillageLevel { get; set; }
+    public required VillageLevelDto VillageLevel { get; init; }
 
     /// <summary>
     /// Трудяги игрока.
     /// </summary>
-    public WorkerDto[] Workers { get; set; }
+    public required WorkerDto[] Workers { get; init; }
 
     /// <summary>
     /// Типы построек, доступные к покупке прямо сейчас.
@@ -82,12 +82,12 @@ public class GameStateDto
     /// <remarks>
     /// Учитывает лимиты и гейты количества (см. <see cref="Core.DomikManager.GetPurchaseAvailableDomiks"/>).
     /// </remarks>
-    public DomikTypeDto[] PurchaseAvailableDomiks { get; set; }
+    public required DomikTypeDto[] PurchaseAvailableDomiks { get; init; }
 
     /// <summary>
     /// Текущая погода и её влияние на производство.
     /// </summary>
-    public WeatherStateDto Weather { get; set; }
+    public required WeatherStateDto Weather { get; init; }
 
     /// <summary>
     /// Состояние экспедиций игрока.
@@ -95,12 +95,12 @@ public class GameStateDto
     /// <remarks>
     /// <see langword="null"/> – механика экспедиций игроку ещё недоступна.
     /// </remarks>
-    public ExpeditionStateDto Expeditions { get; set; }
+    public required ExpeditionStateDto Expeditions { get; init; }
 
     /// <summary>
     /// Декор игрока и накопленный уют.
     /// </summary>
-    public DecorStateDto Decor { get; set; }
+    public required DecorStateDto Decor { get; init; }
 
     /// <summary>
     /// Текущая толока и вклад игрока в неё.
@@ -108,7 +108,7 @@ public class GameStateDto
     /// <remarks>
     /// <see langword="null"/> – толока ещё недоступна игроку.
     /// </remarks>
-    public TolokaStateDto Toloka { get; set; }
+    public required TolokaStateDto Toloka { get; init; }
 
     /// <summary>
     /// Состояние ярмарки игрока.
@@ -116,7 +116,7 @@ public class GameStateDto
     /// <remarks>
     /// <see langword="null"/> – Торговый двор ещё не построен (см. <see cref="Economy.MarketManager.GetMarket"/>).
     /// </remarks>
-    public MarketStateDto Market { get; set; }
+    public required MarketStateDto Market { get; init; }
 
     /// <summary>
     /// Сводка «Пока вас не было».
@@ -125,7 +125,7 @@ public class GameStateDto
     /// Непоказанные события с прошлого захода; выдаётся один раз и тут же помечается прочитанной
     /// (см. <see cref="Infrastructure.PlayerEventManager.TakeRecap"/>).
     /// </remarks>
-    public RecapDto Recap { get; set; }
+    public required RecapDto Recap { get; init; }
 
     /// <summary>
     /// Журнал последних событий игрока для ленты/истории на клиенте.
@@ -133,10 +133,10 @@ public class GameStateDto
     /// <remarks>
     /// Включает уже показанные в <see cref="RecapDto"/> (см. <see cref="Infrastructure.PlayerEventManager.GetRecentEvents"/>).
     /// </remarks>
-    public RecapEventDto[] Events { get; set; }
+    public required RecapEventDto[] Events { get; init; }
 
     /// <summary>
     /// Состояние текущих целей игрока.
     /// </summary>
-    public GoalsStateDto Goals { get; set; }
+    public required GoalsStateDto Goals { get; init; }
 }

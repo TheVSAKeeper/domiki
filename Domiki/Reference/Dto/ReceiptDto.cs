@@ -3,27 +3,27 @@
 /// <summary>
 /// Рецепт производства – N входов дают M выходов за время силами трудяг.
 /// </summary>
-public class ReceiptDto
+public sealed record ReceiptDto
 {
     /// <summary>
     /// Идентификатор рецепта.
     /// </summary>
-    public int Id { get; set; }
+    public required int Id { get; init; }
 
     /// <summary>
     /// Отображаемое название.
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; init; }
 
     /// <summary>
     /// Техническое имя рецепта, используется как ключ на клиенте.
     /// </summary>
-    public string LogicName { get; set; }
+    public required string LogicName { get; init; }
 
     /// <summary>
     /// Ресурсы, обязательные для запуска производства.
     /// </summary>
-    public ResourceDto[] InputResources { get; set; }
+    public required ResourceDto[] InputResources { get; init; }
 
     /// <summary>
     /// Дополнительные ресурсы (например, инструмент), не обязательные для запуска.
@@ -31,27 +31,27 @@ public class ReceiptDto
     /// <remarks>
     /// Дают <see cref="OutputBonusPercent"/> к выходу при списании. Может быть пустым.
     /// </remarks>
-    public ResourceDto[] OptionalInputResources { get; set; }
+    public required ResourceDto[] OptionalInputResources { get; init; }
 
     /// <summary>
     /// Длительность одного цикла производства.
     /// </summary>
     /// <value>Секунды.</value>
-    public int DurationSeconds { get; set; }
+    public required int DurationSeconds { get; init; }
 
     /// <summary>
     /// Прибавка к проценту выхода, если при запуске были списаны <see cref="OptionalInputResources"/>.
     /// </summary>
     /// <value>Проценты.</value>
-    public int OutputBonusPercent { get; set; }
+    public required int OutputBonusPercent { get; init; }
 
     /// <summary>
     /// Ресурсы, выдаваемые по завершении производства.
     /// </summary>
-    public ResourceDto[] OutputResources { get; set; }
+    public required ResourceDto[] OutputResources { get; init; }
 
     /// <summary>
     /// Сколько трудяг требуется, чтобы запустить рецепт.
     /// </summary>
-    public int PlodderCount { get; set; }
+    public required int PlodderCount { get; init; }
 }

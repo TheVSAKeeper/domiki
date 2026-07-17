@@ -3,7 +3,7 @@
 /// <summary>
 /// Обжитость деревни и ближайшие ещё не открытые ею пороги.
 /// </summary>
-public class VillageLevelDto
+public sealed record VillageLevelDto
 {
     /// <summary>
     /// Обжитость деревни.
@@ -12,17 +12,17 @@ public class VillageLevelDto
     /// <c>Buildings + Residents×2 + Reputation×5 + min(Comfort, 50)</c>. Слагаемые: <see cref="Buildings"/>, <see cref="Residents"/>,
     /// <see cref="Reputation"/>, <see cref="Comfort"/> (см. <see cref="Village.VillageLevelCalculator.ComputeLevel"/>).
     /// </remarks>
-    public int Level { get; set; }
+    public required int Level { get; init; }
 
     /// <summary>
     /// Сумма <see cref="Core.Dto.DomikDto.Level"/> всех построек игрока.
     /// </summary>
-    public int Buildings { get; set; }
+    public required int Buildings { get; init; }
 
     /// <summary>
     /// Вместимость барака (число коек) – слагаемое «жители» в <see cref="Level"/>.
     /// </summary>
-    public int Residents { get; set; }
+    public required int Residents { get; init; }
 
     /// <summary>
     /// Число пройденных вех репутации у соседей.
@@ -31,7 +31,7 @@ public class VillageLevelDto
     /// <see cref="Economy.Dto.NeighborReputationDto.Points"/> ÷ <see cref="Village.VillageLevelCalculator.ReputationPointsPerMilestone"/>
     /// у каждого соседа, суммарно.
     /// </remarks>
-    public int Reputation { get; set; }
+    public required int Reputation { get; init; }
 
     /// <summary>
     /// Очки уюта от декора игрока, учтённые в обжитости.
@@ -40,7 +40,7 @@ public class VillageLevelDto
     /// Совпадает с <see cref="DecorStateDto.Comfort"/>; в формуле <see cref="Level"/> ограничено сверху <c>50</c>
     /// (<see cref="Village.VillageLevelCalculator.ComfortHabitabilityCap"/>).
     /// </remarks>
-    public int Comfort { get; set; }
+    public required int Comfort { get; init; }
 
     /// <summary>
     /// Число визитов соседей с последнего большого гостинца.
@@ -48,7 +48,7 @@ public class VillageLevelDto
     /// <remarks>
     /// Каждый <c>7</c>-й визит выдаёт большой гостинец декором (см. <see cref="Economy.GiftManager.TryGrantGift"/>).
     /// </remarks>
-    public int VisitsSinceBigGift { get; set; }
+    public required int VisitsSinceBigGift { get; init; }
 
     /// <summary>
     /// Ближайшие ещё не открытые пороги.
@@ -56,13 +56,13 @@ public class VillageLevelDto
     /// <remarks>
     /// Постройки, соседи и прочий контент, гейтящийся обжитостью (<see cref="Level"/>).
     /// </remarks>
-    public VillageLevelUnlockDto[] UpcomingUnlocks { get; set; }
+    public required VillageLevelUnlockDto[] UpcomingUnlocks { get; init; }
 }
 
 /// <summary>
 /// Один ещё не открытый порог обжитости или иного гейта.
 /// </summary>
-public class VillageLevelUnlockDto
+public sealed record VillageLevelUnlockDto
 {
     /// <summary>
     /// Требуемая обжитость деревни (<see cref="VillageLevelDto.Level"/>).
@@ -70,12 +70,12 @@ public class VillageLevelUnlockDto
     /// <remarks>
     /// <see langword="null"/> – порог гейтится не уровнем, а чертежом или репутацией (см. <see cref="Requirement"/>).
     /// </remarks>
-    public int? Level { get; set; }
+    public int? Level { get; init; }
 
     /// <summary>
     /// Название того, что откроется.
     /// </summary>
-    public string Label { get; set; }
+    public required string Label { get; init; }
 
     /// <summary>
     /// Текстовое описание условия, если оно не выражается уровнем.
@@ -83,5 +83,5 @@ public class VillageLevelUnlockDto
     /// <remarks>
     /// Чертёж или репутация у соседа. <see langword="null"/>, если условие – только <see cref="Level"/>.
     /// </remarks>
-    public string Requirement { get; set; }
+    public required string Requirement { get; init; }
 }

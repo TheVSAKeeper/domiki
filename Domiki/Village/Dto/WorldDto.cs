@@ -3,7 +3,7 @@
 /// <summary>
 /// Каталог деревень для экрана «Мир» – рейтинг обжитости и текущий сезон номинаций.
 /// </summary>
-public class WorldDto
+public sealed record WorldDto
 {
     /// <summary>
     /// Все видимые деревни (реальные игроки и NPC-соседи).
@@ -11,7 +11,7 @@ public class WorldDto
     /// <remarks>
     /// Отсортированы по убыванию <see cref="WorldVillageDto.Level"/>.
     /// </remarks>
-    public WorldVillageDto[] Villages { get; set; }
+    public required WorldVillageDto[] Villages { get; init; }
 
     /// <summary>
     /// Текущий сезонный период рейтингов.
@@ -20,13 +20,13 @@ public class WorldDto
     /// Определяет период подсчёта <see cref="WorldVillageDto.SeasonOrders"/>, <see cref="WorldVillageDto.SeasonToloka"/>
     /// и <see cref="WorldVillageDto.SeasonExpeditions"/>.
     /// </remarks>
-    public SeasonDto Season { get; set; }
+    public required SeasonDto Season { get; init; }
 }
 
 /// <summary>
 /// Одна деревня в каталоге экрана «Мир» – реальный игрок или декоративный NPC-сосед.
 /// </summary>
-public class WorldVillageDto
+public sealed record WorldVillageDto
 {
     /// <summary>
     /// Идентификатор игрока-владельца.
@@ -34,22 +34,22 @@ public class WorldVillageDto
     /// <remarks>
     /// <see langword="null"/> – деревня NPC (см. <see cref="IsNpc"/>), не привязана к игроку.
     /// </remarks>
-    public int? PlayerId { get; set; }
+    public int? PlayerId { get; init; }
 
     /// <summary>
     /// Название деревни.
     /// </summary>
-    public string VillageName { get; set; }
+    public required string VillageName { get; init; }
 
     /// <summary>
     /// Индекс пиктограммы герба.
     /// </summary>
-    public int CrestIcon { get; set; }
+    public required int CrestIcon { get; init; }
 
     /// <summary>
     /// Индекс цвета герба.
     /// </summary>
-    public int CrestColor { get; set; }
+    public required int CrestColor { get; init; }
 
     /// <summary>
     /// Обжитость деревни, по которой отсортирован каталог.
@@ -57,7 +57,7 @@ public class WorldVillageDto
     /// <remarks>
     /// См. <see cref="VillageLevelDto.Level"/>.
     /// </remarks>
-    public int Level { get; set; }
+    public required int Level { get; init; }
 
     /// <summary>
     /// Является ли деревня NPC-соседом.
@@ -65,7 +65,7 @@ public class WorldVillageDto
     /// <remarks>
     /// <see langword="true"/> – NPC-сосед с фиксированным представлением, не реальный игрок.
     /// </remarks>
-    public bool IsNpc { get; set; }
+    public required bool IsNpc { get; init; }
 
     /// <summary>
     /// Принадлежит ли деревня текущему игроку.
@@ -73,7 +73,7 @@ public class WorldVillageDto
     /// <remarks>
     /// <see langword="true"/> – это деревня текущего игрока.
     /// </remarks>
-    public bool IsMe { get; set; }
+    public required bool IsMe { get; init; }
 
     /// <summary>
     /// Ресурс, которым торгует NPC-сосед – ссылка на <see cref="Reference.Dto.ResourceTypeDto.Id"/>.
@@ -81,7 +81,7 @@ public class WorldVillageDto
     /// <remarks>
     /// <see langword="null"/> для деревень игроков (см. <see cref="IsNpc"/>).
     /// </remarks>
-    public int? NpcResourceTypeId { get; set; }
+    public int? NpcResourceTypeId { get; init; }
 
     /// <summary>
     /// Технический код NPC-соседа.
@@ -89,22 +89,22 @@ public class WorldVillageDto
     /// <remarks>
     /// <see langword="null"/> для деревень игроков (см. <see cref="IsNpc"/>).
     /// </remarks>
-    public string NpcLogicName { get; set; }
+    public required string NpcLogicName { get; init; }
 
     /// <summary>
     /// Число выполненных заказов за текущий сезон – счётчик номинации «Лучший поставщик».
     /// </summary>
-    public int SeasonOrders { get; set; }
+    public required int SeasonOrders { get; init; }
 
     /// <summary>
     /// Вклад в толоку за текущий сезон – счётчик номинации «Герой толоки».
     /// </summary>
-    public int SeasonToloka { get; set; }
+    public required int SeasonToloka { get; init; }
 
     /// <summary>
     /// Число завершённых экспедиций за текущий сезон – счётчик номинации «Дальние странники».
     /// </summary>
-    public int SeasonExpeditions { get; set; }
+    public required int SeasonExpeditions { get; init; }
 
     /// <summary>
     /// Очки уюта деревни – основа номинации «Самая уютная деревня».
@@ -112,52 +112,52 @@ public class WorldVillageDto
     /// <remarks>
     /// Совпадает с <see cref="VillageLevelDto.Comfort"/>.
     /// </remarks>
-    public int Comfort { get; set; }
+    public required int Comfort { get; init; }
 }
 
 /// <summary>
 /// Снимок чужой деревни при read-only визите игрока из экрана «Мир».
 /// </summary>
-public class VillageVisitDto
+public sealed record VillageVisitDto
 {
     /// <summary>
     /// Название посещаемой деревни.
     /// </summary>
-    public string VillageName { get; set; }
+    public required string VillageName { get; init; }
 
     /// <summary>
     /// Индекс пиктограммы герба.
     /// </summary>
-    public int CrestIcon { get; set; }
+    public required int CrestIcon { get; init; }
 
     /// <summary>
     /// Индекс цвета герба.
     /// </summary>
-    public int CrestColor { get; set; }
+    public required int CrestColor { get; init; }
 
     /// <summary>
     /// Обжитость посещаемой деревни и её слагаемые.
     /// </summary>
-    public VillageLevelDto Level { get; set; }
+    public required VillageLevelDto Level { get; init; }
 
     /// <summary>
     /// Постройки посещаемой деревни с их уровнями.
     /// </summary>
-    public VisitBuildingDto[] Buildings { get; set; }
+    public required VisitBuildingDto[] Buildings { get; init; }
 }
 
 /// <summary>
 /// Одна постройка в списке визита в чужую деревню.
 /// </summary>
-public class VisitBuildingDto
+public sealed record VisitBuildingDto
 {
     /// <summary>
     /// Название типа постройки.
     /// </summary>
-    public string TypeName { get; set; }
+    public required string TypeName { get; init; }
 
     /// <summary>
     /// Уровень постройки.
     /// </summary>
-    public int Level { get; set; }
+    public required int Level { get; init; }
 }

@@ -6,22 +6,22 @@
 /// <remarks>
 /// Условие получения у конкретного соседа (<see cref="NeighborId"/>) и то, получен ли он игроком уже (<see cref="Owned"/>).
 /// </remarks>
-public class BlueprintDto
+public sealed record BlueprintDto
 {
     /// <summary>
     /// Идентификатор чертежа.
     /// </summary>
-    public int Id { get; set; }
+    public required int Id { get; init; }
 
     /// <summary>
     /// Отображаемое название чертежа.
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; init; }
 
     /// <summary>
     /// Постройка, которую открывает чертёж – ссылка на <see cref="Core.Dto.DomikTypeDto.Id"/>.
     /// </summary>
-    public int DomikTypeId { get; set; }
+    public required int DomikTypeId { get; init; }
 
     /// <summary>
     /// Сосед, у которого чертёж можно заслужить репутацией или получить в экспедиции.
@@ -30,12 +30,12 @@ public class BlueprintDto
     /// Репутация сравнивается с <see cref="ReputationThreshold"/> (<see cref="Activities.BlueprintManager.EnsureBlueprints"/>); в экспедиции
     /// чертёж может выпасть как редкая добыча (<see cref="ExpeditionLootDto.BlueprintId"/>).
     /// </remarks>
-    public int NeighborId { get; set; }
+    public required int NeighborId { get; init; }
 
     /// <summary>
     /// Имя соседа-владельца чертежа.
     /// </summary>
-    public string NeighborName { get; set; }
+    public required string NeighborName { get; init; }
 
     /// <summary>
     /// Порог репутации у соседа, при достижении которого чертёж считается заслуженным.
@@ -44,7 +44,7 @@ public class BlueprintDto
     /// Сравнивается с <see cref="CurrentReputation"/> здесь же и с <see cref="Economy.Dto.NeighborReputationDto.Points"/> в общем списке репутаций
     /// игрока (см. <see cref="Activities.BlueprintManager.EnsureBlueprints"/>).
     /// </remarks>
-    public int ReputationThreshold { get; set; }
+    public required int ReputationThreshold { get; init; }
 
     /// <summary>
     /// Текущая репутация игрока у этого соседа.
@@ -52,10 +52,10 @@ public class BlueprintDto
     /// <remarks>
     /// Совпадает с <see cref="Economy.Dto.NeighborReputationDto.Points"/> этого же соседа; сравнивается с <see cref="ReputationThreshold"/>.
     /// </remarks>
-    public int CurrentReputation { get; set; }
+    public required int CurrentReputation { get; init; }
 
     /// <summary>
     /// <see langword="true"/> – чертёж уже получен (репутацией или в экспедиции), постройка доступна к покупке.
     /// </summary>
-    public bool Owned { get; set; }
+    public required bool Owned { get; init; }
 }

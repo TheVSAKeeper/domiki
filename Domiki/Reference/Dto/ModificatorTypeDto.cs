@@ -3,20 +3,20 @@
 /// <summary>
 /// Справочник типа модификатора – какой именно эффект даёт уровень постройки.
 /// </summary>
-public class ModificatorTypeDto
+public sealed record ModificatorTypeDto
 {
     /// <summary>
     /// Идентификатор типа модификатора.
     /// </summary>
-    public int Id { get; set; }
+    public required int Id { get; init; }
 
     /// <summary>
     /// Отображаемое название.
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; init; }
 
     /// <summary>
     /// Техническое имя типа, используется как ключ на клиенте.
     /// </summary>
-    public string LogicName { get; set; }
+    public required string LogicName { get; init; }
 }

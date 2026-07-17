@@ -6,15 +6,15 @@
 /// <remarks>
 /// Используется и как остаток на складе игрока, и как позиция в стоимости или рецепте.
 /// </remarks>
-public class ResourceDto
+public sealed record ResourceDto
 {
     /// <summary>
     /// Тип ресурса – ссылка на <see cref="ResourceTypeDto.Id"/>.
     /// </summary>
-    public int TypeId { get; set; }
+    public required int TypeId { get; init; }
 
     /// <summary>
     /// Количество.
     /// </summary>
-    public int Value { get; set; }
+    public required int Value { get; init; }
 }

@@ -3,15 +3,15 @@
 /// <summary>
 /// Эффект уровня постройки – например, требуемое число трудяг (тип <c>plodder</c>).
 /// </summary>
-public class ModificatorDto
+public sealed record ModificatorDto
 {
     /// <summary>
     /// Тип модификатора – ссылка на <see cref="ModificatorTypeDto.Id"/>.
     /// </summary>
-    public int TypeId { get; set; }
+    public required int TypeId { get; init; }
 
     /// <summary>
     /// Величина эффекта.
     /// </summary>
-    public int Value { get; set; }
+    public required int Value { get; init; }
 }

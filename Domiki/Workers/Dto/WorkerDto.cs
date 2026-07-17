@@ -7,17 +7,17 @@
 /// Черта (<see cref="TraitId"/>), состояние усталости/болезни (<see cref="RestUntil"/>, <see cref="SickUntil"/>), занятость
 /// (<see cref="ManufactureId"/>, <see cref="ExpeditionId"/>) и наработанные навыки (<see cref="Skills"/>).
 /// </remarks>
-public class WorkerDto
+public sealed record WorkerDto
 {
     /// <summary>
     /// Идентификатор трудяги.
     /// </summary>
-    public int Id { get; set; }
+    public required int Id { get; init; }
 
     /// <summary>
     /// Имя трудяги.
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; init; }
 
     /// <summary>
     /// Грамматический род имени трудяги – для склонений в тексте на клиенте.
@@ -25,22 +25,22 @@ public class WorkerDto
     /// <remarks>
     /// Значение <see cref="Workers.WorkerGender"/>, выводится из <see cref="Name"/> функцией <see cref="Workers.NameGrammar.GenderOf"/>.
     /// </remarks>
-    public int Gender { get; set; }
+    public required int Gender { get; init; }
 
     /// <summary>
     /// Черта трудяги – ссылка на справочник черт.
     /// </summary>
-    public int TraitId { get; set; }
+    public required int TraitId { get; init; }
 
     /// <summary>
     /// Отображаемое название черты.
     /// </summary>
-    public string TraitName { get; set; }
+    public required string TraitName { get; init; }
 
     /// <summary>
     /// Технический код черты, используется как ключ на клиенте.
     /// </summary>
-    public string TraitLogicName { get; set; }
+    public required string TraitLogicName { get; init; }
 
     /// <summary>
     /// Изменение длительности производства от черты в процентах.
@@ -49,7 +49,7 @@ public class WorkerDto
     /// <remarks>
     /// Отрицательное значение ускоряет производство.
     /// </remarks>
-    public int TraitDurationPercent { get; set; }
+    public required int TraitDurationPercent { get; init; }
 
     /// <summary>
     /// <see langword="true"/> – трудяга с этой чертой не устаёт и не нуждается в отдыхе.
@@ -57,7 +57,7 @@ public class WorkerDto
     /// <remarks>
     /// При <see langword="true"/> <see cref="RestUntil"/> никогда не выставляется (см. <see cref="Core.DomikManager.FatigueThresholdSeconds"/>).
     /// </remarks>
-    public bool NoFatigue { get; set; }
+    public required bool NoFatigue { get; init; }
 
     /// <summary>
     /// <see langword="true"/> – трудяга с этой чертой не подвержен болезни.
@@ -65,7 +65,7 @@ public class WorkerDto
     /// <remarks>
     /// При <see langword="true"/> <see cref="SickUntil"/> никогда не выставляется (см. <see cref="Core.DomikManager.SickChancePercent"/>).
     /// </remarks>
-    public bool NoSick { get; set; }
+    public required bool NoSick { get; init; }
 
     /// <summary>
     /// Производство, в котором сейчас занят трудяга – ссылка на <see cref="Core.Dto.ManufactureDto.Id"/>.
@@ -73,7 +73,7 @@ public class WorkerDto
     /// <remarks>
     /// <see langword="null"/> – в производстве не занят.
     /// </remarks>
-    public int? ManufactureId { get; set; }
+    public int? ManufactureId { get; init; }
 
     /// <summary>
     /// Экспедиция, в которой сейчас находится трудяга – ссылка на <see cref="Activities.Dto.ExpeditionDto.Id"/>.
@@ -81,7 +81,7 @@ public class WorkerDto
     /// <remarks>
     /// <see langword="null"/> – не в походе.
     /// </remarks>
-    public int? ExpeditionId { get; set; }
+    public int? ExpeditionId { get; init; }
 
     /// <summary>
     /// Момент окончания отдыха в бараке.
@@ -91,7 +91,7 @@ public class WorkerDto
     /// <see langword="null"/> – трудяга не отдыхает. Выставляется по накоплению <see cref="Core.DomikManager.FatigueThresholdSeconds"/> секунд
     /// работы (см. <see cref="Core.DomikManager.FinishManufacture"/>).
     /// </remarks>
-    public DateTime? RestUntil { get; set; }
+    public DateTime? RestUntil { get; init; }
 
     /// <summary>
     /// Момент выздоровления.
@@ -101,10 +101,10 @@ public class WorkerDto
     /// <see langword="null"/> – трудяга не болен. Шанс заболеть при завершении производства – <see cref="Core.DomikManager.SickChancePercent"/>
     /// (см. <see cref="Core.DomikManager.FinishManufacture"/>).
     /// </remarks>
-    public DateTime? SickUntil { get; set; }
+    public DateTime? SickUntil { get; init; }
 
     /// <summary>
     /// Наработанные навыки трудяги по типам построек.
     /// </summary>
-    public WorkerSkillDto[] Skills { get; set; }
+    public required WorkerSkillDto[] Skills { get; init; }
 }

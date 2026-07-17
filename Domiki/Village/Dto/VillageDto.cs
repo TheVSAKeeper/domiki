@@ -3,22 +3,22 @@
 /// <summary>
 /// Идентичность деревни игрока – название, герб и настройка кормления трудяг.
 /// </summary>
-public class VillageDto
+public sealed record VillageDto
 {
     /// <summary>
     /// Название деревни, выбранное игроком.
     /// </summary>
-    public string VillageName { get; set; }
+    public required string VillageName { get; init; }
 
     /// <summary>
     /// Индекс пиктограммы герба из готового набора.
     /// </summary>
-    public int CrestIcon { get; set; }
+    public required int CrestIcon { get; init; }
 
     /// <summary>
     /// Индекс цвета герба из готового набора.
     /// </summary>
-    public int CrestColor { get; set; }
+    public required int CrestColor { get; init; }
 
     /// <summary>
     /// Включено ли кормление трудяг хлебом.
@@ -26,7 +26,7 @@ public class VillageDto
     /// <remarks>
     /// <see langword="true"/> – кормление включено: вдвое сокращает время отдыха уставшего трудяги ценой <c>1</c> хлеба за случай.
     /// </remarks>
-    public bool FeedWorkers { get; set; }
+    public required bool FeedWorkers { get; init; }
 }
 
 /// <summary>
@@ -35,22 +35,22 @@ public class VillageDto
 /// <remarks>
 /// Применяется к <see cref="VillageDto.VillageName"/>, <see cref="VillageDto.CrestIcon"/> и <see cref="VillageDto.CrestColor"/>.
 /// </remarks>
-public class SetVillageDto
+public sealed record SetVillageDto
 {
     /// <summary>
     /// Новое название деревни.
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; init; }
 
     /// <summary>
     /// Новый индекс пиктограммы герба.
     /// </summary>
-    public int CrestIcon { get; set; }
+    public int CrestIcon { get; init; }
 
     /// <summary>
     /// Новый индекс цвета герба.
     /// </summary>
-    public int CrestColor { get; set; }
+    public int CrestColor { get; init; }
 }
 
 /// <summary>
@@ -59,7 +59,7 @@ public class SetVillageDto
 /// <remarks>
 /// Устанавливает <see cref="VillageDto.FeedWorkers"/>.
 /// </remarks>
-public class SetFeedWorkersDto
+public sealed record SetFeedWorkersDto
 {
     /// <summary>
     /// Новое значение флага кормления хлебом.
@@ -67,5 +67,5 @@ public class SetFeedWorkersDto
     /// <remarks>
     /// <see langword="true"/> – включить кормление, <see langword="false"/> – выключить.
     /// </remarks>
-    public bool Enabled { get; set; }
+    public bool Enabled { get; init; }
 }
