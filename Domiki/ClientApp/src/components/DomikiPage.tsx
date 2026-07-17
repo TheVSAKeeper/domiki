@@ -263,6 +263,7 @@ export const DomikiPage = () => {
                     domikTypes={domikTypes}
                     decorTypes={decor?.types ?? []}
                     expeditionTypes={expeditions?.types ?? []}
+                    neighbors={reputation}
                     toloka={toloka}
                     onClose={clearRecap}
                 />

@@ -63,6 +63,15 @@ public static class DecorIds
     public const int Lantern = 9;
 }
 
+public static class NeighborIds
+{
+    public const int Zarechye = 1;
+    public const int Borovoe = 2;
+    public const int Kamenka = 3;
+    public const int Glinischi = 4;
+    public const int Dubrava = 5;
+}
+
 public static class ReceiptIds
 {
     public const int ClayDig = 1;

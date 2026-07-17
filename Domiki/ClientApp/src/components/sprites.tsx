@@ -70,6 +70,7 @@ import MechExpeditionsSprite from '../assets/mechanics/expeditions.svg?react';
 import MechMarketSprite from '../assets/mechanics/market.svg?react';
 import MechTolokaSprite from '../assets/mechanics/toloka.svg?react';
 import MechDecorSprite from '../assets/mechanics/decor.svg?react';
+import MechGiftsSprite from '../assets/mechanics/gifts.svg?react';
 import ClayResSprite from '../assets/resourceTypes/clay.svg?react';
 import CoinResSprite from '../assets/resourceTypes/coin.svg?react';
 import GoldResSprite from '../assets/resourceTypes/gold.svg?react';
@@ -250,6 +251,7 @@ const mechanicSprites: Record<string, SpriteComponent> = {
     market: MechMarketSprite,
     toloka: MechTolokaSprite,
     decor: MechDecorSprite,
+    gifts: MechGiftsSprite,
 };
 
 export const MechanicSprite = (props: IconSpriteProps) => <>{renderIconSprite('mechanic', mechanicSprites, undefined, props)}</>;

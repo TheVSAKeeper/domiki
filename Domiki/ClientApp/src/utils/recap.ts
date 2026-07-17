@@ -21,6 +21,7 @@ export interface RecapView {
     market: { kind: 'sold' | 'expired'; give: { typeId: number; value: number }; want?: { typeId: number; value: number } }[];
     upgrades: { domikTypeId: number; level: number }[];
     toloka: { tolokaTypeId: number }[];
+    gifts: { neighborId: number; resources: { resourceTypeId: number; value: number }[]; decorTypeId: number | null; visitIndex: number; big: boolean; date: string }[];
 }
 
 export const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
@@ -67,6 +68,7 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
     const market: RecapView['market'] = [];
     const upgrades: RecapView['upgrades'] = [];
     const toloka: RecapView['toloka'] = [];
+    const gifts: RecapView['gifts'] = [];
 
     for (const event of events) {
         if (!isRecord(event.data)) {
@@ -109,6 +111,25 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
         if (event.type === 'TolokaCompleted' && isNumber(event.data.tolokaTypeId)) {
             toloka.push({ tolokaTypeId: event.data.tolokaTypeId });
         }
+
+        if (event.type === 'NeighborGift') {
+            const { neighborId, resources, decorTypeId, visitIndex, big } = event.data;
+            if (!isNumber(neighborId) || !Array.isArray(resources) || !isNumber(visitIndex) || typeof big !== 'boolean') {
+                continue;
+            }
+
+            gifts.push({
+                neighborId,
+                resources: resources.flatMap(resource => {
+                    const parsed = readResource(resource);
+                    return parsed == null ? [] : [{ resourceTypeId: parsed.typeId, value: parsed.value }];
+                }),
+                decorTypeId: isNumber(decorTypeId) ? decorTypeId : null,
+                visitIndex,
+                big,
+                date: event.date,
+            });
+        }
     }
 
     return {
@@ -117,5 +138,6 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
         market,
         upgrades,
         toloka,
+        gifts,
     };
 }

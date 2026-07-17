@@ -4,8 +4,9 @@ import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
 import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
+import GiftIcon from 'pixelarticons/svg/gift.svg?react';
 import CloseIcon from 'pixelarticons/svg/close.svg?react';
-import type { DecorTypeDto, DomikTypeDto, ExpeditionTypeDto, ResourceTypeDto, TolokaStateDto } from '../types/api';
+import type { DecorTypeDto, DomikTypeDto, ExpeditionTypeDto, NeighborReputationDto, ResourceTypeDto, TolokaStateDto } from '../types/api';
 import type { RecapView } from '../utils/recap';
 import { lootEntryKey } from '../utils/recap';
 import { EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
@@ -13,6 +14,7 @@ import { withStableKeys } from '../utils/keys';
 import { formatDuration } from '../utils/time';
 import { pluralRu } from '../utils/plural';
 import { genderForm, traitLabel } from '../utils/gender';
+import { pickGiftText } from '../utils/giftTexts';
 import { DomikSprite } from './sprites';
 import { ResourceChip } from './ResourceChip';
 
@@ -23,11 +25,12 @@ interface RecapModalProps {
     domikTypes: DomikTypeDto[];
     decorTypes: DecorTypeDto[];
     expeditionTypes: ExpeditionTypeDto[];
+    neighbors: NeighborReputationDto[];
     toloka: TolokaStateDto | null;
     onClose: () => void;
 }
 
-export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decorTypes, expeditionTypes, toloka, onClose }: RecapModalProps) => {
+export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decorTypes, expeditionTypes, neighbors, toloka, onClose }: RecapModalProps) => {
     const dialogRef = useRef<HTMLDialogElement>(null);
 
     useLayoutEffect(() => {
@@ -40,6 +43,7 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
     const market = withStableKeys(view.market, e => `${e.kind}-${e.give.typeId}`);
     const upgrades = withStableKeys(view.upgrades, e => `${e.domikTypeId}-${e.level}`);
     const tolokaEntries = withStableKeys(view.toloka, e => String(e.tolokaTypeId));
+    const gifts = withStableKeys(view.gifts, gift => `${gift.neighborId}-${gift.date}`);
 
     const trophies = useMemo(() => {
         const producedTotal = view.produced.reduce((sum, resource) => sum + resource.value, 0);
@@ -49,6 +53,7 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
             { key: 'exp', Icon: BackpackIcon, num: view.expeditions.length, cap: pluralRu(view.expeditions.length, 'экспедиция', 'экспедиции', 'экспедиций') },
             { key: 'market', Icon: StoreIcon, num: view.market.length, cap: pluralRu(view.market.length, 'сделка', 'сделки', 'сделок') },
             { key: 'toloka', Icon: BuildingCommunityIcon, num: view.toloka.length, cap: pluralRu(view.toloka.length, 'толока', 'толоки', 'толок') },
+            { key: 'gift', Icon: GiftIcon, num: view.gifts.length, cap: pluralRu(view.gifts.length, 'гостинец', 'гостинца', 'гостинцев') },
         ].filter(trophy => trophy.num > 0);
     }, [view]);
 
@@ -80,6 +85,46 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
                             </span>
                         </span>
                     ))}
+                </div>
+            }
+            {gifts.length > 0 &&
+                <div className="recap-section" data-tone="gift">
+                    <div className="recap-section-head">
+                        <span className="recap-section-badge"><GiftIcon aria-hidden="true" /></span>
+                        <h3 className="recap-section-title">Гостинец от соседей</h3>
+                        <span className="recap-section-count">{gifts.length}</span>
+                    </div>
+                    {gifts.map(({ key, item: gift }) => {
+                        const neighbor = neighbors.find(item => item.neighborId === gift.neighborId);
+                        const neighborName = neighbor?.neighborName ?? `Сосед #${gift.neighborId}`;
+                        const decorName = gift.decorTypeId == null ? 'Декор не указан' : decorTypes.find(decorType => decorType.id === gift.decorTypeId)?.name ?? `Декор #${gift.decorTypeId}`;
+                        return (
+                            <div key={key} className="recap-row gift-row">
+                                <div className="gift-head">
+                                    <GiftIcon className="recap-row-ico" aria-hidden="true" />
+                                    <span className={neighbor == null ? 'recap-fallback' : 'recap-line'}>{neighborName}</span>
+                                </div>
+                                <p className="gift-note">{pickGiftText(gift.neighborId, gift.big, gift.date)}</p>
+                                {gift.big
+                                    ? <span className="gift-decor">{decorName}</span>
+                                    : <div className="recap-chips">
+                                        {withStableKeys(gift.resources, resource => String(resource.resourceTypeId)).map(({ key: resourceKey, item: resource }) => {
+                                            const type = resourceTypes.find(resourceType => resourceType.id === resource.resourceTypeId);
+                                            return type == null
+                                                ? <span key={resourceKey} className="recap-fallback">Ресурс #{resource.resourceTypeId} ×{resource.value}</span>
+                                                : <ResourceChip key={resourceKey} resourceType={type} value={resource.value} />;
+                                        })}
+                                    </div>
+                                }
+                                <div className="gift-visits">
+                                    <span className="gift-visit-dots" aria-hidden="true">
+                                        {Array.from({ length: 7 }, (_, index) => <span key={index} className={gift.big || index < gift.visitIndex ? 'gift-visit-dot is-filled' : 'gift-visit-dot'} />)}
+                                    </span>
+                                    <span className="gift-visit-label">{gift.big ? 'Большой гостинец!' : 'Большой гостинец – каждый 7-й визит'}</span>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             }
             {expeditions.length > 0 &&

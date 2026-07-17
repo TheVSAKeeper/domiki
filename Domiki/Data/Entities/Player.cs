@@ -23,6 +23,8 @@ public class Player
 
     public int ExpeditionsSincePity { get; set; }
 
+    public int VisitsSinceBigGift { get; set; }
+
     public DateTime? LastSeen { get; set; }
 
     public DateTime? NextOrderRefillAt { get; set; }

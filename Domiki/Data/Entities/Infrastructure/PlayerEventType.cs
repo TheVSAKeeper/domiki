@@ -10,4 +10,5 @@ public enum PlayerEventType
     LotExpired = 5,
     TolokaCompleted = 6,
     GoalCompleted = 7,
+    NeighborGift = 8,
 }

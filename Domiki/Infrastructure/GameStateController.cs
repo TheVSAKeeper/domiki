@@ -28,10 +28,11 @@ public class GameStateController : GameControllerBase
     private readonly DecorManager _decorManager;
     private readonly TolokaManager _tolokaManager;
     private readonly MarketManager _marketManager;
+    private readonly GiftManager _giftManager;
     private readonly PlayerEventManager _playerEventManager;
     private readonly GoalManager _goalManager;
 
-    public GameStateController(DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, PlayerEventManager playerEventManager, GoalManager goalManager)
+    public GameStateController(DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, GiftManager giftManager, PlayerEventManager playerEventManager, GoalManager goalManager)
         : base(domikManager)
     {
         _domikManager = domikManager;
@@ -45,6 +46,7 @@ public class GameStateController : GameControllerBase
         _decorManager = decorManager;
         _tolokaManager = tolokaManager;
         _marketManager = marketManager;
+        _giftManager = giftManager;
         _playerEventManager = playerEventManager;
         _goalManager = goalManager;
     }
@@ -56,6 +58,7 @@ public class GameStateController : GameControllerBase
         var playerId = GetPlayerId();
         var goals = _goalManager.GetGoalsState(playerId);
         var blueprints = _resourceManager.GetBlueprints();
+        _giftManager.TryGrantGift(playerId, DateTimeHelper.GetNowDate());
 
         var content = new GameStateDto
         {

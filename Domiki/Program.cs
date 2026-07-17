@@ -109,6 +109,7 @@ builder.Services.AddControllersWithViews(options =>
     options.OutputFormatters.RemoveType<StringOutputFormatter>();
     options.OutputFormatters.RemoveType<HttpNoContentOutputFormatter>();
 });
+
 builder.Services.AddRazorPages();
 builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
@@ -116,6 +117,7 @@ builder.Services.AddExceptionHandler<BusinessExceptionHandler>();
 builder.Services.AddScoped<UnitOfWork>();
 builder.Services.AddScoped<DomikManager>();
 builder.Services.AddScoped<OrderManager>();
+builder.Services.AddScoped<GiftManager>();
 builder.Services.AddScoped<ResourceManager>();
 builder.Services.AddScoped<PlayerResourceManager>();
 builder.Services.AddScoped<WorkerManager>();

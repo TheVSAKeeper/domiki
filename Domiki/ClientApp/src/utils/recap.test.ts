@@ -58,4 +58,24 @@ describe('buildRecapView', () => {
 
         expect(loot[3]).toEqual({ kind: 4, isRare: true, blueprintId: 2, blueprintName: 'Чертёж каменотёса' });
     });
+
+    it('parses ordinary and big neighbor gifts', () => {
+        const recap = buildRecapView([
+            { type: 'NeighborGift', date: '2026-07-10T00:06:00Z', data: { neighborId: 2, resources: [{ resourceTypeId: 3, value: 12 }], decorTypeId: null, visitIndex: 4, big: false } },
+            { type: 'NeighborGift', date: '2026-07-10T00:07:00Z', data: { neighborId: 5, resources: [], decorTypeId: 8, visitIndex: 7, big: true } },
+        ]);
+
+        expect(recap.gifts).toEqual([
+            { neighborId: 2, resources: [{ resourceTypeId: 3, value: 12 }], decorTypeId: null, visitIndex: 4, big: false, date: '2026-07-10T00:06:00Z' },
+            { neighborId: 5, resources: [], decorTypeId: 8, visitIndex: 7, big: true, date: '2026-07-10T00:07:00Z' },
+        ]);
+    });
+
+    it('silently ignores a neighbor gift without a neighbor id', () => {
+        const recap = buildRecapView([
+            { type: 'NeighborGift', date: '2026-07-10T00:08:00Z', data: { resources: [], visitIndex: 1, big: false } },
+        ]);
+
+        expect(recap.gifts).toEqual([]);
+    });
 });

@@ -543,8 +543,84 @@ dialog.recap-modal::backdrop {
 .recap-trophy[data-tone="toloka"],
 .recap-section[data-tone="toloka"] { --accent: #6d8fa8; }
 
+.recap-trophy[data-tone="gift"],
+.recap-section[data-tone="gift"] { --accent: #9a6a84; }
+
     .recap-trophy[data-tone="market"] .tr-ico,
     .recap-section[data-tone="market"] .recap-section-badge { color: #4a3600; }
+
+.gift-row {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 5px;
+    padding: 2px 0;
+}
+
+.gift-head,
+.gift-visits,
+.gift-visit-dots {
+    display: flex;
+    align-items: center;
+}
+
+.gift-head {
+    gap: 8px;
+}
+
+.gift-note {
+    margin: 0;
+    padding-left: 11px;
+    color: rgba(51, 41, 26, .7);
+    font-size: 12px;
+    font-style: italic;
+    line-height: 1.35;
+}
+
+.gift-note::before {
+    content: '«';
+    margin-left: -8px;
+}
+
+.gift-note::after {
+    content: '»';
+}
+
+.gift-decor {
+    width: fit-content;
+    padding: 4px 7px;
+    color: #fff8e6;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--accent);
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.gift-visits {
+    gap: 8px;
+}
+
+.gift-visit-dots {
+    gap: 4px;
+}
+
+.gift-visit-dot {
+    width: 8px;
+    height: 8px;
+    border: 2px solid rgba(51, 41, 26, .4);
+    border-radius: 50%;
+}
+
+.gift-visit-dot.is-filled {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.gift-visit-label {
+    color: rgba(51, 41, 26, .64);
+    font-size: 11px;
+    font-weight: 600;
+}
 
 .recap-section .resource-chip-rare {
     box-shadow: 0 0 0 1px rgba(231, 168, 59, .5);
