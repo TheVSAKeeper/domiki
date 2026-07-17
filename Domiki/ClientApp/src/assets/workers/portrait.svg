@@ -20,10 +20,13 @@
     svg[data-extra="3"] .extra-3,
     svg[data-skilled="true"] .skilled,
     svg[data-state="idle"] .face-idle,
+    svg[data-state="sick"] .face-idle,
     svg[data-state="working"] .face-working,
     svg[data-state="resting"] .face-resting,
     svg[data-state="working"] .state-working,
     svg[data-state="resting"] .state-resting { display: inline }
+
+    svg[data-state="sick"] { filter: saturate(.55) brightness(1.06) }
 
     svg[data-skin="2"] .skin { fill: #c99e6f }
     svg[data-skin="2"] .skin-shadow { fill: #9a6a38 }

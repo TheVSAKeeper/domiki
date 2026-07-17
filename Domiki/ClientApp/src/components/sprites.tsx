@@ -334,7 +334,7 @@ const fallbackLook = (name: string): WorkerLook => {
 
 interface WorkerSpriteProps extends SVGProps<SVGSVGElement> {
     name: string;
-    state?: 'idle' | 'working' | 'resting';
+    state?: 'idle' | 'working' | 'resting' | 'sick';
     skilled?: boolean;
 }
 

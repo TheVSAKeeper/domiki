@@ -302,7 +302,7 @@ export const DomikiPage = () => {
                     }
                     <DomikGridSection domiks={domiks} domikTypes={domikTypes} receipts={receipts} resources={resources}
                         currentWeather={currentWeather} now={now} sortMode={sortMode} selectedDomikId={selectedDomikId}
-                        displayName={domikDisplayName} onSelect={selectDomik} />
+                        displayName={domikDisplayName} onSelect={selectDomik} workers={workers} />
                 </section>
                 {selected != null && <div className="actions-scrim" role="presentation" onClick={() => { setSelectedDomikId(null); }} />}
                 <SelectedDomikPanel selected={selected} resources={resources} resourceTypes={resourceTypes} receipts={receipts}

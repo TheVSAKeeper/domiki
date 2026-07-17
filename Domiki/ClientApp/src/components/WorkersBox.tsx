@@ -160,11 +160,13 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
                         const domik = domiks.find(d => (d.manufactures ?? []).some(m => m.id === worker.manufactureId));
                         return domik == null ? null : domikTypes.find(t => t.id === domik.typeId) ?? null;
                     })();
-                    const portraitState = stateKey === 'resting'
-                        ? 'resting'
-                        : stateKey === 'busy' || stateKey === 'expedition'
-                            ? 'working'
-                            : 'idle';
+                    const portraitState = isSick
+                        ? 'sick'
+                        : stateKey === 'resting'
+                            ? 'resting'
+                            : stateKey === 'busy' || stateKey === 'expedition'
+                                ? 'working'
+                                : 'idle';
                     const craft = describeWorkerParts(worker, domikTypes);
                     const ranked = rankedSkills(worker);
                     const best = ranked[0];

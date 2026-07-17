@@ -8,12 +8,12 @@ import ChevronRightIcon from 'pixelarticons/svg/chevron-right.svg?react';
 import RepeatIcon from 'pixelarticons/svg/repeat.svg?react';
 import BellIcon from 'pixelarticons/svg/bell.svg?react';
 import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
-import type { DomikDto, DomikTypeDto, ReceiptDto, ResourceDto, WeatherPeriodDto } from '../types/api';
+import type { DomikDto, DomikTypeDto, ReceiptDto, ResourceDto, WeatherPeriodDto, WorkerDto } from '../types/api';
 import type { DomikNamer } from '../utils/domikNames';
 import { canAffordUpgrade, sortDomiks } from '../utils/game';
 import type { DomikSortMode } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
-import { AbstractSprite } from './sprites';
+import { AbstractSprite, WorkerSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import { UpgradeBox } from './UpgradeBox';
 
@@ -94,9 +94,10 @@ interface DomikGridSectionProps {
     selectedDomikId: number | null;
     displayName: DomikNamer;
     onSelect: (id: number, logicName: string) => void;
+    workers: WorkerDto[];
 }
 
-export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, currentWeather, now, sortMode, selectedDomikId, displayName: namer, onSelect }: DomikGridSectionProps) => {
+export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, currentWeather, now, sortMode, selectedDomikId, displayName: namer, onSelect, workers }: DomikGridSectionProps) => {
     const [rowsPerPage, setRowsPerPage] = useState<RowsPerPage>(() => {
         const saved = localStorage.getItem('domik-page-size');
         if (saved === '2') return 2;
@@ -163,7 +164,7 @@ export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, curr
 
     return (
         <>
-            <div className="domiks" ref={domiksRef}>
+            <div className="domiks" ref={domiksRef} data-weather={currentWeather?.logicName}>
                 {domikTypes.length > 0 &&
                     pagedDomiks.map(domik => {
                         const domikType = domikTypes.find(x => x.id === domik.typeId);
@@ -172,6 +173,15 @@ export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, curr
                         }
 
                         const hasManufacture = domik.manufactures != null && domik.manufactures.length > 0;
+                        const activeCount = domik.manufactures?.length ?? 0;
+                        const maxSlots = domikType.levels.find(level => level.value === domik.level)?.maxManufactureCount;
+                        const intensity = maxSlots == null
+                            ? 'normal'
+                            : activeCount >= maxSlots
+                                ? 'fast'
+                                : maxSlots > 1 && activeCount === 1
+                                    ? 'slow'
+                                    : 'normal';
                         const repeatedRecipeNames = (domik.manufactures ?? []).flatMap(manufacture => {
                             if (!manufacture.autoRepeat) {
                                 return [];
@@ -187,6 +197,9 @@ export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, curr
                             : null;
                         const cardWeather = currentWeather?.effects.find(
                             effect => effect.domikTypeId === domik.typeId && effect.outputPercent !== 100) ?? null;
+                        const crew = workers
+                            .filter(worker => worker.manufactureId != null && (domik.manufactures ?? []).some(manufacture => manufacture.id === worker.manufactureId))
+                            .slice(0, 4);
                         const displayName = namer(domik.typeId, domik.id, domikType.name, domikType.logicName);
                         const upgradeAvailable = canAffordUpgrade(domik, domikType, resources);
                         const cardStatus = domik.finishDate != null
@@ -208,7 +221,16 @@ export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, curr
                                         {cardWeather.outputPercent > 100 ? '+' : ''}{cardWeather.outputPercent - 100}%
                                     </span>
                                 }
-                                <AnimatedDomikSprite mode="levelup" className="plot-sprite" logicName={domikType.logicName} level={domik.level} working={hasManufacture} />
+                                <AnimatedDomikSprite mode="levelup" className="plot-sprite" logicName={domikType.logicName} level={domik.level} working={hasManufacture} intensity={intensity} />
+                                {crew.length > 0 &&
+                                    <span className="plot-crew">
+                                        {crew.map(worker =>
+                                            <span key={worker.id} className="plot-crew-face" title={worker.name}>
+                                                <WorkerSprite name={worker.name} state="working" data-size="32" aria-hidden="true" />
+                                            </span>,
+                                        )}
+                                    </span>
+                                }
                                 <span className="plot-name">{displayName}</span>
                                 <UpgradeBox durationSeconds={durationSecondsText} level={domik.level} />
                                 <span className="plot-status">
