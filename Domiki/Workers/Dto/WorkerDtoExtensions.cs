@@ -19,8 +19,8 @@ public static class WorkerDtoExtensions
             NoSick = worker.Trait.NoSick,
             ManufactureId = worker.ManufactureId,
             ExpeditionId = worker.ExpeditionId,
-            RestUntil = worker.RestUntil,
-            SickUntil = worker.SickUntil,
+            RestUntil = worker.RestUntil == null ? null : DateTime.SpecifyKind(worker.RestUntil.Value, DateTimeKind.Utc),
+            SickUntil = worker.SickUntil == null ? null : DateTime.SpecifyKind(worker.SickUntil.Value, DateTimeKind.Utc),
             Skills = worker.Skills.Select(x => new WorkerSkillDto
                 {
                     DomikTypeId = x.DomikTypeId,
