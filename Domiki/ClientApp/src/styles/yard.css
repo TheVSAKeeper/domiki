@@ -1,0 +1,55 @@
+.yard {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.yard-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+}
+
+.yard-title {
+    margin: 0;
+}
+
+.yard-toggle {
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+    .yard-toggle:hover {
+        color: var(--pine);
+    }
+
+.yard-stage {
+    position: relative;
+    height: clamp(150px, 22vh, 240px);
+}
+
+.yard-svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+}
+
+.yard-domik {
+    cursor: pointer;
+    outline: none;
+}
+
+    .yard-domik:focus-visible {
+        outline: 2px solid #e8b83a;
+        outline-offset: 2px;
+    }

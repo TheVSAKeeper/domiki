@@ -15,6 +15,7 @@ import { GameTabsNav } from './GameTabsNav';
 import { VillageIdentityModal } from './VillageIdentityModal';
 import { VillageHud } from './VillageHud';
 import { DomikGridSection, DomikSortMenu } from './DomikGridSection';
+import { VillageYard } from './VillageYard';
 import { SelectedDomikPanel } from './SelectedDomikPanel';
 import { ActionButton, ActionBusyProvider } from './ActionButton';
 import { OrdersBox } from './OrdersBox';
@@ -295,6 +296,17 @@ export const DomikiPage = () => {
             </div>
             <div className="workspace">
                 <section className="village">
+                    <VillageYard domiks={domiks} domikTypes={domikTypes} decor={decor} workers={workers}
+                        villageLevel={villageLevel} currentWeather={currentWeather} selectedDomikId={selectedDomikId}
+                        displayName={domik => {
+                            const domikType = domikTypes.find(type => type.id === domik.typeId);
+                            return domikType == null ? '' : domikDisplayName(domik.typeId, domik.id, domikType.name, domikType.logicName);
+                        }}
+                        onSelect={id => {
+                            const domik = domiks.find(item => item.id === id);
+                            const domikType = domik == null ? undefined : domikTypes.find(type => type.id === domik.typeId);
+                            selectDomik(id, domikType?.logicName ?? '');
+                        }} />
                     {shopVisible && purchaseDomikTypes != null &&
                         <ShopBox purchaseDomikTypes={purchaseDomikTypes} domikTypes={domikTypes} receipts={receipts}
                             resourceTypes={resourceTypes} resources={resources} blueprints={blueprints} villageLevel={villageLevel}
