@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import type { DecorStateDto, DomikDto, DomikTypeDto, VillageLevelDto, WeatherPeriodDto, WorkerDto } from '../types/api';
 import { hashString } from '../utils/worldMap';
 import { layoutYard, YARD_H, type YardGreen, type YardSpot } from '../utils/yardMap';
-import { DecorSprite, DomikSprite } from './sprites';
+import { DecorSprite, DomikSprite, MechanicSprite, NeighborSprite } from './sprites';
 
 const GRASS_CLEAR = '#a9bd8d';
 const GRASS_SHADOW = '#7f9863';
@@ -59,6 +59,23 @@ const YardFolk = ({ x, y, name }: { x: number; y: number; name: string }) => {
     );
 };
 
+const YardCart = ({ x, y, title }: { x: number; y: number; title: string }) => (
+    <g transform={`translate(${x} ${y})`}>
+        <title>{title}</title>
+        <rect x={-30} y={10} width={8} height={2} fill={ROAD_SHADOW} />
+        <rect x={-18} y={10} width={8} height={2} fill={ROAD_SHADOW} />
+        <rect x={-22} y={-8} width={28} height={10} fill={TRUNK} />
+        <rect x={-18} y={-14} width={14} height={6} fill="#b8863b" />
+        <rect x={-4} y={-12} width={8} height={4} fill="#b8863b" />
+        <rect x={-16} y={2} width={8} height={8} fill={ROAD_SHADOW} />
+        <rect x={0} y={2} width={8} height={8} fill={ROAD_SHADOW} />
+        <rect x={-14} y={4} width={4} height={4} fill={ROAD} />
+        <rect x={2} y={4} width={4} height={4} fill={ROAD} />
+        <rect x={6} y={-6} width={12} height={3} fill={TRUNK} />
+        <rect x={-24} y={10} width={34} height={2} fill={GRASS_SHADOW} />
+    </g>
+);
+
 const SelectionBrackets = ({ x, y }: { x: number; y: number }) => {
     const left = x - 36;
     const right = x + 36;
@@ -88,6 +105,10 @@ interface VillageYardProps {
     selectedDomikId: number | null;
     displayName: (domik: DomikDto) => string;
     onSelect: (id: number) => void;
+    recapPending: boolean;
+    onOpenRecap: () => void;
+    activeExpeditionNames: string[];
+    friendNeighbor: { logicName: string; name: string } | null;
 }
 
 interface FolkPlacement { x: number; y: number; name: string; }
@@ -111,7 +132,7 @@ const freeFolkPlacements = (workers: WorkerDto[], spots: YardSpot[], domikTypes:
         : { x: 40 + index * 14, y: firstPathY + 30, name: worker.name });
 };
 
-export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, currentWeather, selectedDomikId, displayName, onSelect }: VillageYardProps) => {
+export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, currentWeather, selectedDomikId, displayName, onSelect, recapPending, onOpenRecap, activeExpeditionNames, friendNeighbor }: VillageYardProps) => {
     const [collapsed, setCollapsed] = useState<boolean>(() => localStorage.getItem('domiki.yard.collapsed') === '1');
     const owned = decor?.owned;
     const level = villageLevel?.level;
@@ -132,6 +153,8 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
 
     const workerList = workers ?? [];
     const firstPathY = Number(layout.path.split(' ')[0]?.split(',')[1] ?? YARD_H / 2);
+    const pathPoints = layout.path.split(' ');
+    const lastPathY = Number(pathPoints[pathPoints.length - 1]?.split(',')[1] ?? YARD_H / 2);
     const busyFolk = layout.spots.flatMap(spot => busyFolkForSpot(spot, workerList));
     const freeFolk = freeFolkPlacements(workerList, layout.spots, domikTypes, firstPathY);
     const depthSpots = [...layout.spots].sort((a, b) => a.y - b.y);
@@ -146,60 +169,88 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
             </header>
             {!collapsed &&
                 <div className="yard-stage" data-weather={currentWeather?.logicName}>
-                    <svg className="yard-svg" viewBox={`0 0 ${layout.width} ${YARD_H}`} preserveAspectRatio="xMidYMid slice"
-                        shapeRendering="crispEdges" aria-label="Двор деревни: постройки, декор и трудяги">
-                        <defs>
-                            <pattern id="yard-meadow" width="64" height="64" patternUnits="userSpaceOnUse">
-                                <rect width="64" height="64" fill={MEADOW} />
-                                <rect width="32" height="32" fill={MEADOW_ALT} />
-                                <rect x="32" y="32" width="32" height="32" fill={MEADOW_ALT} />
-                            </pattern>
-                        </defs>
-                        <rect x={-200} y={-200} width={layout.width + 400} height={YARD_H + 400} fill="url(#yard-meadow)" />
-                        {layout.tufts.map(tuft =>
-                            <rect key={`${tuft.x}:${tuft.y}`} x={tuft.x} y={tuft.y} width={tuft.kind === 1 ? 10 : 6} height={4} fill={GRASS_SHADOW} />,
-                        )}
-                        <polyline points={layout.path} fill="none" stroke={ROAD_SHADOW} strokeWidth={14} />
-                        <polyline points={layout.path} fill="none" stroke={ROAD} strokeWidth={8} />
-                        {layout.spots.map(spot =>
-                            <g key={spot.domik.id}>
-                                <rect x={spot.x - 40} y={spot.y + 18} width={80} height={14} fill={GRASS_CLEAR} />
-                                <rect x={spot.x - 40} y={spot.y + 32} width={80} height={3} fill={GRASS_SHADOW} />
-                            </g>,
-                        )}
-                        {layout.decors.map(d => {
-                            const type = decor?.types.find(t => t.id === d.decorTypeId);
-                            return type == null ? null : (
-                                <DecorSprite key={d.key} logicName={type.logicName} x={d.x - 16} y={d.y - 28} width={32} height={32} aria-hidden="true" />
-                            );
-                        })}
-                        {depthSpots.map(spot => {
-                            const domikType = domikTypes.find(type => type.id === spot.domik.typeId);
-                            if (domikType == null) {
-                                return null;
-                            }
-                            const selected = selectedDomikId === spot.domik.id;
-                            return (
-                                <g key={spot.domik.id} className={'yard-domik' + (selected ? ' yard-domik-selected' : '')}
-                                    role="button" tabIndex={0} aria-label={displayName(spot.domik)}
-                                    onClick={() => { onSelect(spot.domik.id); }}
+                    <div className="yard-scroll">
+                        <svg className="yard-svg" viewBox={`0 0 ${layout.width} ${YARD_H}`}
+                            shapeRendering="crispEdges" aria-label="Двор деревни: постройки, декор и трудяги">
+                            <defs>
+                                <pattern id="yard-meadow" width="64" height="64" patternUnits="userSpaceOnUse">
+                                    <rect width="64" height="64" fill={MEADOW} />
+                                    <rect width="32" height="32" fill={MEADOW_ALT} />
+                                    <rect x="32" y="32" width="32" height="32" fill={MEADOW_ALT} />
+                                </pattern>
+                            </defs>
+                            <rect x={-200} y={-200} width={layout.width + 400} height={YARD_H + 400} fill="url(#yard-meadow)" />
+                            {layout.tufts.map(tuft =>
+                                <rect key={`${tuft.x}:${tuft.y}`} x={tuft.x} y={tuft.y} width={tuft.kind === 1 ? 10 : 6} height={4} fill={GRASS_SHADOW} />,
+                            )}
+                            <polyline points={layout.path} fill="none" stroke={ROAD_SHADOW} strokeWidth={14} />
+                            <polyline points={layout.path} fill="none" stroke={ROAD} strokeWidth={8} />
+                            {layout.spots.map(spot =>
+                                <g key={spot.domik.id}>
+                                    <rect x={spot.x - 40} y={spot.y + 18} width={80} height={14} fill={GRASS_CLEAR} />
+                                    <rect x={spot.x - 40} y={spot.y + 32} width={80} height={3} fill={GRASS_SHADOW} />
+                                </g>,
+                            )}
+                            {layout.decors.map(d => {
+                                const type = decor?.types.find(t => t.id === d.decorTypeId);
+                                return type == null ? null : (
+                                    <DecorSprite key={d.key} logicName={type.logicName} x={d.x - 16} y={d.y - 28} width={32} height={32} aria-hidden="true" />
+                                );
+                            })}
+                            {depthSpots.map(spot => {
+                                const domikType = domikTypes.find(type => type.id === spot.domik.typeId);
+                                if (domikType == null) {
+                                    return null;
+                                }
+                                const selected = selectedDomikId === spot.domik.id;
+                                return (
+                                    <g key={spot.domik.id} className={'yard-domik' + (selected ? ' yard-domik-selected' : '')}
+                                        role="button" tabIndex={0} aria-label={displayName(spot.domik)}
+                                        onClick={() => { onSelect(spot.domik.id); }}
+                                        onKeyDown={event => {
+                                            if (event.key === 'Enter' || event.key === ' ') {
+                                                event.preventDefault();
+                                                onSelect(spot.domik.id);
+                                            }
+                                        }}>
+                                        <DomikSprite logicName={domikType.logicName} level={spot.domik.level}
+                                            working={(spot.domik.manufactures?.length ?? 0) > 0}
+                                            x={spot.x - 32} y={spot.y - 46} width={64} height={64} />
+                                        {selected && <SelectionBrackets x={spot.x} y={spot.y} />}
+                                    </g>
+                                );
+                            })}
+                            {layout.trees.map(tree => <YardTree key={`${tree.x}:${tree.y}`} green={tree} />)}
+                            {recapPending &&
+                                <g className="yard-vignette" role="button" tabIndex={0}
+                                    aria-label="Гостинец ждёт – открыть сводку"
+                                    onClick={onOpenRecap}
                                     onKeyDown={event => {
                                         if (event.key === 'Enter' || event.key === ' ') {
                                             event.preventDefault();
-                                            onSelect(spot.domik.id);
+                                            onOpenRecap();
                                         }
                                     }}>
-                                    <DomikSprite logicName={domikType.logicName} level={spot.domik.level}
-                                        working={(spot.domik.manufactures?.length ?? 0) > 0}
-                                        x={spot.x - 32} y={spot.y - 46} width={64} height={64} />
-                                    {selected && <SelectionBrackets x={spot.x} y={spot.y} />}
+                                    <title>Гостинец ждёт – открыть сводку</title>
+                                    <rect x={16} y={firstPathY + 20} width={24} height={3} fill={GRASS_SHADOW} />
+                                    <MechanicSprite logicName="gifts" x={14} y={firstPathY - 6} width={28} height={28} />
                                 </g>
-                            );
-                        })}
-                        {layout.trees.map(tree => <YardTree key={`${tree.x}:${tree.y}`} green={tree} />)}
-                        {busyFolk.map(folk => <YardFolk key={`b:${folk.x}:${folk.y}:${folk.name}`} x={folk.x} y={folk.y} name={folk.name} />)}
-                        {freeFolk.map(folk => <YardFolk key={`f:${folk.x}:${folk.y}:${folk.name}`} x={folk.x} y={folk.y} name={folk.name} />)}
-                    </svg>
+                            }
+                            {friendNeighbor != null &&
+                                <g aria-hidden="true">
+                                    <title>{`Дружба с ${friendNeighbor.name}`}</title>
+                                    <rect x={26} y={firstPathY - 46} width={4} height={26} fill={TRUNK} />
+                                    <rect x={20} y={firstPathY - 20} width={16} height={3} fill={GRASS_SHADOW} />
+                                    <NeighborSprite logicName={friendNeighbor.logicName} x={16} y={firstPathY - 70} width={24} height={24} />
+                                </g>
+                            }
+                            {activeExpeditionNames.length > 0 &&
+                                <YardCart x={layout.width - 44} y={lastPathY - 4} title={'В походе: ' + activeExpeditionNames.join(', ')} />
+                            }
+                            {busyFolk.map(folk => <YardFolk key={`b:${folk.x}:${folk.y}:${folk.name}`} x={folk.x} y={folk.y} name={folk.name} />)}
+                            {freeFolk.map(folk => <YardFolk key={`f:${folk.x}:${folk.y}:${folk.name}`} x={folk.x} y={folk.y} name={folk.name} />)}
+                        </svg>
+                    </div>
                 </div>
             }
         </section>

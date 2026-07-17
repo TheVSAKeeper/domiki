@@ -37,10 +37,18 @@
     height: clamp(150px, 22vh, 240px);
 }
 
+.yard-scroll {
+    height: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+}
+
 .yard-svg {
     display: block;
-    width: 100%;
+    width: auto;
     height: 100%;
+    margin-inline: auto;
     image-rendering: pixelated;
 }
 
@@ -49,7 +57,13 @@
     outline: none;
 }
 
-    .yard-domik:focus-visible {
+.yard-vignette {
+    cursor: pointer;
+    outline: none;
+}
+
+    .yard-domik:focus-visible,
+    .yard-vignette:focus-visible {
         outline: 2px solid #e8b83a;
         outline-offset: 2px;
     }

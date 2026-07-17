@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import type { NeighborReputationDto } from '../types/api';
 import { Link } from 'react-router-dom';
 import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import SettingsIcon from 'pixelarticons/svg/settings-cog.svg?react';
@@ -56,6 +57,7 @@ export const DomikiPage = () => {
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
+    const [recapOpen, setRecapOpen] = useState(false);
     const [selectedDomikId, setSelectedDomikId] = useState<number | null>(null);
     const [activeTab, setActiveTab] = useState('');
     const [identity, setIdentity] = useState<'auto' | 'open' | 'dismissed'>('auto');
@@ -83,7 +85,15 @@ export const DomikiPage = () => {
     const goldValue = resources.find(x => x.typeId === GOLD_RESOURCE_TYPE_ID)?.value ?? 0;
     const goldType = resourceTypes.find(x => x.id === GOLD_RESOURCE_TYPE_ID);
     const recapView = useMemo(() => buildRecapView(recap?.events ?? []), [recap]);
-    const recapVisible = recap != null && recap.events.length > 0 && recap.awaySeconds >= 1800;
+    const recapPending = recap != null && recap.events.length > 0;
+    const recapVisible = recap != null && recap.events.length > 0 && (recap.awaySeconds >= 1800 || recapOpen);
+    const friendNeighbor = useMemo(() => {
+        const friendIds = new Set(blueprints.filter(b => b.currentReputation >= b.reputationThreshold).map(b => b.neighborId));
+        const top = reputation
+            .filter(r => friendIds.has(r.neighborId))
+            .reduce<NeighborReputationDto | null>((best, r) => best == null || r.points > best.points ? r : best, null);
+        return top == null ? null : { logicName: top.neighborLogicName, name: top.neighborName };
+    }, [blueprints, reputation]);
 
     const currentCrestIcon = village?.crestIcon ?? 0;
     const currentCrestColor = village?.crestColor ?? 0;
@@ -306,7 +316,11 @@ export const DomikiPage = () => {
                             const domik = domiks.find(item => item.id === id);
                             const domikType = domik == null ? undefined : domikTypes.find(type => type.id === domik.typeId);
                             selectDomik(id, domikType?.logicName ?? '');
-                        }} />
+                        }}
+                        recapPending={recapPending}
+                        onOpenRecap={() => { setRecapOpen(true); }}
+                        activeExpeditionNames={(expeditions?.active ?? []).map(e => e.expeditionName)}
+                        friendNeighbor={friendNeighbor} />
                     {shopVisible && purchaseDomikTypes != null &&
                         <ShopBox purchaseDomikTypes={purchaseDomikTypes} domikTypes={domikTypes} receipts={receipts}
                             resourceTypes={resourceTypes} resources={resources} blueprints={blueprints} villageLevel={villageLevel}
