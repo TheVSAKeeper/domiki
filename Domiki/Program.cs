@@ -18,7 +18,6 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using NLog;
 using NLog.Web;
 using System.IO.Compression;
-using System.Security.Claims;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
@@ -181,78 +180,23 @@ forwardedHeadersOptions.KnownIPNetworks.Clear();
 forwardedHeadersOptions.KnownProxies.Clear();
 app.UseForwardedHeaders(forwardedHeadersOptions);
 
+app.UseExceptionHandler();
+app.UseStatusCodePages();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
-    app.MapOpenApi();
 }
 else
 {
     app.UseHsts();
 }
 
-app.Use(async (context, next) =>
-{
-    context.Response.OnStarting(() =>
-    {
-        var headers = context.Response.Headers;
-        headers["X-Content-Type-Options"] = "nosniff";
-        headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-        headers["X-Frame-Options"] = "DENY";
-        headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
-        if (context.Response.ContentType?.Contains("text/html", StringComparison.OrdinalIgnoreCase) == true
-            && !headers.ContainsKey("Cache-Control"))
-        {
-            headers.CacheControl = "no-cache";
-        }
-
-        return Task.CompletedTask;
-    });
-
-    await next();
-});
+app.UseMiddleware<SecurityHeadersMiddleware>();
 
 app.UseResponseCompression();
 
-app.Use(async (context, next) =>
-{
-    var originalPath = context.Request.Path;
-    var acceptEncoding = context.Request.GetTypedHeaders().AcceptEncoding;
-    var extension = acceptEncoding?.Any(x => x.Value.Equals("br", StringComparison.OrdinalIgnoreCase) && x.Quality.GetValueOrDefault(1) > 0) == true
-        ? ".br"
-        : acceptEncoding?.Any(x => x.Value.Equals("gzip", StringComparison.OrdinalIgnoreCase) && x.Quality.GetValueOrDefault(1) > 0) == true
-            ? ".gz"
-            : null;
-
-    if (extension != null && originalPath.HasValue)
-    {
-        var compressedPath = app.Environment.WebRootFileProvider.GetFileInfo(originalPath.Value.TrimStart('/') + extension);
-        if (compressedPath.Exists)
-        {
-            context.Request.Path = originalPath + extension;
-            context.Response.Headers.ContentEncoding = extension == ".br" ? "br" : "gzip";
-            context.Response.Headers.Append("Vary", "Accept-Encoding");
-            context.Response.OnStarting(() =>
-            {
-                context.Response.ContentType = Path.GetExtension(originalPath.Value) switch
-                {
-                    ".css" => "text/css",
-                    ".html" => "text/html; charset=utf-8",
-                    ".js" => "text/javascript",
-                    ".json" => "application/json",
-                    ".svg" => "image/svg+xml",
-                    ".xml" => "text/xml",
-                    _ => context.Response.ContentType,
-                };
-
-                return Task.CompletedTask;
-            });
-        }
-    }
-
-    await next();
-    context.Request.Path = originalPath;
-});
+app.UseMiddleware<PrecompressedStaticFilesMiddleware>();
 
 var staticContentTypes = new FileExtensionContentTypeProvider();
 staticContentTypes.Mappings[".br"] = "application/octet-stream";
@@ -280,19 +224,15 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.Use(async (context, next) =>
-{
-    var path = context.Request.Path;
-    if (context.User.Identity?.Name == demoUserName
-        && (path.StartsWithSegments("/Identity/Account/Manage")
-            || path.StartsWithSegments("/Identity/Account/ExternalLogin")))
-    {
-        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-        return;
-    }
+app.UseMiddleware<DemoAccountGuardMiddleware>();
 
-    await next();
-});
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/Domiki/Stream"),
+    branch => branch.UseMiddleware<UnitOfWorkMiddleware>());
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+}
 
 app.MapControllers();
 app.MapControllerRoute("default",
@@ -302,107 +242,6 @@ app.MapRazorPages();
 
 app.MapHealthChecks("/healthz");
 
-app.MapGet("/authentication/login", (string returnUrl) =>
-{
-    var target = !string.IsNullOrEmpty(returnUrl) && Uri.IsWellFormedUriString(returnUrl, UriKind.Relative)
-        ? returnUrl
-        : "/";
-
-    return Results.Redirect($"/Identity/Account/Login?returnUrl={Uri.EscapeDataString(target)}");
-});
-
-app.MapGet("/authentication/logout", () => Results.SignOut(new()
-        { RedirectUri = "/" },
-    new[] { IdentityConstants.ApplicationScheme }));
-
-app.MapGet("/authentication/user", (HttpContext http) =>
-{
-    var user = http.User;
-    if (user.Identity?.IsAuthenticated != true)
-    {
-        return Results.Ok(new { isAuthenticated = false });
-    }
-
-    var name = user.FindFirstValue("name")
-               ?? user.FindFirstValue("preferred_username")
-               ?? user.FindFirstValue("email")
-               ?? user.Identity?.Name;
-
-    return Results.Ok(new { isAuthenticated = true, name });
-});
-
-app.MapPost("/authentication/demo", async (HttpContext http, SignInManager<ApplicationUser> signInManager) =>
-{
-    if (http.User.Identity?.IsAuthenticated == true)
-    {
-        return Results.Ok(new { isAuthenticated = true, name = http.User.Identity.Name });
-    }
-
-    var result = await signInManager.PasswordSignInAsync(demoUserName, demoPassword, false, false);
-    return result.Succeeded
-        ? Results.Ok(new { isAuthenticated = true, name = demoUserName })
-        : Results.Unauthorized();
-});
-
-app.MapGet("/Domiki/Stream", async (HttpContext http, GameStateBroker broker) =>
-    {
-        int playerId;
-        using (var scope = http.RequestServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
-        {
-            var domikManager = scope.ServiceProvider.GetRequiredService<DomikManager>();
-            playerId = domikManager.GetPlayerId(http.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            scope.ServiceProvider.GetRequiredService<UnitOfWork>().Commit();
-        }
-
-        http.Response.ContentType = "text/event-stream";
-        http.Response.Headers.CacheControl = "no-cache";
-        http.Response.Headers["X-Accel-Buffering"] = "no";
-
-        await http.Response.WriteAsync(": connected\n\n");
-        await http.Response.Body.FlushAsync(http.RequestAborted);
-
-        using var subscription = broker.Subscribe(playerId);
-        try
-        {
-            while (!http.RequestAborted.IsCancellationRequested)
-            {
-                bool canRead;
-                try
-                {
-                    using var timeout = CancellationTokenSource.CreateLinkedTokenSource(http.RequestAborted);
-                    timeout.CancelAfter(TimeSpan.FromSeconds(15));
-                    canRead = await subscription.Reader.WaitToReadAsync(timeout.Token);
-                }
-                catch (OperationCanceledException) when (!http.RequestAborted.IsCancellationRequested)
-                {
-                    await http.Response.WriteAsync(": ping\n\n");
-                    await http.Response.Body.FlushAsync(http.RequestAborted);
-                    continue;
-                }
-
-                if (!canRead)
-                {
-                    break;
-                }
-
-                while (subscription.Reader.TryRead(out var changedScope))
-                {
-                    await http.Response.WriteAsync($"data: {changedScope}\n\n");
-                    await http.Response.Body.FlushAsync(http.RequestAborted);
-                }
-            }
-        }
-        catch (OperationCanceledException) when (http.RequestAborted.IsCancellationRequested)
-        {
-        }
-    })
-    .RequireAuthorization();
-
 app.MapFallbackToFile("index.html");
-
-app.UseExceptionHandler();
-app.UseStatusCodePages();
-app.UseWhen(context => !context.Request.Path.StartsWithSegments("/Domiki/Stream"),
-    branch => branch.UseMiddleware<UnitOfWorkMiddleware>());
 
 app.Run();
