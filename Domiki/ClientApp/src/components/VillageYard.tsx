@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DecorStateDto, DomikDto, DomikTypeDto, VillageLevelDto, WeatherPeriodDto, WorkerDto } from '../types/api';
 import { hashString } from '../utils/worldMap';
 import { layoutYard, YARD_H, type YardGreen, type YardSpot } from '../utils/yardMap';
@@ -134,12 +134,31 @@ const freeFolkPlacements = (workers: WorkerDto[], spots: YardSpot[], domikTypes:
 
 export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, currentWeather, selectedDomikId, displayName, onSelect, recapPending, onOpenRecap, activeExpeditionNames, friendNeighbor }: VillageYardProps) => {
     const [collapsed, setCollapsed] = useState<boolean>(() => localStorage.getItem('domiki.yard.collapsed') === '1');
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const scrolledToRef = useRef<number | null>(null);
     const owned = decor?.owned;
     const level = villageLevel?.level;
     const layout = useMemo(
         () => layoutYard(domiks, owned ?? [], level ?? 0),
         [domiks, owned, level],
     );
+
+    useEffect(() => {
+        const scroll = scrollRef.current;
+        if (scroll == null || selectedDomikId == null || selectedDomikId === scrolledToRef.current) {
+            return;
+        }
+        scrolledToRef.current = selectedDomikId;
+        const spot = layout.spots.find(s => s.domik.id === selectedDomikId);
+        if (spot == null) {
+            return;
+        }
+        const target = spot.x * (scroll.scrollWidth / layout.width);
+        if (target > scroll.scrollLeft + 48 && target < scroll.scrollLeft + scroll.clientWidth - 48) {
+            return;
+        }
+        scroll.scrollTo({ left: target - scroll.clientWidth / 2, behavior: 'smooth' });
+    }, [selectedDomikId, layout]);
 
     if (domiks.length === 0) {
         return null;
@@ -169,7 +188,7 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
             </header>
             {!collapsed &&
                 <div className="yard-stage" data-weather={currentWeather?.logicName}>
-                    <div className="yard-scroll">
+                    <div className="yard-scroll" ref={scrollRef}>
                         <svg className="yard-svg" viewBox={`0 0 ${layout.width} ${YARD_H}`}
                             shapeRendering="crispEdges" aria-label="Двор деревни: постройки, декор и трудяги">
                             <defs>

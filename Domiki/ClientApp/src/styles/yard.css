@@ -42,7 +42,22 @@
     overflow-x: auto;
     overflow-y: hidden;
     scrollbar-width: thin;
+    scrollbar-color: var(--pine) var(--plank-dark);
 }
+
+    .yard-scroll::-webkit-scrollbar {
+        height: 10px;
+    }
+
+    .yard-scroll::-webkit-scrollbar-track {
+        background: var(--plank-dark);
+        border-top: 2px solid var(--ink);
+    }
+
+    .yard-scroll::-webkit-scrollbar-thumb {
+        background: var(--pine);
+        border: 2px solid var(--ink);
+    }
 
 .yard-svg {
     display: block;
