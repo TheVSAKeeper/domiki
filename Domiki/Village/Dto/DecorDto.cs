@@ -70,7 +70,7 @@ public sealed record DecorTypeDto
     /// <remarks>
     /// <see langword="null"/>, если <see cref="NeighborId"/> не задан.
     /// </remarks>
-    public required string NeighborName { get; init; }
+    public string? NeighborName { get; init; }
 
     /// <summary>
     /// Порог репутации у соседа, открывающий покупку декора.

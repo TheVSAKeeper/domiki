@@ -18,7 +18,7 @@ public static class WorldDtoExtensions
         return new()
         {
             PlayerId = village.PlayerId,
-            VillageName = village.VillageName,
+            VillageName = village.VillageName ?? "",
             CrestIcon = village.CrestIcon,
             CrestColor = village.CrestColor,
             Level = village.Level,

@@ -83,5 +83,5 @@ public sealed record VillageLevelUnlockDto
     /// <remarks>
     /// Чертёж или репутация у соседа. <see langword="null"/>, если условие – только <see cref="Level"/>.
     /// </remarks>
-    public required string Requirement { get; init; }
+    public string? Requirement { get; init; }
 }

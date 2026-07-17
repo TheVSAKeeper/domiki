@@ -11,7 +11,7 @@ public sealed record GoalsStateDto
     /// <remarks>
     /// <see langword="null"/> – все цели пройдены.
     /// </remarks>
-    public required ActiveGoalDto Active { get; init; }
+    public ActiveGoalDto? Active { get; init; }
 
     /// <summary>
     /// Сколько наказов цепочки уже выполнено.

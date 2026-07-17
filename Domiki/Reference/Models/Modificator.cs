@@ -2,6 +2,6 @@
 
 public class Modificator
 {
-    public ModificatorType Type { get; set; }
+    public required ModificatorType Type { get; set; }
     public int Value { get; set; }
 }

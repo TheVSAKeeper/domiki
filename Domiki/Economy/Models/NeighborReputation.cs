@@ -2,6 +2,6 @@
 
 public class NeighborReputation
 {
-    public Neighbor Neighbor { get; set; }
+    public required Neighbor Neighbor { get; set; }
     public int Points { get; set; }
 }

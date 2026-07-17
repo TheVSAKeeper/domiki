@@ -5,14 +5,14 @@ namespace Domiki.Web.Activities.Models;
 public class ExpeditionType
 {
     public int Id { get; set; }
-    public string Name { get; set; }
-    public string LogicName { get; set; }
+    public required string Name { get; set; }
+    public required string LogicName { get; set; }
     public int DurationSeconds { get; set; }
     public int WorkerCount { get; set; }
     public int GoldCost { get; set; }
     public int RollCount { get; set; }
-    public ExpeditionLoot[] Loot { get; set; }
-    public ExpeditionEquipment[] Equipment { get; set; }
+    public ExpeditionLoot[] Loot { get; set; } = [];
+    public ExpeditionEquipment[] Equipment { get; set; } = [];
 }
 
 public class ExpeditionEquipment

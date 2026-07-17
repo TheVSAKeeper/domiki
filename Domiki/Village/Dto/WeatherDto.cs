@@ -11,7 +11,7 @@ public sealed record WeatherStateDto
     /// <remarks>
     /// <see langword="null"/> – период ещё не насеян планировщиком.
     /// </remarks>
-    public required WeatherPeriodDto Current { get; init; }
+    public WeatherPeriodDto? Current { get; init; }
 
     /// <summary>
     /// Ближайшие будущие периоды погоды – геймплей планирования, не рулетка.

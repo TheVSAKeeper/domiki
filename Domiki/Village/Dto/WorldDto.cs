@@ -89,7 +89,7 @@ public sealed record WorldVillageDto
     /// <remarks>
     /// <see langword="null"/> для деревень игроков (см. <see cref="IsNpc"/>).
     /// </remarks>
-    public required string NpcLogicName { get; init; }
+    public string? NpcLogicName { get; init; }
 
     /// <summary>
     /// Число выполненных заказов за текущий сезон – счётчик номинации «Лучший поставщик».

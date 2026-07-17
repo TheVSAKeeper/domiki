@@ -9,10 +9,10 @@ public static class ReceiptDtoExtensions
         return new()
         {
             Id = res.Id,
-            Name = res.Name,
-            LogicName = res.LogicName,
+            Name = res.Name ?? "",
+            LogicName = res.LogicName ?? "",
             InputResources = res.InputResources.Select(x => x.ToDto()).ToArray(),
-            OptionalInputResources = (res.OptionalInputResources ?? []).Select(x => x.ToDto()).ToArray(),
+            OptionalInputResources = res.OptionalInputResources.Select(x => x.ToDto()).ToArray(),
             DurationSeconds = res.DurationSeconds,
             OutputBonusPercent = res.OutputBonusPercent,
             OutputResources = res.OutputResources.Select(x => x.ToDto()).ToArray(),

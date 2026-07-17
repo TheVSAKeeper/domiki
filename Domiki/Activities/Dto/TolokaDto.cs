@@ -68,9 +68,6 @@ public sealed record TolokaStateDto
     /// <summary>
     /// Текущая активная толока.
     /// </summary>
-    /// <remarks>
-    /// <see langword="null"/> – здание «Сходня» ещё не построено.
-    /// </remarks>
     public required TolokaDto Active { get; init; }
 
     /// <summary>

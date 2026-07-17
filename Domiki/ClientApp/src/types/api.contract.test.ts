@@ -114,8 +114,8 @@ const getBraceDepth = (source: string, endIndex: number): number => {
 };
 
 const parseDtoClasses = (source: string): DtoClass[] => {
-    const classExpression = /\bpublic\s+class\s+(?<name>\w+Dto)\b/g;
-    const propertyExpression = /(?<attributes>(?:\s*\[[^]]+\]\s*)*)public\s+[\w.]+(?:\s*<[^>{}]+>)?(?:\?|\[\])*\s+(?<name>\w+)\s*\{\s*get;\s*(?:(?:(?:public|protected|internal|private)\s+)?(?:set|init);\s*)?\}/g;
+    const classExpression = /\bpublic\s+(?:sealed\s+)?(?:record|class)\s+(?<name>\w+Dto)\b/g;
+    const propertyExpression = /(?<attributes>(?:\s*\[[^]]+\]\s*)*)public\s+(?:required\s+)?[\w.]+(?:\s*<[^>{}]+>)?(?:\?|\[\])*\s+(?<name>\w+)\s*\{\s*get;\s*(?:(?:(?:public|protected|internal|private)\s+)?(?:set|init);\s*)?\}/g;
     const dtoClasses: DtoClass[] = [];
 
     for (const classMatch of source.matchAll(classExpression)) {

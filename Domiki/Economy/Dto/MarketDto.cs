@@ -18,7 +18,7 @@ public sealed record TradeLotDto
     /// <summary>
     /// Название деревни продавца.
     /// </summary>
-    public required string SellerVillageName { get; init; }
+    public string? SellerVillageName { get; init; }
 
     /// <summary>
     /// Иконка герба деревни продавца.

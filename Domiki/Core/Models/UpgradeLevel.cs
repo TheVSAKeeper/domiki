@@ -17,17 +17,17 @@ public class UpgradeLevel
     /// <summary>
     /// Сколько нужно ресурсов для перехода на этот уровень.
     /// </summary>
-    public Resource[] Resources { get; set; }
+    public Resource[] Resources { get; set; } = [];
 
     /// <summary>
     /// Что нам даёт данная постройка.
     /// </summary>
-    public Modificator[] Modificators { get; set; }
+    public Modificator[] Modificators { get; set; } = [];
 
     /// <summary>
     /// Что можно производить в постройке.
     /// </summary>
-    public Receipt[] Receipts { get; set; } = new Receipt[0];
+    public Receipt[] Receipts { get; set; } = [];
 
     /// <summary>
     /// Сколько одновременно производств можно запустить в постройке.

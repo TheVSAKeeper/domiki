@@ -95,7 +95,7 @@ public sealed record GameStateDto
     /// <remarks>
     /// <see langword="null"/> – механика экспедиций игроку ещё недоступна.
     /// </remarks>
-    public required ExpeditionStateDto Expeditions { get; init; }
+    public ExpeditionStateDto? Expeditions { get; init; }
 
     /// <summary>
     /// Декор игрока и накопленный уют.
@@ -108,7 +108,7 @@ public sealed record GameStateDto
     /// <remarks>
     /// <see langword="null"/> – толока ещё недоступна игроку.
     /// </remarks>
-    public required TolokaStateDto Toloka { get; init; }
+    public TolokaStateDto? Toloka { get; init; }
 
     /// <summary>
     /// Состояние ярмарки игрока.
@@ -116,7 +116,7 @@ public sealed record GameStateDto
     /// <remarks>
     /// <see langword="null"/> – Торговый двор ещё не построен (см. <see cref="Economy.MarketManager.GetMarket"/>).
     /// </remarks>
-    public required MarketStateDto Market { get; init; }
+    public MarketStateDto? Market { get; init; }
 
     /// <summary>
     /// Сводка «Пока вас не было».

@@ -3,8 +3,8 @@
 public class DomikType
 {
     public int Id { get; set; }
-    public string Name { get; set; }
-    public string LogicName { get; set; }
+    public required string Name { get; set; }
+    public required string LogicName { get; set; }
 
     /// <summary>
     /// Максимальное количество построек данного типа.
@@ -18,5 +18,5 @@ public class DomikType
     /// </summary>
     public int MaxLevel => Levels.Length;
 
-    public UpgradeLevel[] Levels { get; set; }
+    public UpgradeLevel[] Levels { get; set; } = [];
 }

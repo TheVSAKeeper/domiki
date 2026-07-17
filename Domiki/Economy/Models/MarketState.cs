@@ -4,7 +4,7 @@ public class TradeLot
 {
     public int Id { get; set; }
     public int SellerId { get; set; }
-    public string SellerVillageName { get; set; }
+    public string? SellerVillageName { get; set; }
     public int SellerCrestIcon { get; set; }
     public int SellerCrestColor { get; set; }
     public int GiveResourceTypeId { get; set; }
@@ -17,8 +17,8 @@ public class TradeLot
 
 public class MarketState
 {
-    public TradeLot[] Lots { get; set; }
-    public TradeLot[] MyLots { get; set; }
+    public TradeLot[] Lots { get; set; } = [];
+    public TradeLot[] MyLots { get; set; } = [];
     public int BuildingLevel { get; set; }
     public double CommissionRate { get; set; }
     public int CommissionMin { get; set; }

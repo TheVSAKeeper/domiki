@@ -5,13 +5,13 @@ namespace Domiki.Web.Village.Models;
 public class DecorType
 {
     public int Id { get; set; }
-    public string Name { get; set; }
-    public string LogicName { get; set; }
+    public required string Name { get; set; }
+    public required string LogicName { get; set; }
     public int ComfortPoints { get; set; }
     public bool IsPurchasable { get; set; }
     public int? NeighborId { get; set; }
     public int ReputationThreshold { get; set; }
-    public Resource[] Cost { get; set; }
+    public Resource[] Cost { get; set; } = [];
 }
 
 public class PlayerDecor
@@ -22,7 +22,7 @@ public class PlayerDecor
 
 public class DecorState
 {
-    public DecorType[] Types { get; set; }
-    public PlayerDecor[] Owned { get; set; }
+    public DecorType[] Types { get; set; } = [];
+    public PlayerDecor[] Owned { get; set; } = [];
     public int Comfort { get; set; }
 }

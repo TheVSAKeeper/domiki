@@ -234,7 +234,7 @@ public class DomikManager
                             ReceiptId = x.ReceiptId,
                             AutoRepeat = x.AutoRepeat,
                         })
-                        .ToArray(),
+                        .ToArray() ?? [],
                 })
             .ToList();
     }

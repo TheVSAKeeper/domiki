@@ -6,7 +6,7 @@ namespace Domiki.Web.Infrastructure.Models;
 public class RecapModel
 {
     public int AwaySeconds { get; set; }
-    public List<RecapEventModel> Events { get; set; }
+    public List<RecapEventModel> Events { get; set; } = [];
 }
 
 public class RecapEventModel

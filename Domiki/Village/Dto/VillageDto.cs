@@ -8,7 +8,7 @@ public sealed record VillageDto
     /// <summary>
     /// Название деревни, выбранное игроком.
     /// </summary>
-    public required string VillageName { get; init; }
+    public string? VillageName { get; init; }
 
     /// <summary>
     /// Индекс пиктограммы герба из готового набора.
