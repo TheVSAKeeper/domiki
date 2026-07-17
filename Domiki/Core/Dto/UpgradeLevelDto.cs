@@ -2,6 +2,12 @@
 
 namespace Domiki.Web.Core.Dto;
 
+/// <summary>
+/// Параметры одного уровня апгрейда постройки.
+/// </summary>
+/// <remarks>
+/// Стоимость перехода, эффекты и доступные на этом уровне рецепты.
+/// </remarks>
 public class UpgradeLevelDto
 {
     /// <summary>
@@ -24,5 +30,8 @@ public class UpgradeLevelDto
     /// </summary>
     public int[] ReceiptIds { get; set; }
 
+    /// <summary>
+    /// Сколько производств можно держать запущенными в домике одновременно на этом уровне.
+    /// </summary>
     public int MaxManufactureCount { get; set; }
 }
