@@ -287,6 +287,30 @@
     background: #fbe6bd;
 }
 
+.worker-fatigue {
+    position: absolute;
+    left: 2px;
+    right: 2px;
+    bottom: 2px;
+    height: 5px;
+    background: var(--plank-dark);
+    border: 1px solid var(--ink);
+}
+
+.worker-fatigue-fill {
+    display: block;
+    height: 100%;
+    background: var(--pine);
+}
+
+.worker-fatigue[data-level='mid'] .worker-fatigue-fill {
+    background: var(--coin);
+}
+
+.worker-fatigue[data-level='high'] .worker-fatigue-fill {
+    background: var(--roof);
+}
+
 .worker-avatar {
     width: 56px;
     height: 56px;

@@ -84,6 +84,15 @@ public sealed record WorkerDto
     public int? ExpeditionId { get; init; }
 
     /// <summary>
+    /// Накопленные секунды работы с последнего отдыха.
+    /// </summary>
+    /// <remarks>
+    /// Растёт при завершении производств, обнуляется при уходе на отдых по порогу
+    /// <see cref="Core.DomikManager.FatigueThresholdSeconds"/> (см. <see cref="Core.DomikManager.FinishManufacture"/>).
+    /// </remarks>
+    public required int WorkedSeconds { get; init; }
+
+    /// <summary>
     /// Момент окончания отдыха в бараке.
     /// </summary>
     /// <value>Момент в UTC.</value>

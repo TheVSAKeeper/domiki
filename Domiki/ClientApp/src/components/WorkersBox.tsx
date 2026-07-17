@@ -25,6 +25,7 @@ interface WorkersBoxProps {
 const stateLabels: Record<WorkerState, string> = { expedition: 'В экспедиции', busy: 'Работает', resting: 'Отдыхает', free: 'Свободен' };
 const tallyLabels: Record<WorkerState, string> = { expedition: 'в пути', busy: 'за работой', resting: 'отдыхают', free: 'свободны' };
 const tallyOrder: WorkerState[] = ['free', 'busy', 'resting', 'expedition'];
+const FATIGUE_THRESHOLD_SECONDS = 28800;
 
 const WorkerDetails = ({ worker, domikTypes, domiks, namer, style }: { worker: WorkerDto; domikTypes: DomikTypeDto[]; domiks: DomikDto[]; namer: DomikNamer; style: CSSProperties }) => {
     const effect = worker.traitDurationPercent === 0 ? '' : ` ${worker.traitDurationPercent} %`;
@@ -167,6 +168,8 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
                             : stateKey === 'busy' || stateKey === 'expedition'
                                 ? 'working'
                                 : 'idle';
+                    const fatigueFraction = Math.min(worker.workedSeconds / FATIGUE_THRESHOLD_SECONDS, 1);
+                    const fatigueLevel = fatigueFraction >= 0.8 ? 'high' : fatigueFraction >= 0.5 ? 'mid' : 'low';
                     const craft = describeWorkerParts(worker, domikTypes);
                     const ranked = rankedSkills(worker);
                     const best = ranked[0];
@@ -206,6 +209,12 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, feedWorke
                                 <span className="worker-portrait">
                                     <WorkerSprite name={worker.name} state={portraitState} skilled={isSkilledWorker(worker)} className="worker-avatar" aria-hidden="true" />
                                     {craft.tier === 'master' && <CrownIcon className="worker-seal" aria-hidden="true" />}
+                                    {!worker.noFatigue && worker.workedSeconds > 0 &&
+                                        <span className="worker-fatigue" data-level={fatigueLevel}
+                                            title={`Усталость: ${formatDuration(worker.workedSeconds)} из ${formatDuration(FATIGUE_THRESHOLD_SECONDS)}`}>
+                                            <span className="worker-fatigue-fill" style={{ width: `${String(Math.round(fatigueFraction * 100))}%` }} />
+                                        </span>
+                                    }
                                 </span>
                                 <div className="worker-headings">
                                     <span className="worker-name">{worker.name}</span>

@@ -212,6 +212,7 @@ export const workerSchema = z.object({
     noSick: z.boolean(),
     manufactureId: z.number().nullable(),
     expeditionId: z.number().nullable(),
+    workedSeconds: z.number(),
     restUntil: z.string().nullable(),
     sickUntil: z.string().nullable(),
     skills: z.array(workerSkillSchema),
