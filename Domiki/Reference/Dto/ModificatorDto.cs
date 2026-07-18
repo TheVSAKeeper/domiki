@@ -6,7 +6,7 @@
 public sealed record ModificatorDto
 {
     /// <summary>
-    /// Тип модификатора – ссылка на <see cref="ModificatorTypeDto.Id"/>.
+    /// Тип модификатора – id из справочника типов модификаторов.
     /// </summary>
     public required int TypeId { get; init; }
 

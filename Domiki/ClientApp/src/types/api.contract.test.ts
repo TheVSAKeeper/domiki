@@ -63,7 +63,6 @@ const mappings: Record<string, ContractSchema> = {
 };
 
 const skippedDtos: Record<string, string> = {
-    ModificatorTypeDto: 'endpoint GetModificatorTypes есть, клиент не вызывает, схемы нет',
     SetVillageDto: 'request payload SetVillage отправляется без zod-схемы',
     SetFeedWorkersDto: 'request payload SetFeedWorkers отправляется без zod-схемы',
     PushSubscribeDto: 'request payload Push/Subscribe отправляется без zod-схемы',
