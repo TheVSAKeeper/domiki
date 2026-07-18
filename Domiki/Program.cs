@@ -26,7 +26,7 @@ logger.Debug("init main");
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(connectionString);
     options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
@@ -117,7 +117,7 @@ builder.Services.AddScoped<UnitOfWork>();
 builder.Services.AddScoped<DomikManager>();
 builder.Services.AddScoped<OrderManager>();
 builder.Services.AddScoped<GiftManager>();
-builder.Services.AddScoped<ResourceManager>();
+builder.Services.AddSingleton<ResourceManager>();
 builder.Services.AddScoped<PlayerResourceManager>();
 builder.Services.AddScoped<WorkerManager>();
 builder.Services.AddScoped<WeatherManager>();
