@@ -174,8 +174,7 @@ export type SeasonDto = z.infer<typeof seasonSchema>;
 
 export const tolokaArtifactSchema = z.object({
     name: z.string(),
-    resourceName: z.string(),
-    goal: z.number(),
+    resourcesText: z.string(),
     seasonNumber: z.number(),
     participants: z.number(),
     completedDate: z.string(),
@@ -359,14 +358,20 @@ export const decorStateSchema = z.object({
 });
 export type DecorStateDto = z.infer<typeof decorStateSchema>;
 
+export const tolokaPositionSchema = z.object({
+    resourceTypeId: z.number(),
+    goal: z.number(),
+    collected: z.number(),
+    myContribution: z.number(),
+});
+export type TolokaPositionDto = z.infer<typeof tolokaPositionSchema>;
+
 export const tolokaSchema = z.object({
     id: z.number(),
     tolokaTypeId: z.number(),
     name: z.string(),
     logicName: z.string(),
-    resourceTypeId: z.number(),
-    goal: z.number(),
-    collected: z.number(),
+    positions: z.array(tolokaPositionSchema),
     startDate: z.string(),
 });
 export type TolokaDto = z.infer<typeof tolokaSchema>;
@@ -381,7 +386,6 @@ export type TolokaActiveBuffDto = z.infer<typeof tolokaActiveBuffSchema>;
 
 export const tolokaStateSchema = z.object({
     active: tolokaSchema,
-    myContribution: z.number(),
     activeBuffs: z.array(tolokaActiveBuffSchema),
     buffHours: z.number(),
     nextBuffHours: z.number().nullable(),

@@ -142,8 +142,8 @@ export const buyDecor = (decorTypeId: number, signal?: AbortSignal): Promise<voi
 export const getToloka = (signal?: AbortSignal): Promise<TolokaStateDto | null> =>
     apiGet('Domiki/GetToloka', tolokaStateSchema.nullable(), signal);
 
-export const contributeToloka = (amount: number, signal?: AbortSignal): Promise<void> =>
-    apiPost(`Domiki/ContributeToloka/${amount}`, signal);
+export const contributeToloka = (resourceTypeId: number, amount: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/ContributeToloka/${resourceTypeId}/${amount}`, signal);
 
 export const getMarket = (signal?: AbortSignal): Promise<MarketStateDto | null> =>
     apiGet('Domiki/GetMarket', marketStateSchema.nullable(), signal);

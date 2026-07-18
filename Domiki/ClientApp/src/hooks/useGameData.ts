@@ -58,7 +58,7 @@ export interface GameData {
     hurryDomik: (domikId: number) => Promise<void>;
     startExpedition: (expeditionTypeId: number, workerIds?: number[], provisions?: boolean) => Promise<void>;
     buyDecor: (decorTypeId: number) => Promise<void>;
-    contributeToloka: (amount: number) => Promise<void>;
+    contributeToloka: (resourceTypeId: number, amount: number) => Promise<void>;
     postLot: (kind: number, giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => Promise<void>;
     acceptLot: (lotId: number) => Promise<void>;
     cancelLot: (lotId: number) => Promise<void>;
@@ -222,8 +222,8 @@ export function useGameData(): GameData {
         scheduleReload();
     }, [scheduleReload]);
 
-    const contributeToloka = useCallback(async (amount: number) => {
-        await contributeTolokaApi(amount);
+    const contributeToloka = useCallback(async (resourceTypeId: number, amount: number) => {
+        await contributeTolokaApi(resourceTypeId, amount);
         const [nextToloka, nextResources] = await Promise.all([
             getToloka(),
             apiGet('Domiki/GetResources', resourceSchema.array()),

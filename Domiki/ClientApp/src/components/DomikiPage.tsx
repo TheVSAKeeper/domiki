@@ -168,8 +168,8 @@ export const DomikiPage = () => {
 
     const buyDecorAction = (decorTypeId: number) => runAction(() => buyDecor(decorTypeId), 'Декор куплен');
 
-    const contributeTolokaAction = async (amount: number) => {
-        await runAction(() => contributeToloka(amount), 'Вклад принят');
+    const contributeTolokaAction = async (resourceTypeId: number, amount: number) => {
+        await runAction(() => contributeToloka(resourceTypeId, amount), 'Вклад принят');
     };
 
     const postLotAction = async (kind: number, giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => {

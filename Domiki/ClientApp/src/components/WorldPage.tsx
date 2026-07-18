@@ -291,7 +291,7 @@ export const WorldPage = () => {
                                                 {artifact.name} – сезон {artifact.seasonNumber}, {artifact.participants} {pluralRu(artifact.participants, 'участник', 'участника', 'участников')}
                                             </span>
                                             <span className="world-artifact-sub">
-                                                {artifact.goal} {artifact.resourceName} · {formatRelativeTime(artifact.completedDate, now)}
+                                                {artifact.resourcesText} · {formatRelativeTime(artifact.completedDate, now)}
                                             </span>
                                         </div>
                                     ))}

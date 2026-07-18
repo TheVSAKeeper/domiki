@@ -49,6 +49,7 @@ const mappings: Record<string, ContractSchema> = {
     TolokaActiveBuffDto: { schemaName: 'tolokaActiveBuffSchema', shape: api.tolokaActiveBuffSchema.shape },
     TolokaArtifactDto: { schemaName: 'tolokaArtifactSchema', shape: api.tolokaArtifactSchema.shape },
     TolokaDto: { schemaName: 'tolokaSchema', shape: api.tolokaSchema.shape },
+    TolokaPositionDto: { schemaName: 'tolokaPositionSchema', shape: api.tolokaPositionSchema.shape },
     TolokaStateDto: { schemaName: 'tolokaStateSchema', shape: api.tolokaStateSchema.shape },
     TradeLotDto: { schemaName: 'tradeLotSchema', shape: api.tradeLotSchema.shape },
     UpgradeLevelDto: { schemaName: 'upgradeLevelSchema', shape: api.upgradeLevelSchema.shape },

@@ -123,67 +123,82 @@
     color: #8a6a12;
 }
 
-.toloka-pot {
+.toloka-basket {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
     min-width: 0;
 }
 
-.toloka-pot-head,
-.toloka-pot-foot {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.toloka-pot-head .panel-label {
+.toloka-basket .panel-label {
     margin-bottom: 0;
     color: var(--pine-dark);
 }
 
-.toloka-pot .progress-bar {
-    height: 24px;
-}
-
-.toloka-pot-hint {
-    font-size: 12px;
-    font-style: italic;
-    color: rgba(51, 41, 26, .6);
-}
-
-.toloka-form {
+.toloka-pos {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding: 12px;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 12px;
     background: #fffaec;
-    border: 3px solid var(--ink);
+    border: 2px solid var(--ink);
     clip-path: var(--cut);
     box-shadow: inset 0 -3px 0 var(--plank-dark);
 }
 
-.toloka-form input {
-    width: 92px;
-    min-height: 38px;
-    padding: 7px 8px;
-    font: inherit;
-    color: var(--ink);
-    background: #fffaec;
-    border: 3px solid var(--ink);
-    clip-path: var(--cut);
+.toloka-pos-done {
+    background: rgba(214, 224, 197, .6);
 }
 
-.toloka-form input:focus-visible {
-    outline: none;
-    border-color: var(--coin);
+.toloka-pos-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.toloka-form .btn-game {
+.toloka-pos-res {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    font-weight: 700;
+}
+
+.toloka-pos-res svg {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
+.toloka-pos-val {
     margin-left: auto;
+    font-family: var(--pixel);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.toloka-pos .progress-bar {
+    height: 20px;
+}
+
+.toloka-pos-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.toloka-pos-form .btn-game {
+    margin-left: auto;
+}
+
+.toloka-pos-done-badge {
+    margin-left: auto;
+    font-family: var(--pixel);
+    font-size: 10px;
+    color: #8a6a12;
+    text-transform: lowercase;
 }
 
 .toloka-buffs {
@@ -210,7 +225,7 @@
         margin-left: auto;
     }
 
-    .toloka-form .btn-game {
+    .toloka-pos-form .btn-game {
         margin-left: 0;
         flex: 1;
     }

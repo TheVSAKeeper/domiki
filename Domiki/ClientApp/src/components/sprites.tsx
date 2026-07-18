@@ -135,6 +135,8 @@ const tolokaSprites: Record<string, SpriteComponent> = {
     bridge: BridgeSprite,
     granary: GranarySprite,
     kiln: KilnSprite,
+    // TODO: караван – заглушка эмблемой толоки, нарисовать canon-спрайт (ASSETS.md арт-долг)
+    caravan: MechTolokaSprite,
 };
 
 const weatherSprites: Record<string, SpriteComponent> = {
