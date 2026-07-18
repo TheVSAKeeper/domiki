@@ -10,7 +10,8 @@ import CalendarIcon from 'pixelarticons/svg/calendar.svg?react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
 import TrophyIcon from 'pixelarticons/svg/trophy.svg?react';
-import { ApiError, getWorld, leaveGuestbookEntry, visitVillage } from '../services/api';
+import HandIcon from 'pixelarticons/svg/hand.svg?react';
+import { ApiError, getWorld, helpVillage, leaveGuestbookEntry, visitVillage } from '../services/api';
 import { useToast } from '../services/toastContext';
 import { GUESTBOOK_PHRASES } from '../constants/guestbookPhrases';
 import { formatDuration, formatRelativeTime, remainingSeconds } from '../utils/time';
@@ -55,6 +56,7 @@ export const WorldPage = () => {
     const [now, setNow] = useState(() => Date.now());
     const [guestbookPhraseId, setGuestbookPhraseId] = useState<number | null>(null);
     const [guestbookBusy, setGuestbookBusy] = useState(false);
+    const [helpBusy, setHelpBusy] = useState(false);
     const visitControllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => () => { visitControllerRef.current?.abort(); }, []);
@@ -157,6 +159,30 @@ export const WorldPage = () => {
             throw err;
         } finally {
             setGuestbookBusy(false);
+        }
+    };
+
+    const submitHelp = async () => {
+        const target = selectedVillage;
+        if (target?.playerId == null) {
+            return;
+        }
+        const controllerBefore = visitControllerRef.current;
+        setHelpBusy(true);
+        try {
+            const result = await helpVillage(target.playerId);
+            toast.success(`Вы подсобили: ${result.domikTypeName} освободится на ${formatDuration(result.reducedSeconds)} раньше, +${result.rewardCoins} монет`);
+            if (visitControllerRef.current === controllerBefore) {
+                await openVillage(target);
+            }
+        } catch (err) {
+            if (err instanceof ApiError) {
+                toast.error(err.message);
+                return;
+            }
+            throw err;
+        } finally {
+            setHelpBusy(false);
         }
     };
 
@@ -318,6 +344,30 @@ export const WorldPage = () => {
                                     </div>
                                 ))}
                             </div>
+
+                            {selectedVillage?.isMe !== true &&
+                                <div className="world-help-action">
+                                    {visit.canHelp &&
+                                        <button type="button" className="btn-game" disabled={helpBusy}
+                                            onClick={() => { void submitHelp(); }}>
+                                            <HandIcon className="btn-ico" aria-hidden="true" />
+                                            Подсобить
+                                        </button>
+                                    }
+                                    {!visit.canHelp && visit.alreadyHelpedToday &&
+                                        <p className="hint world-help-status">Вы уже подсобили сегодня</p>
+                                    }
+                                    {!visit.canHelp && !visit.alreadyHelpedToday && visit.hostCapReached &&
+                                        <p className="hint world-help-status">Этой деревне сегодня уже подсобили</p>
+                                    }
+                                    {!visit.canHelp && !visit.alreadyHelpedToday && !visit.hostCapReached && !visit.hasActiveWork &&
+                                        <p className="hint world-help-status">Сейчас у деревни нет активных работ</p>
+                                    }
+                                    {!visit.canHelp && !visit.alreadyHelpedToday && !visit.hostCapReached && visit.hasActiveWork &&
+                                        <p className="hint world-help-status">Откроется при обжитости {visit.helpUnlockLevel}</p>
+                                    }
+                                </div>
+                            }
 
                             <div className="world-guestbook">
                                 <h3 className="panel-title world-guestbook-title">

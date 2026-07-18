@@ -221,8 +221,20 @@ export const villageVisitSchema = z.object({
     canLeaveEntry: z.boolean(),
     alreadyLeftToday: z.boolean(),
     guestbookUnlockLevel: z.number(),
+    canHelp: z.boolean(),
+    alreadyHelpedToday: z.boolean(),
+    hostCapReached: z.boolean(),
+    hasActiveWork: z.boolean(),
+    helpUnlockLevel: z.number(),
 });
 export type VillageVisitDto = z.infer<typeof villageVisitSchema>;
+
+export const helpResultSchema = z.object({
+    domikTypeName: z.string(),
+    reducedSeconds: z.number(),
+    rewardCoins: z.number(),
+});
+export type HelpResultDto = z.infer<typeof helpResultSchema>;
 
 export const workerSkillSchema = z.object({
     domikTypeId: z.number(),

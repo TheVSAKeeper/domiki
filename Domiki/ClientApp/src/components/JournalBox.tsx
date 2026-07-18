@@ -6,11 +6,12 @@ import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?reac
 import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
 import CheckboxOnIcon from 'pixelarticons/svg/checkbox-on.svg?react';
 import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
+import HandIcon from 'pixelarticons/svg/hand.svg?react';
 import type { DecorTypeDto, DomikTypeDto, RecapEventDto, ResourceTypeDto } from '../types/api';
 import { isNumber, isRecord, lootEntryKey, readLootEntry, readResource } from '../utils/recap';
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
 import { withStableKeys } from '../utils/keys';
-import { formatRelativeTime } from '../utils/time';
+import { formatDuration, formatRelativeTime } from '../utils/time';
 import { genderForm, traitLabel } from '../utils/gender';
 import { guestbookPhraseText } from '../constants/guestbookPhrases';
 import { AbstractSprite, DomikSprite, MechanicSprite } from './sprites';
@@ -197,6 +198,19 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
                     <Crest icon={data.guestCrestIcon} color={data.guestCrestColor} className="crest-badge-small" />
                     <span className="journal-text">{data.guestVillageName}: расписались в вашей книге гостей</span>
                     <span className="guestbook-entry-phrase">«{guestbookPhraseText(data.phraseId)}»</span>
+                </>
+            ),
+        };
+    }
+
+    if (event.type === 'VillageHelped' && typeof data.guestVillageName === 'string' && isNumber(data.guestCrestIcon) && isNumber(data.guestCrestColor) && typeof data.domikTypeName === 'string' && isNumber(data.reducedSeconds)) {
+        return {
+            tone: 'help',
+            Icon: HandIcon,
+            body: (
+                <>
+                    <Crest icon={data.guestCrestIcon} color={data.guestCrestColor} className="crest-badge-small" />
+                    <span className="journal-text">{data.guestVillageName} подсобила: {data.domikTypeName} освободится на {formatDuration(data.reducedSeconds)} раньше</span>
                 </>
             ),
         };

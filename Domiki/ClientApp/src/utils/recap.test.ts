@@ -96,4 +96,22 @@ describe('buildRecapView', () => {
 
         expect(recap.guestbookEntries).toEqual([]);
     });
+
+    it('parses a village help received while away', () => {
+        const recap = buildRecapView([
+            { type: 'VillageHelped', date: '2026-07-10T00:11:00Z', data: { guestVillageName: 'Заречье', guestCrestIcon: 2, guestCrestColor: 4, domikTypeName: 'Лесопилка', reducedSeconds: 600 } },
+        ]);
+
+        expect(recap.villageHelped).toEqual([
+            { guestVillageName: 'Заречье', guestCrestIcon: 2, guestCrestColor: 4, domikTypeName: 'Лесопилка', reducedSeconds: 600, date: '2026-07-10T00:11:00Z' },
+        ]);
+    });
+
+    it('silently ignores a village help entry without a duration', () => {
+        const recap = buildRecapView([
+            { type: 'VillageHelped', date: '2026-07-10T00:12:00Z', data: { guestVillageName: 'Заречье', guestCrestIcon: 2, guestCrestColor: 4, domikTypeName: 'Лесопилка' } },
+        ]);
+
+        expect(recap.villageHelped).toEqual([]);
+    });
 });

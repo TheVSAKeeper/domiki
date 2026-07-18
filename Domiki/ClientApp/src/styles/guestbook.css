@@ -87,6 +87,19 @@
     flex-shrink: 0;
 }
 
+.world-help-action {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 2px solid var(--plank-dark);
+}
+
+.world-help-status {
+    margin: 0;
+}
+
 .world-guestbook {
     margin-top: 14px;
     padding-top: 14px;
