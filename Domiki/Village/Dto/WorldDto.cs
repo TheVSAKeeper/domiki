@@ -144,6 +144,11 @@ public sealed record VillageVisitDto
     /// Постройки посещаемой деревни с их уровнями.
     /// </summary>
     public required VisitBuildingDto[] Buildings { get; init; }
+
+    public required GuestbookEntryDto[] Guestbook { get; init; }
+    public required bool CanLeaveEntry { get; init; }
+    public required bool AlreadyLeftToday { get; init; }
+    public required int GuestbookUnlockLevel { get; init; }
 }
 
 /// <summary>

@@ -56,4 +56,9 @@ public enum PlayerEventType
     /// Сосед оставил гостинец за возврат игрока после отлучки (см. <see cref="Economy.GiftManager.TryGrantGift"/>).
     /// </summary>
     NeighborGift = 8,
+
+    /// <summary>
+    /// Гость расписался в книге гостей деревни игрока.
+    /// </summary>
+    GuestbookEntryLeft = 9,
 }

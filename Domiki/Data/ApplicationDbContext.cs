@@ -57,6 +57,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<TradeLot> TradeLots { get; set; }
     public DbSet<SeasonCounter> SeasonCounters { get; set; }
     public DbSet<PlayerEvent> PlayerEvents { get; set; }
+    public DbSet<GuestbookEntry> GuestbookEntries { get; set; }
     public DbSet<PlayerPushSubscription> PlayerPushSubscriptions { get; set; }
     public DbSet<StarterGoal> StarterGoals { get; set; }
     public DbSet<PlayerGoal> PlayerGoals { get; set; }
@@ -207,6 +208,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(s => s.Neighbor)
             .WithMany()
             .HasForeignKey(e => e.NeighborId);
+
+        modelBuilder.Entity<GuestbookEntry>()
+            .HasKey(p => new
+            {
+                p.HostPlayerId,
+                p.GuestPlayerId,
+                p.Day,
+            });
+
+        modelBuilder.Entity<GuestbookEntry>()
+            .HasOne(s => s.HostPlayer)
+            .WithMany()
+            .HasForeignKey(e => e.HostPlayerId);
+
+        modelBuilder.Entity<GuestbookEntry>()
+            .HasOne(s => s.GuestPlayer)
+            .WithMany()
+            .HasForeignKey(e => e.GuestPlayerId);
 
         modelBuilder.Entity<Blueprint>()
             .HasOne(s => s.DomikType)

@@ -129,6 +129,7 @@ builder.Services.AddScoped<MarketManager>();
 builder.Services.AddScoped<WorldManager>();
 builder.Services.AddScoped<SeasonManager>();
 builder.Services.AddScoped<VillageLevelCalculator>();
+builder.Services.AddScoped<GuestbookManager>();
 builder.Services.AddScoped<PlayerEventManager>();
 builder.Services.AddScoped<GoalManager>();
 builder.Services.AddScoped<PushManager>();

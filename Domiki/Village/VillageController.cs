@@ -15,8 +15,9 @@ public class VillageController : GameControllerBase
     private readonly VillageLevelCalculator _villageLevelCalculator;
     private readonly WeatherManager _weatherManager;
     private readonly DecorManager _decorManager;
+    private readonly GuestbookManager _guestbookManager;
 
-    public VillageController(DomikManager domikManager, ResourceManager resourceManager, WorldManager worldManager, SeasonManager seasonManager, VillageLevelCalculator villageLevelCalculator, WeatherManager weatherManager, DecorManager decorManager)
+    public VillageController(DomikManager domikManager, ResourceManager resourceManager, WorldManager worldManager, SeasonManager seasonManager, VillageLevelCalculator villageLevelCalculator, WeatherManager weatherManager, DecorManager decorManager, GuestbookManager guestbookManager)
         : base(domikManager)
     {
         _domikManager = domikManager;
@@ -26,6 +27,7 @@ public class VillageController : GameControllerBase
         _villageLevelCalculator = villageLevelCalculator;
         _weatherManager = weatherManager;
         _decorManager = decorManager;
+        _guestbookManager = guestbookManager;
     }
 
     [HttpGet]
@@ -75,7 +77,31 @@ public class VillageController : GameControllerBase
     [Route("/Domiki/VisitVillage/{playerId}")]
     public VillageVisitDto VisitVillage(int playerId)
     {
-        return _worldManager.VisitVillage(playerId).ToDto();
+        var guestId = GetPlayerId();
+        var date = DateTimeHelper.GetNowDate();
+
+        var visit = _worldManager.VisitVillage(playerId);
+        _guestbookManager.RecordVisit(guestId, playerId, date);
+        var guestbook = _guestbookManager.GetVisitGuestbook(playerId, guestId, date);
+
+        return visit.ToDto(guestbook);
+    }
+
+    [HttpPost]
+    [Route("/Domiki/LeaveGuestbookEntry/{hostPlayerId}")]
+    public void LeaveGuestbookEntry(int hostPlayerId, [FromQuery] int phraseId)
+    {
+        var guestId = GetPlayerId();
+        _guestbookManager.LeaveEntry(guestId, hostPlayerId, phraseId, DateTimeHelper.GetNowDate());
+    }
+
+    [HttpGet]
+    [Route("/Domiki/GetGuestbook")]
+    public GuestbookDto GetGuestbook()
+    {
+        var playerId = GetPlayerId();
+
+        return _guestbookManager.GetGuestbook(playerId, DateTimeHelper.GetNowDate()).ToDto();
     }
 
     [HttpGet]

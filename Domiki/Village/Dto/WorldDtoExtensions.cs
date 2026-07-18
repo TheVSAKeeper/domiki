@@ -33,7 +33,7 @@ public static class WorldDtoExtensions
         };
     }
 
-    public static VillageVisitDto ToDto(this VillageVisit visit)
+    public static VillageVisitDto ToDto(this VillageVisit visit, VisitGuestbookModel guestbook)
     {
         return new()
         {
@@ -42,6 +42,10 @@ public static class WorldDtoExtensions
             CrestColor = visit.CrestColor,
             Level = visit.Level.ToDto(),
             Buildings = visit.Buildings.Select(x => x.ToDto()).ToArray(),
+            Guestbook = guestbook.Entries.Select(x => x.ToDto()).ToArray(),
+            CanLeaveEntry = guestbook.CanLeaveEntry,
+            AlreadyLeftToday = guestbook.AlreadyLeftToday,
+            GuestbookUnlockLevel = guestbook.GuestbookUnlockLevel,
         };
     }
 
