@@ -29,8 +29,9 @@ public class TolokaManager
     private readonly SeasonManager _seasonManager;
     private readonly PlayerEventManager _playerEventManager;
     private readonly GameStateBroker _broker;
+    private readonly PushSender _pushSender;
 
-    public TolokaManager(UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, SeasonManager seasonManager, PlayerEventManager playerEventManager, GameStateBroker broker)
+    public TolokaManager(UnitOfWork uow, Data.ApplicationDbContext context, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, SeasonManager seasonManager, PlayerEventManager playerEventManager, GameStateBroker broker, PushSender pushSender)
     {
         _uow = uow;
         _context = context;
@@ -39,6 +40,7 @@ public class TolokaManager
         _seasonManager = seasonManager;
         _playerEventManager = playerEventManager;
         _broker = broker;
+        _pushSender = pushSender;
     }
 
     public static int GetBuffSeconds(int level)
@@ -128,14 +130,20 @@ public class TolokaManager
         dbToloka.Collected += amount;
         _seasonManager.IncrementCounter(playerId, SeasonMetric.Toloka, amount, date);
 
+        int[]? notifyRecipients = null;
+        var completedTolokaName = tolokaType.Name;
+
         if (dbToloka.Collected >= dbToloka.Goal)
         {
             dbToloka.CompletedDate = date;
             _context.SaveChanges();
-            foreach (var contributor in _context.TolokaContributions.Where(x => x.TolokaId == dbToloka.Id).Select(x => x.PlayerId).ToArray())
+            var contributors = _context.TolokaContributions.Where(x => x.TolokaId == dbToloka.Id).Select(x => x.PlayerId).Distinct().ToArray();
+            foreach (var contributor in contributors)
             {
                 _playerEventManager.Record(contributor, Data.Entities.PlayerEventType.TolokaCompleted, new { tolokaTypeId = dbToloka.TolokaTypeId });
             }
+
+            notifyRecipients = contributors.Where(x => x != playerId).ToArray();
 
             var prevContributors = _context.TolokaContributions.Count(x => x.TolokaId == dbToloka.Id);
             var picked = PickTolokaType(tolokaTypes);
@@ -156,6 +164,14 @@ public class TolokaManager
         {
             afterEventAction?.Invoke();
             _broker.Broadcast(GameStateScopes.Toloka);
+
+            if (notifyRecipients != null)
+            {
+                foreach (var recipientId in notifyRecipients)
+                {
+                    _pushSender.Notify(recipientId, "Домики", $"Толока «{completedTolokaName}» завершена – бафф получен", "/domiki-page");
+                }
+            }
         };
     }
 

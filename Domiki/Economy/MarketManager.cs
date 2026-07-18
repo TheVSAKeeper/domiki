@@ -26,8 +26,9 @@ public class MarketManager
     private readonly PlayerResourceManager _playerResourceManager;
     private readonly PlayerEventManager _playerEventManager;
     private readonly GameStateBroker _broker;
+    private readonly PushSender _pushSender;
 
-    public MarketManager(UnitOfWork uow, ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, PlayerEventManager playerEventManager, GameStateBroker broker)
+    public MarketManager(UnitOfWork uow, ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, PlayerEventManager playerEventManager, GameStateBroker broker, PushSender pushSender)
     {
         _uow = uow;
         _context = context;
@@ -36,6 +37,7 @@ public class MarketManager
         _playerResourceManager = playerResourceManager;
         _playerEventManager = playerEventManager;
         _broker = broker;
+        _pushSender = pushSender;
     }
 
     public static double GetCommissionRate(int marketLevel)
@@ -195,6 +197,12 @@ public class MarketManager
         _playerResourceManager.GrantResource(lot.SellerId, lot.WantResourceTypeId, lot.WantValue);
         _playerEventManager.Record(lot.SellerId, PlayerEventType.LotSold, new { giveResourceTypeId = lot.GiveResourceTypeId, giveValue = lot.GiveValue, wantResourceTypeId = lot.WantResourceTypeId, wantValue = lot.WantValue });
 
+        var resourceTypes = _resourceManager.GetResourceTypes();
+        var giveName = resourceTypes.First(x => x.Id == lot.GiveResourceTypeId).Name;
+        var giveValue = lot.GiveValue;
+        var wantName = resourceTypes.First(x => x.Id == lot.WantResourceTypeId).Name;
+        var wantValue = lot.WantValue;
+
         _context.TradeLots.Remove(lot);
         _context.SaveChanges();
 
@@ -205,6 +213,7 @@ public class MarketManager
             _calculator.Remove(sellerId.Value, lotId, CalculateTypes.TradeLotExpire);
             _broker.Broadcast(GameStateScopes.Market);
             _broker.Publish(sellerId.Value, GameStateScopes.State);
+            _pushSender.Notify(sellerId.Value, "Домики", $"Ваш лот на ярмарке купили: {giveName} ×{giveValue} за {wantName} ×{wantValue}", "/domiki-page");
         };
     }
 

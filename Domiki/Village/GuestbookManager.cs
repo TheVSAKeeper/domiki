@@ -35,14 +35,20 @@ public class GuestbookManager
     private readonly SeasonManager _seasonManager;
     private readonly PlayerEventManager _playerEventManager;
     private readonly PlayerResourceManager _playerResourceManager;
+    private readonly UnitOfWork _uow;
+    private readonly GameStateBroker _broker;
+    private readonly PushSender _pushSender;
 
-    public GuestbookManager(ApplicationDbContext context, VillageLevelCalculator villageLevelCalculator, SeasonManager seasonManager, PlayerEventManager playerEventManager, PlayerResourceManager playerResourceManager)
+    public GuestbookManager(ApplicationDbContext context, VillageLevelCalculator villageLevelCalculator, SeasonManager seasonManager, PlayerEventManager playerEventManager, PlayerResourceManager playerResourceManager, UnitOfWork uow, GameStateBroker broker, PushSender pushSender)
     {
         _context = context;
         _villageLevelCalculator = villageLevelCalculator;
         _seasonManager = seasonManager;
         _playerEventManager = playerEventManager;
         _playerResourceManager = playerResourceManager;
+        _uow = uow;
+        _broker = broker;
+        _pushSender = pushSender;
     }
 
     /// <summary>
@@ -106,6 +112,8 @@ public class GuestbookManager
             throw new BusinessException("Сначала назовите свою деревню");
         }
 
+        var guestVillageName = guest.VillageName;
+
         if (_villageLevelCalculator.GetLevel(guestPlayerId).Level < GuestbookUnlockLevel)
         {
             throw new BusinessException($"Книга гостей откроется на обжитости {GuestbookUnlockLevel}");
@@ -136,11 +144,19 @@ public class GuestbookManager
 
         _playerEventManager.Record(hostPlayerId, PlayerEventType.GuestbookEntryLeft, new
         {
-            guestVillageName = guest.VillageName,
+            guestVillageName,
             guestCrestIcon = guest.CrestIcon,
             guestCrestColor = guest.CrestColor,
             phraseId,
         });
+
+        var afterEventAction = _uow.AfterEventAction;
+        _uow.AfterEventAction = () =>
+        {
+            afterEventAction?.Invoke();
+            _broker.Publish(hostPlayerId, GameStateScopes.State);
+            _pushSender.Notify(hostPlayerId, "Домики", $"В вашей книге гостей расписались: {guestVillageName}", "/domiki-page");
+        };
     }
 
     /// <summary>
