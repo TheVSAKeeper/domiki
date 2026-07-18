@@ -1,0 +1,180 @@
+.hud-news {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 9px;
+    color: var(--ink);
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+.hud-news-dot {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 9px;
+    height: 9px;
+    background: var(--roof);
+    border: 2px solid var(--ink);
+}
+
+.changelog-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: min(640px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    padding: 0 18px 18px;
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+    scrollbar-width: thin;
+    scrollbar-color: var(--pine) var(--plank-dark);
+}
+
+.changelog-modal::-webkit-scrollbar {
+    width: 10px;
+}
+
+.changelog-modal::-webkit-scrollbar-track {
+    background: var(--plank-dark);
+    border-left: 2px solid var(--ink);
+}
+
+.changelog-modal::-webkit-scrollbar-thumb {
+    background: var(--pine);
+    border: 2px solid var(--ink);
+}
+
+dialog.changelog-modal {
+    margin: auto;
+    color: var(--ink);
+}
+
+dialog.changelog-modal:not([open]) {
+    display: none;
+}
+
+dialog.changelog-modal::backdrop {
+    background: rgba(51, 41, 26, .42);
+}
+
+.changelog-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 -18px;
+    padding: 16px 18px 14px;
+    background:
+        radial-gradient(120% 140% at 50% -20%, rgba(231, 168, 59, .28), transparent 60%),
+        linear-gradient(180deg, var(--plank), var(--plank-dark));
+    border-bottom: 3px solid var(--ink);
+    box-shadow: 0 3px 0 var(--plank), 0 5px 0 var(--ink);
+}
+
+.changelog-modal-title {
+    margin: 0;
+}
+
+.changelog-subtitle {
+    display: block;
+    font-size: 11px;
+    color: var(--ink-muted);
+}
+
+.changelog-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    color: var(--ink);
+    background: var(--plank);
+    border: 2px solid var(--ink);
+    cursor: pointer;
+    transition: background .12s, color .12s;
+}
+
+.changelog-close:hover {
+    color: var(--pine);
+    background: var(--plank-dark);
+}
+
+.changelog-close:active {
+    box-shadow: inset 0 3px 0 rgba(51, 41, 26, .25);
+}
+
+.changelog-issue {
+    padding-bottom: 14px;
+    padding-left: 10px;
+    border-bottom: 2px dashed rgba(51, 41, 26, .3);
+    border-left: 3px solid transparent;
+}
+
+.changelog-issue:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.changelog-issue[data-fresh='true'] {
+    border-left-color: var(--coin);
+}
+
+.changelog-issue-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.changelog-date {
+    font-size: 10px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+}
+
+.changelog-fresh {
+    padding: 2px 6px;
+    font-size: 9px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--coin);
+    border: 1px solid var(--ink);
+}
+
+.changelog-title {
+    margin: 0 0 4px;
+}
+
+.changelog-lore {
+    margin: 0 0 8px;
+    font-style: italic;
+    color: var(--ink-muted);
+}
+
+.changelog-items {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.changelog-items li {
+    margin-bottom: 4px;
+}
+
+.changelog-items li::before {
+    content: '– ';
+}
+
+@media (max-width: 520px) {
+    .changelog-modal {
+        width: calc(100vw - 16px);
+    }
+}

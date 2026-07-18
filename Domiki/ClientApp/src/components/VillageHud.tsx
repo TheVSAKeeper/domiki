@@ -10,6 +10,7 @@ import { DomikSprite, MechanicSprite, WeatherSprite } from './sprites';
 import { HudResource } from './HudResource';
 import { ProgressBar } from './ProgressBar';
 import { GiftVisitDots } from './GiftVisitDots';
+import { ChangelogButton } from './ChangelogButton';
 
 interface VillageHudProps {
     resources: ResourceDto[];
@@ -206,6 +207,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, vill
                         }
                     </div>
                 }
+                <ChangelogButton />
                 {hudAway && hudPinnedOpen &&
                     <button type="button" className="hud-fold" onClick={() => { setHudPinnedOpen(false); }} title="Свернуть панель">
                         <ChevronUpIcon className="btn-ico" aria-hidden="true" />
