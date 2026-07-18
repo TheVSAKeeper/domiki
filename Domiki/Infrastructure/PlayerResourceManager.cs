@@ -10,12 +10,20 @@ public class PlayerResourceManager
     private readonly ApplicationDbContext _context;
     private readonly ResourceManager _resourceManager;
 
-    public PlayerResourceManager(ApplicationDbContext context, ResourceManager resourceManager)
+    public PlayerResourceManager(UnitOfWork uow, ApplicationDbContext context, ResourceManager resourceManager)
     {
         _context = context;
         _resourceManager = resourceManager;
     }
 
+    /// <summary>
+    /// Берёт блокировку строки игрока (FOR UPDATE) до конца транзакции текущего запроса.
+    /// </summary>
+    /// <remarks>
+    /// Транзакцию открывает конструктор <see cref="UnitOfWork"/> – он инжектится в этот менеджер
+    /// именно затем, чтобы блокировка не выродилась в no-op в autocommit-режиме,
+    /// когда никто выше по графу зависимостей UnitOfWork ещё не создал.
+    /// </remarks>
     public void LockDbPlayerRow(int playerId)
     {
         _context.Database.ExecuteSqlRaw("SELECT 1 FROM \"Players\" WHERE \"Id\" = {0} FOR UPDATE", playerId);
