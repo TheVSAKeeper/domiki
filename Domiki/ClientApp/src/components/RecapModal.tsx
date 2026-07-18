@@ -39,8 +39,9 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
 
     useLayoutEffect(() => {
         const dialog = dialogRef.current;
-        dialog?.showModal();
-        return () => { dialog?.close(); };
+        if (dialog != null && !dialog.open) {
+            dialog.showModal();
+        }
     }, []);
 
     const expeditions = withStableKeys(view.expeditions, e => String(e.expeditionTypeId));
