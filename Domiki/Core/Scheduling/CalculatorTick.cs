@@ -11,14 +11,16 @@ public class CalculatorTick
     private readonly WeatherManager _weatherManager;
     private readonly ExpeditionManager _expeditionManager;
     private readonly MarketManager _marketManager;
+    private readonly ErrandManager _errandManager;
 
-    public CalculatorTick(DomikManager domikManager, OrderManager orderManager, WeatherManager weatherManager, ExpeditionManager expeditionManager, MarketManager marketManager)
+    public CalculatorTick(DomikManager domikManager, OrderManager orderManager, WeatherManager weatherManager, ExpeditionManager expeditionManager, MarketManager marketManager, ErrandManager errandManager)
     {
         _domikManager = domikManager;
         _orderManager = orderManager;
         _weatherManager = weatherManager;
         _expeditionManager = expeditionManager;
         _marketManager = marketManager;
+        _errandManager = errandManager;
     }
 
     public bool Calculate(DateTime date, CalculateInfo calcInfo)
@@ -42,6 +44,9 @@ public class CalculatorTick
 
             case CalculateTypes.TradeLotExpire:
                 return _marketManager.FinishTradeLot(date, calcInfo);
+
+            case CalculateTypes.Errand:
+                return _errandManager.FinishErrand(date, calcInfo);
         }
 
         return false;

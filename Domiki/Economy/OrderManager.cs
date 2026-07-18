@@ -36,6 +36,7 @@ public class OrderManager
     private readonly SeasonManager _seasonManager;
     private readonly TolokaManager _tolokaManager;
     private readonly GoalManager _goalManager;
+    private readonly ErrandManager _errandManager;
 
     public OrderManager(
         UnitOfWork uow,
@@ -47,7 +48,8 @@ public class OrderManager
         VillageLevelCalculator villageLevelCalculator,
         SeasonManager seasonManager,
         TolokaManager tolokaManager,
-        GoalManager goalManager)
+        GoalManager goalManager,
+        ErrandManager errandManager)
     {
         _context = context;
         _calculator = calculator;
@@ -59,6 +61,7 @@ public class OrderManager
         _seasonManager = seasonManager;
         _tolokaManager = tolokaManager;
         _goalManager = goalManager;
+        _errandManager = errandManager;
     }
 
     public static int GetOrderQuantity(OrderTier tier, int resourceTypeId)
@@ -101,6 +104,15 @@ public class OrderManager
             var calcInfo = CreateOrder(playerId, villageLevel);
             created.Add(calcInfo);
             count++;
+        }
+
+        if (created.Count > 0)
+        {
+            var errandCalcInfo = _errandManager.TryRollOffer(playerId, villageLevel);
+            if (errandCalcInfo != null)
+            {
+                created.Add(errandCalcInfo);
+            }
         }
 
         player.NextOrderRefillAt = null;

@@ -23,7 +23,7 @@ public class WorkerManager
 
     public static bool IsFree(Worker worker, DateTime now)
     {
-        return worker.ManufactureId == null && worker.ExpeditionId == null && (worker.RestUntil == null || worker.RestUntil <= now);
+        return worker.ManufactureId == null && worker.ExpeditionId == null && worker.ErrandId == null && (worker.RestUntil == null || worker.RestUntil <= now);
     }
 
     public IEnumerable<Models.Worker> GetWorkers(int playerId)
@@ -156,6 +156,7 @@ public class WorkerManager
                 Trait = traits[x.TraitId],
                 ManufactureId = x.ManufactureId,
                 ExpeditionId = x.ExpeditionId,
+                ErrandId = x.ErrandId,
                 WorkedSeconds = x.WorkedSeconds,
                 RestUntil = x.RestUntil,
                 SickUntil = x.SickUntil,

@@ -66,4 +66,12 @@ public enum PlayerEventType
     /// Гость подсобил деревне – активная работа завершится раньше.
     /// </summary>
     VillageHelped = 10,
+
+    /// <summary>
+    /// Поручение соседа завершилось – трудяги вернулись с наградой.
+    /// </summary>
+    /// <remarks>
+    /// См. <see cref="Economy.ErrandManager.FinishErrand"/>.
+    /// </remarks>
+    ErrandResolved = 11,
 }

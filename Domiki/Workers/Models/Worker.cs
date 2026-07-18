@@ -47,6 +47,15 @@ public class Worker
     public int? ExpeditionId { get; set; }
 
     /// <summary>
+    /// Поручение соседа, которым сейчас занят трудяга.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – трудяга не занят поручением (<see cref="Workers.WorkerManager.IsFree"/> проверяет вместе с
+    /// <see cref="ManufactureId"/>, <see cref="ExpeditionId"/> и <see cref="RestUntil"/>).
+    /// </remarks>
+    public int? ErrandId { get; set; }
+
+    /// <summary>
     /// Накопленное время работы без отдыха.
     /// </summary>
     /// <value>Секунды.</value>

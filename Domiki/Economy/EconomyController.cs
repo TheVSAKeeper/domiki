@@ -10,12 +10,14 @@ public class EconomyController : GameControllerBase
 {
     private readonly OrderManager _orderManager;
     private readonly MarketManager _marketManager;
+    private readonly ErrandManager _errandManager;
 
-    public EconomyController(DomikManager domikManager, OrderManager orderManager, MarketManager marketManager)
+    public EconomyController(DomikManager domikManager, OrderManager orderManager, MarketManager marketManager, ErrandManager errandManager)
         : base(domikManager)
     {
         _orderManager = orderManager;
         _marketManager = marketManager;
+        _errandManager = errandManager;
     }
 
     [HttpGet]
@@ -75,5 +77,21 @@ public class EconomyController : GameControllerBase
     {
         var playerId = GetPlayerId();
         _marketManager.CancelLot(playerId, lotId, DateTimeHelper.GetNowDate());
+    }
+
+    [HttpPost]
+    [Route("/Domiki/AcceptErrand/{errandId}")]
+    public void AcceptErrand(int errandId, [FromQuery] int clueId, [FromQuery] int[] workerIds)
+    {
+        var playerId = GetPlayerId();
+        _errandManager.Accept(playerId, errandId, clueId, workerIds);
+    }
+
+    [HttpPost]
+    [Route("/Domiki/CancelErrand/{errandId}")]
+    public void CancelErrand(int errandId)
+    {
+        var playerId = GetPlayerId();
+        _errandManager.Cancel(playerId, errandId);
     }
 }

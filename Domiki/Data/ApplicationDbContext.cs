@@ -15,6 +15,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Manufacture> Manufactures { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderResource> OrderResources { get; set; }
+    public DbSet<Errand> Errands { get; set; }
     public DbSet<Neighbor> Neighbors { get; set; }
     public DbSet<NeighborReputation> NeighborReputations { get; set; }
     public DbSet<Blueprint> Blueprints { get; set; }
@@ -149,6 +150,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(e => e.ExpeditionId);
 
+        modelBuilder.Entity<Worker>()
+            .HasOne(s => s.Errand)
+            .WithMany()
+            .HasForeignKey(e => e.ErrandId);
+
         modelBuilder.Entity<WorkerSkill>()
             .HasKey(p => new
             {
@@ -194,6 +200,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<OrderResource>()
             .Navigation(e => e.ResourceType)
             .UsePropertyAccessMode(PropertyAccessMode.Property);
+
+        modelBuilder.Entity<Errand>()
+            .HasOne(s => s.Player)
+            .WithMany()
+            .HasForeignKey(e => e.PlayerId);
+
+        modelBuilder.Entity<Errand>()
+            .HasOne(s => s.Neighbor)
+            .WithMany()
+            .HasForeignKey(e => e.NeighborId);
 
         modelBuilder.Entity<NeighborReputation>()
             .HasKey(p => new

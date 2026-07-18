@@ -56,6 +56,15 @@ public class Worker
     public int? ExpeditionId { get; set; }
 
     /// <summary>
+    /// Поручение соседа, которым сейчас занят трудяга.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – трудяга не занят поручением (<see cref="Workers.WorkerManager.IsFree"/> проверяет вместе с
+    /// <see cref="ManufactureId"/>, <see cref="ExpeditionId"/> и <see cref="RestUntil"/>).
+    /// </remarks>
+    public int? ErrandId { get; set; }
+
+    /// <summary>
     /// Накопленное время работы без отдыха в секундах.
     /// </summary>
     /// <value>Секунды.</value>
@@ -99,6 +108,11 @@ public class Worker
     /// Навигационное свойство к экспедиции, в которой участвует трудяга.
     /// </summary>
     public Expedition? Expedition { get; set; }
+
+    /// <summary>
+    /// Навигационное свойство к поручению, которым занят трудяга.
+    /// </summary>
+    public Errand? Errand { get; set; }
 
     /// <summary>
     /// Прокачка трудяги по типам домиков – накопленное число использований и производный бонус к выходу.

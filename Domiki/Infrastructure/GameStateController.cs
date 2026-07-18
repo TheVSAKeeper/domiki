@@ -31,8 +31,9 @@ public class GameStateController : GameControllerBase
     private readonly GiftManager _giftManager;
     private readonly PlayerEventManager _playerEventManager;
     private readonly GoalManager _goalManager;
+    private readonly ErrandManager _errandManager;
 
-    public GameStateController(DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, GiftManager giftManager, PlayerEventManager playerEventManager, GoalManager goalManager)
+    public GameStateController(DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, GiftManager giftManager, PlayerEventManager playerEventManager, GoalManager goalManager, ErrandManager errandManager)
         : base(domikManager)
     {
         _domikManager = domikManager;
@@ -49,6 +50,7 @@ public class GameStateController : GameControllerBase
         _giftManager = giftManager;
         _playerEventManager = playerEventManager;
         _goalManager = goalManager;
+        _errandManager = errandManager;
     }
 
     [HttpGet]
@@ -69,6 +71,7 @@ public class GameStateController : GameControllerBase
             Resources = _domikManager.GetResources(playerId).Select(x => x.ToDto()).ToArray(),
             Orders = _orderManager.GetOrders(playerId).Select(x => x.ToDto()).ToArray(),
             Reputation = _orderManager.GetReputation(playerId).Select(x => x.ToDto()).ToArray(),
+            Errand = _errandManager.Get(playerId)?.ToDto(),
             Blueprints = _blueprintManager.GetBlueprints(playerId).Select(x => x.ToDto()).ToArray(),
             Village = _domikManager.GetVillage(playerId).ToDto(),
             VillageLevel = _villageLevelCalculator.GetLevel(playerId).ToDto(),

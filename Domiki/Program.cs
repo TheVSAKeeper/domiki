@@ -116,6 +116,7 @@ builder.Services.AddExceptionHandler<BusinessExceptionHandler>();
 builder.Services.AddScoped<UnitOfWork>();
 builder.Services.AddScoped<DomikManager>();
 builder.Services.AddScoped<OrderManager>();
+builder.Services.AddScoped<ErrandManager>();
 builder.Services.AddScoped<GiftManager>();
 builder.Services.AddSingleton<ResourceManager>();
 builder.Services.AddScoped<PlayerResourceManager>();

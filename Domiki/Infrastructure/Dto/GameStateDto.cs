@@ -57,6 +57,14 @@ public sealed record GameStateDto
     public required NeighborReputationDto[] Reputation { get; init; }
 
     /// <summary>
+    /// Активное поручение соседа – оффер или принятое.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – у игрока нет незавершённого поручения (см. <see cref="Economy.ErrandManager.Get"/>).
+    /// </remarks>
+    public ErrandDto? Errand { get; init; }
+
+    /// <summary>
     /// Чертежи и их владение игроком.
     /// </summary>
     public required BlueprintDto[] Blueprints { get; init; }

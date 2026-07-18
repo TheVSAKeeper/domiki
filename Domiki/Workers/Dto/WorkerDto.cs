@@ -5,7 +5,7 @@
 /// </summary>
 /// <remarks>
 /// Черта (<see cref="TraitId"/>), состояние усталости/болезни (<see cref="RestUntil"/>, <see cref="SickUntil"/>), занятость
-/// (<see cref="ManufactureId"/>, <see cref="ExpeditionId"/>) и наработанные навыки (<see cref="Skills"/>).
+/// (<see cref="ManufactureId"/>, <see cref="ExpeditionId"/>, <see cref="ErrandId"/>) и наработанные навыки (<see cref="Skills"/>).
 /// </remarks>
 public sealed record WorkerDto
 {
@@ -82,6 +82,14 @@ public sealed record WorkerDto
     /// <see langword="null"/> – не в походе.
     /// </remarks>
     public int? ExpeditionId { get; init; }
+
+    /// <summary>
+    /// Поручение соседа, которым сейчас занят трудяга – ссылка на <see cref="Economy.Dto.ErrandDto.Id"/>.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – не занят поручением.
+    /// </remarks>
+    public int? ErrandId { get; init; }
 
     /// <summary>
     /// Накопленные секунды работы с последнего отдыха.

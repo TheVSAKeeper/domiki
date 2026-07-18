@@ -1,4 +1,5 @@
-﻿using Domiki.Web.Infrastructure;
+﻿using Domiki.Web.Economy;
+using Domiki.Web.Infrastructure;
 using Domiki.Web.Village;
 using System.Diagnostics.CodeAnalysis;
 using System.Timers;
@@ -207,6 +208,10 @@ public class Calculator : ICalculator
                     case CalculateTypes.Expedition when calcDate.PushBody != null:
                         pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody, "/domiki-page");
                         break;
+
+                    case CalculateTypes.Errand when calcDate.PushBody != null:
+                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody, "/domiki-page");
+                        break;
                 }
 
                 switch (calcDate.Type)
@@ -215,6 +220,7 @@ public class Calculator : ICalculator
                     case CalculateTypes.Manufacture:
                     case CalculateTypes.OrderExpire:
                     case CalculateTypes.Expedition:
+                    case CalculateTypes.Errand:
                         broker.Publish(calcDate.PlayerId, GameStateScopes.State);
                         break;
 
@@ -340,6 +346,28 @@ public class Calculator : ICalculator
                     Date = dbTradeLot.ExpireDate,
                     Type = CalculateTypes.TradeLotExpire,
                 });
+            }
+
+            var dbErrands = uow.Context.Errands.Where(x => x.ResolvedDate == null).ToList();
+            foreach (var dbErrand in dbErrands)
+            {
+                dates.Add(dbErrand.AcceptDate == null
+                    ? new()
+                    {
+                        PlayerId = dbErrand.PlayerId,
+                        ObjectId = dbErrand.Id,
+                        Date = dbErrand.ExpireDate,
+                        Type = CalculateTypes.Errand,
+                        PushBody = null,
+                    }
+                    : new()
+                    {
+                        PlayerId = dbErrand.PlayerId,
+                        ObjectId = dbErrand.Id,
+                        Date = dbErrand.FinishDate!.Value,
+                        Type = CalculateTypes.Errand,
+                        PushBody = ErrandManager.ErrandResolvedPushBody,
+                    });
             }
 
             var now = DateTimeHelper.GetNowDate();

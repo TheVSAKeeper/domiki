@@ -20,6 +20,7 @@ public static class WorkerDtoExtensions
             NoSick = worker.Trait.NoSick,
             ManufactureId = worker.ManufactureId,
             ExpeditionId = worker.ExpeditionId,
+            ErrandId = worker.ErrandId,
             WorkedSeconds = worker.WorkedSeconds,
             RestUntil = DateTimeHelper.AsUtc(worker.RestUntil),
             SickUntil = DateTimeHelper.AsUtc(worker.SickUntil),
