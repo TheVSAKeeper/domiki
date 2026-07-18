@@ -61,4 +61,9 @@ public enum PlayerEventType
     /// Гость расписался в книге гостей деревни игрока.
     /// </summary>
     GuestbookEntryLeft = 9,
+
+    /// <summary>
+    /// Гость подсобил деревне – активная работа завершится раньше.
+    /// </summary>
+    VillageHelped = 10,
 }

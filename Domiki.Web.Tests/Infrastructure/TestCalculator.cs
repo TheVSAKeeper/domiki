@@ -45,6 +45,10 @@ public sealed class TestCalculator : ICalculator
     {
     }
 
+    public void Reschedule(int playerId, long objectId, CalculateTypes type, DateTime newDate)
+    {
+    }
+
     public void CheckInit()
     {
     }

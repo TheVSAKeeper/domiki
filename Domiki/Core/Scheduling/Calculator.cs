@@ -68,6 +68,37 @@ public class Calculator : ICalculator
         }
     }
 
+    public void Reschedule(int playerId, long objectId, CalculateTypes type, DateTime newDate)
+    {
+        if (_datas == null)
+        {
+            Init();
+        }
+
+        var index = _datas.FindIndex(x => x.ObjectId == objectId && x.Type == type && x.PlayerId == playerId);
+        if (index == -1)
+        {
+            return;
+        }
+
+        var cData = _datas[index];
+        _datas.RemoveAt(index);
+        cData.Date = newDate;
+
+        var insertIndex = _datas.FindIndex(x => x.Date > cData.Date);
+        if (insertIndex == -1)
+        {
+            _datas.Add(cData);
+        }
+        else
+        {
+            _datas.Insert(insertIndex, cData);
+        }
+
+        _logger.LogInformation("Calculator - reschedule data: " + playerId + " - " + objectId + " - " + type + " -> " + newDate);
+        MinDateForTest = _datas.Count > 0 ? _datas[0].Date : null;
+    }
+
     public void CheckInit()
     {
         //_isInit = true;

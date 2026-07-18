@@ -95,6 +95,31 @@ public class Player
     public DateTime? GoldMinedDate { get; set; }
 
     /// <summary>
+    /// Момент последнего «подсобить», совершённого этим игроком как гостем в чужой деревне.
+    /// </summary>
+    /// <value>Момент в UTC.</value>
+    /// <remarks>
+    /// Кап – одно «подсобить» в UTC-день (см. <see cref="Village.HelpManager.Help"/>).
+    /// </remarks>
+    public DateTime? LastHelpDate { get; set; }
+
+    /// <summary>
+    /// Сколько раз деревне этого игрока подсобили за текущие календарные сутки UTC.
+    /// </summary>
+    /// <remarks>
+    /// Вместе с <see cref="HelpsReceivedDate"/> реализует суточный кап <see cref="Village.HelpManager.HostHelpCapPerDay"/> на число визитов «подсобить».
+    /// </remarks>
+    public int HelpsReceivedToday { get; set; }
+
+    /// <summary>
+    /// Календарная дата (UTC), за которую считается <see cref="HelpsReceivedToday"/>.
+    /// </summary>
+    /// <remarks>
+    /// При смене даты счётчик логически сбрасывается в <c>0</c>.
+    /// </remarks>
+    public DateTime? HelpsReceivedDate { get; set; }
+
+    /// <summary>
     /// Игрок включил автоматическое кормление уставших трудяг хлебом.
     /// </summary>
     /// <remarks>

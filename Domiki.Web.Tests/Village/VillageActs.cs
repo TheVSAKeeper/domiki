@@ -36,7 +36,7 @@ public static class VillageActs
 
     public static VillageVisitDto VisitDto(this TestPlayer p)
     {
-        return App.Act<WorldManager, VillageVisitDto>(m => m.VisitVillage(p.Id).ToDto(new() { GuestbookUnlockLevel = GuestbookManager.GuestbookUnlockLevel }));
+        return App.Act<WorldManager, VillageVisitDto>(m => m.VisitVillage(p.Id).ToDto(new() { GuestbookUnlockLevel = GuestbookManager.GuestbookUnlockLevel }, new() { UnlockLevel = HelpManager.HelpUnlockLevel }));
     }
 
     public static VillageVisit VisitPlayer(int playerId)

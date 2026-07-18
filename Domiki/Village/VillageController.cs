@@ -16,8 +16,9 @@ public class VillageController : GameControllerBase
     private readonly WeatherManager _weatherManager;
     private readonly DecorManager _decorManager;
     private readonly GuestbookManager _guestbookManager;
+    private readonly HelpManager _helpManager;
 
-    public VillageController(DomikManager domikManager, ResourceManager resourceManager, WorldManager worldManager, SeasonManager seasonManager, VillageLevelCalculator villageLevelCalculator, WeatherManager weatherManager, DecorManager decorManager, GuestbookManager guestbookManager)
+    public VillageController(DomikManager domikManager, ResourceManager resourceManager, WorldManager worldManager, SeasonManager seasonManager, VillageLevelCalculator villageLevelCalculator, WeatherManager weatherManager, DecorManager decorManager, GuestbookManager guestbookManager, HelpManager helpManager)
         : base(domikManager)
     {
         _domikManager = domikManager;
@@ -28,6 +29,7 @@ public class VillageController : GameControllerBase
         _weatherManager = weatherManager;
         _decorManager = decorManager;
         _guestbookManager = guestbookManager;
+        _helpManager = helpManager;
     }
 
     [HttpGet]
@@ -88,8 +90,9 @@ public class VillageController : GameControllerBase
         var visit = _worldManager.VisitVillage(playerId);
         _guestbookManager.RecordVisit(guestId, playerId, date);
         var guestbook = _guestbookManager.GetVisitGuestbook(playerId, guestId, date);
+        var help = _helpManager.GetVisitHelp(playerId, guestId, date);
 
-        return visit.ToDto(guestbook);
+        return visit.ToDto(guestbook, help);
     }
 
     /// <summary>
@@ -104,6 +107,15 @@ public class VillageController : GameControllerBase
         var guestId = GetPlayerId();
         _guestbookManager.LeaveEntry(guestId, hostPlayerId, phraseId, DateTimeHelper.GetNowDate());
     }
+
+    /// <summary>
+    /// «Подсобить»: гость сокращает самую долгую активную работу деревни хозяина.
+    /// </summary>
+    /// <param name="hostPlayerId">Id игрока-хозяина посещаемой деревни.</param>
+    /// <returns>Какая работа сокращена, на сколько секунд и сколько монет выдано гостю.</returns>
+    [HttpPost]
+    [Route("/Domiki/HelpVillage/{hostPlayerId}")]
+    public HelpResultDto HelpVillage(int hostPlayerId) => _helpManager.Help(GetPlayerId(), hostPlayerId, DateTimeHelper.GetNowDate()).ToDto();
 
     /// <summary>
     /// Книга гостей собственной деревни: визиты за сезон и лента записей.

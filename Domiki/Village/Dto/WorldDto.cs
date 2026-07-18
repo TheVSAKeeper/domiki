@@ -185,6 +185,43 @@ public sealed record VillageVisitDto
     /// гостя, не хозяина (см. <see cref="CanLeaveEntry"/>).
     /// </remarks>
     public required int GuestbookUnlockLevel { get; init; }
+
+    /// <summary>
+    /// Может ли текущий игрок (гость) подсобить хозяину прямо сейчас.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="false"/>, если гость и хозяин – один игрок, у гостя не названа деревня, обжитость гостя ниже
+    /// <see cref="HelpUnlockLevel"/>, гость уже подсобил сегодня (<see cref="AlreadyHelpedToday"/>), у хозяина
+    /// исчерпан суточный кап (<see cref="HostCapReached"/>) или у деревни хозяина нет активных работ (<see cref="HasActiveWork"/>).
+    /// </remarks>
+    public required bool CanHelp { get; init; }
+
+    /// <summary>
+    /// Подсобил ли текущий игрок сегодня уже какой-то деревне.
+    /// </summary>
+    public required bool AlreadyHelpedToday { get; init; }
+
+    /// <summary>
+    /// Исчерпан ли суточный кап деревни хозяина на число визитов «подсобить».
+    /// </summary>
+    /// <remarks>
+    /// Значение константы <see cref="Village.HelpManager.HostHelpCapPerDay"/>.
+    /// </remarks>
+    public required bool HostCapReached { get; init; }
+
+    /// <summary>
+    /// Есть ли у деревни хозяина хотя бы одна активная работа (улучшение домика или производство) с остатком больше нуля.
+    /// </summary>
+    public required bool HasActiveWork { get; init; }
+
+    /// <summary>
+    /// Порог обжитости, открывающий «подсобить».
+    /// </summary>
+    /// <remarks>
+    /// Значение константы <see cref="Village.HelpManager.HelpUnlockLevel"/>; сравнивается с обжитостью самого гостя,
+    /// не хозяина (см. <see cref="CanHelp"/>).
+    /// </remarks>
+    public required int HelpUnlockLevel { get; init; }
 }
 
 /// <summary>

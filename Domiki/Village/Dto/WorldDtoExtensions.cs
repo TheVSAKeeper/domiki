@@ -35,7 +35,7 @@ public static class WorldDtoExtensions
         };
     }
 
-    public static VillageVisitDto ToDto(this VillageVisit visit, VisitGuestbookModel guestbook)
+    public static VillageVisitDto ToDto(this VillageVisit visit, VisitGuestbookModel guestbook, VisitHelp help)
     {
         return new()
         {
@@ -48,6 +48,11 @@ public static class WorldDtoExtensions
             CanLeaveEntry = guestbook.CanLeaveEntry,
             AlreadyLeftToday = guestbook.AlreadyLeftToday,
             GuestbookUnlockLevel = guestbook.GuestbookUnlockLevel,
+            CanHelp = help.CanHelp,
+            AlreadyHelpedToday = help.AlreadyHelpedToday,
+            HostCapReached = help.HostCapReached,
+            HasActiveWork = help.HasActiveWork,
+            HelpUnlockLevel = help.UnlockLevel,
         };
     }
 

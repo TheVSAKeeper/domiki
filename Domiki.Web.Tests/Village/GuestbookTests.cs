@@ -315,7 +315,8 @@ file static class GuestbookTestsActs
         var visit = scope.Get<WorldManager>().VisitVillage(host.Id);
         scope.Get<GuestbookManager>().RecordVisit(guest.Id, host.Id, date);
         var guestbook = scope.Get<GuestbookManager>().GetVisitGuestbook(host.Id, guest.Id, date);
+        var help = scope.Get<HelpManager>().GetVisitHelp(host.Id, guest.Id, date);
         scope.Commit();
-        return visit.ToDto(guestbook);
+        return visit.ToDto(guestbook, help);
     }
 }
