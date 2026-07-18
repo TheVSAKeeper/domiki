@@ -10,7 +10,6 @@ public static class TolokaDtoExtensions
         return new()
         {
             Active = state.Active.ToDto(),
-            MyContribution = state.MyContribution,
             ActiveBuffs = state.ActiveBuffs.Select(b => new TolokaActiveBuffDto
                 {
                     LogicName = b.LogicName,
@@ -32,9 +31,14 @@ public static class TolokaDtoExtensions
             TolokaTypeId = toloka.TolokaType.Id,
             Name = toloka.TolokaType.Name,
             LogicName = toloka.TolokaType.LogicName,
-            ResourceTypeId = toloka.TolokaType.ResourceTypeId,
-            Goal = toloka.Goal,
-            Collected = toloka.Collected,
+            Positions = toloka.Positions.Select(p => new TolokaPositionDto
+                {
+                    ResourceTypeId = p.ResourceTypeId,
+                    Goal = p.Goal,
+                    Collected = p.Collected,
+                    MyContribution = p.MyContribution,
+                })
+                .ToArray(),
             StartDate = DateTimeHelper.AsUtc(toloka.StartDate),
         };
     }
@@ -44,8 +48,7 @@ public static class TolokaDtoExtensions
         return new()
         {
             Name = artifact.Name,
-            ResourceName = artifact.ResourceName,
-            Goal = artifact.Goal,
+            ResourcesText = artifact.ResourcesText,
             SeasonNumber = artifact.SeasonNumber + 1,
             Participants = artifact.Participants,
             CompletedDate = DateTimeHelper.AsUtc(artifact.CompletedDate),

@@ -11,14 +11,9 @@ public sealed record TolokaArtifactDto
     public required string Name { get; init; }
 
     /// <summary>
-    /// Название ресурса, который собирали участники.
+    /// Готовая строка позиций корзины сбора, вида «300 Кирпич + 300 Доска».
     /// </summary>
-    public required string ResourceName { get; init; }
-
-    /// <summary>
-    /// Целевое значение счётчика этой инстанции толоки.
-    /// </summary>
-    public required int Goal { get; init; }
+    public required string ResourcesText { get; init; }
 
     /// <summary>
     /// Порядковый номер сезона, в который толока завершилась.

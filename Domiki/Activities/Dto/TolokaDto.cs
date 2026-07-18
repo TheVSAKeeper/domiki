@@ -29,26 +29,9 @@ public sealed record TolokaDto
     public required string LogicName { get; init; }
 
     /// <summary>
-    /// Ресурс, который собирают участники, – ссылка на <see cref="Reference.Dto.ResourceTypeDto.Id"/>.
+    /// Позиции корзины сбора этой инстанции – цель, собрано и вклад самого игрока по каждому ресурсу.
     /// </summary>
-    public required int ResourceTypeId { get; init; }
-
-    /// <summary>
-    /// Целевое значение общего счётчика, при достижении которого толока завершается.
-    /// </summary>
-    /// <remarks>
-    /// Сравнивается с <see cref="Collected"/>.
-    /// </remarks>
-    public required int Goal { get; init; }
-
-    /// <summary>
-    /// Сколько ресурса уже внесено всеми игроками суммарно.
-    /// </summary>
-    /// <remarks>
-    /// Складывается из вкладов игроков (см. <see cref="TolokaStateDto.MyContribution"/> для вклада самого игрока); сравнивается с
-    /// <see cref="Goal"/>.
-    /// </remarks>
-    public required int Collected { get; init; }
+    public required TolokaPositionDto[] Positions { get; init; }
 
     /// <summary>
     /// Момент начала текущей толоки.
@@ -58,10 +41,47 @@ public sealed record TolokaDto
 }
 
 /// <summary>
+/// Одна позиция корзины сбора инстанции толоки.
+/// </summary>
+public sealed record TolokaPositionDto
+{
+    /// <summary>
+    /// Ресурс позиции, – ссылка на <see cref="Reference.Dto.ResourceTypeDto.Id"/>.
+    /// </summary>
+    public required int ResourceTypeId { get; init; }
+
+    /// <summary>
+    /// Целевое количество ресурса, при достижении которого позиция считается набранной.
+    /// </summary>
+    /// <remarks>
+    /// Сравнивается с <see cref="Collected"/>.
+    /// </remarks>
+    public required int Goal { get; init; }
+
+    /// <summary>
+    /// Сколько ресурса уже внесено всеми игроками по этой позиции.
+    /// </summary>
+    /// <remarks>
+    /// Складывается из вкладов игроков (см. <see cref="MyContribution"/> для вклада самого игрока); сравнивается с
+    /// <see cref="Goal"/>.
+    /// </remarks>
+    public required int Collected { get; init; }
+
+    /// <summary>
+    /// Сколько ресурса внёс сам игрок в эту позицию.
+    /// </summary>
+    /// <remarks>
+    /// Входит в общий <see cref="Collected"/>.
+    /// </remarks>
+    public required int MyContribution { get; init; }
+}
+
+/// <summary>
 /// Состояние толоки для конкретного игрока.
 /// </summary>
 /// <remarks>
-/// Текущий проект (<see cref="Active"/>), вклад игрока (<see cref="MyContribution"/>) и действующие бонусы (<see cref="ActiveBuffs"/>).
+/// Текущий проект (<see cref="Active"/>) и действующие бонусы (<see cref="ActiveBuffs"/>); вклад игрока – в позициях
+/// <see cref="TolokaDto.Positions"/> (см. <see cref="TolokaPositionDto.MyContribution"/>).
 /// </remarks>
 public sealed record TolokaStateDto
 {
@@ -69,14 +89,6 @@ public sealed record TolokaStateDto
     /// Текущая активная толока.
     /// </summary>
     public required TolokaDto Active { get; init; }
-
-    /// <summary>
-    /// Сколько ресурса внёс сам игрок в текущую толоку.
-    /// </summary>
-    /// <remarks>
-    /// Входит в общий <see cref="TolokaDto.Collected"/>.
-    /// </remarks>
-    public required int MyContribution { get; init; }
 
     /// <summary>
     /// Бонусы производству от недавно завершённых толок, всё ещё действующие игроку.

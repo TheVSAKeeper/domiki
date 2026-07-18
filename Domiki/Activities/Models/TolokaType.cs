@@ -3,7 +3,7 @@
 namespace Domiki.Web.Activities.Models;
 
 /// <summary>
-/// Справочный тип толоки – собираемый ресурс, цель и баффы производству по завершении.
+/// Справочный тип толоки – корзина собираемых ресурсов и баффы производству по завершении.
 /// </summary>
 /// <remarks>
 /// Загружается из БД целиком (см. <see cref="Reference.ResourceManager.GetTolokaTypes"/>).
@@ -26,19 +26,6 @@ public class TolokaType
     public required string LogicName { get; set; }
 
     /// <summary>
-    /// Ресурс, который собирают участники, – ссылка на <see cref="Reference.Models.ResourceType.Id"/>.
-    /// </summary>
-    public int ResourceTypeId { get; set; }
-
-    /// <summary>
-    /// Базовое целевое значение общего счётчика для одной толоки этого типа.
-    /// </summary>
-    /// <remarks>
-    /// При старте новой толоки масштабируется числом участников предыдущей (см. <see cref="TolokaManager.Contribute"/>).
-    /// </remarks>
-    public int Goal { get; set; }
-
-    /// <summary>
     /// Вес типа при случайном выборе следующей толоки.
     /// </summary>
     /// <remarks>
@@ -50,4 +37,28 @@ public class TolokaType
     /// Баффы производству, которые даёт завершение толоки этого типа – по одному на тип домика.
     /// </summary>
     public TolokaTypeEffect[] Effects { get; set; } = [];
+
+    /// <summary>
+    /// Позиции корзины сбора этого типа толоки – базовая цель по каждому ресурсу.
+    /// </summary>
+    public TolokaTypePosition[] Positions { get; set; } = [];
+}
+
+/// <summary>
+/// Базовая позиция корзины сбора справочного типа толоки.
+/// </summary>
+public class TolokaTypePosition
+{
+    /// <summary>
+    /// Ресурс позиции, – ссылка на <see cref="Reference.Models.ResourceType.Id"/>.
+    /// </summary>
+    public int ResourceTypeId { get; set; }
+
+    /// <summary>
+    /// Базовая цель позиции на одного участника.
+    /// </summary>
+    /// <remarks>
+    /// При старте новой толоки масштабируется числом участников предыдущей (см. <see cref="TolokaManager.Contribute"/>).
+    /// </remarks>
+    public int Goal { get; set; }
 }

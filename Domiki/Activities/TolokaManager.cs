@@ -57,10 +57,10 @@ public class TolokaManager
 
         var tolokaTypes = _resourceManager.GetTolokaTypes();
         var dbToloka = _context.Tolokas.Single(x => x.CompletedDate == null);
-        var contribution = _context.TolokaContributions
+        var positions = _context.TolokaPositions.Where(x => x.TolokaId == dbToloka.Id).ToArray();
+        var myContributions = _context.TolokaContributions
             .Where(x => x.TolokaId == dbToloka.Id && x.PlayerId == playerId)
-            .Select(x => x.Value)
-            .SingleOrDefault();
+            .ToDictionary(x => x.ResourceTypeId, x => x.Value);
 
         var activeBuffs = GetActiveBuffs(playerId, date);
         var level = Math.Max(1, GetGatheringLevel(playerId));
@@ -68,8 +68,7 @@ public class TolokaManager
 
         return new()
         {
-            Active = ToModel(dbToloka, tolokaTypes),
-            MyContribution = contribution,
+            Active = ToModel(dbToloka, positions, myContributions, tolokaTypes),
             ActiveBuffs = activeBuffs.Select(buff =>
                 {
                     var tolokaType = tolokaTypes.First(x => x.Id == buff.TolokaTypeId);
@@ -87,7 +86,7 @@ public class TolokaManager
         };
     }
 
-    public void Contribute(int playerId, int amount, DateTime date)
+    public void Contribute(int playerId, int resourceTypeId, int amount, DateTime date)
     {
         if (amount <= 0)
         {
@@ -105,35 +104,50 @@ public class TolokaManager
         var tolokaTypes = _resourceManager.GetTolokaTypes();
         var tolokaType = tolokaTypes.First(x => x.Id == dbToloka.TolokaTypeId);
 
+        var position = _context.TolokaPositions.FirstOrDefault(x => x.TolokaId == dbToloka.Id && x.ResourceTypeId == resourceTypeId);
+        if (position == null)
+        {
+            throw new BusinessException("Этот ресурс толоке не нужен");
+        }
+
+        var remaining = position.Goal - position.Collected;
+        if (remaining <= 0)
+        {
+            throw new BusinessException("Позиция уже собрана");
+        }
+
+        var accepted = Math.Min(amount, remaining);
+
         _playerResourceManager.WriteOffResources(playerId, new[]
         {
             new Resource
             {
                 Type = new()
-                    { Id = tolokaType.ResourceTypeId },
-                Value = amount,
+                    { Id = resourceTypeId },
+                Value = accepted,
             },
         });
 
-        var contribution = _context.TolokaContributions.Local.FirstOrDefault(x => x.TolokaId == dbToloka.Id && x.PlayerId == playerId)
-                           ?? _context.TolokaContributions.FirstOrDefault(x => x.TolokaId == dbToloka.Id && x.PlayerId == playerId);
+        var contribution = _context.TolokaContributions.Local.FirstOrDefault(x => x.TolokaId == dbToloka.Id && x.PlayerId == playerId && x.ResourceTypeId == resourceTypeId)
+                           ?? _context.TolokaContributions.FirstOrDefault(x => x.TolokaId == dbToloka.Id && x.PlayerId == playerId && x.ResourceTypeId == resourceTypeId);
 
         if (contribution == null)
         {
             contribution = new()
-                { TolokaId = dbToloka.Id, PlayerId = playerId };
+                { TolokaId = dbToloka.Id, PlayerId = playerId, ResourceTypeId = resourceTypeId };
 
             _context.TolokaContributions.Add(contribution);
         }
 
-        contribution.Value += amount;
-        dbToloka.Collected += amount;
-        _seasonManager.IncrementCounter(playerId, SeasonMetric.Toloka, amount, date);
+        contribution.Value += accepted;
+        position.Collected += accepted;
+        _seasonManager.IncrementCounter(playerId, SeasonMetric.Toloka, accepted, date);
 
         int[]? notifyRecipients = null;
         var completedTolokaName = tolokaType.Name;
 
-        if (dbToloka.Collected >= dbToloka.Goal)
+        var allPositions = _context.TolokaPositions.Where(x => x.TolokaId == dbToloka.Id).ToArray();
+        if (allPositions.All(p => p.Collected >= p.Goal))
         {
             dbToloka.CompletedDate = date;
             _context.SaveChanges();
@@ -145,16 +159,28 @@ public class TolokaManager
 
             notifyRecipients = contributors.Where(x => x != playerId).ToArray();
 
-            var prevContributors = _context.TolokaContributions.Count(x => x.TolokaId == dbToloka.Id);
+            var prevContributors = contributors.Length;
             var picked = PickTolokaType(tolokaTypes);
-            _context.Tolokas.Add(new()
+            var next = new Data.Entities.Toloka
             {
                 TolokaTypeId = picked.Id,
-                Collected = 0,
-                Goal = picked.Goal * Math.Max(1, prevContributors),
                 StartDate = date,
                 CompletedDate = null,
-            });
+            };
+
+            _context.Tolokas.Add(next);
+            _context.SaveChanges();
+
+            foreach (var pickedPosition in picked.Positions)
+            {
+                _context.TolokaPositions.Add(new()
+                {
+                    TolokaId = next.Id,
+                    ResourceTypeId = pickedPosition.ResourceTypeId,
+                    Goal = pickedPosition.Goal * Math.Max(1, prevContributors),
+                    Collected = 0,
+                });
+            }
         }
 
         _context.SaveChanges();
@@ -198,19 +224,28 @@ public class TolokaManager
         var tolokaIds = completed.Select(x => x.Id).ToArray();
         var participants = _context.TolokaContributions
             .Where(x => tolokaIds.Contains(x.TolokaId))
+            .Select(x => new { x.TolokaId, x.PlayerId })
+            .ToArray()
             .GroupBy(x => x.TolokaId)
-            .Select(g => new { TolokaId = g.Key, Count = g.Count() })
-            .ToDictionary(x => x.TolokaId, x => x.Count);
+            .ToDictionary(g => g.Key, g => g.Select(x => x.PlayerId).Distinct().Count());
+
+        var positionsByToloka = _context.TolokaPositions
+            .Where(x => tolokaIds.Contains(x.TolokaId))
+            .ToArray()
+            .GroupBy(x => x.TolokaId)
+            .ToDictionary(g => g.Key, g => g.ToArray());
 
         return completed.Select(x =>
             {
                 var tolokaType = tolokaTypes.First(t => t.Id == x.TolokaTypeId);
-                var resourceType = resourceTypes.First(r => r.Id == tolokaType.ResourceTypeId);
+                var resourcesText = string.Join(" + ", positionsByToloka.GetValueOrDefault(x.Id, [])
+                    .OrderBy(p => p.ResourceTypeId)
+                    .Select(p => $"{p.Goal} {resourceTypes.First(r => r.Id == p.ResourceTypeId).Name}"));
+
                 return new TolokaArtifact
                 {
                     Name = tolokaType.Name,
-                    ResourceName = resourceType.Name!,
-                    Goal = x.Goal,
+                    ResourcesText = resourcesText,
                     SeasonNumber = _seasonManager.GetCurrentSeason(x.CompletedDate!.Value).Number,
                     Participants = participants.GetValueOrDefault(x.Id),
                     CompletedDate = x.CompletedDate!.Value,
@@ -252,6 +287,7 @@ public class TolokaManager
             "bridge" => "заказы",
             "granary" => "добыча дерева и глины",
             "kiln" => "переделы",
+            "caravan" => "продажа",
             _ => tolokaType.Name,
         };
     }
@@ -273,14 +309,20 @@ public class TolokaManager
         return tolokaTypes[^1];
     }
 
-    private static Toloka ToModel(Data.Entities.Toloka dbToloka, TolokaType[] tolokaTypes)
+    private static Toloka ToModel(Data.Entities.Toloka dbToloka, Data.Entities.TolokaPosition[] positions, Dictionary<int, int> myContributions, TolokaType[] tolokaTypes)
     {
         return new()
         {
             Id = dbToloka.Id,
             TolokaType = tolokaTypes.First(x => x.Id == dbToloka.TolokaTypeId),
-            Collected = dbToloka.Collected,
-            Goal = dbToloka.Goal,
+            Positions = positions.Select(p => new TolokaPosition
+                {
+                    ResourceTypeId = p.ResourceTypeId,
+                    Goal = p.Goal,
+                    Collected = p.Collected,
+                    MyContribution = myContributions.GetValueOrDefault(p.ResourceTypeId),
+                })
+                .ToArray(),
             StartDate = dbToloka.StartDate,
         };
     }

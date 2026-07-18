@@ -4,9 +4,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Domiki.Web.Data.Entities;
 
 /// <summary>
-/// Вклад одного игрока в одну инстанцию толоки.
+/// Вклад одного игрока в одну позицию (ресурс) одной инстанции толоки.
 /// </summary>
 /// <remarks>
+/// Одна строка на пару (толока, игрок, ресурс) – вклад пер-ресурсный, адресован в конкретную позицию корзины.
 /// Строки не удаляются после завершения – по ним считается активность баффа и будущий сезонный рейтинг «Герой толоки».
 /// </remarks>
 [Table("TolokaContributions")]
@@ -27,7 +28,14 @@ public class TolokaContribution
     public int PlayerId { get; set; }
 
     /// <summary>
-    /// Сколько ресурса внёс игрок в эту инстанцию толоки суммарно.
+    /// Часть составного ключа – ресурс позиции корзины, в которую внесён вклад.
+    /// </summary>
+    [Key]
+    [Column(Order = 3)]
+    public int ResourceTypeId { get; set; }
+
+    /// <summary>
+    /// Сколько ресурса внёс игрок в эту позицию инстанции толоки суммарно.
     /// </summary>
     public int Value { get; set; }
 

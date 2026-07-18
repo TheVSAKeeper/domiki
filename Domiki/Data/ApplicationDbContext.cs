@@ -52,7 +52,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
     public DbSet<TolokaType> TolokaTypes { get; set; }
     public DbSet<TolokaTypeEffect> TolokaTypeEffects { get; set; }
+    public DbSet<TolokaTypePosition> TolokaTypePositions { get; set; }
     public DbSet<Toloka> Tolokas { get; set; }
+    public DbSet<TolokaPosition> TolokaPositions { get; set; }
     public DbSet<TolokaContribution> TolokaContributions { get; set; }
     public DbSet<TradeLot> TradeLots { get; set; }
     public DbSet<SeasonCounter> SeasonCounters { get; set; }
@@ -422,11 +424,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(e => e.DecorTypeId);
 
-        modelBuilder.Entity<TolokaType>()
-            .HasOne(s => s.ResourceType)
-            .WithMany()
-            .HasForeignKey(e => e.ResourceTypeId);
-
         modelBuilder.Entity<TolokaTypeEffect>()
             .HasKey(p => new
             {
@@ -439,16 +436,42 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(e => e.TolokaTypeId);
 
+        modelBuilder.Entity<TolokaTypePosition>()
+            .HasKey(p => new
+            {
+                p.TolokaTypeId,
+                p.ResourceTypeId,
+            });
+
+        modelBuilder.Entity<TolokaTypePosition>()
+            .HasOne(s => s.TolokaType)
+            .WithMany()
+            .HasForeignKey(e => e.TolokaTypeId);
+
         modelBuilder.Entity<Toloka>()
             .HasOne(s => s.TolokaType)
             .WithMany()
             .HasForeignKey(e => e.TolokaTypeId);
+
+        modelBuilder.Entity<TolokaPosition>()
+            .HasKey(p => new
+            {
+                p.TolokaId,
+                p.ResourceTypeId,
+            });
+
+        modelBuilder.Entity<TolokaPosition>()
+            .HasOne(s => s.Toloka)
+            .WithMany()
+            .HasForeignKey(e => e.TolokaId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<TolokaContribution>()
             .HasKey(p => new
             {
                 p.TolokaId,
                 p.PlayerId,
+                p.ResourceTypeId,
             });
 
         modelBuilder.Entity<TolokaContribution>()

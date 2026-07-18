@@ -16,6 +16,7 @@ using Receipt = Domiki.Web.Reference.Models.Receipt;
 using Resource = Domiki.Web.Reference.Models.Resource;
 using ResourceType = Domiki.Web.Reference.Models.ResourceType;
 using TolokaType = Domiki.Web.Activities.Models.TolokaType;
+using TolokaTypePosition = Domiki.Web.Activities.Models.TolokaTypePosition;
 using Trait = Domiki.Web.Workers.Models.Trait;
 using WeatherType = Domiki.Web.Village.Models.WeatherType;
 using WeatherTypeEffect = Domiki.Web.Village.Models.WeatherTypeEffect;
@@ -290,13 +291,12 @@ public class ResourceManager
     private static TolokaType[] LoadTolokaTypes(ApplicationDbContext context)
     {
         var effects = context.TolokaTypeEffects.ToArray();
+        var positions = context.TolokaTypePositions.ToArray();
         var tolokaTypes = context.TolokaTypes.Select(x => new TolokaType
             {
                 Id = x.Id,
                 Name = x.Name,
                 LogicName = x.LogicName,
-                ResourceTypeId = x.ResourceTypeId,
-                Goal = x.Goal,
                 RotationWeight = x.RotationWeight,
             })
             .ToArray();
@@ -306,6 +306,11 @@ public class ResourceManager
             tolokaType.Effects = effects
                 .Where(x => x.TolokaTypeId == tolokaType.Id)
                 .Select(x => new TolokaTypeEffect { DomikTypeId = x.DomikTypeId, OutputPercent = x.OutputPercent })
+                .ToArray();
+
+            tolokaType.Positions = positions
+                .Where(x => x.TolokaTypeId == tolokaType.Id)
+                .Select(x => new TolokaTypePosition { ResourceTypeId = x.ResourceTypeId, Goal = x.Goal })
                 .ToArray();
         }
 

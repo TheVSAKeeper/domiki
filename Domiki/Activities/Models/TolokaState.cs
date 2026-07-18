@@ -19,7 +19,34 @@ public class Toloka
     public required TolokaType TolokaType { get; set; }
 
     /// <summary>
-    /// Сколько ресурса уже внесено всеми игроками суммарно.
+    /// Позиции корзины сбора этой инстанции – цель, собрано и вклад самого игрока по каждому ресурсу.
+    /// </summary>
+    public TolokaPosition[] Positions { get; set; } = [];
+
+    /// <summary>
+    /// Момент начала текущей толоки.
+    /// </summary>
+    /// <value>Момент в UTC.</value>
+    public DateTime StartDate { get; set; }
+}
+
+/// <summary>
+/// Одна позиция корзины сбора инстанции толоки.
+/// </summary>
+public class TolokaPosition
+{
+    /// <summary>
+    /// Ресурс позиции, – ссылка на <see cref="Reference.Models.ResourceType.Id"/>.
+    /// </summary>
+    public int ResourceTypeId { get; set; }
+
+    /// <summary>
+    /// Целевое количество ресурса, при достижении которого позиция считается набранной.
+    /// </summary>
+    public int Goal { get; set; }
+
+    /// <summary>
+    /// Сколько ресурса уже внесено всеми игроками по этой позиции.
     /// </summary>
     /// <remarks>
     /// Сравнивается с <see cref="Goal"/>.
@@ -27,15 +54,12 @@ public class Toloka
     public int Collected { get; set; }
 
     /// <summary>
-    /// Целевое значение общего счётчика, при достижении которого толока завершается.
+    /// Сколько ресурса внёс сам игрок в эту позицию.
     /// </summary>
-    public int Goal { get; set; }
-
-    /// <summary>
-    /// Момент начала текущей толоки.
-    /// </summary>
-    /// <value>Момент в UTC.</value>
-    public DateTime StartDate { get; set; }
+    /// <remarks>
+    /// Входит в общий <see cref="Collected"/>.
+    /// </remarks>
+    public int MyContribution { get; set; }
 }
 
 /// <summary>
@@ -50,14 +74,6 @@ public class TolokaState
     /// Текущая активная толока.
     /// </summary>
     public required Toloka Active { get; set; }
-
-    /// <summary>
-    /// Сколько ресурса внёс сам игрок в текущую толоку.
-    /// </summary>
-    /// <remarks>
-    /// Входит в общий <see cref="Toloka.Collected"/>.
-    /// </remarks>
-    public int MyContribution { get; set; }
 
     /// <summary>
     /// Бонусы производству от недавно завершённых толок, всё ещё действующие игроку.

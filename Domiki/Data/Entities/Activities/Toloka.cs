@@ -25,19 +25,6 @@ public class Toloka
     public int TolokaTypeId { get; set; }
 
     /// <summary>
-    /// Суммарно собрано ресурса всеми игроками с начала инстанции.
-    /// </summary>
-    public int Collected { get; set; }
-
-    /// <summary>
-    /// Целевое количество ресурса, при достижении которого толока завершается.
-    /// </summary>
-    /// <remarks>
-    /// Масштабируется числом участников предыдущей инстанции (см. <see cref="Activities.TolokaManager.Contribute"/>).
-    /// </remarks>
-    public int Goal { get; set; }
-
-    /// <summary>
     /// Момент старта этой инстанции толоки.
     /// </summary>
     public DateTime StartDate { get; set; }

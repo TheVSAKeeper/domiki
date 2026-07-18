@@ -18,20 +18,13 @@ public class TolokaArtifact
     public required string Name { get; set; }
 
     /// <summary>
-    /// Название ресурса, который собирали участники.
+    /// Готовая строка позиций корзины сбора, вида «300 Кирпич + 300 Доска».
     /// </summary>
     /// <remarks>
-    /// Резолв <see cref="TolokaType.ResourceTypeId"/> через <see cref="Reference.ResourceManager.GetResourceTypes"/>.
+    /// Собрана из позиций <see cref="Data.Entities.TolokaPosition"/> этой инстанции, отсортированных по <see cref="Data.Entities.TolokaPosition.ResourceTypeId"/>,
+    /// с резолвом названия ресурса через <see cref="Reference.ResourceManager.GetResourceTypes"/>.
     /// </remarks>
-    public required string ResourceName { get; set; }
-
-    /// <summary>
-    /// Целевое значение счётчика этой инстанции толоки.
-    /// </summary>
-    /// <remarks>
-    /// См. <see cref="Data.Entities.Toloka.Goal"/>.
-    /// </remarks>
-    public int Goal { get; set; }
+    public required string ResourcesText { get; set; }
 
     /// <summary>
     /// Порядковый номер сезона, в который толока завершилась.
@@ -43,10 +36,11 @@ public class TolokaArtifact
     public int SeasonNumber { get; set; }
 
     /// <summary>
-    /// Число игроков, внёсших вклад в эту инстанцию толоки.
+    /// Число различных игроков, внёсших вклад в эту инстанцию толоки.
     /// </summary>
     /// <remarks>
-    /// Счёт по строкам <see cref="Data.Entities.TolokaContribution"/> с этим <see cref="Data.Entities.Toloka.Id"/>.
+    /// Distinct-счёт по <see cref="Data.Entities.TolokaContribution.PlayerId"/> с этим <see cref="Data.Entities.Toloka.Id"/> –
+    /// вклад пер-ресурсный, без distinct строки задвоятся.
     /// </remarks>
     public int Participants { get; set; }
 

@@ -4,8 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Domiki.Web.Data.Entities;
 
 /// <summary>
-/// Справочник типов толоки: какой ресурс собирают, базовая цель счётчика и вес при случайном выборе следующей инстанции.
+/// Справочник типов толоки: набор позиций корзины сбора и вес при случайном выборе следующей инстанции.
 /// </summary>
+/// <remarks>
+/// Позиции корзины – в отдельной таблице <see cref="TolokaTypePosition"/> (не навигация, зеркалит <see cref="TolokaTypeEffect"/>).
+/// </remarks>
 [Table("TolokaTypes")]
 public class TolokaType
 {
@@ -27,28 +30,10 @@ public class TolokaType
     public required string LogicName { get; set; }
 
     /// <summary>
-    /// Тип ресурса, который игроки сдают в счётчик этой толоки.
-    /// </summary>
-    public int ResourceTypeId { get; set; }
-
-    /// <summary>
-    /// Базовая цель счётчика для одного участника.
-    /// </summary>
-    /// <remarks>
-    /// Реальная цель инстанции (<see cref="Toloka.Goal"/>) умножается на число участников предыдущей толоки.
-    /// </remarks>
-    public int Goal { get; set; }
-
-    /// <summary>
     /// Вес типа при взвешенном случайном выборе следующей инстанции толоки.
     /// </summary>
     /// <remarks>
     /// См. <see cref="Activities.TolokaManager.PickTolokaType"/>.
     /// </remarks>
     public int RotationWeight { get; set; }
-
-    /// <summary>
-    /// Навигационное свойство к типу собираемого ресурса.
-    /// </summary>
-    public ResourceType ResourceType { get; set; } = null!;
 }

@@ -38,11 +38,11 @@ public class ActivityController : GameControllerBase
     }
 
     [HttpPost]
-    [Route("/Domiki/ContributeToloka/{amount}")]
-    public void ContributeToloka(int amount)
+    [Route("/Domiki/ContributeToloka/{resourceTypeId}/{amount}")]
+    public void ContributeToloka(int resourceTypeId, int amount)
     {
         var playerId = GetPlayerId();
-        _tolokaManager.Contribute(playerId, amount, DateTimeHelper.GetNowDate());
+        _tolokaManager.Contribute(playerId, resourceTypeId, amount, DateTimeHelper.GetNowDate());
     }
 
     [HttpGet]
