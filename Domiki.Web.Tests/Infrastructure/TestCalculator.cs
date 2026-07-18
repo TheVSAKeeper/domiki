@@ -5,9 +5,10 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Domiki.Web.Tests;
 
 /// <summary>
-/// Обсчитывает событие синхронно сразу при регистрации. Исключения: события внутри Defer()-блока и OrderExpire –
+/// Обсчитывает событие синхронно сразу при регистрации. Исключения: события внутри Defer()-блока, OrderExpire –
 /// заказы не авто-протухают, их финиширует только явный вызов (как в legacy-харнессе, где OrderManager жил с
-/// justFinishMode=false).
+/// justFinishMode=false) – и Errand – и оффер-истечение, и развязка принятого поручения финишируются только явным
+/// вызовом акта в тестах.
 /// </summary>
 public sealed class TestCalculator : ICalculator
 {
@@ -28,7 +29,7 @@ public sealed class TestCalculator : ICalculator
 
     public void Insert(CalculateInfo calcDate)
     {
-        if (_deferred.Value || calcDate.Type == CalculateTypes.OrderExpire)
+        if (_deferred.Value || calcDate.Type == CalculateTypes.OrderExpire || calcDate.Type == CalculateTypes.Errand)
         {
             return;
         }

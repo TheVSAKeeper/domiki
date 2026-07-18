@@ -1,5 +1,6 @@
 ﻿using Domiki.Web.Core;
 using Domiki.Web.Data.Entities;
+using Domiki.Web.Economy;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Reference;
 using Domiki.Web.Workers;
@@ -105,6 +106,24 @@ public sealed class TestPlayer
         }
 
         decor.Count += count;
+        scope.Commit();
+        return this;
+    }
+
+    public TestPlayer WithErrand(int neighborId, int templateId = 0, DateTime? expireDate = null, DateTime? acceptDate = null, int? clueId = null, DateTime? finishDate = null)
+    {
+        using var scope = App.Scope();
+        scope.Context.Errands.Add(new()
+        {
+            PlayerId = Id,
+            NeighborId = neighborId,
+            TemplateId = templateId,
+            ExpireDate = expireDate ?? DateTimeHelper.GetNowDate().AddHours(ErrandManager.ErrandOfferDurationHours),
+            AcceptDate = acceptDate,
+            ClueId = clueId,
+            FinishDate = finishDate,
+        });
+
         scope.Commit();
         return this;
     }
