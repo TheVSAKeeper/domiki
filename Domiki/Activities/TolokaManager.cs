@@ -11,6 +11,15 @@ namespace Domiki.Web.Activities;
 public class TolokaManager
 {
     public const int BridgeOrderBonusPercent = 40;
+
+    /// <summary>
+    /// Число последних завершённых толок, отдаваемых летописью экрана «Мир».
+    /// </summary>
+    /// <remarks>
+    /// См. <see cref="GetArtifacts"/>.
+    /// </remarks>
+    public const int TolokaArtifactShowCount = 10;
+
     private const string BridgeLogicName = "bridge";
 
     private readonly UnitOfWork _uow;
@@ -148,6 +157,50 @@ public class TolokaManager
             afterEventAction?.Invoke();
             _broker.Broadcast(GameStateScopes.Toloka);
         };
+    }
+
+    /// <summary>
+    /// Летопись последних завершённых толок для экрана «Мир».
+    /// </summary>
+    /// <remarks>
+    /// Не более <see cref="TolokaArtifactShowCount"/> штук, отсортированы по убыванию <see cref="Data.Entities.Toloka.CompletedDate"/>.
+    /// Число участников каждой инстанции считается одним групповым запросом по <see cref="Data.Entities.TolokaContribution"/>,
+    /// без N+1.
+    /// </remarks>
+    /// <returns>Массив завершённых толок, свежие первыми.</returns>
+    public TolokaArtifact[] GetArtifacts()
+    {
+        var tolokaTypes = _resourceManager.GetTolokaTypes();
+        var resourceTypes = _resourceManager.GetResourceTypes();
+
+        var completed = _context.Tolokas
+            .Where(x => x.CompletedDate != null)
+            .OrderByDescending(x => x.CompletedDate)
+            .Take(TolokaArtifactShowCount)
+            .ToArray();
+
+        var tolokaIds = completed.Select(x => x.Id).ToArray();
+        var participants = _context.TolokaContributions
+            .Where(x => tolokaIds.Contains(x.TolokaId))
+            .GroupBy(x => x.TolokaId)
+            .Select(g => new { TolokaId = g.Key, Count = g.Count() })
+            .ToDictionary(x => x.TolokaId, x => x.Count);
+
+        return completed.Select(x =>
+            {
+                var tolokaType = tolokaTypes.First(t => t.Id == x.TolokaTypeId);
+                var resourceType = resourceTypes.First(r => r.Id == tolokaType.ResourceTypeId);
+                return new TolokaArtifact
+                {
+                    Name = tolokaType.Name,
+                    ResourceName = resourceType.Name!,
+                    Goal = x.Goal,
+                    SeasonNumber = _seasonManager.GetCurrentSeason(x.CompletedDate!.Value).Number,
+                    Participants = participants.GetValueOrDefault(x.Id),
+                    CompletedDate = x.CompletedDate!.Value,
+                };
+            })
+            .ToArray();
     }
 
     public bool HasActiveBuff(int playerId, DateTime date)

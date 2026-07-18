@@ -1,4 +1,5 @@
-﻿using Domiki.Web.Core;
+﻿using Domiki.Web.Activities;
+using Domiki.Web.Core;
 using Domiki.Web.Data;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Reference;
@@ -37,14 +38,16 @@ public class WorldManager
     private readonly DomikManager _domikManager;
     private readonly ResourceManager _resourceManager;
     private readonly SeasonManager _seasonManager;
+    private readonly TolokaManager _tolokaManager;
 
-    public WorldManager(ApplicationDbContext context, VillageLevelCalculator villageLevelCalculator, DomikManager domikManager, ResourceManager resourceManager, SeasonManager seasonManager)
+    public WorldManager(ApplicationDbContext context, VillageLevelCalculator villageLevelCalculator, DomikManager domikManager, ResourceManager resourceManager, SeasonManager seasonManager, TolokaManager tolokaManager)
     {
         _context = context;
         _villageLevelCalculator = villageLevelCalculator;
         _domikManager = domikManager;
         _resourceManager = resourceManager;
         _seasonManager = seasonManager;
+        _tolokaManager = tolokaManager;
     }
 
     public World GetWorld(int currentPlayerId)
@@ -81,7 +84,7 @@ public class WorldManager
             .ToArray();
 
         return new()
-            { Villages = villages, Season = season };
+            { Villages = villages, Season = season, TolokaArtifacts = _tolokaManager.GetArtifacts() };
     }
 
     public VillageVisit VisitVillage(int targetPlayerId)

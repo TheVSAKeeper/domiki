@@ -38,4 +38,17 @@ public static class TolokaDtoExtensions
             StartDate = DateTimeHelper.AsUtc(toloka.StartDate),
         };
     }
+
+    public static TolokaArtifactDto ToDto(this TolokaArtifact artifact)
+    {
+        return new()
+        {
+            Name = artifact.Name,
+            ResourceName = artifact.ResourceName,
+            Goal = artifact.Goal,
+            SeasonNumber = artifact.SeasonNumber + 1,
+            Participants = artifact.Participants,
+            CompletedDate = DateTimeHelper.AsUtc(artifact.CompletedDate),
+        };
+    }
 }

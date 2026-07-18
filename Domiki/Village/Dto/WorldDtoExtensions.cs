@@ -1,4 +1,5 @@
-﻿using Domiki.Web.Village.Models;
+﻿using Domiki.Web.Activities.Dto;
+using Domiki.Web.Village.Models;
 
 namespace Domiki.Web.Village.Dto;
 
@@ -10,6 +11,7 @@ public static class WorldDtoExtensions
         {
             Villages = world.Villages.Select(x => x.ToDto()).ToArray(),
             Season = world.Season.ToDto(),
+            TolokaArtifacts = world.TolokaArtifacts.Select(x => x.ToDto()).ToArray(),
         };
     }
 

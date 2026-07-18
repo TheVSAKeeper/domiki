@@ -1,4 +1,6 @@
-﻿namespace Domiki.Web.Village.Models;
+﻿using Domiki.Web.Activities.Models;
+
+namespace Domiki.Web.Village.Models;
 
 /// <summary>
 /// Каталог деревень для экрана «Мир» – рейтинг обжитости и текущий сезон номинаций.
@@ -20,6 +22,15 @@ public class World
     /// Текущий сезонный период рейтингов.
     /// </summary>
     public required Season Season { get; set; }
+
+    /// <summary>
+    /// Летопись последних завершённых толок.
+    /// </summary>
+    /// <remarks>
+    /// Наполняется в <see cref="Activities.TolokaManager.GetArtifacts"/>, не более
+    /// <see cref="Activities.TolokaManager.TolokaArtifactShowCount"/> штук, свежие первыми.
+    /// </remarks>
+    public TolokaArtifact[] TolokaArtifacts { get; set; } = [];
 }
 
 /// <summary>
