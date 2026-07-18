@@ -294,7 +294,6 @@ public class DomikManager
     {
         var date = DateTimeHelper.GetNowDate();
 
-        // todo перечитать и попробовать повтоно выполнить. обработка оптимистика
         _playerResourceManager.LockDbPlayerRow(playerId);
 
         var dbDomik = _context.Domiks.First(x => x.PlayerId == playerId && x.Id == id);
