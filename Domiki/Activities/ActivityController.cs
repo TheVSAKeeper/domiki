@@ -45,6 +45,14 @@ public class ActivityController : GameControllerBase
         _tolokaManager.Contribute(playerId, resourceTypeId, amount, DateTimeHelper.GetNowDate());
     }
 
+    [HttpPost]
+    [Route("/Domiki/VoteToloka/{tolokaTypeId}")]
+    public void VoteToloka(int tolokaTypeId)
+    {
+        var playerId = GetPlayerId();
+        _tolokaManager.Vote(playerId, tolokaTypeId, DateTimeHelper.GetNowDate());
+    }
+
     [HttpGet]
     [Route("/Domiki/GetExpeditions")]
     public ExpeditionStateDto? GetExpeditions()

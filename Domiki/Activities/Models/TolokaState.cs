@@ -100,6 +100,48 @@ public class TolokaState
     /// <see langword="null"/> – здание уже максимального уровня.
     /// </remarks>
     public int? NextBuffHours { get; set; }
+
+    /// <summary>
+    /// Кандидаты на следующую толоку с числом голосов – все типы справочника, включая текущий.
+    /// </summary>
+    /// <remarks>
+    /// Победитель голосования сменяет взвешенный random при посеве следующей толоки (см. <see cref="TolokaManager.Contribute"/>).
+    /// </remarks>
+    public TolokaVoteCandidate[] Candidates { get; set; } = [];
+
+    /// <summary>
+    /// Тип толоки, за который проголосовал сам игрок в текущей инстанции.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – игрок ещё не голосовал.
+    /// </remarks>
+    public int? MyVoteTolokaTypeId { get; set; }
+}
+
+/// <summary>
+/// Кандидат голосования за следующую толоку с накопленным числом голосов.
+/// </summary>
+public class TolokaVoteCandidate
+{
+    /// <summary>
+    /// Тип толоки – ссылка на справочник <see cref="TolokaType.Id"/>.
+    /// </summary>
+    public int TolokaTypeId { get; set; }
+
+    /// <summary>
+    /// Отображаемое название типа толоки.
+    /// </summary>
+    public required string Name { get; set; }
+
+    /// <summary>
+    /// Технический код типа толоки, используется как ключ на клиенте.
+    /// </summary>
+    public required string LogicName { get; set; }
+
+    /// <summary>
+    /// Число голосов за этот тип в текущей инстанции.
+    /// </summary>
+    public int Votes { get; set; }
 }
 
 /// <summary>

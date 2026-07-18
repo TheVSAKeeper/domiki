@@ -20,6 +20,15 @@ public static class TolokaDtoExtensions
                 .ToArray(),
             BuffHours = state.BuffHours,
             NextBuffHours = state.NextBuffHours,
+            Candidates = state.Candidates.Select(c => new TolokaVoteCandidateDto
+                {
+                    TolokaTypeId = c.TolokaTypeId,
+                    Name = c.Name,
+                    LogicName = c.LogicName,
+                    Votes = c.Votes,
+                })
+                .ToArray(),
+            MyVoteTolokaTypeId = state.MyVoteTolokaTypeId,
         };
     }
 

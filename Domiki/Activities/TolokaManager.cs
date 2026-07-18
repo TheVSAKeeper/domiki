@@ -62,6 +62,17 @@ public class TolokaManager
             .Where(x => x.TolokaId == dbToloka.Id && x.PlayerId == playerId)
             .ToDictionary(x => x.ResourceTypeId, x => x.Value);
 
+        var voteCounts = _context.TolokaVotes
+            .Where(x => x.TolokaId == dbToloka.Id)
+            .GroupBy(x => x.CandidateTolokaTypeId)
+            .Select(g => new { CandidateTolokaTypeId = g.Key, Votes = g.Count() })
+            .ToDictionary(x => x.CandidateTolokaTypeId, x => x.Votes);
+
+        var myVote = _context.TolokaVotes
+            .Where(x => x.TolokaId == dbToloka.Id && x.PlayerId == playerId)
+            .Select(x => (int?)x.CandidateTolokaTypeId)
+            .FirstOrDefault();
+
         var activeBuffs = GetActiveBuffs(playerId, date);
         var level = Math.Max(1, GetGatheringLevel(playerId));
         var maxLevel = _resourceManager.GetDomikTypes().First(x => x.LogicName == "gathering").MaxLevel;
@@ -83,6 +94,15 @@ public class TolokaManager
                 .ToArray(),
             BuffHours = GetBuffSeconds(level) / 3600,
             NextBuffHours = level < maxLevel ? GetBuffSeconds(level + 1) / 3600 : null,
+            Candidates = tolokaTypes.Select(t => new TolokaVoteCandidate
+                {
+                    TolokaTypeId = t.Id,
+                    Name = t.Name,
+                    LogicName = t.LogicName,
+                    Votes = voteCounts.GetValueOrDefault(t.Id),
+                })
+                .ToArray(),
+            MyVoteTolokaTypeId = myVote,
         };
     }
 
@@ -160,7 +180,7 @@ public class TolokaManager
             notifyRecipients = contributors.Where(x => x != playerId).ToArray();
 
             var prevContributors = contributors.Length;
-            var picked = PickTolokaType(tolokaTypes);
+            var picked = TallyVotes(dbToloka.Id, tolokaTypes) ?? PickTolokaType(tolokaTypes);
             var next = new Data.Entities.Toloka
             {
                 TolokaTypeId = picked.Id,
@@ -198,6 +218,54 @@ public class TolokaManager
                     _pushSender.Notify(recipientId, "Домики", $"Толока «{completedTolokaName}» завершена – бафф получен", "/domiki-page");
                 }
             }
+        };
+    }
+
+    /// <summary>
+    /// Отдаёт голос игрока за тип следующей толоки в текущей активной инстанции.
+    /// </summary>
+    /// <remarks>
+    /// Тот же порядок блокировок, что и <see cref="Contribute"/> (<see cref="PlayerResourceManager.LockDbPlayerRow"/>,
+    /// затем <see cref="LockActiveToloka"/>), – голос не ляжет на завершающуюся толоку. Гейт постройкой «Сходня».
+    /// Смена выбора – UPDATE строки голоса. Голос без вклада разрешён.
+    /// </remarks>
+    /// <param name="playerId">Игрок, отдающий голос.</param>
+    /// <param name="candidateTolokaTypeId">Тип толоки, за который голосует игрок.</param>
+    /// <param name="date">Момент действия в UTC.</param>
+    public void Vote(int playerId, int candidateTolokaTypeId, DateTime date)
+    {
+        _playerResourceManager.LockDbPlayerRow(playerId);
+
+        if (!HasBuilding(playerId, "gathering"))
+        {
+            throw new BusinessException("Нужна Сходня");
+        }
+
+        var tolokaTypes = _resourceManager.GetTolokaTypes();
+        if (tolokaTypes.All(x => x.Id != candidateTolokaTypeId))
+        {
+            throw new BusinessException("Нет такого проекта толоки");
+        }
+
+        var dbToloka = LockActiveToloka();
+
+        var vote = _context.TolokaVotes.FirstOrDefault(x => x.TolokaId == dbToloka.Id && x.PlayerId == playerId);
+        if (vote == null)
+        {
+            vote = new()
+                { TolokaId = dbToloka.Id, PlayerId = playerId };
+
+            _context.TolokaVotes.Add(vote);
+        }
+
+        vote.CandidateTolokaTypeId = candidateTolokaTypeId;
+        _context.SaveChanges();
+
+        var afterEventAction = _uow.AfterEventAction;
+        _uow.AfterEventAction = () =>
+        {
+            afterEventAction?.Invoke();
+            _broker.Broadcast(GameStateScopes.Toloka);
         };
     }
 
@@ -290,6 +358,26 @@ public class TolokaManager
             "caravan" => "продажа",
             _ => tolokaType.Name,
         };
+    }
+
+    private TolokaType? TallyVotes(int tolokaId, TolokaType[] tolokaTypes)
+    {
+        // TODO: голосование игнорирует RotationWeight – при вводе внесписочных (RotationWeight = 0) или беспозиционных типов фильтровать кандидатов по rotation-eligible, иначе голоса могут посеять неигровую толоку
+        var tally = _context.TolokaVotes
+            .Where(x => x.TolokaId == tolokaId)
+            .GroupBy(x => x.CandidateTolokaTypeId)
+            .Select(g => new { CandidateTolokaTypeId = g.Key, Votes = g.Count() })
+            .ToArray();
+
+        if (tally.Length == 0)
+        {
+            return null;
+        }
+
+        var maxVotes = tally.Max(x => x.Votes);
+        var leaders = tally.Where(x => x.Votes == maxVotes).Select(x => x.CandidateTolokaTypeId).ToArray();
+        var winnerId = leaders[Random.Shared.Next(leaders.Length)];
+        return tolokaTypes.FirstOrDefault(x => x.Id == winnerId);
     }
 
     private static TolokaType PickTolokaType(TolokaType[] tolokaTypes)

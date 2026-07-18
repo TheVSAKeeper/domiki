@@ -56,6 +56,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Toloka> Tolokas { get; set; }
     public DbSet<TolokaPosition> TolokaPositions { get; set; }
     public DbSet<TolokaContribution> TolokaContributions { get; set; }
+    public DbSet<TolokaVote> TolokaVotes { get; set; }
     public DbSet<TradeLot> TradeLots { get; set; }
     public DbSet<SeasonCounter> SeasonCounters { get; set; }
     public DbSet<PlayerEvent> PlayerEvents { get; set; }
@@ -483,6 +484,19 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(s => s.Player)
             .WithMany()
             .HasForeignKey(e => e.PlayerId);
+
+        modelBuilder.Entity<TolokaVote>()
+            .HasKey(p => new
+            {
+                p.TolokaId,
+                p.PlayerId,
+            });
+
+        modelBuilder.Entity<TolokaVote>()
+            .HasOne(s => s.Toloka)
+            .WithMany()
+            .HasForeignKey(e => e.TolokaId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<TradeLot>()
             .HasOne(s => s.Seller)
