@@ -124,7 +124,7 @@ const busyFolkForSpot = (spot: YardSpot, workers: WorkerDto[]): FolkPlacement[] 
 
 const freeFolkPlacements = (workers: WorkerDto[], spots: YardSpot[], domikTypes: DomikTypeDto[], firstPathY: number): FolkPlacement[] => {
     const free = workers
-        .filter(worker => worker.manufactureId == null && worker.expeditionId == null && worker.restUntil == null && worker.sickUntil == null)
+        .filter(worker => worker.manufactureId == null && worker.expeditionId == null && worker.errandId == null && worker.restUntil == null && worker.sickUntil == null)
         .slice(0, FOLK_CAP);
     const barracksSpot = spots.find(spot => domikTypes.find(type => type.id === spot.domik.typeId)?.logicName === 'barracks');
     return free.map((worker, index) => barracksSpot != null

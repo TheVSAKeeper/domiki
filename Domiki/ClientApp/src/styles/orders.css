@@ -540,3 +540,251 @@
         margin-left: auto;
     }
 }
+
+.errand-card {
+    margin-bottom: 14px;
+    border-color: #6a4c94;
+    box-shadow: inset 0 -4px 0 var(--plank-dark), 0 0 0 2px rgba(138, 95, 176, .35);
+}
+
+.errand-card .order-postmark {
+    background: linear-gradient(120deg, #dccbee, var(--plank) 82%);
+}
+
+.errand-badge {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 3px 9px;
+    font-family: var(--pixel);
+    font-size: 9px;
+    color: #fff8e6;
+    text-transform: lowercase;
+    background: #8a5fb0;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.errand-badge-accepted {
+    background: #6a4c94;
+}
+
+.errand-title {
+    margin: 0;
+    font-family: var(--pixel);
+    font-size: 12px;
+    line-height: 1.4;
+    color: #4a2e6e;
+}
+
+.errand-offer-text {
+    max-width: 70ch;
+}
+
+.errand-clue-chip {
+    display: inline-flex;
+    align-self: flex-start;
+    margin: 0;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #4a2e6e;
+    background: #ece2f5;
+    border: 2px solid #8a5fb0;
+    clip-path: var(--cut);
+}
+
+.errand-crew {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.errand-crew-member {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.errand-crew-member .worker-avatar {
+    width: 22px;
+    height: 22px;
+}
+
+.errand-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.errand-actions .btn-game {
+    flex: 1;
+    justify-content: center;
+}
+
+.errand-modal {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: min(560px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    padding: 0 18px 18px;
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+    scrollbar-width: thin;
+    scrollbar-color: var(--pine) var(--plank-dark);
+}
+
+.errand-modal::-webkit-scrollbar {
+    width: 10px;
+}
+
+.errand-modal::-webkit-scrollbar-track {
+    background: var(--plank-dark);
+    border-left: 2px solid var(--ink);
+}
+
+.errand-modal::-webkit-scrollbar-thumb {
+    background: var(--pine);
+    border: 2px solid var(--ink);
+}
+
+dialog.errand-modal {
+    margin: auto;
+    color: var(--ink);
+}
+
+dialog.errand-modal:not([open]) {
+    display: none;
+}
+
+dialog.errand-modal::backdrop {
+    background: rgba(51, 41, 26, .42);
+}
+
+.errand-modal-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 -18px;
+    padding: 16px 18px 14px;
+    background:
+        radial-gradient(120% 140% at 50% -20%, rgba(138, 95, 176, .28), transparent 60%),
+        linear-gradient(180deg, var(--plank), var(--plank-dark));
+    border-bottom: 3px solid var(--ink);
+    box-shadow: 0 3px 0 var(--plank), 0 5px 0 var(--ink);
+}
+
+.errand-modal-title {
+    margin: 0 0 3px;
+    font-family: var(--pixel);
+    font-size: 14px;
+    color: #4a2e6e;
+}
+
+.errand-modal-sub {
+    font-size: 12px;
+    color: rgba(51, 41, 26, .68);
+}
+
+.errand-modal-close {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    color: var(--ink);
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+.errand-modal-offer {
+    margin: 0;
+    font-size: 13px;
+    font-style: italic;
+    line-height: 1.4;
+    color: rgba(51, 41, 26, .78);
+}
+
+.errand-clue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.errand-clue {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 12px;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.errand-clue-selected {
+    border-color: #8a5fb0;
+    box-shadow: inset 0 0 0 2px #8a5fb0;
+}
+
+.errand-clue-label {
+    font-weight: 700;
+}
+
+.errand-clue-detail {
+    font-size: 12px;
+    color: rgba(51, 41, 26, .72);
+}
+
+.errand-clue-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 2px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pine-dark);
+}
+
+.errand-clue-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.errand-clue-meta svg {
+    width: 13px;
+    height: 13px;
+}
+
+.errand-reward-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 11px;
+    background: #fffaec;
+    border: 2px solid rgba(184, 134, 11, .4);
+    clip-path: var(--cut);
+}
+
+.errand-reward-preview-value {
+    font-weight: 700;
+    color: #6b4e00;
+    font-variant-numeric: tabular-nums;
+}

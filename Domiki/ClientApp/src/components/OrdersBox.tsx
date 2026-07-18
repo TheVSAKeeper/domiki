@@ -1,19 +1,27 @@
+import { useState } from 'react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import HeartIcon from 'pixelarticons/svg/heart.svg?react';
-import type { NeighborReputationDto, OrderDto, ResourceDto, ResourceTypeDto } from '../types/api';
+import HandIcon from 'pixelarticons/svg/hand.svg?react';
+import type { ErrandDto, NeighborReputationDto, OrderDto, ResourceDto, ResourceTypeDto, WorkerDto } from '../types/api';
 import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
+import { getErrandTemplate } from '../utils/errandTexts';
 import { ResourcesBox } from './ResourcesBox';
 import { ActionButton } from './ActionButton';
-import { AbstractSprite, MechanicSprite, NeighborSprite } from './sprites';
+import { ErrandAcceptModal } from './ErrandAcceptModal';
+import { AbstractSprite, MechanicSprite, NeighborSprite, WorkerSprite } from './sprites';
 
 interface OrdersBoxProps {
     orders: OrderDto[];
+    errand: ErrandDto | null;
+    workers: WorkerDto[];
     reputation: NeighborReputationDto[];
     resourceTypes: ResourceTypeDto[];
     resources: ResourceDto[];
     now: number;
     onComplete: (orderId: number) => void;
+    onAcceptErrand: (errandId: number, clueId: number, workerIds: number[]) => Promise<boolean>;
+    onCancelErrand: (errandId: number) => Promise<boolean>;
 }
 
 const neighborPlea: Record<string, string> = {
@@ -40,7 +48,70 @@ const rewardResources = (order: OrderDto): ResourceDto[] => [
     { typeId: 5, value: order.rewardGold },
 ].filter(resource => resource.value > 0);
 
-export const OrdersBox = ({ orders, reputation, resourceTypes, resources, now, onComplete }: OrdersBoxProps) => {
+interface ErrandCardProps {
+    errand: ErrandDto;
+    workers: WorkerDto[];
+    now: number;
+    onAccept: () => void;
+    onCancel: () => void;
+}
+
+const ErrandCard = ({ errand, workers, now, onAccept, onCancel }: ErrandCardProps) => {
+    const template = getErrandTemplate(errand.templateId);
+    const tone = (['a', 'b', 'c', 'd'] as const)[errand.neighborId % 4] ?? 'a';
+    const accepted = errand.acceptDate != null;
+    const deadline = accepted ? errand.finishDate : errand.expireDate;
+    const left = deadline == null ? 0 : remainingSeconds(deadline, now);
+    const crew = accepted ? workers.filter(worker => errand.workerIds.includes(worker.id)) : [];
+    const clue = errand.clueId == null ? null : template.clues[errand.clueId];
+
+    return (
+        <div className="order-card errand-card">
+            <div className={'order-postmark order-postmark-' + tone}>
+                <span className="order-neighbor-badge">
+                    <NeighborSprite logicName={errand.neighborLogicName} size={24} className="neighbor-ico" aria-hidden="true" />
+                </span>
+                <span className="order-neighbor-name">
+                    {errand.neighborName}<span className="order-asks">просит</span>
+                </span>
+                <span className={'order-timer timer' + (left <= URGENT_SECONDS ? ' order-timer-urgent' : '')}>
+                    <ClockIcon aria-hidden="true" />{formatDuration(left)}
+                </span>
+            </div>
+            <span className={'errand-badge' + (accepted ? ' errand-badge-accepted' : '')}>{accepted ? 'Идут поиски' : 'Поручение'}</span>
+            <h4 className="errand-title">{template.title}</h4>
+            {accepted
+                ? <>
+                    {clue != null && <p className="errand-clue-chip">{clue.label}</p>}
+                    {crew.length > 0 &&
+                        <div className="errand-crew">
+                            {crew.map(worker => (
+                                <span key={worker.id} className="errand-crew-member">
+                                    <WorkerSprite name={worker.name} state="working" className="worker-avatar" aria-hidden="true" />
+                                    {worker.name}
+                                </span>
+                            ))}
+                        </div>
+                    }
+                    <ActionButton className="btn-game btn-ghost" onClick={onCancel}>Отозвать</ActionButton>
+                </>
+                : <>
+                    <p className="order-plea errand-offer-text">{template.offer}</p>
+                    <div className="errand-actions">
+                        <ActionButton className="btn-game" onClick={onAccept}>
+                            <HandIcon className="btn-ico" aria-hidden="true" />
+                            Помочь
+                        </ActionButton>
+                        <ActionButton className="btn-game btn-ghost" onClick={onCancel}>Отказаться</ActionButton>
+                    </div>
+                </>
+            }
+        </div>
+    );
+};
+
+export const OrdersBox = ({ orders, errand, workers, reputation, resourceTypes, resources, now, onComplete, onAcceptErrand, onCancelErrand }: OrdersBoxProps) => {
+    const [errandModalId, setErrandModalId] = useState<number | null>(null);
     return (
         <section className="orders-panel pixel-panel">
             <div className="orders-hero">
@@ -82,6 +153,10 @@ export const OrdersBox = ({ orders, reputation, resourceTypes, resources, now, o
                         })}
                     </div>
                 </div>}
+            {errand != null &&
+                <ErrandCard errand={errand} workers={workers} now={now}
+                    onAccept={() => setErrandModalId(errand.id)}
+                    onCancel={() => { void onCancelErrand(errand.id); }} />}
             {orders.length === 0
                 ? <div className="orders-empty">
                     <MechanicSprite logicName="orders" size={48} aria-hidden="true" />
@@ -131,6 +206,10 @@ export const OrdersBox = ({ orders, reputation, resourceTypes, resources, now, o
                         );
                     })}
                 </div>}
+            {errand != null && errandModalId === errand.id && errand.acceptDate == null &&
+                <ErrandAcceptModal errand={errand} workers={workers} now={now}
+                    onConfirm={onAcceptErrand}
+                    onClose={() => setErrandModalId(null)} />}
         </section>
     );
 };

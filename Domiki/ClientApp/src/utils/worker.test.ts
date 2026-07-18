@@ -19,6 +19,7 @@ const baseWorker: WorkerDto = {
     noSick: false,
     manufactureId: null,
     expeditionId: null,
+    errandId: null,
     workedSeconds: 0,
     restUntil: null,
     sickUntil: null,

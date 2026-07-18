@@ -92,6 +92,14 @@ export async function apiPost(url: string, signal?: AbortSignal): Promise<void> 
 export const completeOrder = (orderId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/CompleteOrder/${orderId}`, signal);
 
+export const acceptErrand = (errandId: number, clueId: number, workerIds: number[], signal?: AbortSignal): Promise<void> => {
+    const workerIdsQuery = workerIds.map(id => `&workerIds=${id}`).join('');
+    return apiPost(`Domiki/AcceptErrand/${errandId}?clueId=${clueId}${workerIdsQuery}`, signal);
+};
+
+export const cancelErrand = (errandId: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/CancelErrand/${errandId}`, signal);
+
 export const hurryManufacture = (manufactureId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/HurryManufacture/${manufactureId}`, signal);
 

@@ -7,9 +7,11 @@ import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
 import CheckboxOnIcon from 'pixelarticons/svg/checkbox-on.svg?react';
 import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
 import HandIcon from 'pixelarticons/svg/hand.svg?react';
+import SearchIcon from 'pixelarticons/svg/search.svg?react';
 import type { DecorTypeDto, DomikTypeDto, RecapEventDto, ResourceTypeDto } from '../types/api';
 import { isNumber, isRecord, lootEntryKey, readLootEntry, readResource } from '../utils/recap';
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
+import { getErrandTemplate, getErrandThanks } from '../utils/errandTexts';
 import { withStableKeys } from '../utils/keys';
 import { formatDuration, formatRelativeTime } from '../utils/time';
 import { genderForm, traitLabel } from '../utils/gender';
@@ -211,6 +213,35 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
                 <>
                     <Crest icon={data.guestCrestIcon} color={data.guestCrestColor} className="crest-badge-small" />
                     <span className="journal-text">{data.guestVillageName} подсобила: {data.domikTypeName} освободится на {formatDuration(data.reducedSeconds)} раньше</span>
+                </>
+            ),
+        };
+    }
+
+    if (event.type === 'ErrandResolved' && isNumber(data.neighborId) && isNumber(data.templateId) && isNumber(data.clueId) && isNumber(data.coins) && isNumber(data.reputation)) {
+        const template = getErrandTemplate(data.templateId);
+        const resolution = template.resolutions[data.clueId] ?? '';
+        const thanks = getErrandThanks(data.neighborId);
+        const coinType = findResourceType(resourceTypes, 1);
+        const bonusType = isNumber(data.bonusResourceTypeId) ? findResourceType(resourceTypes, data.bonusResourceTypeId) : undefined;
+        return {
+            tone: 'errand',
+            Icon: SearchIcon,
+            body: (
+                <>
+                    <MechanicSprite logicName="orders" aria-hidden="true" />
+                    <span className="journal-text">
+                        {resolution}
+                        <span className="journal-errand-thanks">«{thanks}»</span>
+                    </span>
+                    <span className="journal-chips">
+                        {coinType != null && <ResourceChip resourceType={coinType} value={data.coins} />}
+                        <span className="reputation-reward">
+                            <AbstractSprite logicName="reputation" size={24} className="reputation-ico" aria-hidden="true" />
+                            +{data.reputation} реп.
+                        </span>
+                        {bonusType != null && isNumber(data.bonusValue) && <ResourceChip resourceType={bonusType} value={data.bonusValue} rare />}
+                    </span>
                 </>
             ),
         };

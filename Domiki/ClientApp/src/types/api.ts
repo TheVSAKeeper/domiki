@@ -102,6 +102,20 @@ export const orderSchema = z.object({
 });
 export type OrderDto = z.infer<typeof orderSchema>;
 
+export const errandSchema = z.object({
+    id: z.number(),
+    neighborId: z.number(),
+    neighborName: z.string(),
+    neighborLogicName: z.string(),
+    templateId: z.number(),
+    expireDate: z.string(),
+    acceptDate: z.string().nullable(),
+    clueId: z.number().nullable(),
+    finishDate: z.string().nullable(),
+    workerIds: z.array(z.number()),
+});
+export type ErrandDto = z.infer<typeof errandSchema>;
+
 export const neighborReputationSchema = z.object({
     neighborId: z.number(),
     neighborName: z.string(),
@@ -254,6 +268,7 @@ export const workerSchema = z.object({
     noSick: z.boolean(),
     manufactureId: z.number().nullable(),
     expeditionId: z.number().nullable(),
+    errandId: z.number().nullable(),
     workedSeconds: z.number(),
     restUntil: z.string().nullable(),
     sickUntil: z.string().nullable(),
@@ -458,6 +473,7 @@ export const gameStateSchema = z.object({
     domiks: domikSchema.array(),
     resources: resourceSchema.array(),
     orders: orderSchema.array(),
+    errand: errandSchema.nullable(),
     reputation: neighborReputationSchema.array(),
     blueprints: blueprintSchema.array(),
     village: villageSchema,

@@ -153,6 +153,7 @@
 .journal-entry[data-tone="goal"] { --accent: #a9791b; }
 .journal-entry[data-tone="guestbook"] { --accent: #3f7f78; }
 .journal-entry[data-tone="help"] { --accent: #6a5a9a; }
+.journal-entry[data-tone="errand"] { --accent: #8a5fb0; }
 
 .journal-entry[data-tone="market"] .journal-node,
 .journal-entry[data-tone="goal"] .journal-node {
@@ -185,6 +186,15 @@
 
 .journal-text {
     font-weight: 600;
+}
+
+.journal-errand-thanks {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    font-style: italic;
+    font-weight: 400;
+    color: rgba(51, 41, 26, .68);
 }
 
 .journal-time {
