@@ -1,4 +1,5 @@
 ﻿using Domiki.Web.Economy.Models;
+using Domiki.Web.Infrastructure;
 
 namespace Domiki.Web.Economy.Dto;
 
@@ -12,7 +13,7 @@ public static class OrderDtoExtensions
             NeighborId = order.Neighbor.Id,
             NeighborName = order.Neighbor.Name,
             NeighborLogicName = order.Neighbor.LogicName,
-            ExpireDate = DateTime.SpecifyKind(order.ExpireDate, DateTimeKind.Utc),
+            ExpireDate = DateTimeHelper.AsUtc(order.ExpireDate),
             Required = order.Resources.Select(x => new OrderResourceDto
                 {
                     ResourceTypeId = x.Type.Id,

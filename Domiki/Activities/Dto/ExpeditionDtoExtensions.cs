@@ -1,4 +1,5 @@
 ﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Infrastructure;
 
 namespace Domiki.Web.Activities.Dto;
 
@@ -23,8 +24,8 @@ public static class ExpeditionDtoExtensions
             Id = expedition.Id,
             ExpeditionTypeId = expedition.ExpeditionType.Id,
             ExpeditionName = expedition.ExpeditionType.Name,
-            StartDate = DateTime.SpecifyKind(expedition.StartDate, DateTimeKind.Utc),
-            FinishDate = DateTime.SpecifyKind(expedition.FinishDate, DateTimeKind.Utc),
+            StartDate = DateTimeHelper.AsUtc(expedition.StartDate),
+            FinishDate = DateTimeHelper.AsUtc(expedition.FinishDate),
         };
     }
 

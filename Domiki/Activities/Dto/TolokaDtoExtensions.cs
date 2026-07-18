@@ -1,4 +1,5 @@
 ﻿using Domiki.Web.Activities.Models;
+using Domiki.Web.Infrastructure;
 
 namespace Domiki.Web.Activities.Dto;
 
@@ -15,7 +16,7 @@ public static class TolokaDtoExtensions
                     LogicName = b.LogicName,
                     Label = b.Label,
                     Percent = b.Percent,
-                    BuffUntil = DateTime.SpecifyKind(b.BuffUntil, DateTimeKind.Utc),
+                    BuffUntil = DateTimeHelper.AsUtc(b.BuffUntil),
                 })
                 .ToArray(),
             BuffHours = state.BuffHours,
@@ -34,7 +35,7 @@ public static class TolokaDtoExtensions
             ResourceTypeId = toloka.TolokaType.ResourceTypeId,
             Goal = toloka.Goal,
             Collected = toloka.Collected,
-            StartDate = DateTime.SpecifyKind(toloka.StartDate, DateTimeKind.Utc),
+            StartDate = DateTimeHelper.AsUtc(toloka.StartDate),
         };
     }
 }

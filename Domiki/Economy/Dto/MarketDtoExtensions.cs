@@ -1,4 +1,5 @@
 ﻿using Domiki.Web.Economy.Models;
+using Domiki.Web.Infrastructure;
 
 namespace Domiki.Web.Economy.Dto;
 
@@ -32,7 +33,7 @@ public static class MarketDtoExtensions
             WantResourceTypeId = lot.WantResourceTypeId,
             WantValue = lot.WantValue,
             CommissionCoins = lot.CommissionCoins,
-            ExpireDate = DateTime.SpecifyKind(lot.ExpireDate, DateTimeKind.Utc),
+            ExpireDate = DateTimeHelper.AsUtc(lot.ExpireDate),
         };
     }
 }

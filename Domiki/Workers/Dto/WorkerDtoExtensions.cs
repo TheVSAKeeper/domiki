@@ -1,4 +1,5 @@
-﻿using Domiki.Web.Workers.Models;
+﻿using Domiki.Web.Infrastructure;
+using Domiki.Web.Workers.Models;
 
 namespace Domiki.Web.Workers.Dto;
 
@@ -20,8 +21,8 @@ public static class WorkerDtoExtensions
             ManufactureId = worker.ManufactureId,
             ExpeditionId = worker.ExpeditionId,
             WorkedSeconds = worker.WorkedSeconds,
-            RestUntil = worker.RestUntil == null ? null : DateTime.SpecifyKind(worker.RestUntil.Value, DateTimeKind.Utc),
-            SickUntil = worker.SickUntil == null ? null : DateTime.SpecifyKind(worker.SickUntil.Value, DateTimeKind.Utc),
+            RestUntil = DateTimeHelper.AsUtc(worker.RestUntil),
+            SickUntil = DateTimeHelper.AsUtc(worker.SickUntil),
             Skills = worker.Skills.Select(x => new WorkerSkillDto
                 {
                     DomikTypeId = x.DomikTypeId,

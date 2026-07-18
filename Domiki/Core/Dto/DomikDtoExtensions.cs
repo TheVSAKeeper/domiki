@@ -1,4 +1,5 @@
 ﻿using Domiki.Web.Core.Models;
+using Domiki.Web.Infrastructure;
 
 namespace Domiki.Web.Core.Dto;
 
@@ -11,13 +12,12 @@ public static class DomikDtoExtensions
             Id = domik.Id,
             Level = domik.Level,
             TypeId = domik.Type.Id,
-            // todo вынести в нормальный хэлпер или в БД с часовым поясом хранить, или ещё чего
-            FinishDate = domik.FinishDate == null ? null : DateTime.SpecifyKind(domik.FinishDate.Value, DateTimeKind.Utc),
+            FinishDate = DateTimeHelper.AsUtc(domik.FinishDate),
             UpgradeSeconds = domik.UpgradeSeconds,
             Manufactures = domik.Manufactures.Select(x => new ManufactureDto
                 {
                     Id = x.Id,
-                    FinishDate = DateTime.SpecifyKind(x.FinishDate, DateTimeKind.Utc),
+                    FinishDate = DateTimeHelper.AsUtc(x.FinishDate),
                     PlodderCount = x.PlodderCount,
                     ReceiptId = x.ReceiptId,
                     AutoRepeat = x.AutoRepeat,

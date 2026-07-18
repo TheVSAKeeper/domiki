@@ -1,4 +1,5 @@
-﻿using Domiki.Web.Village.Models;
+﻿using Domiki.Web.Infrastructure;
+using Domiki.Web.Village.Models;
 
 namespace Domiki.Web.Village.Dto;
 
@@ -20,8 +21,8 @@ public static class WeatherDtoExtensions
             WeatherTypeId = period.WeatherType.Id,
             WeatherName = period.WeatherType.Name,
             LogicName = period.WeatherType.LogicName,
-            StartDate = DateTime.SpecifyKind(period.StartDate, DateTimeKind.Utc),
-            EndDate = DateTime.SpecifyKind(period.EndDate, DateTimeKind.Utc),
+            StartDate = DateTimeHelper.AsUtc(period.StartDate),
+            EndDate = DateTimeHelper.AsUtc(period.EndDate),
             Effects = period.WeatherType.Effects.Select(x => new WeatherEffectDto
                 {
                     DomikTypeId = x.DomikTypeId,
