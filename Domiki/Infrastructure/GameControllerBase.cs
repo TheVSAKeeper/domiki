@@ -7,6 +7,7 @@ namespace Domiki.Web.Infrastructure;
 
 [Authorize]
 [ApiController]
+// todo разобраться с роут префиксом: у всех экшенов абсолютный /Domiki/, даже вне домена домиков
 public abstract class GameControllerBase : ControllerBase
 {
     private readonly DomikManager _domikManager;
