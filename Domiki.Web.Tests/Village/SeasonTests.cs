@@ -9,7 +9,6 @@ namespace Domiki.Web.Tests;
 [NonParallelizable]
 public sealed class SeasonTests
 {
-    private const int BridgeTolokaTypeId = 1;
     private const int ShortScoutId = 1;
 
     [SetUp]
@@ -242,27 +241,45 @@ public sealed class SeasonTests
 
     private static void ResetToloka()
     {
-        using var scope = App.Scope();
-        scope.Context.TolokaContributions.RemoveRange(scope.Context.TolokaContributions);
-        scope.Context.Tolokas.RemoveRange(scope.Context.Tolokas);
-        scope.Context.Tolokas.Add(new()
+        int newTolokaId;
+        using (var scope = App.Scope())
         {
-            TolokaTypeId = BridgeTolokaTypeId,
-            Collected = 0,
-            Goal = 2000,
-            StartDate = DateTimeHelper.GetNowDate(),
-            CompletedDate = null,
-        });
+            scope.Context.TolokaContributions.RemoveRange(scope.Context.TolokaContributions);
+            scope.Context.TolokaPositions.RemoveRange(scope.Context.TolokaPositions);
+            scope.Context.Tolokas.RemoveRange(scope.Context.Tolokas);
+            var toloka = scope.Context.Tolokas.Add(new()
+            {
+                TolokaTypeId = TolokaTypeIds.Bridge,
+                StartDate = DateTimeHelper.GetNowDate(),
+                CompletedDate = null,
+            });
 
-        scope.Commit();
+            scope.Commit();
+            newTolokaId = toloka.Entity.Id;
+        }
+
+        using (var scope = App.Scope())
+        {
+            scope.Context.TolokaPositions.Add(new()
+            {
+                TolokaId = newTolokaId,
+                ResourceTypeId = ResourceIds.Stone,
+                Goal = 2000,
+                Collected = 0,
+            });
+
+            scope.Commit();
+        }
     }
 }
 
 file static class SeasonTestsActs
 {
-    public static TestPlayer Contribute(this TestPlayer p, int amount)
+    public static TestPlayer Contribute(this TestPlayer p, int amount) => p.Contribute(ResourceIds.Stone, amount);
+
+    public static TestPlayer Contribute(this TestPlayer p, int resourceTypeId, int amount)
     {
-        App.Act<TolokaManager>(m => m.Contribute(p.Id, amount, DateTimeHelper.GetNowDate()));
+        App.Act<TolokaManager>(m => m.Contribute(p.Id, resourceTypeId, amount, DateTimeHelper.GetNowDate()));
         return p;
     }
 

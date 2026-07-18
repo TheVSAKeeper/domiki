@@ -155,3 +155,11 @@ public static class WeatherIds
     public const int Frost = 4;
     public const int Wind = 5;
 }
+
+public static class TolokaTypeIds
+{
+    public const int Bridge = 1;
+    public const int Granary = 2;
+    public const int Kiln = 3;
+    public const int Caravan = 4;
+}

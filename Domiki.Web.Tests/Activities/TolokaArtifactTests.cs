@@ -9,8 +9,6 @@ namespace Domiki.Web.Tests;
 [NonParallelizable]
 public sealed class TolokaArtifactTests
 {
-    private const int GranaryTolokaTypeId = 2;
-
     private static readonly List<int> CreatedTolokaIds = [];
 
     [OneTimeTearDown]
@@ -40,14 +38,14 @@ public sealed class TolokaArtifactTests
 
         var first = TestPlayer.Create();
         var second = TestPlayer.Create();
-        InsertCompletedToloka(GranaryTolokaTypeId, goal, completedDate, first.Id, second.Id);
+        InsertCompletedToloka(TolokaTypeIds.Granary, goal, completedDate, first.Id, second.Id);
 
-        var artifact = first.Artifacts().Single(x => x.Goal == goal);
+        var artifact = first.Artifacts().Single(x => x.ResourcesText.Contains(goal.ToString()));
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(artifact.Name, Is.EqualTo("Общий амбар"));
-            Assert.That(artifact.ResourceName, Is.EqualTo("Дерево"));
+            Assert.That(artifact.ResourcesText, Is.EqualTo($"{goal} Дерево"));
             Assert.That(artifact.Participants, Is.EqualTo(2));
             Assert.That(artifact.SeasonNumber, Is.EqualTo(expectedSeason));
             Assert.That(artifact.CompletedDate, Is.EqualTo(completedDate));
@@ -70,7 +68,7 @@ public sealed class TolokaArtifactTests
 
             var artifacts = player.Artifacts();
 
-            Assert.That(artifacts.Any(x => x.Goal == sentinelGoal), Is.False);
+            Assert.That(artifacts.Any(x => x.ResourcesText.Contains(sentinelGoal.ToString())), Is.False);
         }
         finally
         {
@@ -88,27 +86,27 @@ public sealed class TolokaArtifactTests
         const int goal = 602345;
         var completedDate = DateTimeHelper.GetNowDate().AddYears(50);
         var player = TestPlayer.Create();
-        InsertCompletedToloka(GranaryTolokaTypeId, goal, completedDate, player.Id);
+        InsertCompletedToloka(TolokaTypeIds.Granary, goal, completedDate, player.Id);
 
         var artifacts = player.Artifacts();
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(artifacts.First().Goal, Is.EqualTo(goal));
+            Assert.That(artifacts.First().ResourcesText.Contains(goal.ToString()), Is.True);
             Assert.That(artifacts.Length, Is.LessThanOrEqualTo(TolokaManager.TolokaArtifactShowCount));
         }
     }
 
     private static void InsertCompletedToloka(int tolokaTypeId, int goal, DateTime completedDate, params int[] participantPlayerIds)
     {
+        var resourceTypeId = App.Read(context => context.TolokaTypePositions.Where(x => x.TolokaTypeId == tolokaTypeId).Select(x => x.ResourceTypeId).First());
+
         int tolokaId;
         using (var scope = App.Scope())
         {
             var entry = scope.Context.Tolokas.Add(new()
             {
                 TolokaTypeId = tolokaTypeId,
-                Collected = goal,
-                Goal = goal,
                 StartDate = completedDate.AddHours(-1),
                 CompletedDate = completedDate,
             });
@@ -120,12 +118,21 @@ public sealed class TolokaArtifactTests
         CreatedTolokaIds.Add(tolokaId);
 
         using var contributionScope = App.Scope();
+        contributionScope.Context.TolokaPositions.Add(new()
+        {
+            TolokaId = tolokaId,
+            ResourceTypeId = resourceTypeId,
+            Goal = goal,
+            Collected = goal,
+        });
+
         foreach (var playerId in participantPlayerIds)
         {
             contributionScope.Context.TolokaContributions.Add(new()
             {
                 TolokaId = tolokaId,
                 PlayerId = playerId,
+                ResourceTypeId = resourceTypeId,
                 Value = 1,
             });
         }
@@ -135,13 +142,18 @@ public sealed class TolokaArtifactTests
 
     private static int GetActiveTolokaGoal()
     {
-        return App.Read(context => context.Tolokas.Single(x => x.CompletedDate == null).Goal);
+        return App.Read(context =>
+        {
+            var activeId = context.Tolokas.Single(x => x.CompletedDate == null).Id;
+            return context.TolokaPositions.Single(x => x.TolokaId == activeId && x.ResourceTypeId == ResourceIds.Stone).Goal;
+        });
     }
 
     private static void SetActiveTolokaGoal(int goal)
     {
         using var scope = App.Scope();
-        scope.Context.Tolokas.Single(x => x.CompletedDate == null).Goal = goal;
+        var activeId = scope.Context.Tolokas.Single(x => x.CompletedDate == null).Id;
+        scope.Context.TolokaPositions.Single(x => x.TolokaId == activeId && x.ResourceTypeId == ResourceIds.Stone).Goal = goal;
         scope.Commit();
     }
 }

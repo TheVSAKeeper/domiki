@@ -3,16 +3,13 @@ using Domiki.Web.Activities.Models;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Village;
 using Toloka = Domiki.Web.Data.Entities.Toloka;
+using TolokaPositionEntity = Domiki.Web.Data.Entities.TolokaPosition;
 
 namespace Domiki.Web.Tests;
 
 [NonParallelizable]
 public sealed class TolokaTests
 {
-    private const int BridgeTolokaTypeId = 1;
-    private const int GranaryTolokaTypeId = 2;
-    private const int KilnTolokaTypeId = 3;
-
     [SetUp]
     public void SetUp()
     {
@@ -35,7 +32,7 @@ public sealed class TolokaTests
     {
         var player = TestPlayer.Create();
         var playerWithoutBuff = TestPlayer.Create();
-        CompleteTolokaWithContribution(player.Id, DateTimeHelper.GetNowDate(), BridgeTolokaTypeId);
+        CompleteTolokaWithContribution(player.Id, DateTimeHelper.GetNowDate(), TolokaTypeIds.Bridge);
 
         using (Assert.EnterMultipleScope())
         {
@@ -64,7 +61,7 @@ public sealed class TolokaTests
         await Task.WhenAll(Task.Run(() => firstPlayer.Contribute(firstContribution)),
             Task.Run(() => secondPlayer.Contribute(secondContribution)));
 
-        Assert.That(GetActiveToloka().Collected, Is.EqualTo(firstContribution + secondContribution));
+        Assert.That(ActiveStonePosition().Collected, Is.EqualTo(firstContribution + secondContribution));
     }
 
     /// <summary>
@@ -73,7 +70,7 @@ public sealed class TolokaTests
     [Test]
     public void ContributeCompletesTolokaAndSeedsNextActiveTest()
     {
-        const int collectedBeforeContribution = 1960;
+        const int collectedBeforeContribution = 1950;
         const int contribution = 50;
 
         var player = TestPlayer.Create()
@@ -87,12 +84,13 @@ public sealed class TolokaTests
 
         using var scope = App.Scope();
         var completed = scope.Context.Tolokas.Single(x => x.Id == activeId);
+        var completedPosition = scope.Context.TolokaPositions.Single(x => x.TolokaId == activeId && x.ResourceTypeId == ResourceIds.Stone);
         using (Assert.EnterMultipleScope())
         {
             Assert.That(completed.CompletedDate, Is.Not.Null);
-            Assert.That(completed.Collected, Is.EqualTo(collectedBeforeContribution + contribution));
+            Assert.That(completedPosition.Collected, Is.EqualTo(collectedBeforeContribution + contribution));
             Assert.That(scope.Context.Tolokas.Count(x => x.CompletedDate == null), Is.EqualTo(1));
-            Assert.That(scope.Context.TolokaContributions.Single(x => x.TolokaId == activeId && x.PlayerId == player.Id).Value, Is.EqualTo(contribution));
+            Assert.That(scope.Context.TolokaContributions.Single(x => x.TolokaId == activeId && x.PlayerId == player.Id && x.ResourceTypeId == ResourceIds.Stone).Value, Is.EqualTo(contribution));
         }
     }
 
@@ -112,7 +110,7 @@ public sealed class TolokaTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(ex.Message, Is.EqualTo("Нужна Сходня"));
-            Assert.That(GetActiveToloka().Collected, Is.Zero);
+            Assert.That(ActiveStonePosition().Collected, Is.Zero);
             Assert.That(player.Resource(ResourceIds.Stone), Is.EqualTo(startStone));
         }
     }
@@ -131,7 +129,7 @@ public sealed class TolokaTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(ex.Message, Does.StartWith("Недостаточно "));
-            Assert.That(GetActiveToloka().Collected, Is.Zero);
+            Assert.That(ActiveStonePosition().Collected, Is.Zero);
         }
     }
 
@@ -151,10 +149,11 @@ public sealed class TolokaTests
         player.Contribute(contribution);
 
         var toloka = player.Toloka();
+        var position = toloka.Active.Positions.Single(p => p.ResourceTypeId == ResourceIds.Stone);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(toloka.Active.Collected, Is.EqualTo(contribution));
-            Assert.That(toloka.MyContribution, Is.EqualTo(contribution));
+            Assert.That(position.Collected, Is.EqualTo(contribution));
+            Assert.That(position.MyContribution, Is.EqualTo(contribution));
             Assert.That(player.Resource(ResourceIds.Stone), Is.EqualTo(startStone - contribution));
         }
     }
@@ -184,7 +183,7 @@ public sealed class TolokaTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(toloka.Active.TolokaType.LogicName, Is.EqualTo("bridge"));
-            Assert.That(toloka.MyContribution, Is.Zero);
+            Assert.That(toloka.Active.Positions.Single(p => p.ResourceTypeId == ResourceIds.Stone).MyContribution, Is.Zero);
         }
     }
 
@@ -228,7 +227,7 @@ public sealed class TolokaTests
             .WithResource(ResourceIds.Iron, 1)
             .WithResource(ResourceIds.Board, 1);
 
-        CompleteTolokaWithContribution(player.Id, DateTimeHelper.GetNowDate(), KilnTolokaTypeId);
+        CompleteTolokaWithContribution(player.Id, DateTimeHelper.GetNowDate(), TolokaTypeIds.Kiln);
         SetWeather(WeatherIds.Clear);
 
         var forgeId = player.DomikId(DomikIds.Forge);
@@ -241,12 +240,13 @@ public sealed class TolokaTests
     }
 
     /// <summary>
-    /// Цель следующей толоки растёт пропорционально числу участников предыдущей.
+    /// Цель каждой позиции корзины следующей толоки растёт пропорционально числу участников предыдущей.
     /// </summary>
     [Test]
     public void NextTolokaGoalScalesWithPreviousContributorsTest()
     {
         const int contribution = 40;
+        const int distinctContributors = 3;
 
         var first = TestPlayer.Create().WithTolokaUnlocked().WithResource(ResourceIds.Stone, contribution);
         var second = TestPlayer.Create().WithTolokaUnlocked().WithResource(ResourceIds.Stone, contribution);
@@ -257,7 +257,17 @@ public sealed class TolokaTests
         second.Contribute(contribution);
         third.Contribute(contribution);
 
-        Assert.That(GetActiveToloka().Goal, Is.EqualTo(2400));
+        using var scope = App.Scope();
+        var next = scope.Context.Tolokas.Single(x => x.CompletedDate == null);
+        var nextPositions = scope.Context.TolokaPositions.Where(x => x.TolokaId == next.Id).ToArray();
+        var basePositions = scope.Context.TolokaTypePositions.Where(x => x.TolokaTypeId == next.TolokaTypeId).ToArray();
+
+        Assert.That(nextPositions, Has.Length.EqualTo(basePositions.Length));
+        foreach (var position in nextPositions)
+        {
+            var basePosition = basePositions.Single(x => x.ResourceTypeId == position.ResourceTypeId);
+            Assert.That(position.Goal, Is.EqualTo(basePosition.Goal * distinctContributors));
+        }
     }
 
     /// <summary>
@@ -335,7 +345,8 @@ public sealed class TolokaTests
         using (var scope = App.Scope())
         {
             var completed = scope.Context.Tolokas.Single(x => x.CompletedDate != null);
-            Assert.That(completed.Collected, Is.EqualTo(collectedBeforeContribution + contribution + contribution));
+            var completedPosition = scope.Context.TolokaPositions.Single(x => x.TolokaId == completed.Id && x.ResourceTypeId == ResourceIds.Stone);
+            Assert.That(completedPosition.Collected, Is.EqualTo(collectedBeforeContribution + contribution + contribution));
         }
 
         using (Assert.EnterMultipleScope())
@@ -385,7 +396,156 @@ public sealed class TolokaTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(ex.Message, Is.EqualTo("Неверное количество"));
-            Assert.That(GetActiveToloka().Collected, Is.Zero);
+            Assert.That(ActiveStonePosition().Collected, Is.Zero);
+        }
+    }
+
+    /// <summary>
+    /// Взнос сверх остатка позиции списывает только принятую часть, а не всё внесённое количество.
+    /// </summary>
+    [Test]
+    public void ContributeClampsToRemainingAndKeepsOverflowTest()
+    {
+        const int positionGoal = 100;
+        const int startStone = 200;
+        const int contribution = 150;
+
+        var player = TestPlayer.Create()
+            .WithTolokaUnlocked()
+            .WithResource(ResourceIds.Stone, startStone);
+
+        SetActiveTolokaGoal(positionGoal);
+        var activeId = GetActiveToloka().Id;
+
+        player.Contribute(contribution);
+
+        var completedPosition = App.Read(context => context.TolokaPositions.Single(x => x.TolokaId == activeId && x.ResourceTypeId == ResourceIds.Stone));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(completedPosition.Collected, Is.EqualTo(positionGoal));
+            Assert.That(player.Resource(ResourceIds.Stone), Is.EqualTo(startStone - positionGoal));
+        }
+    }
+
+    /// <summary>
+    /// Взнос ресурсом, для которого у активной толоки нет позиции, отклоняется исключением и не списывает ресурс.
+    /// </summary>
+    [Test]
+    public void ContributeWrongResourceThrowsTest()
+    {
+        const int startWood = 50;
+
+        var player = TestPlayer.Create()
+            .WithTolokaUnlocked()
+            .WithResource(ResourceIds.Wood, startWood);
+
+        var ex = Throws.Business(() => player.Contribute(ResourceIds.Wood, 20));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ex.Message, Is.EqualTo("Этот ресурс толоке не нужен"));
+            Assert.That(ActiveStonePosition().Collected, Is.Zero);
+            Assert.That(player.Resource(ResourceIds.Wood), Is.EqualTo(startWood));
+        }
+    }
+
+    /// <summary>
+    /// Взнос в позицию, уже набравшую свою цель, отклоняется исключением.
+    /// </summary>
+    [Test]
+    public void ContributeToFilledPositionThrowsTest()
+    {
+        const int positionGoal = 50;
+
+        var player = TestPlayer.Create()
+            .WithTolokaUnlocked()
+            .WithResource(ResourceIds.Stone, 10);
+
+        SetActiveTolokaGoal(positionGoal);
+        SetActiveTolokaCollected(positionGoal);
+
+        var ex = Throws.Business(() => player.Contribute(10));
+
+        Assert.That(ex.Message, Is.EqualTo("Позиция уже собрана"));
+    }
+
+    /// <summary>
+    /// Многопозиционная толока (караван) завершается только тогда, когда набраны все её позиции, а не первая из них.
+    /// </summary>
+    [Test]
+    public void MultiPositionTolokaCompletesOnlyWhenAllPositionsFilledTest()
+    {
+        const int brickGoal = 2;
+        const int boardGoal = 2;
+        const int toolGoal = 2;
+
+        var player = TestPlayer.Create()
+            .WithTolokaUnlocked()
+            .WithResource(ResourceIds.Brick, brickGoal)
+            .WithResource(ResourceIds.Board, boardGoal)
+            .WithResource(ResourceIds.Tool, toolGoal);
+
+        var tolokaId = SetActiveTolokaToCaravan(brickGoal, boardGoal, toolGoal);
+
+        player.Contribute(ResourceIds.Brick, brickGoal);
+        player.Contribute(ResourceIds.Board, boardGoal);
+
+        Assert.That(GetTolokaCompletedDate(tolokaId), Is.Null);
+
+        player.Contribute(ResourceIds.Tool, toolGoal);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(GetTolokaCompletedDate(tolokaId), Is.Not.Null);
+            Assert.That(App.Read(context => context.Tolokas.Count(x => x.CompletedDate == null)), Is.EqualTo(1));
+        }
+    }
+
+    /// <summary>
+    /// Каждая позиция корзины хранит вклад игрока отдельно: взнос в одну позицию не отражается на другой.
+    /// </summary>
+    [Test]
+    public void PerResourcePositionTracksOwnContributionTest()
+    {
+        const int positionGoal = 1000;
+        const int brickContribution = 5;
+        const int boardContribution = 3;
+
+        var player = TestPlayer.Create()
+            .WithTolokaUnlocked()
+            .WithResource(ResourceIds.Brick, brickContribution)
+            .WithResource(ResourceIds.Board, boardContribution);
+
+        SetActiveTolokaToCaravan(positionGoal, positionGoal, positionGoal);
+
+        player.Contribute(ResourceIds.Brick, brickContribution);
+        player.Contribute(ResourceIds.Board, boardContribution);
+
+        var toloka = player.Toloka();
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(toloka.Active.Positions.Single(p => p.ResourceTypeId == ResourceIds.Brick).MyContribution, Is.EqualTo(brickContribution));
+            Assert.That(toloka.Active.Positions.Single(p => p.ResourceTypeId == ResourceIds.Board).MyContribution, Is.EqualTo(boardContribution));
+            Assert.That(toloka.Active.Positions.Single(p => p.ResourceTypeId == ResourceIds.Tool).MyContribution, Is.Zero);
+        }
+    }
+
+    /// <summary>
+    /// Бафф завершённой толоки типа «караван» повышает выпуск только у Магазина, у Кузницы выпуск остаётся базовым.
+    /// </summary>
+    [Test]
+    public void CaravanBuffBoostsMarketSellOutputTest()
+    {
+        const int expectedMarketPercent = 140;
+        const int expectedForgePercent = 100;
+
+        var player = TestPlayer.Create();
+        CompleteTolokaWithContribution(player.Id, DateTimeHelper.GetNowDate(), TolokaTypeIds.Caravan);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(player.TolokaOutputPercent(DomikIds.Market), Is.EqualTo(expectedMarketPercent));
+            Assert.That(player.TolokaOutputPercent(DomikIds.Forge), Is.EqualTo(expectedForgePercent));
         }
     }
 
@@ -394,18 +554,47 @@ public sealed class TolokaTests
         return App.Read(context => context.Tolokas.Single(x => x.CompletedDate == null));
     }
 
+    private static TolokaPositionEntity ActiveStonePosition()
+    {
+        return App.Read(context =>
+        {
+            var activeId = context.Tolokas.Single(x => x.CompletedDate == null).Id;
+            return context.TolokaPositions.Single(x => x.TolokaId == activeId && x.ResourceTypeId == ResourceIds.Stone);
+        });
+    }
+
     private static void SetActiveTolokaCollected(int collected)
     {
         using var scope = App.Scope();
-        scope.Context.Tolokas.Single(x => x.CompletedDate == null).Collected = collected;
+        var activeId = scope.Context.Tolokas.Single(x => x.CompletedDate == null).Id;
+        scope.Context.TolokaPositions.Single(x => x.TolokaId == activeId && x.ResourceTypeId == ResourceIds.Stone).Collected = collected;
         scope.Commit();
     }
 
     private static void SetActiveTolokaGoal(int goal)
     {
         using var scope = App.Scope();
-        scope.Context.Tolokas.Single(x => x.CompletedDate == null).Goal = goal;
+        var activeId = scope.Context.Tolokas.Single(x => x.CompletedDate == null).Id;
+        scope.Context.TolokaPositions.Single(x => x.TolokaId == activeId && x.ResourceTypeId == ResourceIds.Stone).Goal = goal;
         scope.Commit();
+    }
+
+    private static int SetActiveTolokaToCaravan(int brickGoal, int boardGoal, int toolGoal)
+    {
+        using var scope = App.Scope();
+        var active = scope.Context.Tolokas.Single(x => x.CompletedDate == null);
+        active.TolokaTypeId = TolokaTypeIds.Caravan;
+        scope.Context.TolokaPositions.RemoveRange(scope.Context.TolokaPositions.Where(x => x.TolokaId == active.Id));
+        scope.Context.TolokaPositions.Add(new() { TolokaId = active.Id, ResourceTypeId = ResourceIds.Brick, Goal = brickGoal, Collected = 0 });
+        scope.Context.TolokaPositions.Add(new() { TolokaId = active.Id, ResourceTypeId = ResourceIds.Board, Goal = boardGoal, Collected = 0 });
+        scope.Context.TolokaPositions.Add(new() { TolokaId = active.Id, ResourceTypeId = ResourceIds.Tool, Goal = toolGoal, Collected = 0 });
+        scope.Commit();
+        return active.Id;
+    }
+
+    private static DateTime? GetTolokaCompletedDate(int tolokaId)
+    {
+        return App.Read(context => context.Tolokas.Single(x => x.Id == tolokaId).CompletedDate);
     }
 
     private static void SetGatheringLevel(int playerId, int level)
@@ -415,48 +604,92 @@ public sealed class TolokaTests
         scope.Commit();
     }
 
-    private static void CompleteTolokaWithContribution(int playerId, DateTime completedDate, int completedTolokaTypeId = GranaryTolokaTypeId)
+    private static void CompleteTolokaWithContribution(int playerId, DateTime completedDate, int completedTolokaTypeId = TolokaTypeIds.Granary)
     {
-        using var scope = App.Scope();
-        var active = scope.Context.Tolokas.Single(x => x.CompletedDate == null);
-        active.TolokaTypeId = completedTolokaTypeId;
-        active.Collected = 2000;
-        active.Goal = 2000;
-        active.CompletedDate = completedDate;
-        scope.Context.TolokaContributions.Add(new()
+        int nextTolokaId;
+        using (var scope = App.Scope())
         {
-            TolokaId = active.Id,
-            PlayerId = playerId,
-            Value = 1,
-        });
+            var active = scope.Context.Tolokas.Single(x => x.CompletedDate == null);
+            active.TolokaTypeId = completedTolokaTypeId;
+            active.CompletedDate = completedDate;
 
-        scope.Context.Tolokas.Add(new()
+            var basePositions = scope.Context.TolokaTypePositions.Where(x => x.TolokaTypeId == completedTolokaTypeId).ToArray();
+            scope.Context.TolokaPositions.RemoveRange(scope.Context.TolokaPositions.Where(x => x.TolokaId == active.Id));
+            foreach (var basePosition in basePositions)
+            {
+                scope.Context.TolokaPositions.Add(new()
+                {
+                    TolokaId = active.Id,
+                    ResourceTypeId = basePosition.ResourceTypeId,
+                    Goal = basePosition.Goal,
+                    Collected = basePosition.Goal,
+                });
+            }
+
+            scope.Context.TolokaContributions.Add(new()
+            {
+                TolokaId = active.Id,
+                PlayerId = playerId,
+                ResourceTypeId = basePositions[0].ResourceTypeId,
+                Value = 1,
+            });
+
+            var next = scope.Context.Tolokas.Add(new()
+            {
+                TolokaTypeId = TolokaTypeIds.Bridge,
+                StartDate = completedDate,
+                CompletedDate = null,
+            });
+
+            scope.Commit();
+            nextTolokaId = next.Entity.Id;
+        }
+
+        using (var scope = App.Scope())
         {
-            TolokaTypeId = BridgeTolokaTypeId,
-            Collected = 0,
-            Goal = 2000,
-            StartDate = completedDate,
-            CompletedDate = null,
-        });
+            scope.Context.TolokaPositions.Add(new()
+            {
+                TolokaId = nextTolokaId,
+                ResourceTypeId = ResourceIds.Stone,
+                Goal = 2000,
+                Collected = 0,
+            });
 
-        scope.Commit();
+            scope.Commit();
+        }
     }
 
     private static void ResetToloka()
     {
-        using var scope = App.Scope();
-        scope.Context.TolokaContributions.RemoveRange(scope.Context.TolokaContributions);
-        scope.Context.Tolokas.RemoveRange(scope.Context.Tolokas);
-        scope.Context.Tolokas.Add(new()
+        int newTolokaId;
+        using (var scope = App.Scope())
         {
-            TolokaTypeId = BridgeTolokaTypeId,
-            Collected = 0,
-            Goal = 2000,
-            StartDate = DateTimeHelper.GetNowDate(),
-            CompletedDate = null,
-        });
+            scope.Context.TolokaContributions.RemoveRange(scope.Context.TolokaContributions);
+            scope.Context.TolokaPositions.RemoveRange(scope.Context.TolokaPositions);
+            scope.Context.Tolokas.RemoveRange(scope.Context.Tolokas);
+            var toloka = scope.Context.Tolokas.Add(new()
+            {
+                TolokaTypeId = TolokaTypeIds.Bridge,
+                StartDate = DateTimeHelper.GetNowDate(),
+                CompletedDate = null,
+            });
 
-        scope.Commit();
+            scope.Commit();
+            newTolokaId = toloka.Entity.Id;
+        }
+
+        using (var scope = App.Scope())
+        {
+            scope.Context.TolokaPositions.Add(new()
+            {
+                TolokaId = newTolokaId,
+                ResourceTypeId = ResourceIds.Stone,
+                Goal = 2000,
+                Collected = 0,
+            });
+
+            scope.Commit();
+        }
     }
 
     private static void SetWeather(int weatherTypeId)
@@ -491,9 +724,11 @@ file static class TolokaTestsActs
             .Buy(DomikIds.Gathering);
     }
 
-    public static TestPlayer Contribute(this TestPlayer p, int amount)
+    public static TestPlayer Contribute(this TestPlayer p, int amount) => p.Contribute(ResourceIds.Stone, amount);
+
+    public static TestPlayer Contribute(this TestPlayer p, int resourceTypeId, int amount)
     {
-        App.Act<TolokaManager>(m => m.Contribute(p.Id, amount, DateTimeHelper.GetNowDate()));
+        App.Act<TolokaManager>(m => m.Contribute(p.Id, resourceTypeId, amount, DateTimeHelper.GetNowDate()));
         return p;
     }
 
@@ -517,6 +752,11 @@ file static class TolokaTestsActs
     public static int OrderRewardBonusPercent(this TestPlayer p)
     {
         return App.Act<TolokaManager, int>(m => m.GetOrderRewardBonusPercent(p.Id, DateTimeHelper.GetNowDate()));
+    }
+
+    public static int TolokaOutputPercent(this TestPlayer p, int domikTypeId)
+    {
+        return App.Act<TolokaManager, int>(m => m.GetTolokaOutputPercent(p.Id, domikTypeId, DateTimeHelper.GetNowDate()));
     }
 
     public static int ManufactureOutputPercent(this TestPlayer p, int domikId)
