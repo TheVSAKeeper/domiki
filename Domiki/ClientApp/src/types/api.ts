@@ -172,9 +172,20 @@ export const seasonSchema = z.object({
 });
 export type SeasonDto = z.infer<typeof seasonSchema>;
 
+export const tolokaArtifactSchema = z.object({
+    name: z.string(),
+    resourceName: z.string(),
+    goal: z.number(),
+    seasonNumber: z.number(),
+    participants: z.number(),
+    completedDate: z.string(),
+});
+export type TolokaArtifactDto = z.infer<typeof tolokaArtifactSchema>;
+
 export const worldSchema = z.object({
     villages: z.array(worldVillageSchema),
     season: seasonSchema,
+    tolokaArtifacts: z.array(tolokaArtifactSchema),
 });
 export type WorldDto = z.infer<typeof worldSchema>;
 

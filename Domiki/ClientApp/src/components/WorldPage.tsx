@@ -9,10 +9,12 @@ import HeartIcon from 'pixelarticons/svg/heart.svg?react';
 import CalendarIcon from 'pixelarticons/svg/calendar.svg?react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
+import TrophyIcon from 'pixelarticons/svg/trophy.svg?react';
 import { ApiError, getWorld, leaveGuestbookEntry, visitVillage } from '../services/api';
 import { useToast } from '../services/toastContext';
 import { GUESTBOOK_PHRASES } from '../constants/guestbookPhrases';
-import { formatDuration, remainingSeconds } from '../utils/time';
+import { formatDuration, formatRelativeTime, remainingSeconds } from '../utils/time';
+import { pluralRu } from '../utils/plural';
 import { StatChip } from './StatChip';
 import { PixelLoader } from './PixelLoader';
 import { WorldMap } from './WorldMap';
@@ -246,6 +248,30 @@ export const WorldPage = () => {
                                 <span className="world-level">{village.level}</span>
                             </button>
                         ))}
+                    </div>
+
+                    <div className="world-artifacts pixel-panel">
+                        <h2 className="panel-title world-artifacts-title">
+                            <TrophyIcon className="world-tab-ico" aria-hidden="true" />
+                            Всем миром
+                        </h2>
+                        {world.tolokaArtifacts.length === 0
+                            ? <p className="hint">Ещё ни одна толока не завершена</p>
+                            : (
+                                <div className="world-artifacts-list">
+                                    {world.tolokaArtifacts.map((artifact, index) => (
+                                        <div key={`${artifact.completedDate}-${index}`} className="world-artifact-row">
+                                            <span className="world-artifact-main">
+                                                {artifact.name} – сезон {artifact.seasonNumber}, {artifact.participants} {pluralRu(artifact.participants, 'участник', 'участника', 'участников')}
+                                            </span>
+                                            <span className="world-artifact-sub">
+                                                {artifact.goal} {artifact.resourceName} · {formatRelativeTime(artifact.completedDate, now)}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )
+                        }
                     </div>
                 </div>
 

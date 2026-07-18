@@ -391,6 +391,47 @@
     clip-path: var(--cut);
 }
 
+.world-artifacts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.world-artifacts-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 4px;
+}
+
+.world-artifacts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.world-artifact-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px;
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.world-artifact-main {
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.world-artifact-sub {
+    font-size: 12px;
+    color: var(--pine);
+}
+
 .world-visit {
     position: sticky;
     top: 76px;
