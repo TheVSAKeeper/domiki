@@ -59,7 +59,7 @@ export interface GameData {
     startExpedition: (expeditionTypeId: number, workerIds?: number[], provisions?: boolean) => Promise<void>;
     buyDecor: (decorTypeId: number) => Promise<void>;
     contributeToloka: (amount: number) => Promise<void>;
-    postLot: (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => Promise<void>;
+    postLot: (kind: number, giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => Promise<void>;
     acceptLot: (lotId: number) => Promise<void>;
     cancelLot: (lotId: number) => Promise<void>;
     recap: RecapDto | null;
@@ -241,8 +241,8 @@ export function useGameData(): GameData {
         setResources(nextResources);
     }, []);
 
-    const postLot = useCallback(async (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => {
-        await postLotApi(giveResourceTypeId, giveValue, wantResourceTypeId, wantValue);
+    const postLot = useCallback(async (kind: number, giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => {
+        await postLotApi(kind, giveResourceTypeId, giveValue, wantResourceTypeId, wantValue);
         await refreshMarketAndResources();
     }, [refreshMarketAndResources]);
 

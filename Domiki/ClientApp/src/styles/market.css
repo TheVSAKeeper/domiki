@@ -138,6 +138,82 @@
     background: var(--pine);
 }
 
+.market-column-head {
+    flex-wrap: wrap;
+    row-gap: 6px;
+}
+
+.market-mode-toggle,
+.market-filter {
+    display: flex;
+    gap: 6px;
+}
+
+.market-mode-option,
+.market-filter-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-family: var(--pixel);
+    font-size: 10px;
+    color: var(--ink);
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+.market-filter-option {
+    padding: 4px 8px;
+    font-size: 9px;
+}
+
+.market-mode-option-active,
+.market-filter-option-active {
+    background: var(--coin);
+    box-shadow: inset 0 0 0 2px #fffaec;
+}
+
+.market-pay-gold {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.market-stall-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.market-lot-badge {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 7px;
+    font-size: 10px;
+    font-weight: 700;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.market-lot-badge-sell {
+    color: var(--ink);
+    background: var(--plank-dark);
+}
+
+.market-lot-badge-buy {
+    color: var(--plank);
+    background: var(--pine);
+}
+
 .market-field select,
 .market-field input {
     min-height: 38px;

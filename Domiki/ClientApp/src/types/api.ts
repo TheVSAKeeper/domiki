@@ -400,6 +400,7 @@ export const tradeLotSchema = z.object({
     wantValue: z.number(),
     commissionCoins: z.number(),
     expireDate: z.string(),
+    kind: z.number(),
 });
 export type TradeLotDto = z.infer<typeof tradeLotSchema>;
 

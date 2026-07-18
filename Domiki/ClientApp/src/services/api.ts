@@ -148,8 +148,8 @@ export const contributeToloka = (amount: number, signal?: AbortSignal): Promise<
 export const getMarket = (signal?: AbortSignal): Promise<MarketStateDto | null> =>
     apiGet('Domiki/GetMarket', marketStateSchema.nullable(), signal);
 
-export const postLot = (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number, signal?: AbortSignal): Promise<void> =>
-    apiPost(`Domiki/PostLot?giveResourceTypeId=${giveResourceTypeId}&giveValue=${giveValue}&wantResourceTypeId=${wantResourceTypeId}&wantValue=${wantValue}`, signal);
+export const postLot = (kind: number, giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/PostLot?kind=${kind}&giveResourceTypeId=${giveResourceTypeId}&giveValue=${giveValue}&wantResourceTypeId=${wantResourceTypeId}&wantValue=${wantValue}`, signal);
 
 export const acceptLot = (lotId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/AcceptLot/${lotId}`, signal);

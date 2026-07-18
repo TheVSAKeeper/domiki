@@ -172,8 +172,8 @@ export const DomikiPage = () => {
         await runAction(() => contributeToloka(amount), 'Вклад принят');
     };
 
-    const postLotAction = async (giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => {
-        await runAction(() => postLot(giveResourceTypeId, giveValue, wantResourceTypeId, wantValue), 'Лот выставлен');
+    const postLotAction = async (kind: number, giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => {
+        await runAction(() => postLot(kind, giveResourceTypeId, giveValue, wantResourceTypeId, wantValue), 'Лот выставлен');
     };
 
     const acceptLotAction = async (lotId: number) => {
