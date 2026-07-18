@@ -3,19 +3,25 @@ using Domiki.Web.Economy;
 using Domiki.Web.Economy.Models;
 using Domiki.Web.Infrastructure;
 using TradeLot = Domiki.Web.Data.Entities.TradeLot;
+using TradeLotKind = Domiki.Web.Data.Entities.TradeLotKind;
 
 namespace Domiki.Web.Tests;
 
 public static class EconomyActs
 {
-    public static TestPlayer PostLot(this TestPlayer p, int giveResourceTypeId, int giveValue, int wantResourceTypeId, int wantValue)
+    public static TestPlayer PostLot(this TestPlayer p, int giveResourceTypeId, int giveValue, int wantResourceTypeId, int wantValue, TradeLotKind kind = TradeLotKind.Sell)
     {
         using (TestCalculator.Defer())
         {
-            App.Act<MarketManager>(m => m.PostLot(p.Id, giveResourceTypeId, giveValue, wantResourceTypeId, wantValue, DateTimeHelper.GetNowDate()));
+            App.Act<MarketManager>(m => m.PostLot(p.Id, kind, giveResourceTypeId, giveValue, wantResourceTypeId, wantValue, DateTimeHelper.GetNowDate()));
         }
 
         return p;
+    }
+
+    public static TestPlayer PostBuyLot(this TestPlayer p, int giveGold, int wantResourceTypeId, int wantValue)
+    {
+        return p.PostLot(ResourceIds.Gold, giveGold, wantResourceTypeId, wantValue, TradeLotKind.Buy);
     }
 
     public static TestPlayer AcceptLot(this TestPlayer p, int lotId)

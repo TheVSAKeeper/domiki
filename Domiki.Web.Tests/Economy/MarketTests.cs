@@ -1,4 +1,5 @@
 ﻿using Domiki.Web.Core;
+using Domiki.Web.Data.Entities;
 using Domiki.Web.Economy;
 using Domiki.Web.Infrastructure;
 
@@ -370,6 +371,178 @@ public sealed class MarketTests
             Assert.That(buyerLot.SellerCrestIcon, Is.EqualTo(crestIcon));
             Assert.That(buyerLot.SellerCrestColor, Is.EqualTo(crestColor));
         }
+    }
+
+    /// <summary>
+    /// Заявка на покупку эскроуит золото и комиссию монетами, а созданный лот помечен как Buy.
+    /// </summary>
+    [Test]
+    public void PostBuyLotEscrowsGoldAndCommissionAndMarksKindTest()
+    {
+        const int startGold = 10;
+        const int giveGold = 3;
+        const int wantBrick = 20;
+
+        var buyer = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Gold, startGold);
+
+        var coinBefore = buyer.Resource(ResourceIds.Coin);
+        buyer.PostBuyLot(giveGold, ResourceIds.Brick, wantBrick);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(buyer.Resource(ResourceIds.Gold), Is.EqualTo(startGold - giveGold));
+            Assert.That(buyer.Resource(ResourceIds.Coin), Is.EqualTo(coinBefore - Commission(ResourceIds.Gold, giveGold)));
+            Assert.That(buyer.LastLot().Kind, Is.EqualTo(TradeLotKind.Buy));
+        }
+    }
+
+    /// <summary>
+    /// Принятие заявки на покупку отдаёт акцептору золото в обмен на товар, а заявителю – товар.
+    /// </summary>
+    [Test]
+    public void AcceptBuyLotTransfersResourcesTest()
+    {
+        const int startGold = 10;
+        const int startBrick = 50;
+        const int giveGold = 3;
+        const int wantBrick = 20;
+
+        var poster = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Gold, startGold);
+
+        var acceptor = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Brick, startBrick);
+
+        poster.PostBuyLot(giveGold, ResourceIds.Brick, wantBrick);
+        var lotId = poster.LastLot().Id;
+
+        acceptor.AcceptLot(lotId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(acceptor.Resource(ResourceIds.Brick), Is.EqualTo(startBrick - wantBrick));
+            Assert.That(acceptor.Resource(ResourceIds.Gold), Is.EqualTo(giveGold));
+            Assert.That(poster.Resource(ResourceIds.Brick), Is.EqualTo(wantBrick));
+            Assert.That(poster.Resource(ResourceIds.Gold), Is.EqualTo(startGold - giveGold));
+            Assert.That(poster.Market().MyLots, Is.Empty);
+            Assert.That(acceptor.Market().Lots, Is.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Истёкшая заявка на покупку, снятая планировщиком, возвращает эскроуированное золото, но не комиссию.
+    /// </summary>
+    [Test]
+    public void ExpiredBuyLotReturnsGoldButNotCommissionTest()
+    {
+        const int startGold = 10;
+        const int giveGold = 3;
+        const int wantBrick = 20;
+
+        var buyer = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Gold, startGold);
+
+        var coinBefore = buyer.Resource(ResourceIds.Coin);
+        buyer.PostBuyLot(giveGold, ResourceIds.Brick, wantBrick);
+        var lotId = buyer.LastLot().Id;
+        var expireDate = DateTimeHelper.GetNowDate().AddSeconds(-1);
+        SetTradeLotExpire(lotId, expireDate);
+
+        buyer.FinishTradeLot(lotId, expireDate);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(buyer.Resource(ResourceIds.Gold), Is.EqualTo(startGold));
+            Assert.That(buyer.Resource(ResourceIds.Coin), Is.EqualTo(coinBefore - Commission(ResourceIds.Gold, giveGold)));
+            Assert.That(buyer.Market().MyLots, Is.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Отмена заявки на покупку возвращает эскроуированное золото, но не комиссию.
+    /// </summary>
+    [Test]
+    public void CancelBuyLotReturnsGoldButNotCommissionTest()
+    {
+        const int startGold = 10;
+        const int giveGold = 3;
+        const int wantBrick = 20;
+
+        var buyer = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Gold, startGold);
+
+        var coinBefore = buyer.Resource(ResourceIds.Coin);
+        buyer.PostBuyLot(giveGold, ResourceIds.Brick, wantBrick);
+        var lotId = buyer.LastLot().Id;
+
+        buyer.CancelLot(lotId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(buyer.Resource(ResourceIds.Gold), Is.EqualTo(startGold));
+            Assert.That(buyer.Resource(ResourceIds.Coin), Is.EqualTo(coinBefore - Commission(ResourceIds.Gold, giveGold)));
+            Assert.That(buyer.Market().MyLots, Is.Empty);
+        }
+    }
+
+    /// <summary>
+    /// Заявку на покупку нельзя оплатить не золотом и нельзя выставить на покупку золота или монет.
+    /// </summary>
+    /// <param name="giveResourceTypeId">Тип отдаваемого ресурса.</param>
+    /// <param name="wantResourceTypeId">Тип желаемого ресурса.</param>
+    /// <param name="expectedMessage">Текст ошибки.</param>
+    [TestCase(ResourceIds.Clay, ResourceIds.Brick, "Заявка оплачивается только золотом")]
+    [TestCase(ResourceIds.Gold, ResourceIds.Coin, "Нельзя купить за золото само золото или монеты")]
+    public void PostBuyLotValidatesResourceKindsTest(int giveResourceTypeId, int wantResourceTypeId, string expectedMessage)
+    {
+        var player = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Clay, 10)
+            .WithResource(ResourceIds.Gold, 10);
+
+        var ex = Throws.Business(() => player.PostLot(giveResourceTypeId, 1, wantResourceTypeId, 1, TradeLotKind.Buy));
+        Assert.That(ex.Message, Is.EqualTo(expectedMessage));
+
+        Assert.That(player.Market().MyLots, Is.Empty);
+    }
+
+    /// <summary>
+    /// Продажа за золото не ограничена – в отличие от заявки на покупку, лот создаётся с типом Sell.
+    /// </summary>
+    [Test]
+    public void SellLotForGoldIsAllowedTest()
+    {
+        var player = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Gold, 10);
+
+        player.PostLot(ResourceIds.Gold, 1, ResourceIds.Brick, 1);
+
+        Assert.That(player.LastLot().Kind, Is.EqualTo(TradeLotKind.Sell));
+    }
+
+    /// <summary>
+    /// Лоты продажи и заявки на покупку делят один и тот же лимит прилавка Торгового двора.
+    /// </summary>
+    [Test]
+    public void SellAndBuyLotsShareTheSameShelfLimitTest()
+    {
+        var player = TestPlayer.Create()
+            .WithMarketUnlocked()
+            .WithResource(ResourceIds.Clay, 10)
+            .WithResource(ResourceIds.Gold, 10);
+
+        player.PostLot(ResourceIds.Clay, 1, ResourceIds.Gold, 1);
+        player.PostBuyLot(1, ResourceIds.Brick, 1);
+
+        var ex = Throws.Business(() => player.PostBuyLot(1, ResourceIds.Brick, 1));
+        Assert.That(ex.Message, Is.EqualTo("Все места на прилавке заняты – улучшите Торговый двор"));
     }
 
     /// <summary>
