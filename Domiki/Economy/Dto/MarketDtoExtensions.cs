@@ -25,6 +25,7 @@ public static class MarketDtoExtensions
         {
             Id = lot.Id,
             SellerId = lot.SellerId,
+            Kind = lot.Kind,
             SellerVillageName = lot.SellerVillageName,
             SellerCrestIcon = lot.SellerCrestIcon,
             SellerCrestColor = lot.SellerCrestColor,

@@ -22,6 +22,16 @@ public class TradeLot
     public int SellerId { get; set; }
 
     /// <summary>
+    /// Направление лота: продажа или заявка на покупку.
+    /// </summary>
+    /// <remarks>
+    /// На механику обмена не влияет – эскроу всегда на стороне <see cref="GiveResourceTypeId"/>, приём симметричен.
+    /// Для <see cref="TradeLotKind.Buy"/> в <see cref="GiveResourceTypeId"/> лежит оплата (золото), в <see cref="WantResourceTypeId"/> – покупаемый товар.
+    /// </remarks>
+    /// <seealso cref="TradeLotKind"/>
+    public TradeLotKind Kind { get; set; }
+
+    /// <summary>
     /// Тип ресурса, который продавец отдаёт покупателю.
     /// </summary>
     public int GiveResourceTypeId { get; set; }

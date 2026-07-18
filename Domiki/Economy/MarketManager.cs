@@ -19,6 +19,14 @@ public class MarketManager
     public const int MarketLotDurationSeconds = 24 * 3600;
     public const int CoinResourceTypeId = 1;
 
+    /// <summary>
+    /// Идентификатор типа ресурса «золото» – единственная разрешённая оплата в заявке на покупку (<see cref="TradeLotKind.Buy"/>).
+    /// </summary>
+    /// <remarks>
+    /// Совпадает с сидом справочника ресурсов (<c>ResourceIds.Gold</c>); при выставлении обратного лота золото эскроуится в give-стороне.
+    /// </remarks>
+    public const int GoldResourceTypeId = 5;
+
     private readonly UnitOfWork _uow;
     private readonly ApplicationDbContext _context;
     private readonly ICalculator _calculator;
@@ -80,9 +88,9 @@ public class MarketManager
         };
     }
 
-    public void PostLot(int playerId, int giveResourceTypeId, int giveValue, int wantResourceTypeId, int wantValue, DateTime date)
+    public void PostLot(int playerId, TradeLotKind kind, int giveResourceTypeId, int giveValue, int wantResourceTypeId, int wantValue, DateTime date)
     {
-        ValidateLot(giveResourceTypeId, giveValue, wantResourceTypeId, wantValue);
+        ValidateLot(kind, giveResourceTypeId, giveValue, wantResourceTypeId, wantValue);
         _playerResourceManager.LockDbPlayerRow(playerId);
 
         var level = GetMarketYardLevel(playerId);
@@ -116,6 +124,7 @@ public class MarketManager
         var lot = new Data.Entities.TradeLot
         {
             SellerId = playerId,
+            Kind = kind,
             GiveResourceTypeId = giveResourceTypeId,
             GiveValue = giveValue,
             WantResourceTypeId = wantResourceTypeId,
@@ -202,6 +211,7 @@ public class MarketManager
         var giveValue = lot.GiveValue;
         var wantName = resourceTypes.First(x => x.Id == lot.WantResourceTypeId).Name;
         var wantValue = lot.WantValue;
+        var isBuy = lot.Kind == TradeLotKind.Buy;
 
         _context.TradeLots.Remove(lot);
         _context.SaveChanges();
@@ -213,7 +223,9 @@ public class MarketManager
             _calculator.Remove(sellerId.Value, lotId, CalculateTypes.TradeLotExpire);
             _broker.Broadcast(GameStateScopes.Market);
             _broker.Publish(sellerId.Value, GameStateScopes.State);
-            _pushSender.Notify(sellerId.Value, "Домики", $"Ваш лот на ярмарке купили: {giveName} ×{giveValue} за {wantName} ×{wantValue}", "/domiki-page");
+            _pushSender.Notify(sellerId.Value, "Домики", isBuy
+                ? $"Заявку на ярмарке исполнили: {wantName} ×{wantValue} за {giveName} ×{giveValue}"
+                : $"Ваш лот на ярмарке купили: {giveName} ×{giveValue} за {wantName} ×{wantValue}", "/domiki-page");
         };
     }
 
@@ -267,6 +279,7 @@ public class MarketManager
         {
             Id = lot.Id,
             SellerId = lot.SellerId,
+            Kind = lot.Kind,
             SellerVillageName = lot.Seller.VillageName,
             SellerCrestIcon = lot.Seller.CrestIcon,
             SellerCrestColor = lot.Seller.CrestColor,
@@ -279,7 +292,7 @@ public class MarketManager
         };
     }
 
-    private void ValidateLot(int giveResourceTypeId, int giveValue, int wantResourceTypeId, int wantValue)
+    private void ValidateLot(TradeLotKind kind, int giveResourceTypeId, int giveValue, int wantResourceTypeId, int wantValue)
     {
         if (giveValue <= 0 || wantValue <= 0)
         {
@@ -295,6 +308,24 @@ public class MarketManager
         if (!resourceTypes.Any(x => x.Id == giveResourceTypeId) || !resourceTypes.Any(x => x.Id == wantResourceTypeId))
         {
             throw new BusinessException("Ресурс не найден");
+        }
+
+        if (kind is not (TradeLotKind.Sell or TradeLotKind.Buy))
+        {
+            throw new BusinessException("Неверный тип лота");
+        }
+
+        if (kind == TradeLotKind.Buy)
+        {
+            if (giveResourceTypeId != GoldResourceTypeId)
+            {
+                throw new BusinessException("Заявка оплачивается только золотом");
+            }
+
+            if (wantResourceTypeId == GoldResourceTypeId || wantResourceTypeId == CoinResourceTypeId)
+            {
+                throw new BusinessException("Нельзя купить за золото само золото или монеты");
+            }
         }
     }
 

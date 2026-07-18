@@ -1,4 +1,5 @@
 ﻿using Domiki.Web.Core;
+using Domiki.Web.Data.Entities;
 using Domiki.Web.Economy.Dto;
 using Domiki.Web.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
@@ -54,10 +55,10 @@ public class EconomyController : GameControllerBase
 
     [HttpPost]
     [Route("/Domiki/PostLot")]
-    public void PostLot([FromQuery] int giveResourceTypeId, [FromQuery] int giveValue, [FromQuery] int wantResourceTypeId, [FromQuery] int wantValue)
+    public void PostLot([FromQuery] int giveResourceTypeId, [FromQuery] int giveValue, [FromQuery] int wantResourceTypeId, [FromQuery] int wantValue, [FromQuery] TradeLotKind kind = TradeLotKind.Sell)
     {
         var playerId = GetPlayerId();
-        _marketManager.PostLot(playerId, giveResourceTypeId, giveValue, wantResourceTypeId, wantValue, DateTimeHelper.GetNowDate());
+        _marketManager.PostLot(playerId, kind, giveResourceTypeId, giveValue, wantResourceTypeId, wantValue, DateTimeHelper.GetNowDate());
     }
 
     [HttpPost]

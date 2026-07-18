@@ -1,4 +1,6 @@
-﻿namespace Domiki.Web.Economy.Models;
+﻿using Domiki.Web.Data.Entities;
+
+namespace Domiki.Web.Economy.Models;
 
 /// <summary>
 /// Лот на ярмарке – продавец отдаёт один ресурс, хочет взамен другой.
@@ -17,6 +19,16 @@ public class TradeLot
     /// Игрок-продавец.
     /// </summary>
     public int SellerId { get; set; }
+
+    /// <summary>
+    /// Направление лота: продажа или заявка на покупку.
+    /// </summary>
+    /// <remarks>
+    /// Для <see cref="TradeLotKind.Buy"/> <see cref="GiveResourceTypeId"/> – оплата (золото, эскроуится),
+    /// <see cref="WantResourceTypeId"/> – покупаемый товар.
+    /// </remarks>
+    /// <seealso cref="Data.Entities.TradeLotKind"/>
+    public TradeLotKind Kind { get; set; }
 
     /// <summary>
     /// Название деревни продавца.
