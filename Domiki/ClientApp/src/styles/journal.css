@@ -151,6 +151,7 @@
 .journal-entry[data-tone="market"] { --accent: var(--coin); }
 .journal-entry[data-tone="toloka"] { --accent: #6d8fa8; }
 .journal-entry[data-tone="goal"] { --accent: #a9791b; }
+.journal-entry[data-tone="guestbook"] { --accent: #3f7f78; }
 
 .journal-entry[data-tone="market"] .journal-node,
 .journal-entry[data-tone="goal"] .journal-node {

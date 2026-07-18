@@ -6,6 +6,7 @@ import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?reac
 import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
 import GiftIcon from 'pixelarticons/svg/gift.svg?react';
 import CloseIcon from 'pixelarticons/svg/close.svg?react';
+import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
 import type { DecorTypeDto, DomikTypeDto, ExpeditionTypeDto, NeighborReputationDto, ResourceTypeDto, TolokaStateDto } from '../types/api';
 import type { RecapView } from '../utils/recap';
 import { lootEntryKey } from '../utils/recap';
@@ -15,9 +16,11 @@ import { formatDuration } from '../utils/time';
 import { pluralRu } from '../utils/plural';
 import { genderForm, traitLabel } from '../utils/gender';
 import { pickGiftText } from '../utils/giftTexts';
+import { guestbookPhraseText } from '../constants/guestbookPhrases';
 import { DomikSprite } from './sprites';
 import { ResourceChip } from './ResourceChip';
 import { GiftVisitDots } from './GiftVisitDots';
+import { Crest } from './Crest';
 
 interface RecapModalProps {
     awaySeconds: number;
@@ -45,6 +48,7 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
     const upgrades = withStableKeys(view.upgrades, e => `${e.domikTypeId}-${e.level}`);
     const tolokaEntries = withStableKeys(view.toloka, e => String(e.tolokaTypeId));
     const gifts = withStableKeys(view.gifts, gift => `${gift.neighborId}-${gift.date}`);
+    const guestbookEntries = withStableKeys(view.guestbookEntries, entry => `${entry.guestVillageName}-${entry.date}`);
 
     const trophies = useMemo(() => {
         const producedTotal = view.produced.reduce((sum, resource) => sum + resource.value, 0);
@@ -55,6 +59,7 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
             { key: 'market', Icon: StoreIcon, num: view.market.length, cap: pluralRu(view.market.length, 'сделка', 'сделки', 'сделок') },
             { key: 'toloka', Icon: BuildingCommunityIcon, num: view.toloka.length, cap: pluralRu(view.toloka.length, 'толока', 'толоки', 'толок') },
             { key: 'gift', Icon: GiftIcon, num: view.gifts.length, cap: pluralRu(view.gifts.length, 'гостинец', 'гостинца', 'гостинцев') },
+            { key: 'guestbook', Icon: BookOpenIcon, num: view.guestbookEntries.length, cap: pluralRu(view.guestbookEntries.length, 'гость', 'гостя', 'гостей') },
         ].filter(trophy => trophy.num > 0);
     }, [view]);
 
@@ -232,6 +237,21 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
                         const name = toloka?.active.tolokaTypeId === event.tolokaTypeId ? toloka.active.name : `Толока #${event.tolokaTypeId}`;
                         return <span key={key} className="recap-line">{name}</span>;
                     })}
+                </div>
+            }
+            {guestbookEntries.length > 0 &&
+                <div className="recap-section" data-tone="guestbook">
+                    <div className="recap-section-head">
+                        <span className="recap-section-badge"><BookOpenIcon aria-hidden="true" /></span>
+                        <h3 className="recap-section-title">Книга гостей</h3>
+                        <span className="recap-section-count">{guestbookEntries.length}</span>
+                    </div>
+                    {guestbookEntries.map(({ key, item: entry }) => (
+                        <div key={key} className="recap-row">
+                            <Crest icon={entry.guestCrestIcon} color={entry.guestCrestColor} className="crest-badge-small" />
+                            <span className="recap-line">{entry.guestVillageName}: «{guestbookPhraseText(entry.phraseId)}»</span>
+                        </div>
+                    ))}
                 </div>
             }
         </dialog>

@@ -5,14 +5,17 @@ import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
 import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
 import CheckboxOnIcon from 'pixelarticons/svg/checkbox-on.svg?react';
+import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
 import type { DecorTypeDto, DomikTypeDto, RecapEventDto, ResourceTypeDto } from '../types/api';
 import { isNumber, isRecord, lootEntryKey, readLootEntry, readResource } from '../utils/recap';
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
 import { withStableKeys } from '../utils/keys';
 import { formatRelativeTime } from '../utils/time';
 import { genderForm, traitLabel } from '../utils/gender';
+import { guestbookPhraseText } from '../constants/guestbookPhrases';
 import { AbstractSprite, DomikSprite, MechanicSprite } from './sprites';
 import { ResourceChip } from './ResourceChip';
+import { Crest } from './Crest';
 
 interface JournalBoxProps {
     events: RecapEventDto[];
@@ -182,6 +185,20 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
             tone: 'toloka',
             Icon: BuildingCommunityIcon,
             body: <span className="journal-text">Толока завершена</span>,
+        };
+    }
+
+    if (event.type === 'GuestbookEntryLeft' && typeof data.guestVillageName === 'string' && isNumber(data.guestCrestIcon) && isNumber(data.guestCrestColor) && isNumber(data.phraseId)) {
+        return {
+            tone: 'guestbook',
+            Icon: BookOpenIcon,
+            body: (
+                <>
+                    <Crest icon={data.guestCrestIcon} color={data.guestCrestColor} className="crest-badge-small" />
+                    <span className="journal-text">{data.guestVillageName}: расписались в вашей книге гостей</span>
+                    <span className="guestbook-entry-phrase">«{guestbookPhraseText(data.phraseId)}»</span>
+                </>
+            ),
         };
     }
 

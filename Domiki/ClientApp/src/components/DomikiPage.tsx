@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import SettingsIcon from 'pixelarticons/svg/settings-cog.svg?react';
 import EarthIcon from 'pixelarticons/svg/earth.svg?react';
+import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
 import { apiPost, ApiError, completeOrder as completeOrderApi } from '../services/api';
 import { useToast } from '../services/toastContext';
 import { useGameData } from '../hooks/useGameData';
@@ -28,6 +29,7 @@ import { DecorBox } from './DecorBox';
 import { TolokaBox } from './TolokaBox';
 import { MarketBox } from './MarketBox';
 import { JournalBox } from './JournalBox';
+import { GuestbookBox } from './GuestbookBox';
 import { ShopBox } from './ShopBox';
 import { RecapModal } from './RecapModal';
 import { AbstractSprite, MechanicSprite } from './sprites';
@@ -240,6 +242,10 @@ export const DomikiPage = () => {
         {
             key: 'journal', label: 'Журнал', icon: <AbstractSprite logicName="journal" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,
             node: <JournalBox events={events} resourceTypes={resourceTypes} domikTypes={domikTypes} decorTypes={decor?.types ?? []} now={now} />,
+        },
+        {
+            key: 'guestbook', label: 'Гости', icon: <BookOpenIcon className="game-tab-ico" aria-hidden="true" />, visible: true,
+            node: <GuestbookBox now={now} />,
         },
     ];
     const visibleGameTabs = gameTabs.filter(tab => tab.visible);

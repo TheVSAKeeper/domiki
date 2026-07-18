@@ -78,4 +78,22 @@ describe('buildRecapView', () => {
 
         expect(recap.gifts).toEqual([]);
     });
+
+    it('parses a guestbook entry left while away', () => {
+        const recap = buildRecapView([
+            { type: 'GuestbookEntryLeft', date: '2026-07-10T00:09:00Z', data: { guestVillageName: 'Заречье', guestCrestIcon: 2, guestCrestColor: 4, phraseId: 3 } },
+        ]);
+
+        expect(recap.guestbookEntries).toEqual([
+            { guestVillageName: 'Заречье', guestCrestIcon: 2, guestCrestColor: 4, phraseId: 3, date: '2026-07-10T00:09:00Z' },
+        ]);
+    });
+
+    it('silently ignores a guestbook entry without a guest village name', () => {
+        const recap = buildRecapView([
+            { type: 'GuestbookEntryLeft', date: '2026-07-10T00:10:00Z', data: { guestCrestIcon: 2, guestCrestColor: 4, phraseId: 3 } },
+        ]);
+
+        expect(recap.guestbookEntries).toEqual([]);
+    });
 });

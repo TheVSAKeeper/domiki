@@ -30,6 +30,8 @@ const mappings: Record<string, ContractSchema> = {
     ExpeditionTypeDto: { schemaName: 'expeditionTypeSchema', shape: api.expeditionTypeSchema.shape },
     GameStateDto: { schemaName: 'gameStateSchema', shape: api.gameStateSchema.shape },
     GoalsStateDto: { schemaName: 'goalsStateSchema', shape: api.goalsStateSchema.shape },
+    GuestbookDto: { schemaName: 'guestbookSchema', shape: api.guestbookSchema.shape },
+    GuestbookEntryDto: { schemaName: 'guestbookEntrySchema', shape: api.guestbookEntrySchema.shape },
     ManufactureDto: { schemaName: 'manufactureSchema', shape: api.manufactureSchema.shape },
     MarketStateDto: { schemaName: 'marketStateSchema', shape: api.marketStateSchema.shape },
     ModificatorDto: { schemaName: 'modificatorSchema', shape: api.modificatorSchema.shape },

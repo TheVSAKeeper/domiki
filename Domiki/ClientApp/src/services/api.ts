@@ -5,12 +5,14 @@ import {
     tolokaStateSchema,
     marketStateSchema,
     gameStateSchema,
+    guestbookSchema,
     problemDetailsSchema,
     villageSchema,
     worldSchema,
     villageVisitSchema,
     type DecorStateDto,
     type GameStateDto,
+    type GuestbookDto,
     type TolokaStateDto,
     type MarketStateDto,
     type VillageDto,
@@ -111,6 +113,12 @@ export const getWorld = (signal?: AbortSignal): Promise<WorldDto> =>
 
 export const visitVillage = (playerId: number, signal?: AbortSignal): Promise<VillageVisitDto> =>
     apiGet(`Domiki/VisitVillage/${playerId}`, villageVisitSchema, signal);
+
+export const leaveGuestbookEntry = (hostPlayerId: number, phraseId: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/LeaveGuestbookEntry/${hostPlayerId}?phraseId=${phraseId}`, signal);
+
+export const getGuestbook = (signal?: AbortSignal): Promise<GuestbookDto> =>
+    apiGet('Domiki/GetGuestbook', guestbookSchema, signal);
 
 export const startExpedition = (expeditionTypeId: number, workerIds?: number[], provisions?: boolean, signal?: AbortSignal): Promise<void> => {
     const query = [

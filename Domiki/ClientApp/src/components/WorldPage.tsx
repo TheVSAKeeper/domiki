@@ -8,13 +8,16 @@ import MapPinIcon from 'pixelarticons/svg/map-pin.svg?react';
 import HeartIcon from 'pixelarticons/svg/heart.svg?react';
 import CalendarIcon from 'pixelarticons/svg/calendar.svg?react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
-import { ApiError, getWorld, visitVillage } from '../services/api';
+import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
+import { ApiError, getWorld, leaveGuestbookEntry, visitVillage } from '../services/api';
 import { useToast } from '../services/toastContext';
-import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
+import { GUESTBOOK_PHRASES } from '../constants/guestbookPhrases';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { StatChip } from './StatChip';
 import { PixelLoader } from './PixelLoader';
 import { WorldMap } from './WorldMap';
+import { Crest } from './Crest';
+import { GuestbookEntryRow } from './GuestbookEntryRow';
 import { villageKey } from '../utils/worldMap';
 import type { VillageVisitDto, WorldDto, WorldVillageDto } from '../types/api';
 
@@ -29,17 +32,6 @@ const SORT_META: Record<SortKey, { label: string; Icon: typeof HomeIcon }> = {
 };
 
 const SORT_TABS = (Object.keys(SORT_META) as SortKey[]).map(key => ({ key, ...SORT_META[key] }));
-
-const Crest = ({ icon, color }: { icon: number; color: number }) => {
-    const Icon = VILLAGE_CREST_ICONS[icon] ?? DEFAULT_VILLAGE_ICON;
-    const backgroundColor = VILLAGE_CREST_COLORS[color] ?? VILLAGE_CREST_COLORS[0];
-
-    return (
-        <span className="crest-badge" style={{ backgroundColor }}>
-            <Icon className="crest-ico" aria-hidden="true" />
-        </span>
-    );
-};
 
 const LevelBreakdown = ({ visit }: { visit: VillageVisitDto }) => (
     <div className="world-level-grid">
@@ -59,6 +51,8 @@ export const WorldPage = () => {
     const [sortKey, setSortKey] = useState<SortKey>('level');
     const [focus, setFocus] = useState<{ key: string; seq: number } | null>(null);
     const [now, setNow] = useState(() => Date.now());
+    const [guestbookPhraseId, setGuestbookPhraseId] = useState<number | null>(null);
+    const [guestbookBusy, setGuestbookBusy] = useState(false);
     const visitControllerRef = useRef<AbortController | null>(null);
 
     useEffect(() => () => { visitControllerRef.current?.abort(); }, []);
@@ -108,6 +102,7 @@ export const WorldPage = () => {
 
     const openVillage = async (village: WorldVillageDto) => {
         visitControllerRef.current?.abort();
+        setGuestbookPhraseId(null);
 
         if (village.playerId == null) {
             visitControllerRef.current = null;
@@ -137,6 +132,29 @@ export const WorldPage = () => {
             if (visitControllerRef.current === controller) {
                 setVisitLoading(false);
             }
+        }
+    };
+
+    const submitGuestbookEntry = async () => {
+        const target = selectedVillage;
+        if (target?.playerId == null || guestbookPhraseId == null) {
+            return;
+        }
+        const controllerBefore = visitControllerRef.current;
+        setGuestbookBusy(true);
+        try {
+            await leaveGuestbookEntry(target.playerId, guestbookPhraseId);
+            if (visitControllerRef.current === controllerBefore) {
+                await openVillage(target);
+            }
+        } catch (err) {
+            if (err instanceof ApiError) {
+                toast.error(err.message);
+                return;
+            }
+            throw err;
+        } finally {
+            setGuestbookBusy(false);
         }
     };
 
@@ -273,6 +291,51 @@ export const WorldPage = () => {
                                         {g.count > 1 && <span className="world-building-count">×{g.count}</span>}
                                     </div>
                                 ))}
+                            </div>
+
+                            <div className="world-guestbook">
+                                <h3 className="panel-title world-guestbook-title">
+                                    <BookOpenIcon className="world-guestbook-ico" aria-hidden="true" />
+                                    Книга гостей
+                                </h3>
+                                {visit.guestbook.length === 0
+                                    ? <p className="hint">Пока никто не расписался</p>
+                                    : (
+                                        <div className="world-guestbook-list">
+                                            {visit.guestbook.map(entry => (
+                                                <GuestbookEntryRow key={`${entry.guestPlayerId}-${entry.date}`} entry={entry} now={now} />
+                                            ))}
+                                        </div>
+                                    )
+                                }
+                                {selectedVillage?.isMe !== true &&
+                                    <div className="world-guestbook-action">
+                                        {visit.canLeaveEntry &&
+                                            <>
+                                                <div className="world-guestbook-phrases">
+                                                    {Object.entries(GUESTBOOK_PHRASES).map(([id, text]) => (
+                                                        <button type="button" key={id}
+                                                            className={'world-guestbook-phrase' + (guestbookPhraseId === Number(id) ? ' world-guestbook-phrase-active' : '')}
+                                                            onClick={() => { setGuestbookPhraseId(Number(id)); }}>
+                                                            {text}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <button type="button" className="btn-game" disabled={guestbookPhraseId == null || guestbookBusy}
+                                                    onClick={() => { void submitGuestbookEntry(); }}>
+                                                    <BookOpenIcon className="btn-ico" aria-hidden="true" />
+                                                    Расписаться
+                                                </button>
+                                            </>
+                                        }
+                                        {!visit.canLeaveEntry && visit.alreadyLeftToday &&
+                                            <p className="hint world-guestbook-status">Вы уже расписались сегодня</p>
+                                        }
+                                        {!visit.canLeaveEntry && !visit.alreadyLeftToday &&
+                                            <p className="hint world-guestbook-status">Чтобы расписаться, нужна своя деревня с обжитостью {visit.guestbookUnlockLevel}</p>
+                                        }
+                                    </div>
+                                }
                             </div>
                         </>
                     }

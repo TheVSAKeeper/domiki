@@ -184,12 +184,32 @@ export const visitBuildingSchema = z.object({
 });
 export type VisitBuildingDto = z.infer<typeof visitBuildingSchema>;
 
+export const guestbookEntrySchema = z.object({
+    guestPlayerId: z.number(),
+    guestVillageName: z.string(),
+    guestCrestIcon: z.number(),
+    guestCrestColor: z.number(),
+    phraseId: z.number(),
+    date: z.string(),
+});
+export type GuestbookEntryDto = z.infer<typeof guestbookEntrySchema>;
+
+export const guestbookSchema = z.object({
+    visitsThisSeason: z.number(),
+    entries: z.array(guestbookEntrySchema),
+});
+export type GuestbookDto = z.infer<typeof guestbookSchema>;
+
 export const villageVisitSchema = z.object({
     villageName: z.string(),
     crestIcon: z.number(),
     crestColor: z.number(),
     level: villageLevelSchema,
     buildings: z.array(visitBuildingSchema),
+    guestbook: z.array(guestbookEntrySchema),
+    canLeaveEntry: z.boolean(),
+    alreadyLeftToday: z.boolean(),
+    guestbookUnlockLevel: z.number(),
 });
 export type VillageVisitDto = z.infer<typeof villageVisitSchema>;
 

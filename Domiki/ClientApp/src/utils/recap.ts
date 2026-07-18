@@ -22,6 +22,7 @@ export interface RecapView {
     upgrades: { domikTypeId: number; level: number }[];
     toloka: { tolokaTypeId: number }[];
     gifts: { neighborId: number; resources: { resourceTypeId: number; value: number }[]; decorTypeId: number | null; visitIndex: number; big: boolean; date: string }[];
+    guestbookEntries: { guestVillageName: string; guestCrestIcon: number; guestCrestColor: number; phraseId: number; date: string }[];
 }
 
 export const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
@@ -69,6 +70,7 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
     const upgrades: RecapView['upgrades'] = [];
     const toloka: RecapView['toloka'] = [];
     const gifts: RecapView['gifts'] = [];
+    const guestbookEntries: RecapView['guestbookEntries'] = [];
 
     for (const event of events) {
         if (!isRecord(event.data)) {
@@ -130,6 +132,15 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
                 date: event.date,
             });
         }
+
+        if (event.type === 'GuestbookEntryLeft') {
+            const { guestVillageName, guestCrestIcon, guestCrestColor, phraseId } = event.data;
+            if (typeof guestVillageName !== 'string' || !isNumber(guestCrestIcon) || !isNumber(guestCrestColor) || !isNumber(phraseId)) {
+                continue;
+            }
+
+            guestbookEntries.push({ guestVillageName, guestCrestIcon, guestCrestColor, phraseId, date: event.date });
+        }
     }
 
     return {
@@ -139,5 +150,6 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
         upgrades,
         toloka,
         gifts,
+        guestbookEntries,
     };
 }

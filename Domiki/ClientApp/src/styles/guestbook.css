@@ -1,0 +1,146 @@
+.guestbook-panel {
+    padding: 16px 18px;
+    margin-bottom: 20px;
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.guestbook-hero {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: -16px -18px 16px;
+    padding: 14px 18px;
+    background: linear-gradient(115deg, #d9c7a0 0%, var(--plank) 62%);
+    border-bottom: 3px solid var(--ink);
+}
+
+.guestbook-hero-emblem {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+    .guestbook-hero-emblem svg {
+        width: 32px;
+        height: 32px;
+    }
+
+.guestbook-hero-text {
+    min-width: 0;
+    flex: 1;
+}
+
+.guestbook-hero-title {
+    margin: 0 0 4px;
+}
+
+.guestbook-hero-sub {
+    margin: 0;
+    font-size: 13px;
+    color: var(--pine-dark);
+}
+
+.guestbook-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.guestbook-entry {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: #fffaec;
+    border: 2px solid var(--plank-dark);
+    clip-path: var(--cut);
+}
+
+.guestbook-entry-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+}
+
+.guestbook-entry-name {
+    font-weight: 700;
+}
+
+.guestbook-entry-phrase {
+    font-size: 13px;
+    font-style: italic;
+    color: var(--pine-dark);
+}
+
+.guestbook-entry-time {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--pine-dark);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.world-guestbook {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 2px solid var(--plank-dark);
+}
+
+.world-guestbook-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+}
+
+.world-guestbook-ico {
+    width: 16px;
+    height: 16px;
+}
+
+.world-guestbook-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.world-guestbook-action {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.world-guestbook-phrases {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.world-guestbook-phrase {
+    padding: 5px 10px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+.world-guestbook-phrase-active {
+    color: var(--plank);
+    background: var(--pine);
+}
+
+.world-guestbook-status {
+    margin: 0;
+}

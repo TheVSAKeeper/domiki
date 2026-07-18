@@ -550,6 +550,9 @@ dialog.recap-modal::backdrop {
 .recap-trophy[data-tone="gift"],
 .recap-section[data-tone="gift"] { --accent: #9a6a84; }
 
+.recap-trophy[data-tone="guestbook"],
+.recap-section[data-tone="guestbook"] { --accent: #3f7f78; }
+
     .recap-trophy[data-tone="market"] .tr-ico,
     .recap-section[data-tone="market"] .recap-section-badge { color: #4a3600; }
 
