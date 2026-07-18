@@ -73,6 +73,11 @@ public class VillageController : GameControllerBase
         return _worldManager.GetWorld(playerId).ToDto();
     }
 
+    /// <summary>
+    /// Визит в чужую деревню: витрина деревни, след визита и книга гостей глазами гостя.
+    /// </summary>
+    /// <param name="playerId">Id игрока-хозяина посещаемой деревни.</param>
+    /// <returns>Витрина деревни вместе с книгой гостей глазами гостя.</returns>
     [HttpGet]
     [Route("/Domiki/VisitVillage/{playerId}")]
     public VillageVisitDto VisitVillage(int playerId)
@@ -87,6 +92,11 @@ public class VillageController : GameControllerBase
         return visit.ToDto(guestbook);
     }
 
+    /// <summary>
+    /// Запись выбранной фразы в книгу гостей деревни хозяина.
+    /// </summary>
+    /// <param name="hostPlayerId">Id игрока-хозяина книги.</param>
+    /// <param name="phraseId">Фраза из справочника книги гостей.</param>
     [HttpPost]
     [Route("/Domiki/LeaveGuestbookEntry/{hostPlayerId}")]
     public void LeaveGuestbookEntry(int hostPlayerId, [FromQuery] int phraseId)
@@ -95,6 +105,10 @@ public class VillageController : GameControllerBase
         _guestbookManager.LeaveEntry(guestId, hostPlayerId, phraseId, DateTimeHelper.GetNowDate());
     }
 
+    /// <summary>
+    /// Книга гостей собственной деревни: визиты за сезон и лента записей.
+    /// </summary>
+    /// <returns>Книга гостей собственной деревни.</returns>
     [HttpGet]
     [Route("/Domiki/GetGuestbook")]
     public GuestbookDto GetGuestbook()

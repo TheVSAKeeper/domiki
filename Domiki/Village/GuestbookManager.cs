@@ -5,10 +5,29 @@ using Domiki.Web.Village.Models;
 
 namespace Domiki.Web.Village;
 
+/// <summary>
+/// Книга гостей: след визитов между деревнями и короткие записи-фразы гостей хозяину.
+/// </summary>
+/// <remarks>
+/// Одна строка <see cref="GuestbookEntry"/> на пару гость-хозяин в UTC-день; счётчик визитов
+/// за сезон выводится агрегатом по дням, поэтому накрутка повторными заходами невозможна.
+/// Под конкурентный доступ блокируется всегда только гость, хозяин – никогда.
+/// </remarks>
 public class GuestbookManager
 {
+    /// <summary>
+    /// Обжитость, с которой гость может расписываться в чужих книгах.
+    /// </summary>
     public const int GuestbookUnlockLevel = 20;
+
+    /// <summary>
+    /// Число фраз в справочнике книги гостей (id 1..8, тексты заданы на фронте).
+    /// </summary>
     public const int GuestbookPhraseCount = 8;
+
+    /// <summary>
+    /// Сколько последних записей отдаётся в ленту книги.
+    /// </summary>
     public const int GuestbookShowCount = 10;
 
     private readonly ApplicationDbContext _context;
@@ -26,6 +45,12 @@ public class GuestbookManager
         _playerResourceManager = playerResourceManager;
     }
 
+    /// <summary>
+    /// Оставляет след визита гостя в деревне хозяина; повтор в тот же день и визит к себе игнорируются.
+    /// </summary>
+    /// <param name="guestPlayerId">Id игрока-гостя.</param>
+    /// <param name="hostPlayerId">Id игрока-хозяина посещаемой деревни.</param>
+    /// <param name="date">Текущий момент в UTC; задаёт календарный день следа.</param>
     public void RecordVisit(int guestPlayerId, int hostPlayerId, DateTime date)
     {
         if (guestPlayerId == hostPlayerId)
@@ -55,6 +80,14 @@ public class GuestbookManager
         });
     }
 
+    /// <summary>
+    /// Записывает фразу гостя в книгу хозяина и шлёт хозяину событие
+    /// <see cref="PlayerEventType.GuestbookEntryLeft"/>.
+    /// </summary>
+    /// <param name="guestPlayerId">Id игрока-гостя, оставляющего запись.</param>
+    /// <param name="hostPlayerId">Id игрока-хозяина книги.</param>
+    /// <param name="phraseId">Фраза из справочника книги гостей, 1..<see cref="GuestbookPhraseCount"/>.</param>
+    /// <param name="date">Текущий момент в UTC; задаёт календарный день записи.</param>
     public void LeaveEntry(int guestPlayerId, int hostPlayerId, int phraseId, DateTime date)
     {
         if (guestPlayerId == hostPlayerId)
@@ -110,6 +143,12 @@ public class GuestbookManager
         });
     }
 
+    /// <summary>
+    /// Книга гостей для самого хозяина: счётчик визитов за текущий сезон и лента последних записей.
+    /// </summary>
+    /// <param name="hostPlayerId">Id игрока-хозяина книги.</param>
+    /// <param name="date">Текущий момент в UTC; по нему определяется текущий сезон.</param>
+    /// <returns>Модель книги гостей хозяина: счётчик визитов за сезон и лента записей.</returns>
     public GuestbookModel GetGuestbook(int hostPlayerId, DateTime date)
     {
         var season = _seasonManager.GetCurrentSeason(date);
@@ -126,6 +165,14 @@ public class GuestbookManager
         };
     }
 
+    /// <summary>
+    /// Книга гостей глазами гостя при визите: лента записей плюс флаги,
+    /// может ли гость расписаться сегодня.
+    /// </summary>
+    /// <param name="hostPlayerId">Id игрока-хозяина посещаемой деревни.</param>
+    /// <param name="guestPlayerId">Id игрока-гостя, который смотрит книгу.</param>
+    /// <param name="date">Текущий момент в UTC; задаёт календарный день для проверки «уже расписался сегодня».</param>
+    /// <returns>Книга гостей глазами гостя: лента записей и флаги доступности записи.</returns>
     public VisitGuestbookModel GetVisitGuestbook(int hostPlayerId, int guestPlayerId, DateTime date)
     {
         var day = DateOnly.FromDateTime(date);

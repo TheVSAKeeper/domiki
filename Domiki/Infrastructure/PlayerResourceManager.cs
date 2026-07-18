@@ -24,6 +24,7 @@ public class PlayerResourceManager
     /// именно затем, чтобы блокировка не выродилась в no-op в autocommit-режиме,
     /// когда никто выше по графу зависимостей UnitOfWork ещё не создал.
     /// </remarks>
+    /// <param name="playerId">Id игрока, чья строка блокируется.</param>
     public void LockDbPlayerRow(int playerId)
     {
         _context.Database.ExecuteSqlRaw("SELECT 1 FROM \"Players\" WHERE \"Id\" = {0} FOR UPDATE", playerId);

@@ -145,9 +145,35 @@ public sealed record VillageVisitDto
     /// </summary>
     public required VisitBuildingDto[] Buildings { get; init; }
 
+    /// <summary>
+    /// Лента последних записей в книге гостей посещаемой деревни.
+    /// </summary>
+    /// <remarks>
+    /// Только визиты с оставленной фразой, не более <see cref="Village.GuestbookManager.GuestbookShowCount"/> штук.
+    /// </remarks>
     public required GuestbookEntryDto[] Guestbook { get; init; }
+
+    /// <summary>
+    /// Может ли текущий игрок (гость) оставить запись хозяину сегодня.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="false"/>, если гость и хозяин – один игрок, у гостя не названа деревня, запись уже оставлена сегодня
+    /// (см. <see cref="AlreadyLeftToday"/>) или обжитость гостя ниже <see cref="GuestbookUnlockLevel"/>.
+    /// </remarks>
     public required bool CanLeaveEntry { get; init; }
+
+    /// <summary>
+    /// Оставлял ли текущий игрок запись хозяину сегодня.
+    /// </summary>
     public required bool AlreadyLeftToday { get; init; }
+
+    /// <summary>
+    /// Порог обжитости, открывающий книгу гостей.
+    /// </summary>
+    /// <remarks>
+    /// Значение константы <see cref="Village.GuestbookManager.GuestbookUnlockLevel"/>; сравнивается с обжитостью самого
+    /// гостя, не хозяина (см. <see cref="CanLeaveEntry"/>).
+    /// </remarks>
     public required int GuestbookUnlockLevel { get; init; }
 }
 
