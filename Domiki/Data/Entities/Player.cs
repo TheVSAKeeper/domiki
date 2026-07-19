@@ -54,6 +54,15 @@ public class Player
     public int ExpeditionsSincePity { get; set; }
 
     /// <summary>
+    /// Момент последнего происшествия с пропавшим в походе трудягой.
+    /// </summary>
+    /// <value>Момент в UTC.</value>
+    /// <remarks>
+    /// Ограничивает частоту завязок кулдауном <see cref="Activities.IncidentManager.IncidentCooldownHours"/>.
+    /// </remarks>
+    public DateTime? LastIncidentDate { get; set; }
+
+    /// <summary>
     /// Счётчик визитов-возвратов подряд без крупного гостинца от соседей.
     /// </summary>
     /// <remarks>

@@ -50,4 +50,12 @@ public enum CalculateTypes
     /// Обрабатывается <see cref="Economy.ErrandManager.FinishErrand"/>.
     /// </remarks>
     Errand = 7,
+
+    /// <summary>
+    /// Самостоятельное возвращение пропавшего трудяги или завершение поисков по происшествию.
+    /// </summary>
+    /// <remarks>
+    /// Обрабатывается <see cref="Activities.IncidentManager.FinishIncident"/>.
+    /// </remarks>
+    Incident = 8,
 }

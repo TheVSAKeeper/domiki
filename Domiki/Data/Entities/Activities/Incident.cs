@@ -1,0 +1,90 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Domiki.Web.Data.Entities;
+
+/// <summary>
+/// Происшествие с пропавшим в походе трудягой и его последующими поисками.
+/// </summary>
+/// <remarks>
+/// Создаётся при возвращении отряда и остаётся в истории после <see cref="ResolvedDate"/>. Тип похода хранится снимком в
+/// <see cref="ExpeditionTypeId"/>, поскольку запись самого похода к этому моменту удалена.
+/// </remarks>
+[Table("Incidents")]
+public class Incident
+{
+    /// <summary>
+    /// Идентификатор происшествия.
+    /// </summary>
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }
+
+    /// <summary>
+    /// Игрок, у которого произошло происшествие.
+    /// </summary>
+    public int PlayerId { get; set; }
+
+    /// <summary>
+    /// Трудяга, задержавшийся в походе.
+    /// </summary>
+    public int MissingWorkerId { get; set; }
+
+    /// <summary>
+    /// Идентификатор типа похода, в котором задержался трудяга.
+    /// </summary>
+    /// <remarks>
+    /// Снимок без навигации и внешнего ключа: сама запись похода удаляется в <see cref="Activities.ExpeditionManager.FinishExpedition"/>.
+    /// </remarks>
+    public int ExpeditionTypeId { get; set; }
+
+    /// <summary>
+    /// Индекс клиентского шаблона текста происшествия.
+    /// </summary>
+    /// <remarks>
+    /// Диапазон 0..<see cref="Activities.IncidentManager.IncidentTemplateCount"/> - 1; тексты находятся на клиенте.
+    /// </remarks>
+    public int TemplateId { get; set; }
+
+    /// <summary>
+    /// Момент создания происшествия.
+    /// </summary>
+    /// <value>Момент в UTC.</value>
+    public DateTime CreateDate { get; set; }
+
+    /// <summary>
+    /// Выбранная игроком зацепка, задающая длительность поисков.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – поиски ещё не начаты.
+    /// </remarks>
+    public int? ClueId { get; set; }
+
+    /// <summary>
+    /// Момент завершения поисков.
+    /// </summary>
+    /// <value>Момент в UTC.</value>
+    /// <remarks>
+    /// <see langword="null"/> – поиски ещё не начаты.
+    /// </remarks>
+    public DateTime? SearchEndDate { get; set; }
+
+    /// <summary>
+    /// Момент развязки происшествия.
+    /// </summary>
+    /// <value>Момент в UTC.</value>
+    /// <remarks>
+    /// <see langword="null"/> – происшествие активно.
+    /// </remarks>
+    public DateTime? ResolvedDate { get; set; }
+
+    /// <summary>
+    /// Игрок, у которого произошло происшествие.
+    /// </summary>
+    public Player Player { get; set; } = null!;
+
+    /// <summary>
+    /// Трудяга, задержавшийся в походе.
+    /// </summary>
+    public Worker MissingWorker { get; set; } = null!;
+}

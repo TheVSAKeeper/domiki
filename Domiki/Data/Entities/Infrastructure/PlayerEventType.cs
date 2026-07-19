@@ -74,4 +74,20 @@ public enum PlayerEventType
     /// См. <see cref="Economy.ErrandManager.FinishErrand"/>.
     /// </remarks>
     ErrandResolved = 11,
+
+    /// <summary>
+    /// Трудяга задержался в походе – завязка происшествия.
+    /// </summary>
+    /// <remarks>
+    /// См. <see cref="Activities.IncidentManager.TryRollIncident"/>.
+    /// </remarks>
+    WorkerMissing = 12,
+
+    /// <summary>
+    /// Происшествие завершилось – трудяга вернулся.
+    /// </summary>
+    /// <remarks>
+    /// См. <see cref="Activities.IncidentManager.FinishIncident"/>.
+    /// </remarks>
+    IncidentResolved = 13,
 }

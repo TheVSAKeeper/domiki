@@ -31,6 +31,7 @@ public class ExpeditionManager
     private readonly PlayerEventManager _playerEventManager;
     private readonly DecorManager _decorManager;
     private readonly BlueprintManager _blueprintManager;
+    private readonly IncidentManager _incidentManager;
 
     public ExpeditionManager(
         UnitOfWork uow,
@@ -42,7 +43,8 @@ public class ExpeditionManager
         SeasonManager seasonManager,
         PlayerEventManager playerEventManager,
         DecorManager decorManager,
-        BlueprintManager blueprintManager)
+        BlueprintManager blueprintManager,
+        IncidentManager incidentManager)
     {
         _uow = uow;
         _context = context;
@@ -54,6 +56,7 @@ public class ExpeditionManager
         _playerEventManager = playerEventManager;
         _decorManager = decorManager;
         _blueprintManager = blueprintManager;
+        _incidentManager = incidentManager;
     }
 
     public static int ScaleWeight(bool isRare, int weight, int luckPercent)
@@ -248,8 +251,21 @@ public class ExpeditionManager
             worker.ExpeditionId = null;
         }
 
+        var incidentCalcInfo = _incidentManager.TryRollIncident(dbPlayer, assignedWorkers, dbExpedition.ExpeditionTypeId, date);
+        if (incidentCalcInfo != null)
+        {
+            (calcInfo.PushTitle, calcInfo.PushBody) = (incidentCalcInfo.PushTitle, incidentCalcInfo.PushBody);
+
+            var afterEventAction = _uow.AfterEventAction;
+            _uow.AfterEventAction = () =>
+            {
+                afterEventAction?.Invoke();
+                _calculator.Insert(incidentCalcInfo);
+            };
+        }
+
         var heroWorker = assignedWorkers.Length > 0 ? assignedWorkers[dbExpedition.Id % assignedWorkers.Length].Name : null;
-        if (heroWorker != null)
+        if (heroWorker != null && incidentCalcInfo == null)
         {
             var expName = $"«{type.Name}»";
             if (gotRare)

@@ -65,6 +65,15 @@ public class Worker
     public int? ErrandId { get; set; }
 
     /// <summary>
+    /// Происшествие, которым сейчас занят или в котором пропал трудяга.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – трудяга не участвует в происшествии (<see cref="Workers.WorkerManager.IsFree"/> проверяет вместе с
+    /// <see cref="ManufactureId"/>, <see cref="ExpeditionId"/>, <see cref="ErrandId"/> и <see cref="RestUntil"/>).
+    /// </remarks>
+    public int? IncidentId { get; set; }
+
+    /// <summary>
     /// Накопленное время работы без отдыха в секундах.
     /// </summary>
     /// <value>Секунды.</value>
@@ -113,6 +122,11 @@ public class Worker
     /// Навигационное свойство к поручению, которым занят трудяга.
     /// </summary>
     public Errand? Errand { get; set; }
+
+    /// <summary>
+    /// Навигационное свойство к происшествию, которым занят или в котором пропал трудяга.
+    /// </summary>
+    public Incident? Incident { get; set; }
 
     /// <summary>
     /// Прокачка трудяги по типам домиков – накопленное число использований и производный бонус к выходу.

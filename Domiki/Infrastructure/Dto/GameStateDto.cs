@@ -65,6 +65,14 @@ public sealed record GameStateDto
     public ErrandDto? Errand { get; init; }
 
     /// <summary>
+    /// Активное происшествие с пропавшим в походе трудягой.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – у игрока нет незавершённого происшествия (см. <see cref="Activities.IncidentManager.Get"/>).
+    /// </remarks>
+    public IncidentDto? Incident { get; init; }
+
+    /// <summary>
     /// Чертежи и их владение игроком.
     /// </summary>
     public required BlueprintDto[] Blueprints { get; init; }

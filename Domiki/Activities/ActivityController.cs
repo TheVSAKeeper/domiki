@@ -10,13 +10,15 @@ public class ActivityController : GameControllerBase
     private readonly BlueprintManager _blueprintManager;
     private readonly TolokaManager _tolokaManager;
     private readonly ExpeditionManager _expeditionManager;
+    private readonly IncidentManager _incidentManager;
 
-    public ActivityController(DomikManager domikManager, BlueprintManager blueprintManager, TolokaManager tolokaManager, ExpeditionManager expeditionManager)
+    public ActivityController(DomikManager domikManager, BlueprintManager blueprintManager, TolokaManager tolokaManager, ExpeditionManager expeditionManager, IncidentManager incidentManager)
         : base(domikManager)
     {
         _blueprintManager = blueprintManager;
         _tolokaManager = tolokaManager;
         _expeditionManager = expeditionManager;
+        _incidentManager = incidentManager;
     }
 
     [HttpGet]
@@ -68,5 +70,17 @@ public class ActivityController : GameControllerBase
     {
         var playerId = GetPlayerId();
         _expeditionManager.StartExpedition(playerId, expeditionTypeId, workerIds, provisions);
+    }
+
+    /// <summary>
+    /// Выбирает зацепку и назначает свободных трудяг на поиски пропавшего в походе.
+    /// </summary>
+    /// <param name="request">Параметры происшествия, зацепки и трудяг из тела запроса.</param>
+    [HttpPost]
+    [Route("/Domiki/StartIncidentSearch")]
+    public void StartIncidentSearch([FromBody] StartIncidentSearchDto request)
+    {
+        var playerId = GetPlayerId();
+        _incidentManager.StartSearch(playerId, request.IncidentId, request.ClueId, request.WorkerIds);
     }
 }

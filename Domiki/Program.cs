@@ -119,6 +119,7 @@ try
     builder.Services.AddScoped<DomikManager>();
     builder.Services.AddScoped<OrderManager>();
     builder.Services.AddScoped<ErrandManager>();
+    builder.Services.AddScoped<IncidentManager>();
     builder.Services.AddScoped<GiftManager>();
     builder.Services.AddSingleton<ResourceManager>();
     builder.Services.AddScoped<PlayerResourceManager>();

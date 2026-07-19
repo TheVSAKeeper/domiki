@@ -21,6 +21,7 @@ public static class WorkerDtoExtensions
             ManufactureId = worker.ManufactureId,
             ExpeditionId = worker.ExpeditionId,
             ErrandId = worker.ErrandId,
+            IncidentId = worker.IncidentId,
             WorkedSeconds = worker.WorkedSeconds,
             RestUntil = DateTimeHelper.AsUtc(worker.RestUntil),
             SickUntil = DateTimeHelper.AsUtc(worker.SickUntil),

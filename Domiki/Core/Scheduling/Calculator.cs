@@ -1,4 +1,5 @@
 ﻿using Domiki.Web.Economy;
+using Domiki.Web.Activities;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Village;
 using System.Diagnostics.CodeAnalysis;
@@ -212,6 +213,10 @@ public class Calculator : ICalculator
                     case CalculateTypes.Errand when calcDate.PushBody != null:
                         pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody, "/domiki-page");
                         break;
+
+                    case CalculateTypes.Incident when calcDate.PushBody != null:
+                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody, "/domiki-page");
+                        break;
                 }
 
                 switch (calcDate.Type)
@@ -221,6 +226,7 @@ public class Calculator : ICalculator
                     case CalculateTypes.OrderExpire:
                     case CalculateTypes.Expedition:
                     case CalculateTypes.Errand:
+                    case CalculateTypes.Incident:
                         broker.Publish(calcDate.PlayerId, GameStateScopes.State);
                         break;
 
@@ -368,6 +374,18 @@ public class Calculator : ICalculator
                         Type = CalculateTypes.Errand,
                         PushBody = ErrandManager.ErrandResolvedPushBody,
                     });
+            }
+
+            var dbIncidents = uow.Context.Incidents.Where(x => x.ResolvedDate == null).ToList();
+            foreach (var dbIncident in dbIncidents)
+            {
+                dates.Add(new()
+                {
+                    PlayerId = dbIncident.PlayerId,
+                    ObjectId = dbIncident.Id,
+                    Date = dbIncident.SearchEndDate ?? dbIncident.CreateDate.AddHours(IncidentManager.IncidentAutoReturnHours),
+                    Type = CalculateTypes.Incident,
+                });
             }
 
             var now = DateTimeHelper.GetNowDate();

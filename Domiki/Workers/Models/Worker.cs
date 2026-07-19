@@ -56,6 +56,15 @@ public class Worker
     public int? ErrandId { get; set; }
 
     /// <summary>
+    /// Происшествие, которым сейчас занят или в котором пропал трудяга.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – трудяга не участвует в происшествии (<see cref="Workers.WorkerManager.IsFree"/> проверяет вместе с
+    /// <see cref="ManufactureId"/>, <see cref="ExpeditionId"/>, <see cref="ErrandId"/> и <see cref="RestUntil"/>).
+    /// </remarks>
+    public int? IncidentId { get; set; }
+
+    /// <summary>
     /// Накопленное время работы без отдыха.
     /// </summary>
     /// <value>Секунды.</value>
