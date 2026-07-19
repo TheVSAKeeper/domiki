@@ -100,6 +100,9 @@ export const acceptErrand = (errandId: number, clueId: number, workerIds: number
 export const cancelErrand = (errandId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/CancelErrand/${errandId}`, signal);
 
+export const startIncidentSearch = (incidentId: number, clueId: number, workerIds: number[], signal?: AbortSignal): Promise<void> =>
+    request('POST', 'Domiki/StartIncidentSearch', null, signal, { incidentId, clueId, workerIds });
+
 export const hurryManufacture = (manufactureId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/HurryManufacture/${manufactureId}`, signal);
 

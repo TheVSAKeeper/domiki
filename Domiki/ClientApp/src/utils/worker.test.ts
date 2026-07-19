@@ -20,6 +20,7 @@ const baseWorker: WorkerDto = {
     manufactureId: null,
     expeditionId: null,
     errandId: null,
+    incidentId: null,
     workedSeconds: 0,
     restUntil: null,
     sickUntil: null,

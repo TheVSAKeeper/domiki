@@ -6,7 +6,7 @@ import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import SettingsIcon from 'pixelarticons/svg/settings-cog.svg?react';
 import EarthIcon from 'pixelarticons/svg/earth.svg?react';
 import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
-import { acceptErrand as acceptErrandApi, apiPost, ApiError, cancelErrand as cancelErrandApi, completeOrder as completeOrderApi } from '../services/api';
+import { acceptErrand as acceptErrandApi, apiPost, ApiError, cancelErrand as cancelErrandApi, completeOrder as completeOrderApi, startIncidentSearch as startIncidentSearchApi } from '../services/api';
 import { useToast } from '../services/toastContext';
 import { useGameData } from '../hooks/useGameData';
 import { GOLD_RESOURCE_TYPE_ID, computeSelectedDomikView, isWorkerFree } from '../utils/game';
@@ -22,6 +22,7 @@ import { SelectedDomikPanel } from './SelectedDomikPanel';
 import { ActionButton, ActionBusyProvider } from './ActionButton';
 import { OrdersBox } from './OrdersBox';
 import { GoalCard } from './GoalCard';
+import { IncidentCard } from './IncidentCard';
 import { WorkersBox } from './WorkersBox';
 import { BlueprintsBox } from './BlueprintsBox';
 import { ExpeditionsBox } from './ExpeditionsBox';
@@ -55,7 +56,7 @@ interface GameTab {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, goals, workers, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, incident, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, goals, workers, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -163,6 +164,11 @@ export const DomikiPage = () => {
         scheduleReload();
     }, errand?.acceptDate == null ? 'Поручение отклонено' : 'Поручение отозвано');
 
+    const startIncidentSearchAction = (incidentId: number, clueId: number, workerIds: number[]) => runAction(async () => {
+        await startIncidentSearchApi(incidentId, clueId, workerIds);
+        scheduleReload();
+    }, 'Поиски начались');
+
     const hurryManufactureAction = (manufactureId: number) => runAction(() => hurryManufacture(manufactureId), 'Производство ускорено');
 
     const toggleManufactureAutoRepeat = (manufactureId: number, next: boolean) => runAction(
@@ -252,7 +258,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'workers', label: 'Трудяги', icon: <MechanicSprite logicName="workers" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,
-            node: <WorkersBox workers={workers} domikTypes={domikTypes} domiks={domiks} expeditions={expeditions} errand={errand} feedWorkers={village?.feedWorkers ?? false} now={now} onToggleFeedWorkers={toggleFeedWorkers} />,
+            node: <WorkersBox workers={workers} domikTypes={domikTypes} domiks={domiks} expeditions={expeditions} errand={errand} incident={incident} feedWorkers={village?.feedWorkers ?? false} now={now} onToggleFeedWorkers={toggleFeedWorkers} />,
         },
         {
             key: 'journal', label: 'Журнал', icon: <AbstractSprite logicName="journal" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,
@@ -284,6 +290,7 @@ export const DomikiPage = () => {
             <VillageHud resources={resources} resourceTypes={resourceTypes} domikTypes={domikTypes} plodder={plodder}
                 villageLevel={villageLevel} weather={weather} now={now} onStickyOffsetChange={setHudStickyOffset} />
             <GoalCard goals={goals} resourceTypes={resourceTypes} />
+            {incident != null && <IncidentCard incident={incident} workers={workers} now={now} onStartSearch={startIncidentSearchAction} />}
             {identityVisible &&
                 <VillageIdentityModal village={village} onSave={saveIdentity} onClose={closeIdentity} />
             }

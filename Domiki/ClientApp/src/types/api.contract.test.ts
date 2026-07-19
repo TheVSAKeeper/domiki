@@ -24,6 +24,7 @@ const mappings: Record<string, ContractSchema> = {
     DomikDto: { schemaName: 'domikSchema', shape: api.domikSchema.shape },
     DomikTypeDto: { schemaName: 'domikTypeSchema', shape: api.domikTypeSchema.shape },
     ErrandDto: { schemaName: 'errandSchema', shape: api.errandSchema.shape },
+    IncidentDto: { schemaName: 'incidentSchema', shape: api.incidentSchema.shape },
     ExpeditionDto: { schemaName: 'expeditionSchema', shape: api.expeditionSchema.shape },
     ExpeditionEquipmentDto: { schemaName: 'expeditionEquipmentSchema', shape: api.expeditionEquipmentSchema.shape },
     ExpeditionLootDto: { schemaName: 'expeditionLootSchema', shape: api.expeditionLootSchema.shape },
@@ -72,6 +73,7 @@ const mappings: Record<string, ContractSchema> = {
 const skippedDtos: Record<string, string> = {
     SetVillageDto: 'request payload SetVillage отправляется без zod-схемы',
     SetFeedWorkersDto: 'request payload SetFeedWorkers отправляется без zod-схемы',
+    StartIncidentSearchDto: 'request payload StartIncidentSearch отправляется без zod-схемы',
     PushSubscribeDto: 'request payload Push/Subscribe отправляется без zod-схемы',
     PushUnsubscribeDto: 'request payload Push/Unsubscribe отправляется без zod-схемы',
 };

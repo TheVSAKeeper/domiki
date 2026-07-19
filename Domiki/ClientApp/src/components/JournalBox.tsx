@@ -12,6 +12,7 @@ import type { DecorTypeDto, DomikTypeDto, RecapEventDto, ResourceTypeDto } from 
 import { isNumber, isRecord, lootEntryKey, readLootEntry, readResource } from '../utils/recap';
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
 import { getErrandTemplate, getErrandThanks } from '../utils/errandTexts';
+import { getIncidentTemplate, incidentText } from '../utils/incidentTexts';
 import { withStableKeys } from '../utils/keys';
 import { formatDuration, formatRelativeTime } from '../utils/time';
 import { genderForm, traitLabel } from '../utils/gender';
@@ -245,6 +246,22 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
                 </>
             ),
         };
+    }
+
+    if (event.type === 'WorkerMissing' && typeof data.workerName === 'string' && isNumber(data.workerGender) && isNumber(data.templateId)) {
+        return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{data.workerName} {genderForm(data.workerGender, 'задержался', 'задержалась')} в походе – есть зацепки<span className="journal-errand-thanks">«{getIncidentTemplate(data.templateId).title}»</span></span></> };
+    }
+
+    if (event.type === 'IncidentResolved' && typeof data.workerName === 'string' && isNumber(data.workerGender) && isNumber(data.templateId) && typeof data.autoReturned === 'boolean') {
+        const template = getIncidentTemplate(data.templateId);
+        if (data.autoReturned) {
+            return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{incidentText('{имя} вернул{ся|ась} сам{|а} – дорогу на{шёл|шла} без подмоги.', data.workerName, data.workerGender)}</span></> };
+        }
+        if (!isNumber(data.clueId)) {
+            return null;
+        }
+        const resourceType = isNumber(data.resourceTypeId) ? findResourceType(resourceTypes, data.resourceTypeId) : undefined;
+        return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{incidentText(template.resolutions[data.clueId] ?? '', data.workerName, data.workerGender)}<span className="journal-errand-thanks"><i>{incidentText(template.epilogue, data.workerName, data.workerGender)}</i></span></span><span className="journal-chips">{resourceType != null && isNumber(data.value) && <ResourceChip resourceType={resourceType} value={data.value} />}{data.traitUpgraded === true && typeof data.newTrait === 'string' && <span className="journal-loot-rare">Черта: {traitLabel(typeof data.newTraitLogicName === 'string' ? data.newTraitLogicName : '', data.newTrait, data.workerGender)}</span>}</span></> };
     }
 
     if (event.type === 'GoalCompleted' && typeof data.name === 'string' && isNumber(data.rewardCoins)) {

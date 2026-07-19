@@ -16,6 +16,7 @@ import { formatDuration } from '../utils/time';
 import { pluralRu } from '../utils/plural';
 import { genderForm, traitLabel } from '../utils/gender';
 import { pickGiftText } from '../utils/giftTexts';
+import { getIncidentTemplate, incidentText } from '../utils/incidentTexts';
 import { guestbookPhraseText } from '../constants/guestbookPhrases';
 import { DomikSprite } from './sprites';
 import { ResourceChip } from './ResourceChip';
@@ -50,6 +51,7 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
     const tolokaEntries = withStableKeys(view.toloka, e => String(e.tolokaTypeId));
     const gifts = withStableKeys(view.gifts, gift => `${gift.neighborId}-${gift.date}`);
     const guestbookEntries = withStableKeys(view.guestbookEntries, entry => `${entry.guestVillageName}-${entry.date}`);
+    const incidents = withStableKeys(view.incidents, incident => `${incident.kind}-${incident.workerName}-${incident.templateId}-${incident.clueId ?? ''}`);
 
     const trophies = useMemo(() => {
         const producedTotal = view.produced.reduce((sum, resource) => sum + resource.value, 0);
@@ -253,6 +255,17 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
                             <span className="recap-line">{entry.guestVillageName}: «{guestbookPhraseText(entry.phraseId)}»</span>
                         </div>
                     ))}
+                </div>
+            }
+            {incidents.length > 0 &&
+                <div className="recap-section" data-tone="exp">
+                    <div className="recap-section-head"><span className="recap-section-badge"><BackpackIcon aria-hidden="true" /></span><h3 className="recap-section-title">Происшествия</h3><span className="recap-section-count">{incidents.length}</span></div>
+                    {incidents.map(({ key, item: incident }) => {
+                        const template = getIncidentTemplate(incident.templateId);
+                        const text = incident.kind === 'missing' ? `${incident.workerName} ${genderForm(incident.workerGender, 'задержался', 'задержалась')} в походе – есть зацепки` : incident.autoReturned ? incidentText('{имя} вернул{ся|ась} сам{|а} – дорогу на{шёл|шла} без подмоги.', incident.workerName, incident.workerGender) : incidentText(template.resolutions[incident.clueId ?? 0] ?? '', incident.workerName, incident.workerGender);
+                        const resourceType = incident.resourceTypeId == null ? undefined : resourceTypes.find(type => type.id === incident.resourceTypeId);
+                        return <div key={key} className="recap-row"><BackpackIcon className="recap-row-ico" aria-hidden="true" /><span className="recap-line">{text}</span>{incident.kind === 'missing' && <span className="recap-fallback">«{template.title}»</span>}{incident.kind === 'resolved' && !incident.autoReturned && <div className="recap-chips">{resourceType != null && incident.value != null && <ResourceChip resourceType={resourceType} value={incident.value} />}{incident.traitUpgraded === true && incident.newTrait != null && <span className="recap-fallback">Черта: {traitLabel(incident.newTraitLogicName ?? '', incident.newTrait, incident.workerGender)}</span>}<i className="recap-line">{incidentText(template.epilogue, incident.workerName, incident.workerGender)}</i></div>}</div>;
+                    })}
                 </div>
             }
         </dialog>

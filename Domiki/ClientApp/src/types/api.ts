@@ -116,6 +116,19 @@ export const errandSchema = z.object({
 });
 export type ErrandDto = z.infer<typeof errandSchema>;
 
+export const incidentSchema = z.object({
+    id: z.number(),
+    missingWorkerId: z.number(),
+    expeditionTypeId: z.number(),
+    templateId: z.number(),
+    createDate: z.string(),
+    clueId: z.number().nullable(),
+    searchEndDate: z.string().nullable(),
+    autoReturnDate: z.string(),
+    searchWorkerIds: z.array(z.number()),
+});
+export type IncidentDto = z.infer<typeof incidentSchema>;
+
 export const neighborReputationSchema = z.object({
     neighborId: z.number(),
     neighborName: z.string(),
@@ -269,6 +282,7 @@ export const workerSchema = z.object({
     manufactureId: z.number().nullable(),
     expeditionId: z.number().nullable(),
     errandId: z.number().nullable(),
+    incidentId: z.number().nullable(),
     workedSeconds: z.number(),
     restUntil: z.string().nullable(),
     sickUntil: z.string().nullable(),
@@ -484,6 +498,7 @@ export const gameStateSchema = z.object({
     resources: resourceSchema.array(),
     orders: orderSchema.array(),
     errand: errandSchema.nullable(),
+    incident: incidentSchema.nullable(),
     reputation: neighborReputationSchema.array(),
     blueprints: blueprintSchema.array(),
     village: villageSchema,

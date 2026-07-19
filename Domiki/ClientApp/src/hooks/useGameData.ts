@@ -10,6 +10,7 @@ import {
     type DomikDto,
     type DomikTypeDto,
     type ErrandDto,
+    type IncidentDto,
     type ExpeditionStateDto,
     type GoalsStateDto,
     type MarketStateDto,
@@ -36,6 +37,7 @@ export interface GameData {
     resources: ResourceDto[];
     orders: OrderDto[];
     errand: ErrandDto | null;
+    incident: IncidentDto | null;
     reputation: NeighborReputationDto[];
     blueprints: BlueprintDto[];
     loading: boolean;
@@ -80,6 +82,7 @@ export function useGameData(): GameData {
     const [resources, setResources] = useState<ResourceDto[]>([]);
     const [orders, setOrders] = useState<OrderDto[]>([]);
     const [errand, setErrand] = useState<ErrandDto | null>(null);
+    const [incident, setIncident] = useState<IncidentDto | null>(null);
     const [reputation, setReputation] = useState<NeighborReputationDto[]>([]);
     const [blueprints, setBlueprints] = useState<BlueprintDto[]>([]);
     const [village, setVillageState] = useState<VillageDto | null>(null);
@@ -105,6 +108,7 @@ export function useGameData(): GameData {
     const goalsRef = useRef(goals);
     const tolokaRef = useRef(toloka);
     const errandRef = useRef(errand);
+    const incidentRef = useRef(incident);
     const reloadedRestDeadlinesRef = useRef<Set<string>>(new Set());
     const reloadedTolokaBuffDeadlinesRef = useRef<Set<string>>(new Set());
     const reloadedFinishDeadlinesRef = useRef<Set<string>>(new Set());
@@ -133,6 +137,10 @@ export function useGameData(): GameData {
         errandRef.current = errand;
     }, [errand]);
 
+    useEffect(() => {
+        incidentRef.current = incident;
+    }, [incident]);
+
     const reload = useCallback(async () => {
         const state = await getGameState();
         const prevActive = expeditionsRef.current?.active ?? [];
@@ -151,6 +159,7 @@ export function useGameData(): GameData {
         setResources(state.resources);
         setOrders(state.orders);
         setErrand(state.errand);
+        setIncident(state.incident);
         setReputation(state.reputation);
         setBlueprints(state.blueprints);
         setVillageState(state.village);
@@ -304,6 +313,7 @@ export function useGameData(): GameData {
                 setResources(state.resources);
                 setOrders(state.orders);
                 setErrand(state.errand);
+                setIncident(state.incident);
                 setReputation(state.reputation);
                 setBlueprints(state.blueprints);
                 setVillageState(state.village);
@@ -439,6 +449,16 @@ export function useGameData(): GameData {
             }
         }
 
+        const incident = incidentRef.current;
+        const incidentDeadline = incident == null ? null : incident.searchEndDate ?? incident.autoReturnDate;
+        if (incident != null && incidentDeadline != null) {
+            const key = `incident:${incident.id}:${incidentDeadline}`;
+            if (!reloadedFinishDeadlinesRef.current.has(key) && remainingSeconds(incidentDeadline, now) <= 0) {
+                reloadedFinishDeadlinesRef.current.add(key);
+                expiredFinish = true;
+            }
+        }
+
         const expiredTolokaBuffs = tolokaRef.current?.activeBuffs.filter(buff => {
             const key = `toloka:${buff.logicName}:${buff.buffUntil}`;
             return remainingSeconds(buff.buffUntil, now) <= 0 && !reloadedTolokaBuffDeadlinesRef.current.has(key);
@@ -463,6 +483,7 @@ export function useGameData(): GameData {
         resources,
         orders,
         errand,
+        incident,
         reputation,
         blueprints,
         village,

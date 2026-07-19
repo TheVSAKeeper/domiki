@@ -24,6 +24,7 @@ export interface RecapView {
     gifts: { neighborId: number; resources: { resourceTypeId: number; value: number }[]; decorTypeId: number | null; visitIndex: number; big: boolean; date: string }[];
     guestbookEntries: { guestVillageName: string; guestCrestIcon: number; guestCrestColor: number; phraseId: number; date: string }[];
     villageHelped: { guestVillageName: string; guestCrestIcon: number; guestCrestColor: number; domikTypeName: string; reducedSeconds: number; date: string }[];
+    incidents: { kind: 'missing' | 'resolved'; autoReturned?: boolean; workerName: string; workerGender: number; templateId: number; clueId?: number; resourceTypeId?: number; value?: number; traitUpgraded?: boolean; newTrait?: string; newTraitLogicName?: string }[];
 }
 
 export const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
@@ -73,6 +74,7 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
     const gifts: RecapView['gifts'] = [];
     const guestbookEntries: RecapView['guestbookEntries'] = [];
     const villageHelped: RecapView['villageHelped'] = [];
+    const incidents: RecapView['incidents'] = [];
 
     for (const event of events) {
         if (!isRecord(event.data)) {
@@ -152,6 +154,22 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
 
             villageHelped.push({ guestVillageName, guestCrestIcon, guestCrestColor, domikTypeName, reducedSeconds, date: event.date });
         }
+
+        if (event.type === 'IncidentResolved') {
+            const { autoReturned, workerName, workerGender, templateId, clueId, resourceTypeId, value, traitUpgraded, newTrait, newTraitLogicName } = event.data;
+            if (typeof autoReturned !== 'boolean' || typeof workerName !== 'string' || !isNumber(workerGender) || !isNumber(templateId)) {
+                continue;
+            }
+            incidents.push({ kind: 'resolved', autoReturned, workerName, workerGender, templateId, traitUpgraded: traitUpgraded === true, ...(isNumber(clueId) ? { clueId } : {}), ...(isNumber(resourceTypeId) ? { resourceTypeId } : {}), ...(isNumber(value) ? { value } : {}), ...(typeof newTrait === 'string' ? { newTrait } : {}), ...(typeof newTraitLogicName === 'string' ? { newTraitLogicName } : {}) });
+        }
+
+        if (event.type === 'WorkerMissing') {
+            const { workerName, workerGender, templateId } = event.data;
+            if (typeof workerName !== 'string' || !isNumber(workerGender) || !isNumber(templateId)) {
+                continue;
+            }
+            incidents.push({ kind: 'missing', workerName, workerGender, templateId });
+        }
     }
 
     return {
@@ -163,5 +181,6 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
         gifts,
         guestbookEntries,
         villageHelped,
+        incidents,
     };
 }
