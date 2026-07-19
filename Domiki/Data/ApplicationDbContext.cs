@@ -181,6 +181,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 p.MilestoneType,
             });
 
+        modelBuilder.Entity<WorkerMilestone>()
+            .HasOne<Worker>()
+            .WithMany()
+            .HasForeignKey(p => p.WorkerId);
+
         modelBuilder.Entity<Resource>()
             .Navigation(e => e.Player)
             .UsePropertyAccessMode(PropertyAccessMode.Property);
