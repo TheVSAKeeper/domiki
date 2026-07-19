@@ -10,11 +10,11 @@ using IncidentModel = Domiki.Web.Activities.Models.Incident;
 namespace Domiki.Web.Activities;
 
 /// <summary>
-/// Управляет происшествиями с трудягой, задержавшимся в походе: завязкой, поисками и благополучной развязкой.
+/// Управляет происшествиями с трудягой, задержавшимся в походе, и загадками в постройках: завязкой, поисками и благополучной развязкой.
 /// </summary>
 /// <remarks>
-/// Создаёт событие <see cref="CalculateTypes.Incident"/> при возвращении похода, а планировщик <see cref="Calculator"/>
-/// обрабатывает самостоятельное возвращение либо завершение поисков в <see cref="FinishIncident"/>.
+/// Создаёт события <see cref="CalculateTypes.Incident"/> при возвращении похода или завершении улучшения постройки, а планировщик
+/// <see cref="Calculator"/> обрабатывает самостоятельную развязку либо завершение поисков в <see cref="FinishIncident"/>.
 /// </remarks>
 public class IncidentManager
 {
@@ -47,12 +47,39 @@ public class IncidentManager
     public const int IncidentAutoReturnHours = 48;
 
     /// <summary>
+    /// Минимальная обжитость для завязки происшествия в постройке.
+    /// </summary>
+    public const int DomikIncidentUnlockLevel = 10;
+
+    /// <summary>
+    /// Кулдаун между завязками происшествий в постройках для одного игрока.
+    /// </summary>
+    /// <value>Часы.</value>
+    public const int DomikIncidentCooldownHours = 96;
+
+    /// <summary>
+    /// Минимальное число свободных трудяг для завязки происшествия в постройке.
+    /// </summary>
+    public const int DomikIncidentMinFreeWorkers = 2;
+
+    /// <summary>
+    /// Время до самостоятельной развязки загадки в постройке без поисков.
+    /// </summary>
+    /// <value>Часы.</value>
+    public const int DomikIncidentAutoResolveHours = 48;
+
+    /// <summary>
+    /// Базовое значение для расчёта количества ресурсной находки в постройке.
+    /// </summary>
+    public const int DomikIncidentFindBaseValue = 6;
+
+    /// <summary>
     /// Максимальное число трудяг, которых можно отправить на поиски.
     /// </summary>
     public const int IncidentSearchMaxWorkers = 2;
 
     /// <summary>
-    /// Число клиентских шаблонов текста происшествия.
+    /// Число клиентских шаблонов текста происшествия в походе.
     /// </summary>
     public const int IncidentTemplateCount = 6;
 
@@ -68,18 +95,29 @@ public class IncidentManager
     public static readonly int[] ClueFindMultiplier = { 1, 2, 3 };
 
     /// <summary>
-    /// Базовый шанс улучшения черты пропавшего по зацепке, индекс = ClueId.
+    /// Базовый шанс улучшения черты по зацепке, индекс = ClueId.
     /// </summary>
     /// <value>Проценты.</value>
     public static readonly int[] ClueTraitChancePercent = { 10, 15, 25 };
 
     /// <summary>
-    /// Базовое значение для расчёта количества ресурсной находки.
+    /// Базовое значение для расчёта количества ресурсной находки в походе.
     /// </summary>
     /// <remarks>
     /// Масштабируется рыночной стоимостью найденного ресурса по образцу <see cref="Economy.ErrandManager.FinishErrand"/>.
     /// </remarks>
     public const int IncidentFindBaseValue = 6;
+
+    private static readonly IReadOnlyDictionary<string, DomikIncidentTemplate> DomikIncidentTemplates = new Dictionary<string, DomikIncidentTemplate>
+    {
+        ["gold_mine"] = new(0, null),
+        ["barracks"] = new(1, null),
+        ["market"] = new(1, null),
+        ["clay_mine"] = new(2, "rain"),
+        ["lumber_mill"] = new(3, "drought"),
+        ["stone_mine"] = new(4, null),
+        ["forge"] = new(5, null),
+    };
 
     private readonly ApplicationDbContext _context;
     private readonly UnitOfWork _uow;
@@ -94,7 +132,7 @@ public class IncidentManager
     /// <param name="context">Контекст игровой базы данных.</param>
     /// <param name="uow">Единица работы запроса для отложенной регистрации события.</param>
     /// <param name="calculator">Планировщик игровых событий.</param>
-    /// <param name="resourceManager">Справочник походов, ресурсов и черт.</param>
+    /// <param name="resourceManager">Справочник походов, построек, ресурсов и черт.</param>
     /// <param name="playerResourceManager">Менеджер ресурсов и блокировки игрока.</param>
     /// <param name="playerEventManager">Журнал игровых событий игрока.</param>
     public IncidentManager(ApplicationDbContext context, UnitOfWork uow, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, PlayerEventManager playerEventManager)
@@ -127,7 +165,7 @@ public class IncidentManager
             return null;
         }
 
-        if (_context.Incidents.Any(x => x.PlayerId == player.Id && x.ResolvedDate == null))
+        if (_context.Incidents.Any(x => x.PlayerId == player.Id && x.SourceType == IncidentSourceType.Expedition && x.ResolvedDate == null))
         {
             return null;
         }
@@ -144,6 +182,7 @@ public class IncidentManager
         var incident = new Data.Entities.Incident
         {
             PlayerId = player.Id,
+            SourceType = IncidentSourceType.Expedition,
             MissingWorkerId = missingWorker.Id,
             ExpeditionTypeId = expeditionTypeId,
             TemplateId = Random.Shared.Next(IncidentTemplateCount),
@@ -177,13 +216,86 @@ public class IncidentManager
     }
 
     /// <summary>
-    /// Возвращает активное происшествие игрока.
+    /// Пытается детерминированно завязать происшествие-загадку после завершения улучшения постройки.
+    /// </summary>
+    /// <param name="player">Игрок, чья постройка улучшена.</param>
+    /// <param name="domikTypeId">Идентификатор типа улучшенной постройки.</param>
+    /// <param name="villageLevel">Текущая обжитость деревни.</param>
+    /// <param name="weatherLogicName">Техническое имя текущей погоды.</param>
+    /// <param name="date">Момент завершения улучшения.</param>
+    /// <returns>Событие для регистрации в планировщике, если происшествие создано; иначе <see langword="null"/>.</returns>
+    public CalculateInfo? TryStartDomikIncident(Player player, int domikTypeId, int villageLevel, string? weatherLogicName, DateTime date)
+    {
+        if (villageLevel < DomikIncidentUnlockLevel)
+        {
+            return null;
+        }
+
+        var domikType = _resourceManager.GetDomikTypes().FirstOrDefault(x => x.Id == domikTypeId);
+        if (domikType == null || !DomikIncidentTemplates.TryGetValue(domikType.LogicName, out var template)
+                              || template.WeatherLogicName != null && template.WeatherLogicName != weatherLogicName)
+        {
+            return null;
+        }
+
+        if (player.LastDomikIncidentDate != null && player.LastDomikIncidentDate.Value.AddHours(DomikIncidentCooldownHours) > date)
+        {
+            return null;
+        }
+
+        if (_context.Incidents.Any(x => x.PlayerId == player.Id && x.SourceType == IncidentSourceType.Domik && x.ResolvedDate == null))
+        {
+            return null;
+        }
+
+        var freeWorkers = _context.Workers.Where(x => x.PlayerId == player.Id)
+            .ToArray()
+            .Count(x => WorkerManager.IsFree(x, date));
+        if (freeWorkers < DomikIncidentMinFreeWorkers)
+        {
+            return null;
+        }
+
+        var incident = new Data.Entities.Incident
+        {
+            PlayerId = player.Id,
+            SourceType = IncidentSourceType.Domik,
+            DomikTypeId = domikTypeId,
+            MissingWorkerId = null,
+            ExpeditionTypeId = null,
+            TemplateId = template.TemplateId,
+            CreateDate = date,
+        };
+        _context.Incidents.Add(incident);
+        _context.SaveChanges();
+
+        player.LastDomikIncidentDate = date;
+        _playerEventManager.Record(player.Id, PlayerEventType.DomikIncidentStarted, new
+        {
+            domikTypeId,
+            templateId = incident.TemplateId,
+        });
+        _context.SaveChanges();
+
+        var calculateInfo = new CalculateInfo
+        {
+            PlayerId = player.Id,
+            ObjectId = incident.Id,
+            Date = date.AddHours(DomikIncidentAutoResolveHours),
+            Type = CalculateTypes.Incident,
+        };
+        (calculateInfo.PushTitle, calculateInfo.PushBody) = GetDomikStartPush(domikType.Name);
+        return calculateInfo;
+    }
+
+    /// <summary>
+    /// Возвращает активное происшествие с пропавшим в походе трудягой.
     /// </summary>
     /// <param name="playerId">Id игрока.</param>
     /// <returns>Активное происшествие, если <c>ResolvedDate == null</c>; иначе <see langword="null"/>.</returns>
     public IncidentModel? Get(int playerId)
     {
-        var dbIncident = _context.Incidents.FirstOrDefault(x => x.PlayerId == playerId && x.ResolvedDate == null);
+        var dbIncident = _context.Incidents.FirstOrDefault(x => x.PlayerId == playerId && x.SourceType == IncidentSourceType.Expedition && x.ResolvedDate == null);
         if (dbIncident == null)
         {
             return null;
@@ -195,8 +307,8 @@ public class IncidentManager
         return new()
         {
             Id = dbIncident.Id,
-            MissingWorkerId = dbIncident.MissingWorkerId,
-            ExpeditionTypeId = dbIncident.ExpeditionTypeId,
+            MissingWorkerId = dbIncident.MissingWorkerId!.Value,
+            ExpeditionTypeId = dbIncident.ExpeditionTypeId!.Value,
             TemplateId = dbIncident.TemplateId,
             CreateDate = dbIncident.CreateDate,
             ClueId = dbIncident.ClueId,
@@ -207,7 +319,36 @@ public class IncidentManager
     }
 
     /// <summary>
-    /// Выбирает зацепку и назначает свободных трудяг на поиски пропавшего.
+    /// Возвращает активное происшествие-загадку в постройке.
+    /// </summary>
+    /// <param name="playerId">Id игрока.</param>
+    /// <returns>Активное происшествие, если <c>ResolvedDate == null</c>; иначе <see langword="null"/>.</returns>
+    public DomikIncident? GetDomik(int playerId)
+    {
+        var dbIncident = _context.Incidents.FirstOrDefault(x => x.PlayerId == playerId && x.SourceType == IncidentSourceType.Domik && x.ResolvedDate == null);
+        if (dbIncident == null)
+        {
+            return null;
+        }
+
+        var searchWorkerIds = _context.Workers.Where(x => x.IncidentId == dbIncident.Id)
+            .Select(x => x.Id)
+            .ToArray();
+        return new()
+        {
+            Id = dbIncident.Id,
+            DomikTypeId = dbIncident.DomikTypeId!.Value,
+            TemplateId = dbIncident.TemplateId,
+            CreateDate = dbIncident.CreateDate,
+            ClueId = dbIncident.ClueId,
+            SearchEndDate = dbIncident.SearchEndDate,
+            AutoResolveDate = dbIncident.CreateDate.AddHours(DomikIncidentAutoResolveHours),
+            SearchWorkerIds = searchWorkerIds,
+        };
+    }
+
+    /// <summary>
+    /// Выбирает зацепку и назначает свободных трудяг на поиски.
     /// </summary>
     /// <param name="playerId">Id игрока.</param>
     /// <param name="incidentId">Id происшествия.</param>
@@ -286,7 +427,7 @@ public class IncidentManager
     }
 
     /// <summary>
-    /// Обрабатывает самостоятельное возвращение пропавшего или завершение поисков.
+    /// Обрабатывает самостоятельную развязку происшествия или завершение поисков.
     /// </summary>
     /// <param name="date">Момент обработки события.</param>
     /// <param name="calcInfo">Событие планировщика.</param>
@@ -301,7 +442,19 @@ public class IncidentManager
             return true;
         }
 
-        var missingWorker = _context.Workers.Single(x => x.Id == dbIncident.MissingWorkerId);
+        return dbIncident.SourceType switch
+        {
+            IncidentSourceType.Expedition => FinishExpeditionIncident(date, calcInfo, dbIncident),
+            IncidentSourceType.Domik => FinishDomikIncident(date, calcInfo, dbIncident),
+            _ => throw new InvalidOperationException("Неизвестный источник происшествия"),
+        };
+    }
+
+    private bool FinishExpeditionIncident(DateTime date, CalculateInfo calcInfo, Data.Entities.Incident dbIncident)
+    {
+        var missingWorkerId = dbIncident.MissingWorkerId ?? throw new InvalidOperationException("У происшествия похода нет пропавшего трудяги");
+        var expeditionTypeId = dbIncident.ExpeditionTypeId ?? throw new InvalidOperationException("У происшествия похода нет типа похода");
+        var missingWorker = _context.Workers.Single(x => x.Id == missingWorkerId);
         if (dbIncident.SearchEndDate == null)
         {
             if (date < dbIncident.CreateDate.AddHours(IncidentAutoReturnHours))
@@ -331,7 +484,7 @@ public class IncidentManager
         }
 
         var workers = _context.Workers.Where(x => x.IncidentId == dbIncident.Id).ToArray();
-        var searchWorkers = workers.Where(x => x.Id != dbIncident.MissingWorkerId).ToArray();
+        var searchWorkers = workers.Where(x => x.Id != missingWorkerId).ToArray();
         foreach (var worker in workers)
         {
             worker.IncidentId = null;
@@ -339,33 +492,12 @@ public class IncidentManager
 
         missingWorker.RestUntil = date.AddSeconds(ExpeditionManager.ExpeditionRestSeconds);
         var clueId = dbIncident.ClueId!.Value;
-        var expeditionType = _resourceManager.GetExpeditionTypes().First(x => x.Id == dbIncident.ExpeditionTypeId);
-        var resourceEntries = expeditionType.Loot.Where(x => x.Kind == ExpeditionLootKind.Resource && x.ResourceTypeId != null).ToArray();
-        int? resourceTypeId = null;
-        int? value = null;
-        if (resourceEntries.Length > 0)
-        {
-            resourceTypeId = resourceEntries[Random.Shared.Next(resourceEntries.Length)].ResourceTypeId!.Value;
-            value = Math.Max(1, (int)Math.Round(IncidentFindBaseValue * ClueFindMultiplier[clueId] * (double)ResourceManager.BaseMarketValue / ResourceManager.GetMarketValue(resourceTypeId.Value), MidpointRounding.AwayFromZero));
-            _playerResourceManager.GrantResource(calcInfo.PlayerId, resourceTypeId.Value, value.Value);
-        }
-
-        var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
-        var groupLuck = searchWorkers.Length == 0 ? 0 : searchWorkers.Max(x => traits[x.TraitId].LuckWeightPercent);
-        var traitChance = Math.Min(100, ClueTraitChancePercent[clueId] * (100 + groupLuck) / 100);
-        var ordinaryTrait = traits.Values.First(x => x.LogicName == "ordinary");
-        var traitUpgraded = false;
-        string? newTrait = null;
-        string? newTraitLogicName = null;
-        if (missingWorker.TraitId == ordinaryTrait.Id && Random.Shared.Next(100) < traitChance)
-        {
-            var candidates = traits.Values.Where(x => x.LogicName != "ordinary").ToArray();
-            var upgradedTrait = candidates[Random.Shared.Next(candidates.Length)];
-            missingWorker.TraitId = upgradedTrait.Id;
-            traitUpgraded = true;
-            newTrait = upgradedTrait.Name;
-            newTraitLogicName = upgradedTrait.LogicName;
-        }
+        var expeditionType = _resourceManager.GetExpeditionTypes().First(x => x.Id == expeditionTypeId);
+        var resourcePool = expeditionType.Loot.Where(x => x.Kind == ExpeditionLootKind.Resource && x.ResourceTypeId != null)
+            .Select(x => x.ResourceTypeId!.Value)
+            .ToArray();
+        var (resourceTypeId, value) = GrantFind(calcInfo.PlayerId, resourcePool, clueId, IncidentFindBaseValue);
+        var trait = TryUpgradeTrait(missingWorker, searchWorkers, clueId);
 
         dbIncident.ResolvedDate = date;
         _playerEventManager.Record(calcInfo.PlayerId, PlayerEventType.IncidentResolved, new
@@ -378,13 +510,136 @@ public class IncidentManager
             clueId,
             resourceTypeId,
             value,
-            traitUpgraded,
-            newTrait,
-            newTraitLogicName,
+            traitUpgraded = trait.TraitUpgraded,
+            newTrait = trait.NewTrait,
+            newTraitLogicName = trait.NewTraitLogicName,
         });
         (calcInfo.PushTitle, calcInfo.PushBody) = GetResolvedPush(missingWorker.Name);
         _context.SaveChanges();
         return true;
+    }
+
+    private bool FinishDomikIncident(DateTime date, CalculateInfo calcInfo, Data.Entities.Incident dbIncident)
+    {
+        var domikTypeId = dbIncident.DomikTypeId ?? throw new InvalidOperationException("У происшествия постройки нет типа постройки");
+        var domikName = GetDomikName(domikTypeId);
+        if (dbIncident.SearchEndDate == null)
+        {
+            if (date < dbIncident.CreateDate.AddHours(DomikIncidentAutoResolveHours))
+            {
+                return false;
+            }
+
+            dbIncident.ResolvedDate = date;
+            _playerEventManager.Record(calcInfo.PlayerId, PlayerEventType.DomikIncidentResolved, new
+            {
+                autoResolved = true,
+                domikTypeId,
+                templateId = dbIncident.TemplateId,
+            });
+            (calcInfo.PushTitle, calcInfo.PushBody) = GetDomikAutoResolvePush(domikName);
+            _context.SaveChanges();
+            return true;
+        }
+
+        if (date < dbIncident.SearchEndDate.Value)
+        {
+            return false;
+        }
+
+        var searchWorkers = _context.Workers.Where(x => x.IncidentId == dbIncident.Id).ToArray();
+        foreach (var worker in searchWorkers)
+        {
+            worker.IncidentId = null;
+        }
+
+        var clueId = dbIncident.ClueId!.Value;
+        var (resourceTypeId, value) = GrantFind(calcInfo.PlayerId, GetDomikFindResourcePool(domikTypeId), clueId, DomikIncidentFindBaseValue);
+        var heroWorker = searchWorkers.Length == 0 ? null : searchWorkers[0];
+        var selectedWorker = searchWorkers.Length == 0 ? null : searchWorkers[Random.Shared.Next(searchWorkers.Length)];
+        var trait = TryUpgradeTrait(selectedWorker, searchWorkers, clueId);
+
+        dbIncident.ResolvedDate = date;
+        _playerEventManager.Record(calcInfo.PlayerId, PlayerEventType.DomikIncidentResolved, new
+        {
+            autoResolved = false,
+            domikTypeId,
+            templateId = dbIncident.TemplateId,
+            heroWorkerName = heroWorker?.Name,
+            heroWorkerGender = heroWorker == null ? (int?)null : (int)NameGrammar.GenderOf(heroWorker.Name),
+            clueId,
+            resourceTypeId,
+            value,
+            traitUpgraded = trait.TraitUpgraded,
+            newTrait = trait.NewTrait,
+            newTraitLogicName = trait.NewTraitLogicName,
+            upgradedWorkerId = trait.UpgradedWorkerId,
+            upgradedWorkerName = trait.UpgradedWorkerName,
+        });
+        (calcInfo.PushTitle, calcInfo.PushBody) = GetDomikResolvedPush(domikName);
+        _context.SaveChanges();
+        return true;
+    }
+
+    private (int? ResourceTypeId, int? Value) GrantFind(int playerId, IReadOnlyList<int> resourcePool, int clueId, int findBase)
+    {
+        if (resourcePool.Count == 0)
+        {
+            return (null, null);
+        }
+
+        var resourceTypeId = resourcePool[Random.Shared.Next(resourcePool.Count)];
+        var value = Math.Max(1, (int)Math.Round(findBase * ClueFindMultiplier[clueId] * (double)ResourceManager.BaseMarketValue / ResourceManager.GetMarketValue(resourceTypeId), MidpointRounding.AwayFromZero));
+        _playerResourceManager.GrantResource(playerId, resourceTypeId, value);
+        return (resourceTypeId, value);
+    }
+
+    private (bool TraitUpgraded, string? NewTrait, string? NewTraitLogicName, int? UpgradedWorkerId, string? UpgradedWorkerName) TryUpgradeTrait(Worker? worker, Worker[] searchWorkers, int clueId)
+    {
+        if (worker == null)
+        {
+            return (false, null, null, null, null);
+        }
+
+        var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
+        var groupLuck = searchWorkers.Length == 0 ? 0 : searchWorkers.Max(x => traits[x.TraitId].LuckWeightPercent);
+        var traitChance = Math.Min(100, ClueTraitChancePercent[clueId] * (100 + groupLuck) / 100);
+        var ordinaryTrait = traits.Values.First(x => x.LogicName == "ordinary");
+        if (worker.TraitId != ordinaryTrait.Id || Random.Shared.Next(100) >= traitChance)
+        {
+            return (false, null, null, null, null);
+        }
+
+        var candidates = traits.Values.Where(x => x.LogicName != "ordinary").ToArray();
+        var upgradedTrait = candidates[Random.Shared.Next(candidates.Length)];
+        worker.TraitId = upgradedTrait.Id;
+        return (true, upgradedTrait.Name, upgradedTrait.LogicName, worker.Id, worker.Name);
+    }
+
+    private int[] GetDomikFindResourcePool(int domikTypeId)
+    {
+        var domikType = _resourceManager.GetDomikTypes().First(x => x.Id == domikTypeId);
+        var receiptIds = domikType.Levels.SelectMany(x => x.Receipts).Select(x => x.Id).ToHashSet();
+        var resourcePool = _resourceManager.GetReceipts()
+            .Where(x => receiptIds.Contains(x.Id))
+            .SelectMany(x => x.OutputResources)
+            .Select(x => x.Type.Id)
+            .Distinct()
+            .ToArray();
+        if (resourcePool.Length > 0)
+        {
+            return resourcePool;
+        }
+
+        return domikType.Levels.SelectMany(x => x.Resources)
+            .Select(x => x.Type.Id)
+            .Distinct()
+            .ToArray();
+    }
+
+    private string GetDomikName(int domikTypeId)
+    {
+        return _resourceManager.GetDomikTypes().First(x => x.Id == domikTypeId).Name;
     }
 
     private static (string Title, string Body) GetStartPush(string workerName)
@@ -402,4 +657,20 @@ public class IncidentManager
         return ($"{workerName} вернул{NameGrammar.GenderForm(workerName, "ся", "ась")} сам{NameGrammar.GenderForm(workerName, "", "а")}", $"Дорогу на{NameGrammar.GenderForm(workerName, "шёл", "шла")} без подмоги – отдыхает и рассказывает байки.");
     }
 
+    private static (string Title, string Body) GetDomikStartPush(string domikName)
+    {
+        return ($"В «{domikName}» что-то неспокойно", "На карточке происшествия – зацепки, если любопытно.");
+    }
+
+    private static (string Title, string Body) GetDomikResolvedPush(string domikName)
+    {
+        return ($"Загадка «{domikName}» разгадана", "Следопыты разобрались и принесли находку. Загляни в журнал.");
+    }
+
+    private static (string Title, string Body) GetDomikAutoResolvePush(string domikName)
+    {
+        return ($"В «{domikName}» снова тихо", "Загадка растворилась сама, не оставив премии.");
+    }
+
+    private sealed record DomikIncidentTemplate(int TemplateId, string? WeatherLogicName);
 }

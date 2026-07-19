@@ -225,7 +225,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<Incident>()
             .HasOne(s => s.MissingWorker)
             .WithMany()
-            .HasForeignKey(e => e.MissingWorkerId);
+            .HasForeignKey(e => e.MissingWorkerId)
+            .IsRequired(false);
 
         modelBuilder.Entity<NeighborReputation>()
             .HasKey(p => new

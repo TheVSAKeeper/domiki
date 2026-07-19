@@ -383,7 +383,10 @@ public class Calculator : ICalculator
                 {
                     PlayerId = dbIncident.PlayerId,
                     ObjectId = dbIncident.Id,
-                    Date = dbIncident.SearchEndDate ?? dbIncident.CreateDate.AddHours(IncidentManager.IncidentAutoReturnHours),
+                    Date = dbIncident.SearchEndDate ?? dbIncident.CreateDate.AddHours(
+                        dbIncident.SourceType == Domiki.Web.Data.Entities.IncidentSourceType.Domik
+                            ? IncidentManager.DomikIncidentAutoResolveHours
+                            : IncidentManager.IncidentAutoReturnHours),
                     Type = CalculateTypes.Incident,
                 });
             }

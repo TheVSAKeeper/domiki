@@ -4,11 +4,11 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace Domiki.Web.Data.Entities;
 
 /// <summary>
-/// Происшествие с пропавшим в походе трудягой и его последующими поисками.
+/// Происшествие с пропавшим в походе трудягой или загадкой в постройке и последующими поисками.
 /// </summary>
 /// <remarks>
-/// Создаётся при возвращении отряда и остаётся в истории после <see cref="ResolvedDate"/>. Тип похода хранится снимком в
-/// <see cref="ExpeditionTypeId"/>, поскольку запись самого похода к этому моменту удалена.
+/// Создаётся при возвращении отряда либо завершении улучшения постройки и остаётся в истории после <see cref="ResolvedDate"/>.
+/// Тип похода или постройки хранится снимком, поскольку запись похода к этому моменту удалена.
 /// </remarks>
 [Table("Incidents")]
 public class Incident
@@ -26,9 +26,17 @@ public class Incident
     public int PlayerId { get; set; }
 
     /// <summary>
+    /// Источник завязки происшествия.
+    /// </summary>
+    public IncidentSourceType SourceType { get; set; }
+
+    /// <summary>
     /// Трудяга, задержавшийся в походе.
     /// </summary>
-    public int MissingWorkerId { get; set; }
+    /// <remarks>
+    /// <see langword="null"/> – происшествие связано с постройкой.
+    /// </remarks>
+    public int? MissingWorkerId { get; set; }
 
     /// <summary>
     /// Идентификатор типа похода, в котором задержался трудяга.
@@ -36,7 +44,18 @@ public class Incident
     /// <remarks>
     /// Снимок без навигации и внешнего ключа: сама запись похода удаляется в <see cref="Activities.ExpeditionManager.FinishExpedition"/>.
     /// </remarks>
-    public int ExpeditionTypeId { get; set; }
+    /// <remarks>
+    /// <see langword="null"/> – происшествие связано с постройкой.
+    /// </remarks>
+    public int? ExpeditionTypeId { get; set; }
+
+    /// <summary>
+    /// Идентификатор типа постройки, в которой возникла загадка.
+    /// </summary>
+    /// <remarks>
+    /// Снимок без навигации и внешнего ключа; <see langword="null"/> – происшествие связано с походом.
+    /// </remarks>
+    public int? DomikTypeId { get; set; }
 
     /// <summary>
     /// Индекс клиентского шаблона текста происшествия.
@@ -86,5 +105,5 @@ public class Incident
     /// <summary>
     /// Трудяга, задержавшийся в походе.
     /// </summary>
-    public Worker MissingWorker { get; set; } = null!;
+    public Worker? MissingWorker { get; set; }
 }

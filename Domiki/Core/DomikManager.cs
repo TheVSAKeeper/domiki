@@ -74,8 +74,9 @@ public class DomikManager
     private readonly PlayerEventManager _playerEventManager;
     private readonly GoalManager _goalManager;
     private readonly ILogger<DomikManager> _logger;
+    private readonly IncidentManager _incidentManager;
 
-    public DomikManager(UnitOfWork uow, ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, TolokaManager tolokaManager, PlayerEventManager playerEventManager, GoalManager goalManager, ILogger<DomikManager> logger)
+    public DomikManager(UnitOfWork uow, ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, TolokaManager tolokaManager, PlayerEventManager playerEventManager, GoalManager goalManager, ILogger<DomikManager> logger, IncidentManager incidentManager)
     {
         _context = context;
         _calculator = calculator;
@@ -90,6 +91,7 @@ public class DomikManager
         _playerEventManager = playerEventManager;
         _goalManager = goalManager;
         _logger = logger;
+        _incidentManager = incidentManager;
     }
 
     public int GetPlayerId(string aspNetUserId)
@@ -364,6 +366,10 @@ public class DomikManager
                 dbDomik.UpgradeSeconds = null;
                 dbDomik.Level++;
                 _playerEventManager.Record(calcInfo.PlayerId, PlayerEventType.DomikUpgraded, new { domikTypeId = dbDomik.TypeId, level = dbDomik.Level });
+                var dbPlayer = _context.Players.Single(x => x.Id == calcInfo.PlayerId);
+                var villageLevel = _villageLevelCalculator.GetLevel(calcInfo.PlayerId).Level;
+                var weatherLogicName = _weatherManager.GetCurrentPeriod(date)?.WeatherType.LogicName;
+                var incidentCalcInfo = _incidentManager.TryStartDomikIncident(dbPlayer, dbDomik.TypeId, villageLevel, weatherLogicName, date);
 
                 var domikName = _resourceManager.GetDomikTypes().First(x => x.Id == dbDomik.TypeId).Name;
                 (calcInfo.PushTitle, calcInfo.PushBody) = (dbDomik.Level % 3) switch
@@ -372,6 +378,17 @@ public class DomikManager
                     1 => ("Обновка в хозяйстве", $"«{domikName}» теперь уровня {dbDomik.Level} – самое время развернуться пошире."),
                     _ => ("Плотники своё дело знают", $"«{domikName}» – уже уровень {dbDomik.Level}: ладно скроено, крепко сшито."),
                 };
+
+                if (incidentCalcInfo != null)
+                {
+                    (calcInfo.PushTitle, calcInfo.PushBody) = (incidentCalcInfo.PushTitle, incidentCalcInfo.PushBody);
+                    var afterEventAction = _uow.AfterEventAction;
+                    _uow.AfterEventAction = () =>
+                    {
+                        afterEventAction?.Invoke();
+                        _calculator.Insert(incidentCalcInfo);
+                    };
+                }
 
                 return true;
             }
@@ -416,7 +433,12 @@ public class DomikManager
             Date = date,
         });
 
-        _uow.AfterEventAction = () => _calculator.Remove(playerId, domikId, CalculateTypes.Domiks);
+        var previousAfterEventAction = _uow.AfterEventAction;
+        _uow.AfterEventAction = () =>
+        {
+            previousAfterEventAction?.Invoke();
+            _calculator.Remove(playerId, domikId, CalculateTypes.Domiks);
+        };
     }
 
     public void StartManufacture(int playerId, int domikId, int receiptId, bool useOptional = false, int[]? workerIds = null, bool autoRepeat = false)

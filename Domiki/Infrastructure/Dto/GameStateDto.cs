@@ -73,6 +73,14 @@ public sealed record GameStateDto
     public IncidentDto? Incident { get; init; }
 
     /// <summary>
+    /// Активное происшествие-загадка в постройке.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – у игрока нет незавершённого происшествия этого источника (см. <see cref="Activities.IncidentManager.GetDomik"/>).
+    /// </remarks>
+    public DomikIncidentDto? DomikIncident { get; init; }
+
+    /// <summary>
     /// Чертежи и их владение игроком.
     /// </summary>
     public required BlueprintDto[] Blueprints { get; init; }

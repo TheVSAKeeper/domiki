@@ -63,6 +63,15 @@ public class Player
     public DateTime? LastIncidentDate { get; set; }
 
     /// <summary>
+    /// Момент последнего происшествия-загадки в постройке.
+    /// </summary>
+    /// <value>Момент в UTC.</value>
+    /// <remarks>
+    /// Ограничивает частоту завязок кулдауном <see cref="Activities.IncidentManager.DomikIncidentCooldownHours"/>.
+    /// </remarks>
+    public DateTime? LastDomikIncidentDate { get; set; }
+
+    /// <summary>
     /// Счётчик визитов-возвратов подряд без крупного гостинца от соседей.
     /// </summary>
     /// <remarks>

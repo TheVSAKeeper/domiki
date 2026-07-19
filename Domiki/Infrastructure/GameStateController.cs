@@ -75,6 +75,7 @@ public class GameStateController : GameControllerBase
             Reputation = _orderManager.GetReputation(playerId).Select(x => x.ToDto()).ToArray(),
             Errand = _errandManager.Get(playerId)?.ToDto(),
             Incident = _incidentManager.Get(playerId)?.ToDto(),
+            DomikIncident = _incidentManager.GetDomik(playerId)?.ToDto(),
             Blueprints = _blueprintManager.GetBlueprints(playerId).Select(x => x.ToDto()).ToArray(),
             Village = _domikManager.GetVillage(playerId).ToDto(),
             VillageLevel = _villageLevelCalculator.GetLevel(playerId).ToDto(),

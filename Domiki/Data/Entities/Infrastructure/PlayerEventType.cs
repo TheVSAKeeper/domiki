@@ -90,4 +90,20 @@ public enum PlayerEventType
     /// См. <see cref="Activities.IncidentManager.FinishIncident"/>.
     /// </remarks>
     IncidentResolved = 13,
+
+    /// <summary>
+    /// В постройке завязалось происшествие-загадка.
+    /// </summary>
+    /// <remarks>
+    /// См. <see cref="Activities.IncidentManager.TryStartDomikIncident"/>.
+    /// </remarks>
+    DomikIncidentStarted = 14,
+
+    /// <summary>
+    /// Происшествие-загадка в постройке завершилось.
+    /// </summary>
+    /// <remarks>
+    /// См. <see cref="Activities.IncidentManager.FinishIncident"/>.
+    /// </remarks>
+    DomikIncidentResolved = 15,
 }
