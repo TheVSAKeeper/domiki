@@ -163,3 +163,9 @@ public static class TolokaTypeIds
     public const int Kiln = 3;
     public const int Caravan = 4;
 }
+
+public static class ExpeditionTypeIds
+{
+    public const int ShortScout = 1;
+    public const int LongJourney = 2;
+}
