@@ -73,8 +73,9 @@ public class DomikManager
     private readonly TolokaManager _tolokaManager;
     private readonly PlayerEventManager _playerEventManager;
     private readonly GoalManager _goalManager;
+    private readonly ILogger<DomikManager> _logger;
 
-    public DomikManager(UnitOfWork uow, ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, TolokaManager tolokaManager, PlayerEventManager playerEventManager, GoalManager goalManager)
+    public DomikManager(UnitOfWork uow, ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, TolokaManager tolokaManager, PlayerEventManager playerEventManager, GoalManager goalManager, ILogger<DomikManager> logger)
     {
         _context = context;
         _calculator = calculator;
@@ -88,6 +89,7 @@ public class DomikManager
         _tolokaManager = tolokaManager;
         _playerEventManager = playerEventManager;
         _goalManager = goalManager;
+        _logger = logger;
     }
 
     public int GetPlayerId(string aspNetUserId)
@@ -345,7 +347,13 @@ public class DomikManager
     {
         _playerResourceManager.LockDbPlayerRow(calcInfo.PlayerId);
 
-        var dbDomik = _context.Domiks.Single(x => x.Id == calcInfo.ObjectId && x.PlayerId == calcInfo.PlayerId);
+        var dbDomik = _context.Domiks.SingleOrDefault(x => x.Id == calcInfo.ObjectId && x.PlayerId == calcInfo.PlayerId);
+        if (dbDomik == null)
+        {
+            _logger.LogWarning("FinishDomik: домик {DomikId} игрока {PlayerId} не найден – осиротевшее событие снимается", calcInfo.ObjectId, calcInfo.PlayerId);
+            return true;
+        }
+
         if (dbDomik.UpgradeSeconds != null)
         {
             var period = (date - dbDomik.UpgradeCalculateDate!.Value).TotalSeconds;
@@ -570,7 +578,13 @@ public class DomikManager
     {
         _playerResourceManager.LockDbPlayerRow(calcInfo.PlayerId);
 
-        var dbManufacture = _context.Manufactures.Single(x => x.Id == calcInfo.ObjectId);
+        var dbManufacture = _context.Manufactures.SingleOrDefault(x => x.Id == calcInfo.ObjectId);
+        if (dbManufacture == null)
+        {
+            _logger.LogWarning("FinishManufacture: производство {ManufactureId} игрока {PlayerId} не найдено – осиротевшее событие снимается", calcInfo.ObjectId, calcInfo.PlayerId);
+            return true;
+        }
+
         if (date >= dbManufacture.FinishDate)
         {
             var recept = _resourceManager.GetReceipts().First(x => x.Id == dbManufacture.ReceiptId);
@@ -579,8 +593,13 @@ public class DomikManager
             var autoRepeat = dbManufacture.AutoRepeat;
             var domikId = dbManufacture.DomikId;
             var playerId = calcInfo.PlayerId;
-            var dbDomik = _context.Domiks.Single(x => x.PlayerId == calcInfo.PlayerId && x.Id == dbManufacture.DomikId);
-            var dbPlayer = _context.Players.First(x => x.Id == calcInfo.PlayerId);
+            var dbDomik = _context.Domiks.SingleOrDefault(x => x.PlayerId == calcInfo.PlayerId && x.Id == dbManufacture.DomikId);
+            var dbPlayer = _context.Players.FirstOrDefault(x => x.Id == calcInfo.PlayerId);
+            if (dbDomik == null || dbPlayer == null)
+            {
+                _logger.LogWarning("FinishManufacture: производство {ManufactureId} осиротело (игрок {PlayerId} или домик {DomikId} удалён) – событие снимается", dbManufacture.Id, calcInfo.PlayerId, dbManufacture.DomikId);
+                return true;
+            }
             var produced = new Dictionary<int, int>();
             foreach (var resource in recept.OutputResources)
             {

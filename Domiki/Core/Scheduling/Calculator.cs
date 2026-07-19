@@ -197,12 +197,12 @@ public class Calculator : ICalculator
                 var broker = scope.ServiceProvider.GetRequiredService<GameStateBroker>();
                 switch (calcDate.Type)
                 {
-                    case CalculateTypes.Domiks:
-                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody ?? "Домик достроен – загляни в деревню", "/domiki-page");
+                    case CalculateTypes.Domiks when calcDate.PushTitle != null:
+                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle, calcDate.PushBody ?? "Домик достроен – загляни в деревню", "/domiki-page");
                         break;
 
-                    case CalculateTypes.Manufacture:
-                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody ?? "Производство завершено – товары готовы", "/domiki-page");
+                    case CalculateTypes.Manufacture when calcDate.PushTitle != null:
+                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle, calcDate.PushBody ?? "Производство завершено – товары готовы", "/domiki-page");
                         break;
 
                     case CalculateTypes.Expedition when calcDate.PushBody != null:
@@ -287,7 +287,7 @@ public class Calculator : ICalculator
             var vasv = scope.ServiceProvider.GetRequiredService<CalculatorTick>();
             var uow = scope.ServiceProvider.GetRequiredService<UnitOfWork>();
             var dates = new List<CalculateInfo>();
-            var dbDomiks = uow.Context.Domiks.Where(s => s.UpgradeSeconds != null).ToList();
+            var dbDomiks = uow.Context.Domiks.Where(s => s.UpgradeSeconds != null && s.UpgradeCalculateDate != null).ToList();
             foreach (var dbStorage in dbDomiks)
             {
                 var compliteDate = dbStorage.UpgradeCalculateDate!.Value.AddSeconds(dbStorage.UpgradeSeconds!.Value);
