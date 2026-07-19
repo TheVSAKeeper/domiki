@@ -154,6 +154,7 @@ public class ResourceManager
     private static Receipt[] LoadReceipts(ApplicationDbContext context)
     {
         return context.Receipts.Include(x => x.Resources)
+            .ToArray()
             .Select(x => new Receipt
             {
                 Id = x.Id,
