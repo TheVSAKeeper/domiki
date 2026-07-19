@@ -23,6 +23,7 @@ import { ActionButton, ActionBusyProvider } from './ActionButton';
 import { OrdersBox } from './OrdersBox';
 import { GoalCard } from './GoalCard';
 import { IncidentCard } from './IncidentCard';
+import { DomikIncidentCard } from './DomikIncidentCard';
 import { WorkersBox } from './WorkersBox';
 import { BlueprintsBox } from './BlueprintsBox';
 import { ExpeditionsBox } from './ExpeditionsBox';
@@ -56,7 +57,7 @@ interface GameTab {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, incident, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, goals, workers, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, incident, domikIncident, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, goals, workers, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -258,7 +259,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'workers', label: 'Трудяги', icon: <MechanicSprite logicName="workers" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,
-            node: <WorkersBox workers={workers} domikTypes={domikTypes} domiks={domiks} expeditions={expeditions} errand={errand} incident={incident} feedWorkers={village?.feedWorkers ?? false} now={now} onToggleFeedWorkers={toggleFeedWorkers} />,
+            node: <WorkersBox workers={workers} domikTypes={domikTypes} domiks={domiks} expeditions={expeditions} errand={errand} incident={incident} domikIncident={domikIncident} feedWorkers={village?.feedWorkers ?? false} now={now} onToggleFeedWorkers={toggleFeedWorkers} />,
         },
         {
             key: 'journal', label: 'Журнал', icon: <AbstractSprite logicName="journal" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,
@@ -291,6 +292,7 @@ export const DomikiPage = () => {
                 villageLevel={villageLevel} weather={weather} now={now} onStickyOffsetChange={setHudStickyOffset} />
             <GoalCard goals={goals} resourceTypes={resourceTypes} />
             {incident != null && <IncidentCard incident={incident} workers={workers} now={now} onStartSearch={startIncidentSearchAction} />}
+            {domikIncident != null && <DomikIncidentCard incident={domikIncident} workers={workers} domikTypes={domikTypes} now={now} onStartSearch={startIncidentSearchAction} />}
             {identityVisible &&
                 <VillageIdentityModal village={village} onSave={saveIdentity} onClose={closeIdentity} />
             }

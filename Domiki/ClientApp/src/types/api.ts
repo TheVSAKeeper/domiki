@@ -129,6 +129,18 @@ export const incidentSchema = z.object({
 });
 export type IncidentDto = z.infer<typeof incidentSchema>;
 
+export const domikIncidentSchema = z.object({
+    id: z.number(),
+    domikTypeId: z.number(),
+    templateId: z.number(),
+    createDate: z.string(),
+    clueId: z.number().nullable(),
+    searchEndDate: z.string().nullable(),
+    autoResolveDate: z.string(),
+    searchWorkerIds: z.array(z.number()),
+});
+export type DomikIncidentDto = z.infer<typeof domikIncidentSchema>;
+
 export const neighborReputationSchema = z.object({
     neighborId: z.number(),
     neighborName: z.string(),
@@ -499,6 +511,7 @@ export const gameStateSchema = z.object({
     orders: orderSchema.array(),
     errand: errandSchema.nullable(),
     incident: incidentSchema.nullable(),
+    domikIncident: domikIncidentSchema.nullable(),
     reputation: neighborReputationSchema.array(),
     blueprints: blueprintSchema.array(),
     village: villageSchema,

@@ -25,6 +25,7 @@ const mappings: Record<string, ContractSchema> = {
     DomikTypeDto: { schemaName: 'domikTypeSchema', shape: api.domikTypeSchema.shape },
     ErrandDto: { schemaName: 'errandSchema', shape: api.errandSchema.shape },
     IncidentDto: { schemaName: 'incidentSchema', shape: api.incidentSchema.shape },
+    DomikIncidentDto: { schemaName: 'domikIncidentSchema', shape: api.domikIncidentSchema.shape },
     ExpeditionDto: { schemaName: 'expeditionSchema', shape: api.expeditionSchema.shape },
     ExpeditionEquipmentDto: { schemaName: 'expeditionEquipmentSchema', shape: api.expeditionEquipmentSchema.shape },
     ExpeditionLootDto: { schemaName: 'expeditionLootSchema', shape: api.expeditionLootSchema.shape },

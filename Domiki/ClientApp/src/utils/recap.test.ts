@@ -114,4 +114,16 @@ describe('buildRecapView', () => {
 
         expect(recap.villageHelped).toEqual([]);
     });
+
+    it('parses started and resolved building incidents', () => {
+        const recap = buildRecapView([
+            { type: 'DomikIncidentStarted', date: '2026-07-10T00:13:00Z', data: { domikTypeId: 3, templateId: 2 } },
+            { type: 'DomikIncidentResolved', date: '2026-07-10T00:14:00Z', data: { autoResolved: false, domikTypeId: 3, templateId: 2, clueId: 1, resourceTypeId: 5, value: 12, traitUpgraded: true, newTrait: 'Везучий', newTraitLogicName: 'lucky', heroWorkerName: 'Аким', heroWorkerGender: 0, upgradedWorkerName: 'Степан' } },
+        ]);
+
+        expect(recap.domikIncidents).toEqual([
+            { kind: 'started', domikTypeId: 3, templateId: 2 },
+            { kind: 'resolved', autoResolved: false, domikTypeId: 3, templateId: 2, clueId: 1, resourceTypeId: 5, value: 12, traitUpgraded: true, newTrait: 'Везучий', newTraitLogicName: 'lucky', heroWorkerName: 'Аким', heroWorkerGender: 0, upgradedWorkerName: 'Степан' },
+        ]);
+    });
 });

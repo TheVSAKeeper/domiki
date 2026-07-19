@@ -3,14 +3,14 @@ import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import CrownIcon from 'pixelarticons/svg/crown.svg?react';
-import type { DomikDto, DomikTypeDto, ErrandDto, ExpeditionStateDto, IncidentDto, WorkerDto } from '../types/api';
+import type { DomikDto, DomikIncidentDto, DomikTypeDto, ErrandDto, ExpeditionStateDto, IncidentDto, WorkerDto } from '../types/api';
 import { buildDomikNamer, type DomikNamer } from '../utils/domikNames';
 import { formatDuration, formatDurationShort, remainingSeconds } from '../utils/time';
 import { describeWorker, describeWorkerParts, isSkilledWorker, rankedSkills } from '../utils/worker';
 import { AbstractSprite, DomikSprite, MechanicSprite, TraitSprite, WorkerSprite } from './sprites';
 import { genderForm, traitLabel } from '../utils/gender';
 
-type WorkerState = 'expedition' | 'errand' | 'incidentMissing' | 'incidentSearch' | 'busy' | 'resting' | 'free';
+type WorkerState = 'expedition' | 'errand' | 'incidentMissing' | 'incidentSearch' | 'domikIncidentSearch' | 'busy' | 'resting' | 'free';
 
 interface WorkersBoxProps {
     workers: WorkerDto[];
@@ -19,14 +19,15 @@ interface WorkersBoxProps {
     expeditions: ExpeditionStateDto | null;
     errand: ErrandDto | null;
     incident: IncidentDto | null;
+    domikIncident: DomikIncidentDto | null;
     feedWorkers: boolean;
     now: number;
     onToggleFeedWorkers: (enabled: boolean) => void;
 }
 
-const stateLabels: Record<WorkerState, string> = { expedition: 'В экспедиции', errand: 'В поручении', incidentMissing: 'Задержался', incidentSearch: 'В поисках', busy: 'Работает', resting: 'Отдыхает', free: 'Свободен' };
-const tallyLabels: Record<WorkerState, string> = { expedition: 'в пути', errand: 'в поручении', incidentMissing: 'задержались', incidentSearch: 'в поисках', busy: 'за работой', resting: 'отдыхают', free: 'свободны' };
-const tallyOrder: WorkerState[] = ['free', 'busy', 'resting', 'incidentMissing', 'incidentSearch', 'errand', 'expedition'];
+const stateLabels: Record<WorkerState, string> = { expedition: 'В экспедиции', errand: 'В поручении', incidentMissing: 'Задержался', incidentSearch: 'В поисках', domikIncidentSearch: 'Разбирается', busy: 'Работает', resting: 'Отдыхает', free: 'Свободен' };
+const tallyLabels: Record<WorkerState, string> = { expedition: 'в пути', errand: 'в поручении', incidentMissing: 'задержались', incidentSearch: 'в поисках', domikIncidentSearch: 'разбираются', busy: 'за работой', resting: 'отдыхают', free: 'свободны' };
+const tallyOrder: WorkerState[] = ['free', 'busy', 'resting', 'incidentMissing', 'incidentSearch', 'domikIncidentSearch', 'errand', 'expedition'];
 const FATIGUE_THRESHOLD_SECONDS = 28800;
 
 const WorkerDetails = ({ worker, domikTypes, domiks, namer, style }: { worker: WorkerDto; domikTypes: DomikTypeDto[]; domiks: DomikDto[]; namer: DomikNamer; style: CSSProperties }) => {
@@ -76,14 +77,23 @@ const WorkerDetails = ({ worker, domikTypes, domiks, namer, style }: { worker: W
     );
 };
 
-export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, errand, incident, feedWorkers, now, onToggleFeedWorkers }: WorkersBoxProps) => {
+export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, errand, incident, domikIncident, feedWorkers, now, onToggleFeedWorkers }: WorkersBoxProps) => {
     const [hover, setHover] = useState<{ worker: WorkerDto; rect: DOMRect } | null>(null);
     const clearHover = (id: number) => setHover(prev => (prev?.worker.id === id ? null : prev));
     const namer = useMemo(() => buildDomikNamer(domiks), [domiks]);
 
     const stateOf = (worker: WorkerDto): WorkerState => {
         if (worker.incidentId != null) {
-            return worker.id === incident?.missingWorkerId ? 'incidentMissing' : 'incidentSearch';
+            if (worker.id === incident?.missingWorkerId) {
+                return 'incidentMissing';
+            }
+            if (incident?.searchWorkerIds.includes(worker.id)) {
+                return 'incidentSearch';
+            }
+            if (domikIncident?.searchWorkerIds.includes(worker.id)) {
+                return 'domikIncidentSearch';
+            }
+            return 'incidentSearch';
         }
         if (worker.expeditionId != null) {
             return 'expedition';
@@ -102,7 +112,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, errand, i
 
     const tally = workers.reduce<Record<WorkerState, number>>(
         (acc, worker) => { acc[stateOf(worker)] += 1; return acc; },
-        { expedition: 0, errand: 0, incidentMissing: 0, incidentSearch: 0, busy: 0, resting: 0, free: 0 },
+        { expedition: 0, errand: 0, incidentMissing: 0, incidentSearch: 0, domikIncidentSearch: 0, busy: 0, resting: 0, free: 0 },
     );
 
     return (
@@ -169,6 +179,9 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, errand, i
                         if (stateKey === 'incidentSearch') {
                             return incident?.searchEndDate == null ? null : build('вернётся', remainingSeconds(incident.searchEndDate, now));
                         }
+                        if (stateKey === 'domikIncidentSearch') {
+                            return domikIncident?.searchEndDate == null ? null : build('вернётся', remainingSeconds(domikIncident.searchEndDate, now));
+                        }
                         return null;
                     })();
                     const workplaceType = (() => {
@@ -182,7 +195,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, errand, i
                         ? 'sick'
                         : stateKey === 'resting'
                             ? 'resting'
-                            : stateKey === 'busy' || stateKey === 'expedition' || stateKey === 'errand' || stateKey === 'incidentMissing' || stateKey === 'incidentSearch'
+                            : stateKey === 'busy' || stateKey === 'expedition' || stateKey === 'errand' || stateKey === 'incidentMissing' || stateKey === 'incidentSearch' || stateKey === 'domikIncidentSearch'
                                 ? 'working'
                                 : 'idle';
                     const fatigueFraction = Math.min(worker.workedSeconds / FATIGUE_THRESHOLD_SECONDS, 1);

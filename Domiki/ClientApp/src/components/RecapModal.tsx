@@ -17,6 +17,7 @@ import { pluralRu } from '../utils/plural';
 import { genderForm, traitLabel } from '../utils/gender';
 import { pickGiftText } from '../utils/giftTexts';
 import { getIncidentTemplate, incidentText } from '../utils/incidentTexts';
+import { domikIncidentText, getDomikIncidentTemplate } from '../utils/domikIncidentTexts';
 import { guestbookPhraseText } from '../constants/guestbookPhrases';
 import { DomikSprite } from './sprites';
 import { ResourceChip } from './ResourceChip';
@@ -52,6 +53,7 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
     const gifts = withStableKeys(view.gifts, gift => `${gift.neighborId}-${gift.date}`);
     const guestbookEntries = withStableKeys(view.guestbookEntries, entry => `${entry.guestVillageName}-${entry.date}`);
     const incidents = withStableKeys(view.incidents, incident => `${incident.kind}-${incident.workerName}-${incident.templateId}-${incident.clueId ?? ''}`);
+    const domikIncidents = withStableKeys(view.domikIncidents, incident => `${incident.kind}-${incident.domikTypeId}-${incident.templateId}-${incident.clueId ?? ''}`);
 
     const trophies = useMemo(() => {
         const producedTotal = view.produced.reduce((sum, resource) => sum + resource.value, 0);
@@ -265,6 +267,20 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
                         const text = incident.kind === 'missing' ? `${incident.workerName} ${genderForm(incident.workerGender, 'задержался', 'задержалась')} в походе – есть зацепки` : incident.autoReturned ? incidentText('{имя} вернул{ся|ась} сам{|а} – дорогу на{шёл|шла} без подмоги.', incident.workerName, incident.workerGender) : incidentText(template.resolutions[incident.clueId ?? 0] ?? '', incident.workerName, incident.workerGender);
                         const resourceType = incident.resourceTypeId == null ? undefined : resourceTypes.find(type => type.id === incident.resourceTypeId);
                         return <div key={key} className="recap-row"><BackpackIcon className="recap-row-ico" aria-hidden="true" /><span className="recap-line">{text}</span>{incident.kind === 'missing' && <span className="recap-fallback">«{template.title}»</span>}{incident.kind === 'resolved' && !incident.autoReturned && <div className="recap-chips">{resourceType != null && incident.value != null && <ResourceChip resourceType={resourceType} value={incident.value} />}{incident.traitUpgraded === true && incident.newTrait != null && <span className="recap-fallback">Черта: {traitLabel(incident.newTraitLogicName ?? '', incident.newTrait, incident.workerGender)}</span>}<i className="recap-line">{incidentText(template.epilogue, incident.workerName, incident.workerGender)}</i></div>}</div>;
+                    })}
+                </div>
+            }
+            {domikIncidents.length > 0 &&
+                <div className="recap-section" data-tone="exp">
+                    <div className="recap-section-head"><span className="recap-section-badge"><BackpackIcon aria-hidden="true" /></span><h3 className="recap-section-title">Загадки построек</h3><span className="recap-section-count">{domikIncidents.length}</span></div>
+                    {domikIncidents.map(({ key, item: incident }) => {
+                        const template = getDomikIncidentTemplate(incident.templateId);
+                        const domikName = domikTypes.find(type => type.id === incident.domikTypeId)?.name ?? `Постройке #${incident.domikTypeId}`;
+                        const heroName = incident.heroWorkerName ?? '';
+                        const heroGender = incident.heroWorkerGender;
+                        const text = incident.kind === 'started' ? `В ${domikName} что-то неспокойно – есть зацепки` : incident.autoResolved ? `Загадка в ${domikName} разгадалась сама` : domikIncidentText(template.resolutions[incident.clueId ?? 0] ?? '', domikName, heroName, heroGender);
+                        const resourceType = incident.resourceTypeId == null ? undefined : resourceTypes.find(type => type.id === incident.resourceTypeId);
+                        return <div key={key} className="recap-row"><BackpackIcon className="recap-row-ico" aria-hidden="true" /><span className="recap-line">{text}</span>{incident.kind === 'started' && <span className="recap-fallback">«{template.title}»</span>}{incident.kind === 'resolved' && !incident.autoResolved && <div className="recap-chips">{resourceType != null && incident.value != null && <ResourceChip resourceType={resourceType} value={incident.value} />}{incident.traitUpgraded === true && incident.newTrait != null && <span className="recap-fallback">Черта: {incident.upgradedWorkerName ?? 'Трудяга'} – {traitLabel(incident.newTraitLogicName ?? '', incident.newTrait, heroGender)}</span>}<i className="recap-line">{domikIncidentText(template.epilogue, domikName, heroName, heroGender)}</i></div>}</div>;
                     })}
                 </div>
             }

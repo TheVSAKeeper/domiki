@@ -13,6 +13,7 @@ import { isNumber, isRecord, lootEntryKey, readLootEntry, readResource } from '.
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
 import { getErrandTemplate, getErrandThanks } from '../utils/errandTexts';
 import { getIncidentTemplate, incidentText } from '../utils/incidentTexts';
+import { domikIncidentText, getDomikIncidentTemplate } from '../utils/domikIncidentTexts';
 import { withStableKeys } from '../utils/keys';
 import { formatDuration, formatRelativeTime } from '../utils/time';
 import { genderForm, traitLabel } from '../utils/gender';
@@ -262,6 +263,26 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
         }
         const resourceType = isNumber(data.resourceTypeId) ? findResourceType(resourceTypes, data.resourceTypeId) : undefined;
         return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{incidentText(template.resolutions[data.clueId] ?? '', data.workerName, data.workerGender)}<span className="journal-errand-thanks"><i>{incidentText(template.epilogue, data.workerName, data.workerGender)}</i></span></span><span className="journal-chips">{resourceType != null && isNumber(data.value) && <ResourceChip resourceType={resourceType} value={data.value} />}{data.traitUpgraded === true && typeof data.newTrait === 'string' && <span className="journal-loot-rare">Черта: {traitLabel(typeof data.newTraitLogicName === 'string' ? data.newTraitLogicName : '', data.newTrait, data.workerGender)}</span>}</span></> };
+    }
+
+    if (event.type === 'DomikIncidentStarted' && isNumber(data.domikTypeId) && isNumber(data.templateId)) {
+        const domikName = domikTypes.find(type => type.id === data.domikTypeId)?.name ?? `Постройке #${data.domikTypeId}`;
+        return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">В {domikName} что-то неспокойно – есть зацепки<span className="journal-errand-thanks">«{getDomikIncidentTemplate(data.templateId).title}»</span></span></> };
+    }
+
+    if (event.type === 'DomikIncidentResolved' && isNumber(data.domikTypeId) && isNumber(data.templateId) && typeof data.autoResolved === 'boolean') {
+        const domikName = domikTypes.find(type => type.id === data.domikTypeId)?.name ?? `Постройке #${data.domikTypeId}`;
+        if (data.autoResolved) {
+            return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">Загадка в {domikName} разгадалась сама</span></> };
+        }
+        if (!isNumber(data.clueId) || typeof data.heroWorkerName !== 'string') {
+            return null;
+        }
+        const template = getDomikIncidentTemplate(data.templateId);
+        const heroGender = isNumber(data.heroWorkerGender) ? data.heroWorkerGender : undefined;
+        const resourceType = isNumber(data.resourceTypeId) ? findResourceType(resourceTypes, data.resourceTypeId) : undefined;
+        const upgradedWorkerName = typeof data.upgradedWorkerName === 'string' ? data.upgradedWorkerName : 'Трудяга';
+        return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{domikIncidentText(template.resolutions[data.clueId] ?? '', domikName, data.heroWorkerName, heroGender)}<span className="journal-errand-thanks"><i>{domikIncidentText(template.epilogue, domikName, data.heroWorkerName, heroGender)}</i></span></span><span className="journal-chips">{resourceType != null && isNumber(data.value) && <ResourceChip resourceType={resourceType} value={data.value} />}{data.traitUpgraded === true && typeof data.newTrait === 'string' && <span className="journal-loot-rare">Черта: {upgradedWorkerName} – {traitLabel(typeof data.newTraitLogicName === 'string' ? data.newTraitLogicName : '', data.newTrait, heroGender)}</span>}</span></> };
     }
 
     if (event.type === 'GoalCompleted' && typeof data.name === 'string' && isNumber(data.rewardCoins)) {
