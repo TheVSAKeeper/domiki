@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { reportServerVersion } from './appVersion';
 import { authService } from './auth';
 import {
     decorStateSchema,
@@ -48,6 +49,8 @@ async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType
         }
         throw new ApiError('Сеть недоступна. Попробуйте позже.');
     }
+
+    reportServerVersion(res.headers.get('X-App-Version'));
 
     if (res.status === 401) {
         authService.signIn();

@@ -1,0 +1,32 @@
+.update-banner {
+    position: fixed;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px 8px 16px;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--ink);
+    background: var(--plank);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: 0 4px 0 rgba(51, 41, 26, .3);
+}
+
+.update-banner-button {
+    padding: 6px 14px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--plank);
+    background: var(--pine);
+    border: 3px solid var(--pine-dark);
+    clip-path: var(--cut);
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+}

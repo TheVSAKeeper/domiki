@@ -3,10 +3,12 @@
 public class SecurityHeadersMiddleware
 {
     private readonly RequestDelegate _next;
+    private readonly string? _appVersion;
 
-    public SecurityHeadersMiddleware(RequestDelegate next)
+    public SecurityHeadersMiddleware(RequestDelegate next, AppBuildVersion appVersion)
     {
         _next = next;
+        _appVersion = appVersion.Version;
     }
 
     public async Task InvokeAsync(HttpContext httpContext)
@@ -18,6 +20,11 @@ public class SecurityHeadersMiddleware
             headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
             headers["X-Frame-Options"] = "DENY";
             headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+            if (_appVersion != null)
+            {
+                headers["X-App-Version"] = _appVersion;
+            }
+
             if (httpContext.Response.ContentType?.Contains("text/html", StringComparison.OrdinalIgnoreCase) == true
                 && !headers.ContainsKey("Cache-Control"))
             {

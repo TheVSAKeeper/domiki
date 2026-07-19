@@ -150,6 +150,7 @@ try
     builder.Services.AddScoped<PushManager>();
     builder.Services.AddSingleton<PushSender>();
     builder.Services.AddSingleton<GameStateBroker>();
+    builder.Services.AddSingleton<AppBuildVersion>();
     builder.Services.AddSingleton<ICalculator, Calculator>();
     builder.Services.AddScoped<CalculatorTick>();
     builder.Services.AddHostedService<CalculatorBackgroundService>();
