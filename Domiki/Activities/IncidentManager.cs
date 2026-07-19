@@ -556,8 +556,7 @@ public class IncidentManager
         var clueId = dbIncident.ClueId!.Value;
         var (resourceTypeId, value) = GrantFind(calcInfo.PlayerId, GetDomikFindResourcePool(domikTypeId), clueId, DomikIncidentFindBaseValue);
         var heroWorker = searchWorkers.Length == 0 ? null : searchWorkers[0];
-        var selectedWorker = searchWorkers.Length == 0 ? null : searchWorkers[Random.Shared.Next(searchWorkers.Length)];
-        var trait = TryUpgradeTrait(selectedWorker, searchWorkers, clueId);
+        var trait = TryUpgradeTrait(heroWorker, searchWorkers, clueId);
 
         dbIncident.ResolvedDate = date;
         _playerEventManager.Record(calcInfo.PlayerId, PlayerEventType.DomikIncidentResolved, new

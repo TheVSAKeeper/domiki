@@ -521,6 +521,7 @@ public sealed class IncidentTests
         var incident = new Data.Entities.Incident
         {
             PlayerId = player.Id,
+            SourceType = IncidentSourceType.Expedition,
             MissingWorkerId = missingWorkerId,
             ExpeditionTypeId = expeditionTypeId,
             TemplateId = templateId,
