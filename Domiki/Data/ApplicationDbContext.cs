@@ -1,4 +1,5 @@
 ﻿using Domiki.Web.Data.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -72,10 +73,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<ApplicationUser>().ToTable("asp_net_users");
+        modelBuilder.Entity<IdentityRole>().ToTable("asp_net_roles");
+        modelBuilder.Entity<IdentityUserRole<string>>().ToTable("asp_net_user_roles");
+        modelBuilder.Entity<IdentityUserClaim<string>>().ToTable("asp_net_user_claims");
+        modelBuilder.Entity<IdentityUserLogin<string>>().ToTable("asp_net_user_logins");
+        modelBuilder.Entity<IdentityRoleClaim<string>>().ToTable("asp_net_role_claims");
+        modelBuilder.Entity<IdentityUserToken<string>>().ToTable("asp_net_user_tokens");
+
         modelBuilder.Entity<Player>()
             .HasIndex(u => u.VillageName)
             .IsUnique()
-            .HasFilter("\"VillageName\" IS NOT NULL");
+            .HasFilter("\"village_name\" IS NOT NULL");
 
         modelBuilder.Entity<WorkerMilestone>()
             .HasOne<Worker>()

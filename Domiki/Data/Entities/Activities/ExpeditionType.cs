@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -9,7 +8,6 @@ namespace Domiki.Web.Data.Entities;
 /// <remarks>
 /// Описывает, сколько трудяг и золота требует отправка, сколько длится поход и сколько раз ролльнуть лут-таблицу по возвращении.
 /// </remarks>
-[Table("ExpeditionTypes")]
 public class ExpeditionType
 {
     /// <summary>

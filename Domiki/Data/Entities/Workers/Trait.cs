@@ -1,12 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domiki.Web.Data.Entities;
 
 /// <summary>
 /// Справочник черт трудяг – каждому новому трудяге случайно назначается одна черта, задающая его особенности в производстве, отдыхе, здоровье и удаче.
 /// </summary>
-[Table("Traits")]
 public class Trait
 {
     /// <summary>

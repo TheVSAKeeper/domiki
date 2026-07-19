@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -9,7 +8,6 @@ namespace Domiki.Web.Data.Entities;
 /// <remarks>
 /// Покупка декора опционально требует ресурсов или репутации соседа.
 /// </remarks>
-[Table("DecorTypes")]
 public class DecorType
 {
     /// <summary>

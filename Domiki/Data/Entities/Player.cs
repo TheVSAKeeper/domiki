@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
@@ -10,7 +9,6 @@ namespace Domiki.Web.Data.Entities;
 /// <remarks>
 /// Деревня, счётчики механик (pity, суточный кап золота, гостинцы соседей), привязка к внешнему аккаунту.
 /// </remarks>
-[Table("Players")]
 [Index(nameof(AspNetUserId), IsUnique = true)]
 public class Player
 {
@@ -18,7 +16,7 @@ public class Player
     /// Идентификатор игрока.
     /// </summary>
     /// <remarks>
-    /// <see cref="DatabaseGeneratedOption.Identity"/> намеренно не используется (см. закомментированный атрибут) – игрок создаётся лениво в <see cref="Core.DomikManager.GetPlayerId"/>.
+    /// <see cref="System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.Identity"/> намеренно не используется (см. закомментированный атрибут) – игрок создаётся лениво в <see cref="Core.DomikManager.GetPlayerId"/>.
     /// </remarks>
     [Key]
     //[DatabaseGenerated(DatabaseGeneratedOption.Identity)]

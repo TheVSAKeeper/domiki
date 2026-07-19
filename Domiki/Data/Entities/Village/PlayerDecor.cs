@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Сколько единиц декора данного типа накоплено у игрока – источник итогового уюта деревни.
 /// </summary>
-[Table("PlayerDecors")]
 [PrimaryKey(nameof(PlayerId), nameof(DecorTypeId))]
 public class PlayerDecor
 {

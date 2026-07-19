@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Справочная позиция корзины сбора типа толоки: какой ресурс и в каком базовом количестве нужен на одного участника.
 /// </summary>
-[Table("TolokaTypePositions")]
 [PrimaryKey(nameof(TolokaTypeId), nameof(ResourceTypeId))]
 public class TolokaTypePosition
 {

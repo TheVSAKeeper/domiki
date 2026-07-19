@@ -9,7 +9,6 @@ namespace Domiki.Web.Data.Entities;
 /// <remarks>
 /// Наличие строки означает, что игрок получил чертёж и может покупать открытую им постройку.
 /// </remarks>
-[Table("PlayerBlueprints")]
 [PrimaryKey(nameof(PlayerId), nameof(BlueprintId))]
 public class PlayerBlueprint
 {

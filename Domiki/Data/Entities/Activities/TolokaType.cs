@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -9,7 +8,6 @@ namespace Domiki.Web.Data.Entities;
 /// <remarks>
 /// Позиции корзины – в отдельной таблице <see cref="TolokaTypePosition"/> (не навигация, зеркалит <see cref="TolokaTypeEffect"/>).
 /// </remarks>
-[Table("TolokaTypes")]
 public class TolokaType
 {
     /// <summary>

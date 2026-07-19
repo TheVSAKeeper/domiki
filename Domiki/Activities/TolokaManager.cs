@@ -420,7 +420,7 @@ public class TolokaManager
         for (var attempt = 0; attempt < 5; attempt++)
         {
             var tolokaId = _context.Tolokas.Where(x => x.CompletedDate == null).Select(x => x.Id).Single();
-            _context.Database.ExecuteSqlRaw(@"SELECT 1 FROM ""Tolokas"" WHERE ""Id"" = {0} FOR UPDATE", tolokaId);
+            _context.LockRowForUpdate<Data.Entities.Toloka>(tolokaId);
             var toloka = _context.Tolokas.Single(x => x.Id == tolokaId);
             if (toloka.CompletedDate == null)
             {

@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Справочник погодных модификаторов производства: на какой тип домика влияет погода и какой процент выхода она даёт.
 /// </summary>
-[Table("WeatherTypeEffects")]
 [PrimaryKey(nameof(WeatherTypeId), nameof(DomikTypeId))]
 public class WeatherTypeEffect
 {

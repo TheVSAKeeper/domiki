@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Экземпляр домика игрока: тип постройки, текущий уровень и состояние идущего улучшения.
 /// </summary>
-[Table("Domiks")]
 [PrimaryKey(nameof(PlayerId), nameof(Id))]
 public class Domik
 {

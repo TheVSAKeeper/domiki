@@ -9,7 +9,6 @@ namespace Domiki.Web.Data.Entities;
 /// <remarks>
 /// Обнуляется сам собой сменой <see cref="SeasonId"/>, старые строки не удаляются.
 /// </remarks>
-[Table("SeasonCounters")]
 [PrimaryKey(nameof(SeasonId), nameof(PlayerId), nameof(Metric))]
 [Index(nameof(SeasonId), nameof(Metric))]
 public class SeasonCounter

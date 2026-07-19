@@ -10,7 +10,6 @@ namespace Domiki.Web.Data.Entities;
 /// Одна строка на пару гость-хозяин в день: повторные визиты не плодят строк,
 /// счётчик визитов за сезон выводится агрегатом по <see cref="Day"/>.
 /// </remarks>
-[Table("GuestbookEntries")]
 [PrimaryKey(nameof(HostPlayerId), nameof(GuestPlayerId), nameof(Day))]
 public class GuestbookEntry
 {

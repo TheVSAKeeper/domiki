@@ -1,12 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domiki.Web.Data.Entities;
 
 /// <summary>
 /// Справочник типов ресурсов.
 /// </summary>
-[Table("ResourceTypes")]
 public class ResourceType
 {
     /// <summary>

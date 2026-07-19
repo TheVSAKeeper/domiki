@@ -1,12 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
 /// <summary>
 /// Отметка однократно выданной вехи трудяги.
 /// </summary>
-[Table("WorkerMilestones")]
 [PrimaryKey(nameof(WorkerId), nameof(MilestoneType))]
 public class WorkerMilestone
 {

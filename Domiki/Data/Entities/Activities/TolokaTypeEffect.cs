@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Справочник баффов завершённой толоки: на какой тип домика распространяется эффект и какой процент выхода производства он даёт участникам.
 /// </summary>
-[Table("TolokaTypeEffects")]
 [PrimaryKey(nameof(TolokaTypeId), nameof(DomikTypeId))]
 public class TolokaTypeEffect
 {

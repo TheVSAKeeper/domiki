@@ -9,7 +9,6 @@ namespace Domiki.Web.Data.Entities;
 /// <remarks>
 /// По достижении цели выдаёт бафф участникам и запускает следующую инстанцию.
 /// </remarks>
-[Table("Tolokas")]
 public class Toloka
 {
     /// <summary>

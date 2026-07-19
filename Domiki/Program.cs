@@ -36,6 +36,7 @@ try
     builder.Services.AddDbContextFactory<ApplicationDbContext>(options =>
     {
         options.UseNpgsql(connectionString);
+        options.UseSnakeCaseNamingConvention();
         options.ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning));
     });
 
@@ -179,7 +180,16 @@ try
 
     using (var scope = app.Services.CreateScope())
     {
-        scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        // TODO: транзитный шим, приводит колонки __EFMigrationsHistory к snake_case на уже существующих БД; убрать после перехода прода и dev на naming convention
+        dbContext.Database.ExecuteSqlRaw(@"
+            DO $$ BEGIN
+              IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = '__EFMigrationsHistory' AND column_name = 'MigrationId') THEN
+                ALTER TABLE ""__EFMigrationsHistory"" RENAME COLUMN ""MigrationId"" TO migration_id;
+                ALTER TABLE ""__EFMigrationsHistory"" RENAME COLUMN ""ProductVersion"" TO product_version;
+              END IF;
+            END $$;");
+        dbContext.Database.Migrate();
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
         if (await userManager.FindByNameAsync(demoUserName) == null)

@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Трудяга игрока: черта, текущая занятость (производство или экспедиция) и состояние усталости/болезни.
 /// </summary>
-[Table("Workers")]
 public class Worker
 {
     /// <summary>

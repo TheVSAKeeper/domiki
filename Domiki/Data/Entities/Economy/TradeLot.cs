@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Лот обмена ресурсами на Торговом дворе между игроками.
 /// </summary>
-[Table("TradeLots")]
 public class TradeLot
 {
     /// <summary>

@@ -1,12 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domiki.Web.Data.Entities;
 
 /// <summary>
 /// Справочник чертежей: постройка, которую открывает чертёж, и сосед-источник с порогом репутации для выдачи.
 /// </summary>
-[Table("Blueprints")]
 public class Blueprint
 {
     /// <summary>

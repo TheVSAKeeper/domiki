@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Ресурс рецепта: входной (обязательный или опциональный) или выходной.
 /// </summary>
-[Table("ReceiptResources")]
 [PrimaryKey(nameof(ReceiptId), nameof(ResourceTypeId), nameof(IsInput))]
 public class ReceiptResource
 {

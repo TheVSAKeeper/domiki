@@ -1,12 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domiki.Web.Data.Entities;
 
 /// <summary>
 /// Справочник видов модификаторов, которые может давать уровень домика (например, добавка вместимости трудяг).
 /// </summary>
-[Table("ModificatorTypes")]
 public class ModificatorType
 {
     /// <summary>

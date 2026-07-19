@@ -10,7 +10,6 @@ namespace Domiki.Web.Data.Entities;
 /// Создаётся при возвращении отряда либо завершении улучшения постройки и остаётся в истории после <see cref="ResolvedDate"/>.
 /// Тип похода или постройки хранится снимком, поскольку запись похода к этому моменту удалена.
 /// </remarks>
-[Table("Incidents")]
 public class Incident
 {
     /// <summary>

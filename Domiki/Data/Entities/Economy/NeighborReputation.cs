@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Репутация игрока у конкретного соседа.
 /// </summary>
-[Table("NeighborReputations")]
 [PrimaryKey(nameof(PlayerId), nameof(NeighborId))]
 public class NeighborReputation
 {

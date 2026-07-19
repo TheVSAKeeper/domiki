@@ -9,7 +9,6 @@ namespace Domiki.Web.Data.Entities;
 /// <remarks>
 /// См. <see cref="Activities.ExpeditionManager.PickLoot"/>.
 /// </remarks>
-[Table("ExpeditionLoot")]
 public class ExpeditionLoot
 {
     /// <summary>

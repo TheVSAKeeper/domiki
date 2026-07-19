@@ -10,7 +10,6 @@ namespace Domiki.Web.Data.Entities;
 /// Одна строка на пару (толока, игрок, ресурс) – вклад пер-ресурсный, адресован в конкретную позицию корзины.
 /// Строки не удаляются после завершения – по ним считается активность баффа и будущий сезонный рейтинг «Герой толоки».
 /// </remarks>
-[Table("TolokaContributions")]
 [PrimaryKey(nameof(TolokaId), nameof(PlayerId), nameof(ResourceTypeId))]
 public class TolokaContribution
 {

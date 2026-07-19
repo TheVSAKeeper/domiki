@@ -1,12 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domiki.Web.Data.Entities;
 
 /// <summary>
 /// Справочник типов домиков (построек) и их уровней.
 /// </summary>
-[Table("DomikTypes")]
 public class DomikType
 {
     /// <summary>

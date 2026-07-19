@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Модификатор (например, добавка вместимости трудяг), действующий на этом уровне домика.
 /// </summary>
-[Table("DomikTypeLevelModificators")]
 [PrimaryKey(nameof(DomikTypeLevelDomikTypeId), nameof(DomikTypeLevelValue), nameof(ModificatorTypeId))]
 public class DomikTypeLevelModificator
 {

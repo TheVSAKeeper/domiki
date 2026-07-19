@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Запас ресурса конкретного типа на складе игрока.
 /// </summary>
-[Table("Resources")]
 [PrimaryKey(nameof(PlayerId), nameof(TypeId))]
 public class Resource
 {

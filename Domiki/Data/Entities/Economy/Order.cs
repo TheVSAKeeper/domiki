@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Заказ соседа на доске игрока: что сдать и какая награда.
 /// </summary>
-[Table("Orders")]
 public class Order
 {
     /// <summary>

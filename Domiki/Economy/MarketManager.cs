@@ -331,7 +331,7 @@ public class MarketManager
 
     private Data.Entities.TradeLot? LockTradeLot(int lotId)
     {
-        _context.Database.ExecuteSqlRaw(@"SELECT 1 FROM ""TradeLots"" WHERE ""Id"" = {0} FOR UPDATE", lotId);
+        _context.LockRowForUpdate<Data.Entities.TradeLot>(lotId);
         return _context.TradeLots.FirstOrDefault(x => x.Id == lotId);
     }
 

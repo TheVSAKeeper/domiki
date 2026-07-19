@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Позиция корзины сбора конкретной инстанции толоки – цель и собранное по одному ресурсу.
 /// </summary>
-[Table("TolokaPositions")]
 [PrimaryKey(nameof(TolokaId), nameof(ResourceTypeId))]
 public class TolokaPosition
 {

@@ -9,7 +9,6 @@ namespace Domiki.Web.Data.Entities;
 /// <remarks>
 /// Нумерация экземпляров с <c>2</c>, <c>3</c> и так далее.
 /// </remarks>
-[Table("DomikTypeCountGates")]
 [PrimaryKey(nameof(DomikTypeId), nameof(Ordinal))]
 public class DomikTypeCountGate
 {

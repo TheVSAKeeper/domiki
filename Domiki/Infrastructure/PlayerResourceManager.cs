@@ -27,7 +27,7 @@ public class PlayerResourceManager
     /// <param name="playerId">Id игрока, чья строка блокируется.</param>
     public void LockDbPlayerRow(int playerId)
     {
-        _context.Database.ExecuteSqlRaw("SELECT 1 FROM \"Players\" WHERE \"Id\" = {0} FOR UPDATE", playerId);
+        _context.LockRowForUpdate<Data.Entities.Player>(playerId);
     }
 
     public void WriteOffResources(int playerId, Resource[] resources)

@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Один уровень домика конкретного типа: длительность улучшения и лимит одновременных производств.
 /// </summary>
-[Table("DomikTypeLevels")]
 [PrimaryKey(nameof(DomikTypeId), nameof(Value))]
 public class DomikTypeLevel
 {

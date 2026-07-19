@@ -9,7 +9,6 @@ namespace Domiki.Web.Data.Entities;
 /// <remarks>
 /// Сколько единиц ресурса нужно списать за покупку одной единицы декора данного типа.
 /// </remarks>
-[Table("DecorCosts")]
 [PrimaryKey(nameof(DecorTypeId), nameof(ResourceTypeId))]
 public class DecorCost
 {

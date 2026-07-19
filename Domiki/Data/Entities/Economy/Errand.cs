@@ -11,7 +11,6 @@ namespace Domiki.Web.Data.Entities;
 /// и поиски после принятия (до <see cref="FinishDate"/>). После развязки запись не удаляется, а помечается
 /// <see cref="ResolvedDate"/> – остаётся историей для витрины «Пока вас не было».
 /// </remarks>
-[Table("Errands")]
 public class Errand
 {
     /// <summary>

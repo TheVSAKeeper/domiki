@@ -1,12 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domiki.Web.Data.Entities;
 
 /// <summary>
 /// Справочник рецептов производства: что домик потребляет и что выдаёт.
 /// </summary>
-[Table("Receipts")]
 public class Receipt
 {
     /// <summary>

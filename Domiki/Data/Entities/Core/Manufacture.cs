@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Запущенное производство в домике: рецепт, занятые трудяги, срок готовности и параметры выхода.
 /// </summary>
-[Table("Manufactures")]
 public class Manufacture
 {
     /// <summary>

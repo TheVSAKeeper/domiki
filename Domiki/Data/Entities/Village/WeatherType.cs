@@ -1,12 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domiki.Web.Data.Entities;
 
 /// <summary>
 /// Справочник типов погоды и её вес при случайном выборе очередного отрезка расписания.
 /// </summary>
-[Table("WeatherTypes")]
 public class WeatherType
 {
     /// <summary>

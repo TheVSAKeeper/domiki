@@ -11,7 +11,6 @@ namespace Domiki.Web.Data.Entities;
 /// Подсчитывается в ветке завершения <see cref="Activities.TolokaManager.Contribute"/> перед посевом следующей толоки:
 /// побеждает тип с наибольшим числом голосов, ничья решается случайно, ноль голосов – взвешенный random <see cref="TolokaType.RotationWeight"/>.
 /// </remarks>
-[Table("TolokaVotes")]
 [PrimaryKey(nameof(TolokaId), nameof(PlayerId))]
 public class TolokaVote
 {

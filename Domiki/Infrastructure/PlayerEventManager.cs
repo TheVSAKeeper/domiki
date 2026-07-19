@@ -93,7 +93,7 @@ public class PlayerEventManager
         var keepIds = _context.PlayerEvents.Where(x => x.PlayerId == playerId).OrderByDescending(x => x.Date).ThenByDescending(x => x.Id).Take(50).Select(x => x.Id);
         _context.PlayerEvents.Where(x => x.PlayerId == playerId && x.Read && !keepIds.Contains(x.Id)).ExecuteDelete();
 
-        _context.Database.ExecuteSqlRaw("UPDATE \"Players\" SET \"LastSeen\" = {0} WHERE \"Id\" = {1}", now, playerId);
+        _context.Players.Where(x => x.Id == playerId).ExecuteUpdate(s => s.SetProperty(x => x.LastSeen, now));
 
         return new()
         {

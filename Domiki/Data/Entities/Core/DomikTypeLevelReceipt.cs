@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Рецепт производства, открывающийся на этом уровне домика.
 /// </summary>
-[Table("DomikTypeLevelReceipts")]
 [PrimaryKey(nameof(DomikTypeLevelDomikTypeId), nameof(DomikTypeLevelValue), nameof(ReceiptId))]
 public class DomikTypeLevelReceipt
 {

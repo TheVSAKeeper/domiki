@@ -9,7 +9,6 @@ namespace Domiki.Web.Data.Entities;
 /// <remarks>
 /// Удаляется по завершении (см. <see cref="Activities.ExpeditionManager.FinishExpedition"/>).
 /// </remarks>
-[Table("Expeditions")]
 public class Expedition
 {
     /// <summary>

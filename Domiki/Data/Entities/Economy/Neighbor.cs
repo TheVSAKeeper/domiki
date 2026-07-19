@@ -1,12 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domiki.Web.Data.Entities;
 
 /// <summary>
 /// Справочник соседей деревни – кому игрок выполняет заказы и с кем растёт репутация.
 /// </summary>
-[Table("Neighbors")]
 public class Neighbor
 {
     /// <summary>

@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Ресурс, который нужно списать, чтобы улучшить домик до этого уровня.
 /// </summary>
-[Table("DomikTypeLevelResources")]
 [PrimaryKey(nameof(DomikTypeLevelDomikTypeId), nameof(DomikTypeLevelValue), nameof(ResourceTypeId))]
 public class DomikTypeLevelResource
 {

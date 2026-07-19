@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Ресурс и его количество, которые нужно сдать для выполнения заказа.
 /// </summary>
-[Table("OrderResources")]
 [PrimaryKey(nameof(OrderId), nameof(ResourceTypeId))]
 public class OrderResource
 {

@@ -9,7 +9,6 @@ namespace Domiki.Web.Data.Entities;
 /// <remarks>
 /// <see cref="Village.WeatherManager"/> держит расписание заполненным на сутки вперёд и ротирует его планировщиком <see cref="Core.Scheduling.Calculator"/>.
 /// </remarks>
-[Table("WeatherPeriods")]
 public class WeatherPeriod
 {
     /// <summary>

@@ -6,7 +6,6 @@ namespace Domiki.Web.Data.Entities;
 /// <summary>
 /// Справочник снаряжения экспедиции: сколько ресурса списывается при отправке отряда данного типа похода.
 /// </summary>
-[Table("ExpeditionEquipment")]
 [PrimaryKey(nameof(ExpeditionTypeId), nameof(ResourceTypeId))]
 public class ExpeditionEquipment
 {
