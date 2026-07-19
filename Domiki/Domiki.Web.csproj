@@ -25,7 +25,7 @@
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" />
-    <PackageReference Include="NLog.Web.AspNetCore" />
+    <PackageReference Include="Serilog.AspNetCore" />
     <PackageReference Include="WebPush" />
   </ItemGroup>
 
