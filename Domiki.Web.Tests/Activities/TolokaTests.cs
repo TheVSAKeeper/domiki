@@ -549,9 +549,140 @@ public sealed class TolokaTests
         }
     }
 
+    /// <summary>
+    /// Голос за следующую толоку без постройки Сходня отклоняется исключением.
+    /// </summary>
+    [Test]
+    public void VoteRequiresGatheringBuildingTest()
+    {
+        var player = TestPlayer.Create();
+
+        var ex = Throws.Business(() => player.Vote(TolokaTypeIds.Kiln));
+
+        Assert.That(ex.Message, Is.EqualTo("Нужна Сходня"));
+    }
+
+    /// <summary>
+    /// Голос за несуществующий тип толоки отклоняется исключением.
+    /// </summary>
+    [Test]
+    public void VoteForUnknownCandidateThrowsTest()
+    {
+        const int unknownTolokaTypeId = 999;
+
+        var player = TestPlayer.Create()
+            .WithTolokaUnlocked();
+
+        var ex = Throws.Business(() => player.Vote(unknownTolokaTypeId));
+
+        Assert.That(ex.Message, Is.EqualTo("Нет такого проекта толоки"));
+    }
+
+    /// <summary>
+    /// Повторный голос игрока заменяет прежний выбор: остаётся одна строка голоса, а счётчики отражают только последний.
+    /// </summary>
+    [Test]
+    public void RevoteReplacesPreviousChoiceTest()
+    {
+        var player = TestPlayer.Create()
+            .WithTolokaUnlocked();
+
+        player.Vote(TolokaTypeIds.Kiln);
+        player.Vote(TolokaTypeIds.Granary);
+
+        var toloka = player.Toloka();
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(toloka.MyVoteTolokaTypeId, Is.EqualTo(TolokaTypeIds.Granary));
+            Assert.That(CandidateVotes(toloka, TolokaTypeIds.Granary), Is.EqualTo(1));
+            Assert.That(CandidateVotes(toloka, TolokaTypeIds.Kiln), Is.Zero);
+            Assert.That(App.Read(context => context.TolokaVotes.Count()), Is.EqualTo(1));
+        }
+    }
+
+    /// <summary>
+    /// При завершении толоки следующей становится тип с наибольшим числом голосов.
+    /// </summary>
+    [Test]
+    public void MajorityVoteDecidesNextTolokaTypeTest()
+    {
+        const int collectedBeforeContribution = 1950;
+        const int contribution = 50;
+
+        var first = TestPlayer.Create().WithTolokaUnlocked().WithResource(ResourceIds.Stone, 100);
+        var second = TestPlayer.Create().WithTolokaUnlocked();
+        var third = TestPlayer.Create().WithTolokaUnlocked();
+
+        first.Vote(TolokaTypeIds.Kiln);
+        second.Vote(TolokaTypeIds.Kiln);
+        third.Vote(TolokaTypeIds.Granary);
+        SetActiveTolokaCollected(collectedBeforeContribution);
+
+        first.Contribute(contribution);
+
+        Assert.That(ActiveTolokaTypeId(), Is.EqualTo(TolokaTypeIds.Kiln));
+    }
+
+    /// <summary>
+    /// Состояние толоки перечисляет все справочные типы как кандидатов и показывает суммарное число голосов за каждого.
+    /// </summary>
+    [Test]
+    public void CandidatesListEveryTypeWithVoteCountsTest()
+    {
+        var first = TestPlayer.Create().WithTolokaUnlocked();
+        var second = TestPlayer.Create().WithTolokaUnlocked();
+
+        first.Vote(TolokaTypeIds.Kiln);
+        second.Vote(TolokaTypeIds.Kiln);
+
+        var candidates = first.Toloka().Candidates;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(candidates.Select(c => c.TolokaTypeId),
+                Is.EquivalentTo(new[] { TolokaTypeIds.Bridge, TolokaTypeIds.Granary, TolokaTypeIds.Kiln, TolokaTypeIds.Caravan }));
+            Assert.That(candidates.Single(c => c.TolokaTypeId == TolokaTypeIds.Kiln).Votes, Is.EqualTo(2));
+            Assert.That(candidates.Single(c => c.TolokaTypeId == TolokaTypeIds.Bridge).Votes, Is.Zero);
+        }
+    }
+
+    /// <summary>
+    /// Без единого голоса следующая толока выбирается ротацией из справочных типов, а не остаётся незасеянной.
+    /// </summary>
+    [Test]
+    public void NoVotesFallBackToRotationOnCompletionTest()
+    {
+        const int collectedBeforeContribution = 1950;
+        const int contribution = 50;
+
+        var player = TestPlayer.Create()
+            .WithTolokaUnlocked()
+            .WithResource(ResourceIds.Stone, 100);
+
+        SetActiveTolokaCollected(collectedBeforeContribution);
+
+        player.Contribute(contribution);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(new[] { TolokaTypeIds.Bridge, TolokaTypeIds.Granary, TolokaTypeIds.Kiln, TolokaTypeIds.Caravan },
+                Does.Contain(ActiveTolokaTypeId()));
+            Assert.That(App.Read(context => context.Tolokas.Count(x => x.CompletedDate == null)), Is.EqualTo(1));
+        }
+    }
+
     private static Toloka GetActiveToloka()
     {
         return App.Read(context => context.Tolokas.Single(x => x.CompletedDate == null));
+    }
+
+    private static int ActiveTolokaTypeId()
+    {
+        return App.Read(context => context.Tolokas.Single(x => x.CompletedDate == null).TolokaTypeId);
+    }
+
+    private static int CandidateVotes(TolokaState state, int tolokaTypeId)
+    {
+        return state.Candidates.Single(c => c.TolokaTypeId == tolokaTypeId).Votes;
     }
 
     private static TolokaPositionEntity ActiveStonePosition()
@@ -664,6 +795,7 @@ public sealed class TolokaTests
         int newTolokaId;
         using (var scope = App.Scope())
         {
+            scope.Context.TolokaVotes.RemoveRange(scope.Context.TolokaVotes);
             scope.Context.TolokaContributions.RemoveRange(scope.Context.TolokaContributions);
             scope.Context.TolokaPositions.RemoveRange(scope.Context.TolokaPositions);
             scope.Context.Tolokas.RemoveRange(scope.Context.Tolokas);
@@ -729,6 +861,12 @@ file static class TolokaTestsActs
     public static TestPlayer Contribute(this TestPlayer p, int resourceTypeId, int amount)
     {
         App.Act<TolokaManager>(m => m.Contribute(p.Id, resourceTypeId, amount, DateTimeHelper.GetNowDate()));
+        return p;
+    }
+
+    public static TestPlayer Vote(this TestPlayer p, int tolokaTypeId)
+    {
+        App.Act<TolokaManager>(m => m.Vote(p.Id, tolokaTypeId, DateTimeHelper.GetNowDate()));
         return p;
     }
 
