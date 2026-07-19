@@ -69,6 +69,22 @@ public static class WorkersActs
         return p;
     }
 
+    public static TestPlayer SetWorkerHireDate(this TestPlayer p, int workerId, DateTime hireDate)
+    {
+        using var scope = App.Scope();
+        scope.Context.Workers.Single(x => x.Id == workerId).HireDate = hireDate;
+        scope.Commit();
+        return p;
+    }
+
+    public static TestPlayer SetWorkerExpeditionCount(this TestPlayer p, int workerId, int count)
+    {
+        using var scope = App.Scope();
+        scope.Context.Workers.Single(x => x.Id == workerId).ExpeditionCount = count;
+        scope.Commit();
+        return p;
+    }
+
     public static TestPlayer SetWorkerSkill(this TestPlayer p, int workerId, int domikTypeId, int uses)
     {
         using var scope = App.Scope();
