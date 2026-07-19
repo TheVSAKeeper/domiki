@@ -14,6 +14,7 @@ import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_
 import { getErrandTemplate, getErrandThanks } from '../utils/errandTexts';
 import { getIncidentTemplate, incidentText } from '../utils/incidentTexts';
 import { domikIncidentText, getDomikIncidentTemplate } from '../utils/domikIncidentTexts';
+import { getWorkerMilestoneTemplate, workerMilestoneText } from '../utils/workerMilestoneTexts';
 import { withStableKeys } from '../utils/keys';
 import { formatDuration, formatRelativeTime } from '../utils/time';
 import { genderForm, traitLabel } from '../utils/gender';
@@ -283,6 +284,14 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
         const resourceType = isNumber(data.resourceTypeId) ? findResourceType(resourceTypes, data.resourceTypeId) : undefined;
         const upgradedWorkerName = typeof data.upgradedWorkerName === 'string' ? data.upgradedWorkerName : 'Трудяга';
         return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{domikIncidentText(template.resolutions[data.clueId] ?? '', domikName, data.heroWorkerName, heroGender)}<span className="journal-errand-thanks"><i>{domikIncidentText(template.epilogue, domikName, data.heroWorkerName, heroGender)}</i></span></span><span className="journal-chips">{resourceType != null && isNumber(data.value) && <ResourceChip resourceType={resourceType} value={data.value} />}{data.traitUpgraded === true && typeof data.newTrait === 'string' && <span className="journal-loot-rare">Черта: {upgradedWorkerName} – {traitLabel(typeof data.newTraitLogicName === 'string' ? data.newTraitLogicName : '', data.newTrait, heroGender)}</span>}</span></> };
+    }
+
+    if (event.type === 'WorkerMilestone' && isNumber(data.milestoneType) && isNumber(data.workerId) && typeof data.workerName === 'string' && isNumber(data.workerGender)) {
+        const template = getWorkerMilestoneTemplate(data.milestoneType);
+        const partnerName = typeof data.workerName2 === 'string' ? data.workerName2 : undefined;
+        const partnerGender = isNumber(data.workerGender2) ? data.workerGender2 : undefined;
+        const resourceType = isNumber(data.resourceTypeId) ? findResourceType(resourceTypes, data.resourceTypeId) : undefined;
+        return { tone: 'goal', Icon: CheckboxOnIcon, body: <><span className="journal-text">{workerMilestoneText(template.journal, data.workerName, data.workerGender, partnerName, partnerGender)}<span className="journal-errand-thanks"><i>{workerMilestoneText(template.epilogue, data.workerName, data.workerGender, partnerName, partnerGender)}</i></span></span><span className="journal-chips">{resourceType != null && isNumber(data.value) && <ResourceChip resourceType={resourceType} value={data.value} />}{data.traitUpgraded === true && typeof data.newTrait === 'string' && <span className="journal-loot-rare">Черта: {data.workerName} – {traitLabel(typeof data.newTraitLogicName === 'string' ? data.newTraitLogicName : '', data.newTrait, data.workerGender)}</span>}</span></> };
     }
 
     if (event.type === 'GoalCompleted' && typeof data.name === 'string' && isNumber(data.rewardCoins)) {

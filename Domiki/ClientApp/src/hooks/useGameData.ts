@@ -28,7 +28,9 @@ import {
     type WeatherStateDto,
     type WorkerDto,
 } from '../types/api';
+import { isNumber, isRecord } from '../utils/recap';
 import { remainingSeconds } from '../utils/time';
+import { getWorkerMilestoneTemplate, workerMilestoneText } from '../utils/workerMilestoneTexts';
 
 export interface GameData {
     domiks: DomikDto[];
@@ -74,6 +76,20 @@ export interface GameData {
     events: RecapEventDto[];
 }
 
+const workerMilestoneEvent = (event: RecapEventDto) => {
+    if (event.type !== 'WorkerMilestone' || !isRecord(event.data) || !isNumber(event.data.workerId) || !isNumber(event.data.milestoneType) || typeof event.data.workerName !== 'string' || !isNumber(event.data.workerGender)) {
+        return null;
+    }
+    return {
+        event,
+        key: `${event.type}|${event.date}|${event.data.workerId}|${event.data.milestoneType}`,
+        milestoneType: event.data.milestoneType,
+        workerName: event.data.workerName,
+        workerGender: event.data.workerGender,
+        workerName2: typeof event.data.workerName2 === 'string' ? event.data.workerName2 : undefined,
+    };
+};
+
 export function useGameData(): GameData {
     const toast = useToast();
 
@@ -109,6 +125,7 @@ export function useGameData(): GameData {
     const domiksRef = useRef(domiks);
     const expeditionsRef = useRef(expeditions);
     const goalsRef = useRef(goals);
+    const eventsRef = useRef<RecapEventDto[] | undefined>(undefined);
     const tolokaRef = useRef(toloka);
     const errandRef = useRef(errand);
     const incidentRef = useRef(incident);
@@ -132,6 +149,10 @@ export function useGameData(): GameData {
     useEffect(() => {
         goalsRef.current = goals;
     }, [goals]);
+
+    useEffect(() => {
+        eventsRef.current = events;
+    }, [events]);
 
     useEffect(() => {
         tolokaRef.current = toloka;
@@ -162,6 +183,24 @@ export function useGameData(): GameData {
         if (prevGoal != null && (state.goals.active == null || state.goals.active.ordinal > prevGoal.ordinal)) {
             toast.success(`Наказ выполнен: «${prevGoal.name}» (+${prevGoal.rewardCoins} монет)`);
         }
+        const previousEvents = eventsRef.current;
+        if (previousEvents != null) {
+            const previousMilestoneKeys = new Set(previousEvents.flatMap(event => {
+                const milestone = workerMilestoneEvent(event);
+                return milestone == null ? [] : [milestone.key];
+            }));
+            const newMilestones = state.events.flatMap(event => {
+                const milestone = workerMilestoneEvent(event);
+                return milestone == null || previousMilestoneKeys.has(milestone.key) ? [] : [milestone];
+            });
+            const [firstMilestone, ...remainingMilestones] = newMilestones;
+            if (firstMilestone != null) {
+                const newestMilestone = remainingMilestones.reduce((newest, milestone) => Date.parse(milestone.event.date) > Date.parse(newest.event.date) ? milestone : newest, firstMilestone);
+                const template = getWorkerMilestoneTemplate(newestMilestone.milestoneType);
+                toast.success(workerMilestoneText(template.toast, newestMilestone.workerName, newestMilestone.workerGender, newestMilestone.workerName2));
+            }
+        }
+        eventsRef.current = state.events;
         setDomiks(state.domiks);
         setPurchaseDomikTypes(state.purchaseAvailableDomiks);
         setResources(state.resources);
