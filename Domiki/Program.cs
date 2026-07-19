@@ -8,6 +8,7 @@ using Domiki.Web.Infrastructure;
 using Domiki.Web.Reference;
 using Domiki.Web.Village;
 using Domiki.Web.Workers;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Formatters;
@@ -104,6 +105,13 @@ try
     }
 
     builder.Services.AddAuthorization();
+
+    if (!builder.Environment.IsDevelopment())
+    {
+        builder.Services.AddDataProtection()
+            .PersistKeysToFileSystem(new DirectoryInfo("/dpkeys"))
+            .SetApplicationName("Domiki");
+    }
 
     builder.Services.AddControllersWithViews(options =>
     {
