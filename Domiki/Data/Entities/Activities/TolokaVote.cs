@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -12,19 +12,18 @@ namespace Domiki.Web.Data.Entities;
 /// побеждает тип с наибольшим числом голосов, ничья решается случайно, ноль голосов – взвешенный random <see cref="TolokaType.RotationWeight"/>.
 /// </remarks>
 [Table("TolokaVotes")]
+[PrimaryKey(nameof(TolokaId), nameof(PlayerId))]
 public class TolokaVote
 {
     /// <summary>
     /// Часть составного ключа – инстанция толоки, в которой отдан голос.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int TolokaId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – игрок, отдавший голос.
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int PlayerId { get; set; }
 

@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -11,26 +11,24 @@ namespace Domiki.Web.Data.Entities;
 /// счётчик визитов за сезон выводится агрегатом по <see cref="Day"/>.
 /// </remarks>
 [Table("GuestbookEntries")]
+[PrimaryKey(nameof(HostPlayerId), nameof(GuestPlayerId), nameof(Day))]
 public class GuestbookEntry
 {
     /// <summary>
     /// Часть составного ключа – хозяин деревни, которую посетили.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int HostPlayerId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – гость.
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int GuestPlayerId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – UTC-день визита.
     /// </summary>
-    [Key]
     [Column(Order = 3)]
     public DateOnly Day { get; set; }
 

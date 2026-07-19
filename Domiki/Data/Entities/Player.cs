@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -10,6 +11,7 @@ namespace Domiki.Web.Data.Entities;
 /// Деревня, счётчики механик (pity, суточный кап золота, гостинцы соседей), привязка к внешнему аккаунту.
 /// </remarks>
 [Table("Players")]
+[Index(nameof(AspNetUserId), IsUnique = true)]
 public class Player
 {
     /// <summary>

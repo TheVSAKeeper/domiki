@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -7,19 +7,18 @@ namespace Domiki.Web.Data.Entities;
 /// Справочник баффов завершённой толоки: на какой тип домика распространяется эффект и какой процент выхода производства он даёт участникам.
 /// </summary>
 [Table("TolokaTypeEffects")]
+[PrimaryKey(nameof(TolokaTypeId), nameof(DomikTypeId))]
 public class TolokaTypeEffect
 {
     /// <summary>
     /// Часть составного ключа – тип толоки, чей бафф описывает строка.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int TolokaTypeId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – тип домика, на который распространяется бафф.
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int DomikTypeId { get; set; }
 

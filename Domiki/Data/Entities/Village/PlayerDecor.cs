@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -7,19 +7,18 @@ namespace Domiki.Web.Data.Entities;
 /// Сколько единиц декора данного типа накоплено у игрока – источник итогового уюта деревни.
 /// </summary>
 [Table("PlayerDecors")]
+[PrimaryKey(nameof(PlayerId), nameof(DecorTypeId))]
 public class PlayerDecor
 {
     /// <summary>
     /// Часть составного ключа – игрок-владелец декора.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int PlayerId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – тип декора.
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int DecorTypeId { get; set; }
 

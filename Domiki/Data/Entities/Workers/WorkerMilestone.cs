@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -6,6 +7,7 @@ namespace Domiki.Web.Data.Entities;
 /// Отметка однократно выданной вехи трудяги.
 /// </summary>
 [Table("WorkerMilestones")]
+[PrimaryKey(nameof(WorkerId), nameof(MilestoneType))]
 public class WorkerMilestone
 {
     /// <summary>

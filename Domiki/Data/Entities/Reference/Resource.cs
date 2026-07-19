@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -7,19 +7,18 @@ namespace Domiki.Web.Data.Entities;
 /// Запас ресурса конкретного типа на складе игрока.
 /// </summary>
 [Table("Resources")]
+[PrimaryKey(nameof(PlayerId), nameof(TypeId))]
 public class Resource
 {
     /// <summary>
     /// Часть составного ключа – тип ресурса.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int TypeId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – игрок-владелец.
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int PlayerId { get; set; }
 

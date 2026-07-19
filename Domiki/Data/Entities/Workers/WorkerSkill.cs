@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -6,6 +7,7 @@ namespace Domiki.Web.Data.Entities;
 /// Прокачка трудяги по конкретному типу домика: число завершённых производств этого типа и производный от него бонус к выходу.
 /// </summary>
 [Table("WorkerSkills")]
+[PrimaryKey(nameof(WorkerId), nameof(DomikTypeId))]
 public class WorkerSkill
 {
     /// <summary>

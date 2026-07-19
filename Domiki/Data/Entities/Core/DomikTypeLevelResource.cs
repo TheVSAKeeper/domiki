@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -7,26 +7,24 @@ namespace Domiki.Web.Data.Entities;
 /// Ресурс, который нужно списать, чтобы улучшить домик до этого уровня.
 /// </summary>
 [Table("DomikTypeLevelResources")]
+[PrimaryKey(nameof(DomikTypeLevelDomikTypeId), nameof(DomikTypeLevelValue), nameof(ResourceTypeId))]
 public class DomikTypeLevelResource
 {
     /// <summary>
     /// Часть составного ключа – тип домика (первая половина составного FK на <see cref="DomikTypeLevel"/>).
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int DomikTypeLevelDomikTypeId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – номер уровня домика (вторая половина составного FK на <see cref="DomikTypeLevel"/>).
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int DomikTypeLevelValue { get; set; }
 
     /// <summary>
     /// Часть составного ключа – тип ресурса, нужного для перехода на этот уровень.
     /// </summary>
-    [Key]
     [Column(Order = 3)]
     public int ResourceTypeId { get; set; }
 

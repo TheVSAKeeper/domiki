@@ -1,4 +1,6 @@
-﻿namespace Domiki.Web.Data.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace Domiki.Web.Data.Entities;
 
 /// <summary>
 /// Отметка выполнения наказа старосты цепочки FTUE.
@@ -6,6 +8,7 @@
 /// <remarks>
 /// Наличие строки означает, что игрок закрыл этот <see cref="StarterGoal"/> и получил награду.
 /// </remarks>
+[PrimaryKey(nameof(PlayerId), nameof(GoalId))]
 public class PlayerGoal
 {
     /// <summary>

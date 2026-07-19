@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -7,19 +7,18 @@ namespace Domiki.Web.Data.Entities;
 /// Экземпляр домика игрока: тип постройки, текущий уровень и состояние идущего улучшения.
 /// </summary>
 [Table("Domiks")]
+[PrimaryKey(nameof(PlayerId), nameof(Id))]
 public class Domik
 {
     /// <summary>
     /// Часть составного ключа – игрок-владелец домика.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int PlayerId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – номер домика, уникальный в пределах игрока (не глобально).
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int Id { get; set; }
 

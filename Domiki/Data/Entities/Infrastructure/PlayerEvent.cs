@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -9,6 +10,7 @@ namespace Domiki.Web.Data.Entities;
 /// Непрочитанные события отдаются один раз и помечаются прочитанными, старые прочитанные строки удаляются сверх последних <c>50</c>
 /// (см. <see cref="Infrastructure.PlayerEventManager.TakeRecap"/>).
 /// </remarks>
+[Index(nameof(PlayerId), nameof(Date))]
 public class PlayerEvent
 {
     /// <summary>

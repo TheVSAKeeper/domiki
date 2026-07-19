@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -7,19 +7,18 @@ namespace Domiki.Web.Data.Entities;
 /// Справочник погодных модификаторов производства: на какой тип домика влияет погода и какой процент выхода она даёт.
 /// </summary>
 [Table("WeatherTypeEffects")]
+[PrimaryKey(nameof(WeatherTypeId), nameof(DomikTypeId))]
 public class WeatherTypeEffect
 {
     /// <summary>
     /// Часть составного ключа – тип погоды, чей эффект описывает строка.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int WeatherTypeId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – тип домика, на который влияет погода.
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int DomikTypeId { get; set; }
 

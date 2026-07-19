@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -7,19 +7,18 @@ namespace Domiki.Web.Data.Entities;
 /// Справочник снаряжения экспедиции: сколько ресурса списывается при отправке отряда данного типа похода.
 /// </summary>
 [Table("ExpeditionEquipment")]
+[PrimaryKey(nameof(ExpeditionTypeId), nameof(ResourceTypeId))]
 public class ExpeditionEquipment
 {
     /// <summary>
     /// Часть составного ключа – тип похода, к которому относится строка снаряжения.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int ExpeditionTypeId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – тип ресурса, который списывается как снаряжение.
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int ResourceTypeId { get; set; }
 

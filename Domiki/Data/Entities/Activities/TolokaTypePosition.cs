@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -7,19 +7,18 @@ namespace Domiki.Web.Data.Entities;
 /// Справочная позиция корзины сбора типа толоки: какой ресурс и в каком базовом количестве нужен на одного участника.
 /// </summary>
 [Table("TolokaTypePositions")]
+[PrimaryKey(nameof(TolokaTypeId), nameof(ResourceTypeId))]
 public class TolokaTypePosition
 {
     /// <summary>
     /// Часть составного ключа – тип толоки, чью корзину описывает строка.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int TolokaTypeId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – тип ресурса позиции.
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int ResourceTypeId { get; set; }
 

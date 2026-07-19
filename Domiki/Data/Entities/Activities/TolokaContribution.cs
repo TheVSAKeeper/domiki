@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -11,26 +11,24 @@ namespace Domiki.Web.Data.Entities;
 /// Строки не удаляются после завершения – по ним считается активность баффа и будущий сезонный рейтинг «Герой толоки».
 /// </remarks>
 [Table("TolokaContributions")]
+[PrimaryKey(nameof(TolokaId), nameof(PlayerId), nameof(ResourceTypeId))]
 public class TolokaContribution
 {
     /// <summary>
     /// Часть составного ключа – инстанция толоки, в которую внесён вклад.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int TolokaId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – игрок, внёсший вклад.
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int PlayerId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – ресурс позиции корзины, в которую внесён вклад.
     /// </summary>
-    [Key]
     [Column(Order = 3)]
     public int ResourceTypeId { get; set; }
 

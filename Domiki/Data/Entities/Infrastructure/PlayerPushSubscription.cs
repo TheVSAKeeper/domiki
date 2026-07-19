@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -9,6 +10,7 @@ namespace Domiki.Web.Data.Entities;
 /// <see cref="Infrastructure.PushSender"/> шлёт по ней уведомления, удаляется при истечении подписки на стороне браузера
 /// (<c>410</c>/<c>404</c> от push-сервиса).
 /// </remarks>
+[Index(nameof(Endpoint), IsUnique = true)]
 public class PlayerPushSubscription
 {
     /// <summary>

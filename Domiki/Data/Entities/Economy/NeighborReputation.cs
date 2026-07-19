@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -7,19 +7,18 @@ namespace Domiki.Web.Data.Entities;
 /// Репутация игрока у конкретного соседа.
 /// </summary>
 [Table("NeighborReputations")]
+[PrimaryKey(nameof(PlayerId), nameof(NeighborId))]
 public class NeighborReputation
 {
     /// <summary>
     /// Часть составного ключа – игрок.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int PlayerId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – сосед.
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int NeighborId { get; set; }
 

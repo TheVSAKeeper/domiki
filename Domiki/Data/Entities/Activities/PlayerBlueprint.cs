@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -10,19 +10,18 @@ namespace Domiki.Web.Data.Entities;
 /// Наличие строки означает, что игрок получил чертёж и может покупать открытую им постройку.
 /// </remarks>
 [Table("PlayerBlueprints")]
+[PrimaryKey(nameof(PlayerId), nameof(BlueprintId))]
 public class PlayerBlueprint
 {
     /// <summary>
     /// Часть составного ключа – игрок-владелец чертежа.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int PlayerId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – полученный чертёж.
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int BlueprintId { get; set; }
 

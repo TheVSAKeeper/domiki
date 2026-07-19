@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -10,12 +10,12 @@ namespace Domiki.Web.Data.Entities;
 /// Нумерация экземпляров с <c>2</c>, <c>3</c> и так далее.
 /// </remarks>
 [Table("DomikTypeCountGates")]
+[PrimaryKey(nameof(DomikTypeId), nameof(Ordinal))]
 public class DomikTypeCountGate
 {
     /// <summary>
     /// Часть составного ключа – тип домика, для которого задан порог.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int DomikTypeId { get; set; }
 
@@ -25,7 +25,6 @@ public class DomikTypeCountGate
     /// <remarks>
     /// Нумерация начинается с <c>2</c>, <c>3</c> и так далее – начиная с этого номера действует порог.
     /// </remarks>
-    [Key]
     [Column(Order = 2)]
     public int Ordinal { get; set; }
 

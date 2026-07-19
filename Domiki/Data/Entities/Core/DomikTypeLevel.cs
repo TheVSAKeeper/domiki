@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Data.Entities;
 
@@ -7,19 +7,18 @@ namespace Domiki.Web.Data.Entities;
 /// Один уровень домика конкретного типа: длительность улучшения и лимит одновременных производств.
 /// </summary>
 [Table("DomikTypeLevels")]
+[PrimaryKey(nameof(DomikTypeId), nameof(Value))]
 public class DomikTypeLevel
 {
     /// <summary>
     /// Часть составного ключа – тип домика.
     /// </summary>
-    [Key]
     [Column(Order = 1)]
     public int DomikTypeId { get; set; }
 
     /// <summary>
     /// Часть составного ключа – номер уровня.
     /// </summary>
-    [Key]
     [Column(Order = 2)]
     public int Value { get; set; }
 
