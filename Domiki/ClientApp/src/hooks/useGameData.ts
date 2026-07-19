@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, setFeedWorkers as setFeedWorkersApi, setManufactureAutoRepeat as setManufactureAutoRepeatApi, setVillage as setVillageApi, startExpedition as startExpeditionApi } from '../services/api';
+import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, setFeedWorkers as setFeedWorkersApi, setManufactureAutoRepeat as setManufactureAutoRepeatApi, setVillage as setVillageApi, startExpedition as startExpeditionApi, voteToloka as voteTolokaApi } from '../services/api';
 import { useToast } from '../services/toastContext';
 import {
     domikTypeSchema,
@@ -61,6 +61,7 @@ export interface GameData {
     startExpedition: (expeditionTypeId: number, workerIds?: number[], provisions?: boolean) => Promise<void>;
     buyDecor: (decorTypeId: number) => Promise<void>;
     contributeToloka: (resourceTypeId: number, amount: number) => Promise<void>;
+    voteToloka: (tolokaTypeId: number) => Promise<void>;
     postLot: (kind: number, giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => Promise<void>;
     acceptLot: (lotId: number) => Promise<void>;
     cancelLot: (lotId: number) => Promise<void>;
@@ -239,6 +240,11 @@ export function useGameData(): GameData {
         ]);
         setToloka(nextToloka);
         setResources(nextResources);
+    }, []);
+
+    const voteToloka = useCallback(async (tolokaTypeId: number) => {
+        await voteTolokaApi(tolokaTypeId);
+        setToloka(await getToloka());
     }, []);
 
     const refreshMarketAndResources = useCallback(async () => {
@@ -482,6 +488,7 @@ export function useGameData(): GameData {
         startExpedition,
         buyDecor,
         contributeToloka,
+        voteToloka,
         postLot,
         acceptLot,
         cancelLot,

@@ -55,7 +55,7 @@ interface GameTab {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, goals, workers, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, goals, workers, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -182,6 +182,10 @@ export const DomikiPage = () => {
         await runAction(() => contributeToloka(resourceTypeId, amount), 'Вклад принят');
     };
 
+    const voteTolokaAction = async (tolokaTypeId: number) => {
+        await runAction(() => voteToloka(tolokaTypeId), 'Голос учтён');
+    };
+
     const postLotAction = async (kind: number, giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => {
         await runAction(() => postLot(kind, giveResourceTypeId, giveValue, wantResourceTypeId, wantValue), 'Лот выставлен');
     };
@@ -239,7 +243,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'toloka', label: 'Толока', icon: <MechanicSprite logicName="toloka" size={24} className="game-tab-ico" aria-hidden="true" />, visible: toloka != null,
-            node: <TolokaBox toloka={toloka} resourceTypes={resourceTypes} resources={resources} now={now} onContribute={contributeTolokaAction} />,
+            node: <TolokaBox toloka={toloka} resourceTypes={resourceTypes} resources={resources} now={now} onContribute={contributeTolokaAction} onVote={voteTolokaAction} />,
         },
         {
             key: 'market', label: 'Ярмарка', icon: <MechanicSprite logicName="market" size={24} className="game-tab-ico" aria-hidden="true" />, visible: market != null,

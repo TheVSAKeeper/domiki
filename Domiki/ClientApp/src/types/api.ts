@@ -399,11 +399,21 @@ export const tolokaActiveBuffSchema = z.object({
 });
 export type TolokaActiveBuffDto = z.infer<typeof tolokaActiveBuffSchema>;
 
+export const tolokaVoteCandidateSchema = z.object({
+    tolokaTypeId: z.number(),
+    name: z.string(),
+    logicName: z.string(),
+    votes: z.number(),
+});
+export type TolokaVoteCandidateDto = z.infer<typeof tolokaVoteCandidateSchema>;
+
 export const tolokaStateSchema = z.object({
     active: tolokaSchema,
     activeBuffs: z.array(tolokaActiveBuffSchema),
     buffHours: z.number(),
     nextBuffHours: z.number().nullable(),
+    candidates: z.array(tolokaVoteCandidateSchema),
+    myVoteTolokaTypeId: z.number().nullable(),
 });
 export type TolokaStateDto = z.infer<typeof tolokaStateSchema>;
 

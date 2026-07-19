@@ -153,6 +153,9 @@ export const getToloka = (signal?: AbortSignal): Promise<TolokaStateDto | null> 
 export const contributeToloka = (resourceTypeId: number, amount: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/ContributeToloka/${resourceTypeId}/${amount}`, signal);
 
+export const voteToloka = (tolokaTypeId: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/VoteToloka/${tolokaTypeId}`, signal);
+
 export const getMarket = (signal?: AbortSignal): Promise<MarketStateDto | null> =>
     apiGet('Domiki/GetMarket', marketStateSchema.nullable(), signal);
 

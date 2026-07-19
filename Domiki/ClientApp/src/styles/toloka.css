@@ -208,6 +208,62 @@
     margin-top: 12px;
 }
 
+.toloka-vote {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.toloka-vote .panel-label {
+    margin-bottom: 0;
+    color: var(--pine-dark);
+}
+
+.toloka-vote-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.toloka-vote-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px 6px 8px;
+    color: var(--ink);
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -3px 0 var(--plank-dark);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+}
+
+.toloka-vote-chip:hover {
+    background: #fff4d6;
+}
+
+.toloka-vote-chip-mine {
+    background: var(--coin);
+    box-shadow: inset 0 -3px 0 rgba(51, 41, 26, .28);
+}
+
+.toloka-vote-ico {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+}
+
+.toloka-vote-count {
+    font-family: var(--pixel);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    padding: 2px 6px;
+    background: rgba(51, 41, 26, .1);
+}
+
 .toloka-locked .toloka-site {
     background: rgba(236, 220, 184, .7);
 }

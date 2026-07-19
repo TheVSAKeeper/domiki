@@ -15,9 +15,10 @@ interface TolokaBoxProps {
     resources: ResourceDto[];
     now: number;
     onContribute: (resourceTypeId: number, amount: number) => Promise<void>;
+    onVote: (tolokaTypeId: number) => Promise<void>;
 }
 
-export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute }: TolokaBoxProps) => {
+export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute, onVote }: TolokaBoxProps) => {
     if (toloka == null) {
         return null;
     }
@@ -57,6 +58,27 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute 
                     ))}
                 </div>
             </div>
+
+            {toloka.candidates.length > 0 &&
+                <div className="toloka-vote">
+                    <span className="panel-label">за какую толоку взяться дальше</span>
+                    <div className="toloka-vote-chips">
+                        {toloka.candidates.map(candidate => {
+                            const mine = candidate.tolokaTypeId === toloka.myVoteTolokaTypeId;
+                            return (
+                                <button key={candidate.tolokaTypeId} type="button"
+                                    className={'toloka-vote-chip' + (mine ? ' toloka-vote-chip-mine' : '')}
+                                    aria-pressed={mine}
+                                    title={mine ? 'Твой голос' : `Отдать голос за «${candidate.name}»`}
+                                    onClick={() => { void onVote(candidate.tolokaTypeId); }}>
+                                    <TolokaSprite logicName={candidate.logicName} level={4} className="toloka-vote-ico" aria-hidden="true" />
+                                    <span className="toloka-vote-name">{candidate.name}</span>
+                                    <span className="toloka-vote-count" title="голосов">{candidate.votes}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>}
 
             {toloka.activeBuffs.length > 0 &&
                 <div className="toloka-buffs">
