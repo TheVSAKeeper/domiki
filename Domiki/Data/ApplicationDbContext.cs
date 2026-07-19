@@ -28,6 +28,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Trait> Traits { get; set; }
     public DbSet<Worker> Workers { get; set; }
     public DbSet<WorkerSkill> WorkerSkills { get; set; }
+    public DbSet<WorkerMilestone> WorkerMilestones { get; set; }
 
     public DbSet<Receipt> Receipts { get; set; }
     public DbSet<ReceiptResource> ReceiptResources { get; set; }
@@ -172,6 +173,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne(s => s.Worker)
             .WithMany(x => x.Skills)
             .HasForeignKey(e => e.WorkerId);
+
+        modelBuilder.Entity<WorkerMilestone>()
+            .HasKey(p => new
+            {
+                p.WorkerId,
+                p.MilestoneType,
+            });
 
         modelBuilder.Entity<Resource>()
             .Navigation(e => e.Player)

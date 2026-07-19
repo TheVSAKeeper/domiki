@@ -62,6 +62,7 @@ public class WorkerManager
                 PlayerId = playerId,
                 Name = GetWorkerName(usedNames, currentWorkers.Length),
                 TraitId = traits[Random.Shared.Next(traits.Length)].Id,
+                HireDate = DateTimeHelper.GetNowDate(),
             };
 
             usedNames.Add(worker.Name);

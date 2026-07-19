@@ -33,8 +33,9 @@ public class GameStateController : GameControllerBase
     private readonly GoalManager _goalManager;
     private readonly ErrandManager _errandManager;
     private readonly IncidentManager _incidentManager;
+    private readonly WorkerMilestoneManager _workerMilestoneManager;
 
-    public GameStateController(DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, GiftManager giftManager, PlayerEventManager playerEventManager, GoalManager goalManager, ErrandManager errandManager, IncidentManager incidentManager)
+    public GameStateController(DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, GiftManager giftManager, PlayerEventManager playerEventManager, GoalManager goalManager, ErrandManager errandManager, IncidentManager incidentManager, WorkerMilestoneManager workerMilestoneManager)
         : base(domikManager)
     {
         _domikManager = domikManager;
@@ -53,6 +54,7 @@ public class GameStateController : GameControllerBase
         _goalManager = goalManager;
         _errandManager = errandManager;
         _incidentManager = incidentManager;
+        _workerMilestoneManager = workerMilestoneManager;
     }
 
     [HttpGet]
@@ -62,7 +64,9 @@ public class GameStateController : GameControllerBase
         var playerId = GetPlayerId();
         var goals = _goalManager.GetGoalsState(playerId);
         var blueprints = _resourceManager.GetBlueprints();
+        var villageLevel = _villageLevelCalculator.GetLevel(playerId);
         _giftManager.TryGrantGift(playerId, DateTimeHelper.GetNowDate());
+        _workerMilestoneManager.TryGrantNext(playerId, villageLevel.Level, DateTimeHelper.GetNowDate());
 
         var content = new GameStateDto
         {
@@ -78,7 +82,7 @@ public class GameStateController : GameControllerBase
             DomikIncident = _incidentManager.GetDomik(playerId)?.ToDto(),
             Blueprints = _blueprintManager.GetBlueprints(playerId).Select(x => x.ToDto()).ToArray(),
             Village = _domikManager.GetVillage(playerId).ToDto(),
-            VillageLevel = _villageLevelCalculator.GetLevel(playerId).ToDto(),
+            VillageLevel = villageLevel.ToDto(),
             Workers = _workerManager.GetWorkers(playerId).Select(x => x.ToDto()).ToArray(),
             PurchaseAvailableDomiks = _domikManager.GetPurchaseAvailableDomiks(playerId).Select(x => x.Type.ToDto(x.AvailableCount, blueprints.FirstOrDefault(b => b.DomikTypeId == x.Type.Id)?.Id, x.NextCountGateLevel)).ToArray(),
             Weather = _weatherManager.GetWeather(DateTimeHelper.GetNowDate()).ToDto(),

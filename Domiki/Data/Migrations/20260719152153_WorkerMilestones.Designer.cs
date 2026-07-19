@@ -3,6 +3,7 @@ using System;
 using Domiki.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domiki.Web.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260719152153_WorkerMilestones")]
+    partial class WorkerMilestones
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -117,7 +120,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("NeighborId");
 
-                    b.ToTable("Blueprints", (string)null);
+                    b.ToTable("Blueprints");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.DecorCost", b =>
@@ -137,7 +140,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("ResourceTypeId");
 
-                    b.ToTable("DecorCosts", (string)null);
+                    b.ToTable("DecorCosts");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.DecorType", b =>
@@ -171,7 +174,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DecorTypes", (string)null);
+                    b.ToTable("DecorTypes");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.Domik", b =>
@@ -198,7 +201,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("PlayerId", "Id");
 
-                    b.ToTable("Domiks", (string)null);
+                    b.ToTable("Domiks");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.DomikType", b =>
@@ -225,7 +228,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DomikTypes", (string)null);
+                    b.ToTable("DomikTypes");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.DomikTypeCountGate", b =>
@@ -243,7 +246,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("DomikTypeId", "Ordinal");
 
-                    b.ToTable("DomikTypeCountGates", (string)null);
+                    b.ToTable("DomikTypeCountGates");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.DomikTypeLevel", b =>
@@ -264,7 +267,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("DomikTypeId", "Value");
 
-                    b.ToTable("DomikTypeLevels", (string)null);
+                    b.ToTable("DomikTypeLevels");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.DomikTypeLevelModificator", b =>
@@ -288,7 +291,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("ModificatorTypeId");
 
-                    b.ToTable("DomikTypeLevelModificators", (string)null);
+                    b.ToTable("DomikTypeLevelModificators");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.DomikTypeLevelReceipt", b =>
@@ -309,7 +312,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("ReceiptId");
 
-                    b.ToTable("DomikTypeLevelReceipts", (string)null);
+                    b.ToTable("DomikTypeLevelReceipts");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.DomikTypeLevelResource", b =>
@@ -333,7 +336,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("ResourceTypeId");
 
-                    b.ToTable("DomikTypeLevelResources", (string)null);
+                    b.ToTable("DomikTypeLevelResources");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.Errand", b =>
@@ -374,7 +377,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("PlayerId");
 
-                    b.ToTable("Errands", (string)null);
+                    b.ToTable("Errands");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.Expedition", b =>
@@ -406,7 +409,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("PlayerId");
 
-                    b.ToTable("Expeditions", (string)null);
+                    b.ToTable("Expeditions");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.ExpeditionEquipment", b =>
@@ -427,7 +430,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("ExpeditionTypeId", "ResourceTypeId");
 
-                    b.ToTable("ExpeditionEquipment", (string)null);
+                    b.ToTable("ExpeditionEquipment");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.ExpeditionLoot", b =>
@@ -469,7 +472,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("ExpeditionTypeId");
 
-                    b.ToTable("ExpeditionLoot", (string)null);
+                    b.ToTable("ExpeditionLoot");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.ExpeditionType", b =>
@@ -503,7 +506,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ExpeditionTypes", (string)null);
+                    b.ToTable("ExpeditionTypes");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.GuestbookEntry", b =>
@@ -530,7 +533,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("GuestPlayerId");
 
-                    b.ToTable("GuestbookEntries", (string)null);
+                    b.ToTable("GuestbookEntries");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.Incident", b =>
@@ -575,7 +578,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("PlayerId");
 
-                    b.ToTable("Incidents", (string)null);
+                    b.ToTable("Incidents");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.Manufacture", b =>
@@ -620,7 +623,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("DomikPlayerId", "DomikId");
 
-                    b.ToTable("Manufactures", (string)null);
+                    b.ToTable("Manufactures");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.ModificatorType", b =>
@@ -641,7 +644,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ModificatorTypes", (string)null);
+                    b.ToTable("ModificatorTypes");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.Neighbor", b =>
@@ -672,7 +675,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Neighbors", (string)null);
+                    b.ToTable("Neighbors");
 
                     b.HasData(
                         new
@@ -734,7 +737,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("NeighborId");
 
-                    b.ToTable("NeighborReputations", (string)null);
+                    b.ToTable("NeighborReputations");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.Order", b =>
@@ -772,7 +775,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("PlayerId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.OrderResource", b =>
@@ -792,7 +795,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("ResourceTypeId");
 
-                    b.ToTable("OrderResources", (string)null);
+                    b.ToTable("OrderResources");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.Player", b =>
@@ -878,7 +881,7 @@ namespace Domiki.Web.Data.Migrations
                         .IsUnique()
                         .HasFilter("\"VillageName\" IS NOT NULL");
 
-                    b.ToTable("Players", (string)null);
+                    b.ToTable("Players");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.PlayerBlueprint", b =>
@@ -895,7 +898,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("BlueprintId");
 
-                    b.ToTable("PlayerBlueprints", (string)null);
+                    b.ToTable("PlayerBlueprints");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.PlayerDecor", b =>
@@ -915,7 +918,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("DecorTypeId");
 
-                    b.ToTable("PlayerDecors", (string)null);
+                    b.ToTable("PlayerDecors");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.PlayerEvent", b =>
@@ -946,7 +949,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("PlayerId", "Date");
 
-                    b.ToTable("PlayerEvents", (string)null);
+                    b.ToTable("PlayerEvents");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.PlayerGoal", b =>
@@ -962,7 +965,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("PlayerId", "GoalId");
 
-                    b.ToTable("PlayerGoals", (string)null);
+                    b.ToTable("PlayerGoals");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.PlayerPushSubscription", b =>
@@ -996,7 +999,7 @@ namespace Domiki.Web.Data.Migrations
                     b.HasIndex("Endpoint")
                         .IsUnique();
 
-                    b.ToTable("PlayerPushSubscriptions", (string)null);
+                    b.ToTable("PlayerPushSubscriptions");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.Receipt", b =>
@@ -1026,7 +1029,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Receipts", (string)null);
+                    b.ToTable("Receipts");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.ReceiptResource", b =>
@@ -1053,7 +1056,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("ResourceTypeId");
 
-                    b.ToTable("ReceiptResources", (string)null);
+                    b.ToTable("ReceiptResources");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.Resource", b =>
@@ -1071,7 +1074,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("PlayerId", "TypeId");
 
-                    b.ToTable("Resources", (string)null);
+                    b.ToTable("Resources");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.ResourceType", b =>
@@ -1092,7 +1095,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ResourceTypes", (string)null);
+                    b.ToTable("ResourceTypes");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.SeasonCounter", b =>
@@ -1118,7 +1121,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("SeasonId", "Metric");
 
-                    b.ToTable("SeasonCounters", (string)null);
+                    b.ToTable("SeasonCounters");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.StarterGoal", b =>
@@ -1151,7 +1154,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("StarterGoals", (string)null);
+                    b.ToTable("StarterGoals");
 
                     b.HasData(
                         new
@@ -1267,7 +1270,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("TolokaTypeId");
 
-                    b.ToTable("Tolokas", (string)null);
+                    b.ToTable("Tolokas");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.TolokaContribution", b =>
@@ -1291,7 +1294,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("PlayerId");
 
-                    b.ToTable("TolokaContributions", (string)null);
+                    b.ToTable("TolokaContributions");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.TolokaPosition", b =>
@@ -1312,7 +1315,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("TolokaId", "ResourceTypeId");
 
-                    b.ToTable("TolokaPositions", (string)null);
+                    b.ToTable("TolokaPositions");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.TolokaType", b =>
@@ -1337,7 +1340,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TolokaTypes", (string)null);
+                    b.ToTable("TolokaTypes");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.TolokaTypeEffect", b =>
@@ -1355,7 +1358,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("TolokaTypeId", "DomikTypeId");
 
-                    b.ToTable("TolokaTypeEffects", (string)null);
+                    b.ToTable("TolokaTypeEffects");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.TolokaTypePosition", b =>
@@ -1373,7 +1376,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("TolokaTypeId", "ResourceTypeId");
 
-                    b.ToTable("TolokaTypePositions", (string)null);
+                    b.ToTable("TolokaTypePositions");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.TolokaVote", b =>
@@ -1391,7 +1394,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("TolokaId", "PlayerId");
 
-                    b.ToTable("TolokaVotes", (string)null);
+                    b.ToTable("TolokaVotes");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.TradeLot", b =>
@@ -1433,7 +1436,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("SellerId");
 
-                    b.ToTable("TradeLots", (string)null);
+                    b.ToTable("TradeLots");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.Trait", b =>
@@ -1468,7 +1471,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Traits", (string)null);
+                    b.ToTable("Traits");
 
                     b.HasData(
                         new
@@ -1554,7 +1557,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("WeatherTypeId");
 
-                    b.ToTable("WeatherPeriods", (string)null);
+                    b.ToTable("WeatherPeriods");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.WeatherType", b =>
@@ -1579,7 +1582,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WeatherTypes", (string)null);
+                    b.ToTable("WeatherTypes");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.WeatherTypeEffect", b =>
@@ -1597,7 +1600,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("WeatherTypeId", "DomikTypeId");
 
-                    b.ToTable("WeatherTypeEffects", (string)null);
+                    b.ToTable("WeatherTypeEffects");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.Worker", b =>
@@ -1660,7 +1663,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasIndex("TraitId");
 
-                    b.ToTable("Workers", (string)null);
+                    b.ToTable("Workers");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.WorkerMilestone", b =>
@@ -1676,7 +1679,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("WorkerId", "MilestoneType");
 
-                    b.ToTable("WorkerMilestones", (string)null);
+                    b.ToTable("WorkerMilestones");
                 });
 
             modelBuilder.Entity("Domiki.Web.Data.Entities.WorkerSkill", b =>
@@ -1692,7 +1695,7 @@ namespace Domiki.Web.Data.Migrations
 
                     b.HasKey("WorkerId", "DomikTypeId");
 
-                    b.ToTable("WorkerSkills", (string)null);
+                    b.ToTable("WorkerSkills");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

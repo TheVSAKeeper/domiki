@@ -249,6 +249,7 @@ public class ExpeditionManager
             }
 
             worker.ExpeditionId = null;
+            worker.ExpeditionCount++;
         }
 
         var incidentCalcInfo = _incidentManager.TryRollIncident(dbPlayer, assignedWorkers, dbExpedition.ExpeditionTypeId, date);

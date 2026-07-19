@@ -106,4 +106,12 @@ public enum PlayerEventType
     /// См. <see cref="Activities.IncidentManager.FinishIncident"/>.
     /// </remarks>
     DomikIncidentResolved = 15,
+
+    /// <summary>
+    /// Трудяга достиг вехи (пассивное событие).
+    /// </summary>
+    /// <remarks>
+    /// См. <see cref="Workers.WorkerMilestoneManager"/>.
+    /// </remarks>
+    WorkerMilestone = 16,
 }

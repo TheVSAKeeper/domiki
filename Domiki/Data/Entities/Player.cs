@@ -72,6 +72,15 @@ public class Player
     public DateTime? LastDomikIncidentDate { get; set; }
 
     /// <summary>
+    /// Момент последней выданной вехи трудяги.
+    /// </summary>
+    /// <value>Момент в UTC.</value>
+    /// <remarks>
+    /// Ограничивает частоту выдачи кулдауном <see cref="Workers.WorkerMilestoneManager.WorkerMilestoneCooldownHours"/>.
+    /// </remarks>
+    public DateTime? LastWorkerMilestoneDate { get; set; }
+
+    /// <summary>
     /// Счётчик визитов-возвратов подряд без крупного гостинца от соседей.
     /// </summary>
     /// <remarks>

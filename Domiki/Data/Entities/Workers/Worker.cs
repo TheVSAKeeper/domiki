@@ -40,6 +40,20 @@ public class Worker
     public int TraitId { get; set; }
 
     /// <summary>
+    /// Момент найма трудяги.
+    /// </summary>
+    /// <value>Момент в UTC.</value>
+    public DateTime HireDate { get; set; }
+
+    /// <summary>
+    /// Пожизненное число завершённых походов трудяги.
+    /// </summary>
+    /// <remarks>
+    /// Растёт при финише похода и не обнуляется.
+    /// </remarks>
+    public int ExpeditionCount { get; set; }
+
+    /// <summary>
     /// Производство, в котором сейчас занят трудяга.
     /// </summary>
     /// <remarks>
