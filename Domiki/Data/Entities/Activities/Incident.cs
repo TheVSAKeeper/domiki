@@ -34,6 +34,9 @@ public class Incident
     /// Трудяга, задержавшийся в походе.
     /// </summary>
     /// <remarks>
+    /// Снимок без навигации и внешнего ключа: запись живёт в истории после <see cref="ResolvedDate"/> вечно, а обратный указатель <see cref="Worker.IncidentId"/> образовал бы цикл внешних ключей.
+    /// </remarks>
+    /// <remarks>
     /// <see langword="null"/> – происшествие связано с постройкой.
     /// </remarks>
     public int? MissingWorkerId { get; set; }
@@ -101,9 +104,4 @@ public class Incident
     /// Игрок, у которого произошло происшествие.
     /// </summary>
     public Player Player { get; set; } = null!;
-
-    /// <summary>
-    /// Трудяга, задержавшийся в походе.
-    /// </summary>
-    public Worker? MissingWorker { get; set; }
 }

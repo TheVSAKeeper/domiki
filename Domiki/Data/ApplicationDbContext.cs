@@ -222,12 +222,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(e => e.PlayerId);
 
-        modelBuilder.Entity<Incident>()
-            .HasOne(s => s.MissingWorker)
-            .WithMany()
-            .HasForeignKey(e => e.MissingWorkerId)
-            .IsRequired(false);
-
         modelBuilder.Entity<NeighborReputation>()
             .HasKey(p => new
             {
