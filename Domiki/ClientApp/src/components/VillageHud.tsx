@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
+import HomeIcon from 'pixelarticons/svg/home.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
+import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 import type { DomikTypeDto, PlodderCount, ResourceDto, ResourceTypeDto, VillageLevelDto, WeatherStateDto } from '../types/api';
 import { COIN_RESOURCE_TYPE_ID, strongestWeatherEffect } from '../utils/game';
 import { remainingSeconds } from '../utils/time';
@@ -28,12 +30,12 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, vill
     const hudRef = useRef<HTMLElement>(null);
     const [hudAway, setHudAway] = useState(false);
     const [hudPinnedOpen, setHudPinnedOpen] = useState(false);
-    const [levelFlyout, setLevelFlyout] = useState<{ top: number; left: number; width: number } | null>(null);
+    const [levelFlyout, setLevelFlyout] = useState<{ top: number; right: number } | null>(null);
     const villageLevelRef = useRef<HTMLDivElement>(null);
     const openLevelFlyout = () => {
         const rect = villageLevelRef.current?.getBoundingClientRect();
         if (rect != null) {
-            setLevelFlyout({ top: rect.bottom + 6, left: rect.left, width: rect.width });
+            setLevelFlyout({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
         }
     };
     const closeLevelFlyout = () => setLevelFlyout(null);
@@ -128,19 +130,46 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, vill
                             </button>
                         </div>
                         {levelFlyout != null && createPortal(
-                            <div className="village-level-flyout" style={{ top: levelFlyout.top, left: levelFlyout.left, width: levelFlyout.width }}>
-                                <span>Постройки: {villageLevel.buildings}</span>
-                                <span>Жители: {villageLevel.residents}</span>
-                                <span>Репутация: {villageLevel.reputation}</span>
-                                <span>Уют: {villageLevel.comfort}</span>
-                                {[
-                                    ...villageLevel.unlocks.filter(unlock => !unlock.unlocked && unlock.level != null).slice(0, 3),
-                                    ...villageLevel.unlocks.filter(unlock => !unlock.unlocked && unlock.level == null),
-                                ].map(unlock => (
-                                    <span key={`${unlock.label}-${unlock.level ?? unlock.requirement}`} className="village-level-next">
-                                        {unlock.label} – {unlock.level != null ? `при обжитости ${unlock.level}` : unlock.requirement}
-                                    </span>
-                                ))}
+                            <div className="village-level-flyout" style={{ top: levelFlyout.top, right: levelFlyout.right }}>
+                                <div className="vlf-stats">
+                                    <span className="vlf-stat"><span className="vlf-stat-label">Постройки</span><span className="vlf-stat-value">{villageLevel.buildings}</span></span>
+                                    <span className="vlf-stat"><span className="vlf-stat-label">Жители</span><span className="vlf-stat-value">{villageLevel.residents}</span></span>
+                                    <span className="vlf-stat"><span className="vlf-stat-label">Репутация</span><span className="vlf-stat-value">{villageLevel.reputation}</span></span>
+                                    <span className="vlf-stat"><span className="vlf-stat-label">Уют</span><span className="vlf-stat-value">{villageLevel.comfort}</span></span>
+                                </div>
+                                {(() => {
+                                    const rows = [
+                                        ...villageLevel.unlocks.filter(unlock => !unlock.unlocked && unlock.level != null).slice(0, 3),
+                                        ...villageLevel.unlocks.filter(unlock => !unlock.unlocked && unlock.level == null),
+                                    ];
+                                    if (rows.length === 0) {
+                                        return null;
+                                    }
+
+                                    return (
+                                        <div className="vlf-ahead">
+                                            <span className="vlf-ahead-title">Впереди</span>
+                                            <ul className="vlf-unlocks">
+                                                {rows.map(unlock => (
+                                                    <li key={`${unlock.label}-${unlock.level ?? unlock.requirement ?? ''}`} className="vlf-row">
+                                                        {unlock.kind === 'building'
+                                                            ? <DomikSprite logicName={unlock.logicName ?? ''} className="vlf-ico" aria-hidden="true" />
+                                                            : unlock.kind === 'neighbor'
+                                                                ? <HomeIcon className="vlf-ico" aria-hidden="true" />
+                                                                : <ZapIcon className="vlf-ico" aria-hidden="true" />}
+                                                        <span className="vlf-body">
+                                                            <span className="vlf-name">{unlock.label}</span>
+                                                            {unlock.level == null && unlock.requirement != null &&
+                                                                <span className="vlf-req">{unlock.requirement}</span>}
+                                                        </span>
+                                                        {unlock.level != null &&
+                                                            <span className="vlf-badge">обж {unlock.level}</span>}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    );
+                                })()}
                             </div>,
                             document.body)}
                         {villageLevel.visitsSinceBigGift > 0 &&
