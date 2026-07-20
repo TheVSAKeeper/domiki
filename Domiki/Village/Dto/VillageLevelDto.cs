@@ -1,7 +1,7 @@
 ﻿namespace Domiki.Web.Village.Dto;
 
 /// <summary>
-/// Обжитость деревни и ближайшие ещё не открытые ею пороги.
+/// Обжитость деревни и все связанные с нею открытия.
 /// </summary>
 public sealed record VillageLevelDto
 {
@@ -51,16 +51,16 @@ public sealed record VillageLevelDto
     public required int VisitsSinceBigGift { get; init; }
 
     /// <summary>
-    /// Ближайшие ещё не открытые пороги.
+    /// Все пороги открытий, связанных с обжитостью деревни.
     /// </summary>
     /// <remarks>
     /// Постройки, соседи и прочий контент, гейтящийся обжитостью (<see cref="Level"/>).
     /// </remarks>
-    public required VillageLevelUnlockDto[] UpcomingUnlocks { get; init; }
+    public required VillageLevelUnlockDto[] Unlocks { get; init; }
 }
 
 /// <summary>
-/// Один ещё не открытый порог обжитости или иного гейта.
+/// Одно открытие обжитости или иного гейта.
 /// </summary>
 public sealed record VillageLevelUnlockDto
 {
@@ -84,4 +84,28 @@ public sealed record VillageLevelUnlockDto
     /// Чертёж или репутация у соседа. <see langword="null"/>, если условие – только <see cref="Level"/>.
     /// </remarks>
     public string? Requirement { get; init; }
+
+    /// <summary>
+    /// Открыт ли этот порог текущей обжитостью деревни.
+    /// </summary>
+    /// <remarks>
+    /// Для открытий по чертежам значение остаётся <see langword="false"/>, пока игрок не получит чертёж.
+    /// </remarks>
+    public required bool Unlocked { get; init; }
+
+    /// <summary>
+    /// Вид открытия для отображения в клиентской дорожной карте.
+    /// </summary>
+    /// <remarks>
+    /// <c>building</c> обозначает постройку, <c>neighbor</c> – соседа, <c>feature</c> – игровую механику.
+    /// </remarks>
+    public required string Kind { get; init; }
+
+    /// <summary>
+    /// Техническое имя открытия для выбора иконки и игрового описания на клиенте.
+    /// </summary>
+    /// <remarks>
+    /// Для соседа совпадает с его <c>LogicName</c>, для умной артели равно <c>smart_artel</c>.
+    /// </remarks>
+    public string? LogicName { get; init; }
 }

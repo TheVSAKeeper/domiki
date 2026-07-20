@@ -11,6 +11,7 @@ function mockFetch(body: unknown, init: { ok?: boolean; status?: number } = {}) 
     globalThis.fetch = vi.fn().mockResolvedValue({
         ok,
         status,
+        headers: new Headers(),
         json: () => Promise.resolve(body),
     });
 }
@@ -24,6 +25,7 @@ describe('api', () => {
         globalThis.fetch = vi.fn().mockResolvedValue({
             ok: true,
             status: 200,
+            headers: new Headers(),
             json: () => Promise.reject(new SyntaxError('Unexpected end of JSON input')),
         });
         await expect(apiPost('Domiki/BuyDomik/1')).resolves.toBeUndefined();
@@ -57,6 +59,7 @@ describe('api', () => {
         globalThis.fetch = vi.fn().mockResolvedValue({
             ok: false,
             status: 502,
+            headers: new Headers(),
             json: () => Promise.reject(new SyntaxError('bad json')),
         });
         await expect(apiPost('Domiki/BuyDomik/1')).rejects.toThrow('Неизвестная ошибка сервера.');
@@ -66,6 +69,7 @@ describe('api', () => {
         globalThis.fetch = vi.fn().mockResolvedValue({
             ok: true,
             status: 200,
+            headers: new Headers(),
             json: () => Promise.reject(new SyntaxError('bad json')),
         });
         const schema = z.array(z.object({ typeId: z.number(), value: z.number() }));

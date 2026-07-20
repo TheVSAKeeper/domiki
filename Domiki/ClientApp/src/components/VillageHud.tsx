@@ -76,7 +76,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, vill
     const coinType = resourceTypes.find(t => t.id === COIN_RESOURCE_TYPE_ID);
     const coinValue = resources.find(r => r.typeId === COIN_RESOURCE_TYPE_ID)?.value;
     const currentWeather = weather?.current ?? null;
-    const nextGoal = villageLevel?.upcomingUnlocks.find((unlock): unlock is typeof unlock & { level: number } => unlock.level != null);
+    const nextGoal = villageLevel?.unlocks.find((unlock): unlock is typeof unlock & { level: number } => !unlock.unlocked && unlock.level != null);
     const effectChips = currentWeather?.effects.filter(effect => effect.outputPercent !== 100) ?? [];
 
     return (
@@ -134,11 +134,11 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, vill
                                 <span>Репутация: {villageLevel.reputation}</span>
                                 <span>Уют: {villageLevel.comfort}</span>
                                 {[
-                                    ...villageLevel.upcomingUnlocks.filter(unlock => unlock.level != null).slice(0, 3),
-                                    ...villageLevel.upcomingUnlocks.filter(unlock => unlock.level == null),
+                                    ...villageLevel.unlocks.filter(unlock => !unlock.unlocked && unlock.level != null).slice(0, 3),
+                                    ...villageLevel.unlocks.filter(unlock => !unlock.unlocked && unlock.level == null),
                                 ].map(unlock => (
                                     <span key={`${unlock.label}-${unlock.level ?? unlock.requirement}`} className="village-level-next">
-                                        {unlock.label}: {unlock.level != null ? unlock.level : unlock.requirement}
+                                        {unlock.label} – {unlock.level != null ? `при обжитости ${unlock.level}` : unlock.requirement}
                                     </span>
                                 ))}
                             </div>,

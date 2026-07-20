@@ -494,6 +494,94 @@ button.wiki-res-cell {
         margin-top: 4px;
     }
 
+.unlock-roadmap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.unlock-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.unlock-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 6px 8px;
+    border: 2px solid color-mix(in srgb, var(--pine-dark) 28%, transparent);
+    background: color-mix(in srgb, var(--plank) 38%, transparent);
+}
+
+.unlock-ico {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+}
+
+.unlock-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+}
+
+.unlock-name {
+    font-weight: 700;
+}
+
+.unlock-description {
+    color: rgba(51, 41, 26, .72);
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.unlock-badge {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 4px;
+    color: var(--roof);
+    font-family: var(--pixel);
+    font-size: 9px;
+    line-height: 1.4;
+}
+
+.unlock-badge svg {
+    width: 16px;
+    height: 16px;
+}
+
+.unlock-list-done {
+    opacity: .7;
+}
+
+.unlock-row-done {
+    border-color: color-mix(in srgb, var(--pine-dark) 18%, transparent);
+}
+
+.unlock-badge-done {
+    color: var(--pine-dark);
+}
+
+.unlock-here {
+    padding: 5px 0;
+    border-top: 2px dashed color-mix(in srgb, var(--roof) 45%, transparent);
+    border-bottom: 2px dashed color-mix(in srgb, var(--roof) 45%, transparent);
+    color: var(--roof);
+    font-family: var(--pixel);
+    font-size: 10px;
+    text-align: center;
+}
+
 .wiki-res-cell svg {
     width: 32px;
     height: 32px;

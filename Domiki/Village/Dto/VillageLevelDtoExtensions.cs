@@ -14,7 +14,7 @@ public static class VillageLevelDtoExtensions
             Reputation = villageLevel.Reputation,
             Comfort = villageLevel.Comfort,
             VisitsSinceBigGift = villageLevel.VisitsSinceBigGift,
-            UpcomingUnlocks = villageLevel.UpcomingUnlocks.Select(x => x.ToDto()).ToArray(),
+            Unlocks = villageLevel.Unlocks.Select(x => x.ToDto()).ToArray(),
         };
     }
 
@@ -25,6 +25,9 @@ public static class VillageLevelDtoExtensions
             Level = unlock.Level,
             Label = unlock.Label,
             Requirement = unlock.Requirement,
+            Unlocked = unlock.Unlocked,
+            Kind = unlock.Kind,
+            LogicName = unlock.LogicName,
         };
     }
 }

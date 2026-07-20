@@ -4,6 +4,7 @@ import { ApiError, getGameState } from '../services/api';
 import { useToast } from '../services/toastContext';
 import { formatDuration } from '../utils/time';
 import { domikLore } from '../utils/domikLore';
+import { unlockLore } from '../utils/unlockLore';
 import { resourceLore } from '../utils/resourceLore';
 import { strongestWeatherEffect } from '../utils/game';
 import type { DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, VillageLevelDto, WeatherStateDto } from '../types/api';
@@ -11,6 +12,10 @@ import { DecorSprite, DomikSprite, MechanicSprite, ResourceSprite, WeatherSprite
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import { PixelLoader } from './PixelLoader';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
+import CheckIcon from 'pixelarticons/svg/check.svg?react';
+import HomeIcon from 'pixelarticons/svg/home.svg?react';
+import LockIcon from 'pixelarticons/svg/lock.svg?react';
+import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 
 interface Catalog {
     domikTypes: DomikTypeDto[];
@@ -337,6 +342,31 @@ interface WikiMechanicsSectionProps {
 
 const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes }: WikiMechanicsSectionProps) => {
     const [openMechanics, setOpenMechanics] = useState<ReadonlySet<string>>(new Set());
+    const unlocks = villageLevel.unlocks;
+    const unlocked = unlocks.filter(unlock => unlock.unlocked);
+    const upcoming = unlocks.filter(unlock => !unlock.unlocked);
+    const getUnlockDescription = (unlock: typeof unlocks[number]) => {
+        if (unlock.logicName == null) {
+            return '';
+        }
+
+        return unlock.kind === 'building' ? domikLore[unlock.logicName] ?? '' : unlockLore[unlock.logicName] ?? '';
+    };
+    const getUnlockIcon = (unlock: typeof unlocks[number]) => {
+        if (unlock.kind === 'building' && unlock.logicName != null) {
+            return <DomikSprite logicName={unlock.logicName} className="unlock-ico" aria-hidden="true" />;
+        }
+
+        if (unlock.kind === 'neighbor') {
+            return <HomeIcon className="unlock-ico" aria-hidden="true" />;
+        }
+
+        if (unlock.kind === 'feature') {
+            return <ZapIcon className="unlock-ico" aria-hidden="true" />;
+        }
+
+        return null;
+    };
     const toggleMechanic = (key: string) => setOpenMechanics(prev => {
         const next = new Set(prev);
         if (next.has(key)) {
@@ -406,18 +436,55 @@ const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes }: Wiki
                                                 <dt>Итого</dt>
                                                 <dd>{villageLevel.level}</dd>
                                             </dl>
-                                            {villageLevel.upcomingUnlocks.length > 0 && (
-                                                <>
-                                                    <span className="wiki-mechanic-live-label">Ближайшие открытия:</span>
-                                                    <dl className="wiki-res-facts">
-                                                        {villageLevel.upcomingUnlocks.slice(0, 5).map(unlock => (
-                                                            <Fragment key={`${unlock.label}-${unlock.level ?? unlock.requirement}`}>
-                                                                <dt>{unlock.label}</dt>
-                                                                <dd>{unlock.level != null ? `при обжитости ${unlock.level}` : unlock.requirement}</dd>
-                                                            </Fragment>
-                                                        ))}
-                                                    </dl>
-                                                </>
+                                            {unlocks.length > 0 && (
+                                                <div className="unlock-roadmap">
+                                                    {unlocked.length > 0 && (
+                                                        <>
+                                                            <span className="wiki-mechanic-live-label">Уже открыто</span>
+                                                            <ul className="unlock-list unlock-list-done">
+                                                                {unlocked.map(unlock => {
+                                                                    const description = getUnlockDescription(unlock);
+                                                                    return (
+                                                                        <li key={`${unlock.kind}-${unlock.logicName ?? unlock.label}`} className="unlock-row unlock-row-done">
+                                                                            {getUnlockIcon(unlock)}
+                                                                            <span className="unlock-body">
+                                                                                <span className="unlock-name">{unlock.label}</span>
+                                                                                {description !== '' && <span className="unlock-description">{description}</span>}
+                                                                            </span>
+                                                                            <span className="unlock-badge unlock-badge-done">
+                                                                                <CheckIcon aria-hidden="true" />
+                                                                                обжитость {unlock.level}
+                                                                            </span>
+                                                                        </li>
+                                                                    );
+                                                                })}
+                                                            </ul>
+                                                        </>
+                                                    )}
+                                                    <div className="unlock-here">ты здесь: обжитость {villageLevel.level}</div>
+                                                    {upcoming.length > 0 && (
+                                                        <>
+                                                            <span className="wiki-mechanic-live-label">Впереди</span>
+                                                            <ul className="unlock-list">
+                                                                {upcoming.map(unlock => {
+                                                                    const description = getUnlockDescription(unlock);
+                                                                    return (
+                                                                        <li key={`${unlock.kind}-${unlock.logicName ?? unlock.label}-${unlock.level ?? unlock.requirement}`} className="unlock-row">
+                                                                            {getUnlockIcon(unlock)}
+                                                                            <span className="unlock-body">
+                                                                                <span className="unlock-name">{unlock.label}</span>
+                                                                                {description !== '' && <span className="unlock-description">{description}</span>}
+                                                                            </span>
+                                                                            <span className="unlock-badge">
+                                                                                {unlock.level != null ? <><LockIcon aria-hidden="true" />при обжитости {unlock.level}</> : unlock.requirement}
+                                                                            </span>
+                                                                        </li>
+                                                                    );
+                                                                })}
+                                                            </ul>
+                                                        </>
+                                                    )}
+                                                </div>
                                             )}
                                         </div>
                                     )}

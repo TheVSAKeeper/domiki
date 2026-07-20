@@ -155,6 +155,27 @@ public sealed class VillageLevelTests
     {
         Assert.That(VillageLevelCalculator.ComputeLevel(0, 0, 0, comfort), Is.EqualTo(expectedContribution));
     }
+
+    /// <summary>
+    /// В дорожной карте обжитости каждый числовой порог отмечен открытым ровно после достижения его уровня деревней.
+    /// </summary>
+    [Test]
+    public void UnlockRoadmapMarksReachedThresholdsTest()
+    {
+        var player = TestPlayer.Create();
+
+        var villageLevel = player.GetVillageLevel();
+        var levelUnlocks = villageLevel.Unlocks.Where(unlock => unlock.Level != null).ToArray();
+
+        Assert.That(levelUnlocks, Is.Not.Empty);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(levelUnlocks.Any(unlock => unlock.Level <= villageLevel.Level), Is.True);
+            Assert.That(levelUnlocks.Any(unlock => unlock.Level > villageLevel.Level), Is.True);
+            Assert.That(levelUnlocks.Where(unlock => unlock.Level <= villageLevel.Level).All(unlock => unlock.Unlocked), Is.True);
+            Assert.That(levelUnlocks.Where(unlock => unlock.Level > villageLevel.Level).All(unlock => !unlock.Unlocked), Is.True);
+        }
+    }
 }
 
 file static class VillageLevelTestsActs

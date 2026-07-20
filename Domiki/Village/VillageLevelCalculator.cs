@@ -62,7 +62,7 @@ public class VillageLevelCalculator
             Reputation = reputation,
             Comfort = comfort,
             VisitsSinceBigGift = visitsSinceBigGift,
-            UpcomingUnlocks = GetUpcomingUnlocks(playerId, level),
+            Unlocks = GetUnlocks(playerId, level),
         };
     }
 
@@ -83,19 +83,46 @@ public class VillageLevelCalculator
         return GetLevel(playerId).Level >= SmartAutoUnlockLevel;
     }
 
-    private VillageLevelUnlock[] GetUpcomingUnlocks(int playerId, int level)
+    private VillageLevelUnlock[] GetUnlocks(int playerId, int level)
     {
+        var blueprintDomikTypeIds = _resourceManager.GetBlueprints().Select(b => b.DomikTypeId).ToHashSet();
+
         var domikUnlocks = _resourceManager.GetDomikTypes()
-            .Where(x => x.UnlockLevel > level)
-            .Select(x => new VillageLevelUnlock { Level = x.UnlockLevel, Label = x.Name, Requirement = null });
+            .Where(x => x.UnlockLevel > 0 && !blueprintDomikTypeIds.Contains(x.Id))
+            .Select(x => new VillageLevelUnlock
+            {
+                Level = x.UnlockLevel,
+                Label = x.Name,
+                Requirement = null,
+                Unlocked = level >= x.UnlockLevel,
+                Kind = "building",
+                LogicName = x.LogicName,
+            });
 
         var neighborUnlocks = _resourceManager.GetNeighbors()
-            .Where(x => x.UnlockLevel > level)
-            .Select(x => new VillageLevelUnlock { Level = x.UnlockLevel, Label = $"Сосед {x.Name}", Requirement = null });
+            .Where(x => x.UnlockLevel > 0)
+            .Select(x => new VillageLevelUnlock
+            {
+                Level = x.UnlockLevel,
+                Label = $"Сосед {x.Name}",
+                Requirement = null,
+                Unlocked = level >= x.UnlockLevel,
+                Kind = "neighbor",
+                LogicName = x.LogicName,
+            });
 
-        var smartAutoUnlock = SmartAutoUnlockLevel > level
-            ? new[] { new VillageLevelUnlock { Level = SmartAutoUnlockLevel, Label = "Умная артель", Requirement = null } }
-            : Array.Empty<VillageLevelUnlock>();
+        var smartArtel = new[]
+        {
+            new VillageLevelUnlock
+            {
+                Level = SmartAutoUnlockLevel,
+                Label = "Умная артель",
+                Requirement = null,
+                Unlocked = level >= SmartAutoUnlockLevel,
+                Kind = "feature",
+                LogicName = "smart_artel",
+            },
+        };
 
         var owned = _context.PlayerBlueprints.Where(x => x.PlayerId == playerId).Select(x => x.BlueprintId).ToArray();
         var reputations = _context.NeighborReputations.Where(x => x.PlayerId == playerId).ToArray();
@@ -103,18 +130,21 @@ public class VillageLevelCalculator
         var domikTypes = _resourceManager.GetDomikTypes();
         var blueprintUnlocks = _resourceManager.GetBlueprints()
             .Where(b => !owned.Contains(b.Id))
-            .Select(b => new { b, neighbor = neighbors.First(n => n.Id == b.NeighborId), points = reputations.FirstOrDefault(r => r.NeighborId == b.NeighborId)?.Points ?? 0 })
+            .Select(b => new { b, neighbor = neighbors.First(n => n.Id == b.NeighborId), domik = domikTypes.First(d => d.Id == b.DomikTypeId), points = reputations.FirstOrDefault(r => r.NeighborId == b.NeighborId)?.Points ?? 0 })
             .Where(x => x.points < x.b.ReputationThreshold)
             .Select(x => new VillageLevelUnlock
             {
                 Level = null,
-                Label = domikTypes.First(d => d.Id == x.b.DomikTypeId).Name,
+                Label = x.domik.Name,
                 Requirement = $"чертёж: {x.neighbor.Name}, репутация {x.points}/{x.b.ReputationThreshold}",
+                Unlocked = false,
+                Kind = "building",
+                LogicName = x.domik.LogicName,
             });
 
         return domikUnlocks
             .Concat(neighborUnlocks)
-            .Concat(smartAutoUnlock)
+            .Concat(smartArtel)
             .OrderBy(x => x.Level)
             .ThenBy(x => x.Label)
             .Concat(blueprintUnlocks.OrderBy(x => x.Requirement).ThenBy(x => x.Label))

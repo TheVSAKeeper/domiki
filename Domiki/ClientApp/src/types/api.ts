@@ -173,6 +173,9 @@ export const villageLevelUnlockSchema = z.object({
     level: z.number().nullable(),
     label: z.string(),
     requirement: z.string().nullable(),
+    unlocked: z.boolean(),
+    kind: z.string(),
+    logicName: z.string().nullable(),
 });
 export type VillageLevelUnlockDto = z.infer<typeof villageLevelUnlockSchema>;
 
@@ -183,7 +186,7 @@ export const villageLevelSchema = z.object({
     reputation: z.number(),
     comfort: z.number(),
     visitsSinceBigGift: z.number(),
-    upcomingUnlocks: z.array(villageLevelUnlockSchema),
+    unlocks: z.array(villageLevelUnlockSchema),
 });
 export type VillageLevelDto = z.infer<typeof villageLevelSchema>;
 
