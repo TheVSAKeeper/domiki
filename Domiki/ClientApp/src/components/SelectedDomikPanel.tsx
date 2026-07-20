@@ -1,7 +1,9 @@
-import { useReducer } from 'react';
-import type { Dispatch } from 'react';
+import { useReducer, useState } from 'react';
+import type { Dispatch, KeyboardEvent } from 'react';
 import ArrowUpIcon from 'pixelarticons/svg/arrow-up.svg?react';
+import BriefcaseIcon from 'pixelarticons/svg/briefcase.svg?react';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
+import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import CloseIcon from 'pixelarticons/svg/close.svg?react';
 import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
 import InfoBoxIcon from 'pixelarticons/svg/info-box.svg?react';
@@ -258,6 +260,68 @@ const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, wor
     );
 };
 
+type PanelView = 'work' | 'grow';
+type GrowPip = 'none' | 'available' | 'affordable' | 'building';
+
+interface PanelTabsProps {
+    active: PanelView;
+    onSelect: (view: PanelView) => void;
+    workPip: boolean;
+    growPip: GrowPip;
+}
+
+const growPipLabel: Record<GrowPip, string> = {
+    none: '',
+    available: ', есть улучшение',
+    affordable: ', улучшение по карману',
+    building: ', идёт улучшение',
+};
+
+const PanelTabs = ({ active, onSelect, workPip, growPip }: PanelTabsProps) => {
+    const order: PanelView[] = ['work', 'grow'];
+    const onKey = (event: KeyboardEvent<HTMLButtonElement>, view: PanelView) => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+            return;
+        }
+        event.preventDefault();
+        const other: PanelView = view === 'work' ? 'grow' : 'work';
+        const next: PanelView = event.key === 'Home' ? 'work' : event.key === 'End' ? 'grow' : other;
+        onSelect(next);
+        requestAnimationFrame(() => document.getElementById(`panel-tab-${next}`)?.focus());
+    };
+
+    return (
+        <div className="panel-tabs" role="tablist" aria-label="Разделы постройки">
+            {order.map(view => {
+                const isActive = view === active;
+                const isWork = view === 'work';
+                const showPip = !isActive && (isWork ? workPip : growPip !== 'none');
+                const pipClass = isWork ? 'panel-tab-pip--idle' : `panel-tab-pip--${growPip}`;
+                const label = isWork ? 'Дела' : 'Рост';
+                const ariaLabel = isWork
+                    ? workPip ? 'Дела, есть свободный слот' : undefined
+                    : growPip === 'none' ? undefined : `Рост${growPipLabel[growPip]}`;
+                return (
+                    <button key={view} type="button" role="tab" id={`panel-tab-${view}`}
+                        aria-selected={isActive}
+                        aria-controls="panel-view"
+                        aria-label={ariaLabel}
+                        tabIndex={isActive ? 0 : -1}
+                        className={'panel-tab' + (isActive ? ' panel-tab-active' : '')}
+                        onKeyDown={event => onKey(event, view)}
+                        onClick={() => onSelect(view)}>
+                        {isWork
+                            ? <BriefcaseIcon className="panel-tab-ico" aria-hidden="true" />
+                            : <ArrowUpIcon className="panel-tab-ico" aria-hidden="true" />}
+                        {label}
+                        {showPip && <span className={'panel-tab-pip ' + pipClass} aria-hidden="true" />}
+                    </button>
+                );
+            })}
+        </div>
+    );
+};
+
 interface UpgradeBenefits {
     plodderDelta: number;
     manufactureDelta: number;
@@ -288,6 +352,12 @@ interface SelectedDomikPanelProps {
 
 export const SelectedDomikPanel = ({ selected, resources, resourceTypes, receipts, workers, goals, villageLevel, currentWeather, now, goldValue, goldType, plodderFree, displayName, onClose, onUpgrade, onHurryDomik, onStartManufacture, onHurryManufacture, onToggleManufactureRepeat }: SelectedDomikPanelProps) => {
     const [ui, dispatch] = useReducer(receiptUiReducer, initialReceiptUiState);
+    const [tab, setTab] = useState<PanelView>('work');
+    const [tabbedDomikId, setTabbedDomikId] = useState(selected?.domik.id);
+    if (selected?.domik.id !== tabbedDomikId) {
+        setTabbedDomikId(selected?.domik.id);
+        setTab('work');
+    }
 
     const upgradeBenefits: UpgradeBenefits | null = selected?.upgrade == null
         ? null
@@ -324,6 +394,25 @@ export const SelectedDomikPanel = ({ selected, resources, resourceTypes, receipt
         .map(item => `${resourceTypes.find(type => type.id === item.typeId)?.name ?? `ресурс #${item.typeId}`} ×${item.value}`)
         .join(', ');
 
+    const isBuilding = selected?.domik.finishDate != null;
+    const hasGrow = selected?.upgrade != null || isBuilding;
+    const hasWork = selected != null && (selected.receipts.length > 0 || runningManufactures > 0);
+    const showTabs = hasWork && hasGrow;
+    const activeView: PanelView = showTabs ? tab : hasWork ? 'work' : 'grow';
+    const idlePip = hasWork && maxManufactures > 0 && runningManufactures < maxManufactures && selected.receipts.length > 0;
+    const growPip: GrowPip = isBuilding
+        ? 'building'
+        : selected?.upgrade != null
+            ? selected.upgrade.hasResources ? 'affordable' : 'available'
+            : 'none';
+    const runningTimers = (selected?.domik.manufactures ?? [])
+        .map(manufacture => remainingSeconds(manufacture.finishDate, now))
+        .filter(seconds => seconds > 0);
+    const soonestManufacture = runningTimers.length > 0 ? Math.min(...runningTimers) : null;
+    const statusTimer = isBuilding
+        ? selected.remainingText ?? null
+        : soonestManufacture != null ? formatDuration(soonestManufacture) : null;
+
     return (
         <aside className={'actions pixel-panel' + (selected == null ? ' actions--empty' : '')}>
             <button type="button" className="actions-close" title="Закрыть" onClick={onClose}>
@@ -345,8 +434,32 @@ export const SelectedDomikPanel = ({ selected, resources, resourceTypes, receipt
                                 </span>
                             }
                         </h3>
+                        {(maxManufactures > 0 || statusTimer != null) &&
+                            <div className="panel-status">
+                                {maxManufactures > 0 &&
+                                    <span className={'panel-status-item' + (atManufactureCap ? ' panel-status-item--full' : '')}
+                                        title="Занятые слоты производства">
+                                        <GridIcon className="panel-status-ico" aria-hidden="true" />
+                                        {runningManufactures} / {maxManufactures}
+                                    </span>
+                                }
+                                {statusTimer != null &&
+                                    <span className="panel-status-item"
+                                        title={isBuilding ? 'До конца улучшения' : 'До ближайшей готовой смены'}>
+                                        {isBuilding
+                                            ? <ArrowUpIcon className="panel-status-ico" aria-hidden="true" />
+                                            : <ClockIcon className="panel-status-ico" aria-hidden="true" />}
+                                        {statusTimer}
+                                    </span>
+                                }
+                            </div>
+                        }
+                        {showTabs &&
+                            <PanelTabs active={activeView} onSelect={setTab} workPip={idlePip} growPip={growPip} />
+                        }
                     </div>
-                    {selected.upgrade != null &&
+                    <div className="panel-view" id="panel-view" role={showTabs ? 'tabpanel' : undefined}>
+                    {activeView === 'grow' && selected.upgrade != null &&
                         <div className="panel-block">
                             <div className="upgrade-row">
                                 <span className="panel-label">Улучшение до ур. {selected.upgrade.nextLevel}</span>
@@ -383,7 +496,7 @@ export const SelectedDomikPanel = ({ selected, resources, resourceTypes, receipt
                             </ActionButton>
                         </div>
                     }
-                    {selected.domik.finishDate != null &&
+                    {activeView === 'grow' && selected.domik.finishDate != null &&
                         <div className="panel-block">
                             {(() => {
                                 const hurryCost = instaFinishCost(selected.domik.finishDate, now);
@@ -411,17 +524,27 @@ export const SelectedDomikPanel = ({ selected, resources, resourceTypes, receipt
                             })()}
                         </div>
                     }
-                    {selected.receipts.length > 0 &&
+                    {activeView === 'work' && selected.domik.manufactures != null && selected.domik.manufactures.length > 0 &&
                         <div className="panel-block">
-                            <div className="panel-block-head">
-                                <span className="panel-label">Запустить производство</span>
-                                {maxManufactures > 0 &&
-                                    <span className={'manufacture-slots' + (atManufactureCap ? ' manufacture-slots-full' : '')}
-                                        title="Одновременно идущих производств">
-                                        слоты {runningManufactures} / {maxManufactures}
-                                    </span>
+                            <span className="panel-label">Идёт сейчас</span>
+                            {selected.domik.manufactures.map(manufacture => {
+                                const receipt = receipts.find(x => x.id === manufacture.receiptId);
+                                if (receipt == null) {
+                                    return null;
                                 }
-                            </div>
+
+                                return (
+                                    <ManufactureBox key={manufacture.id} manufacture={manufacture} receipt={receipt}
+                                        now={now} remainingText={formatDuration(remainingSeconds(manufacture.finishDate, now))}
+                                        goldValue={goldValue} goldType={goldType} onHurry={onHurryManufacture}
+                                        onToggleAutoRepeat={onToggleManufactureRepeat} />
+                                );
+                            })}
+                        </div>
+                    }
+                    {activeView === 'work' && selected.receipts.length > 0 &&
+                        <div className="panel-block">
+                            <span className="panel-label">Запустить производство</span>
                             <div className="receipt-list">
                                 {selected.receipts.map(receipt =>
                                     <ReceiptRow key={receipt.id}
@@ -453,24 +576,7 @@ export const SelectedDomikPanel = ({ selected, resources, resourceTypes, receipt
                             </div>
                         </div>
                     }
-                    {selected.domik.manufactures != null && selected.domik.manufactures.length > 0 &&
-                        <div className="panel-block">
-                            <span className="panel-label">Сейчас производится {runningManufactures} / {maxManufactures}</span>
-                            {selected.domik.manufactures.map(manufacture => {
-                                const receipt = receipts.find(x => x.id === manufacture.receiptId);
-                                if (receipt == null) {
-                                    return null;
-                                }
-
-                                return (
-                                    <ManufactureBox key={manufacture.id} manufacture={manufacture} receipt={receipt}
-                                        now={now} remainingText={formatDuration(remainingSeconds(manufacture.finishDate, now))}
-                                        goldValue={goldValue} goldType={goldType} onHurry={onHurryManufacture}
-                                        onToggleAutoRepeat={onToggleManufactureRepeat} />
-                                );
-                            })}
-                        </div>
-                    }
+                    </div>
                 </div>
             }
         </aside>

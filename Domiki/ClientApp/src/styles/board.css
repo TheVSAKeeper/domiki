@@ -757,7 +757,8 @@
     border-bottom: 2px solid rgba(51, 41, 26, .18);
 }
 
-    .actions-heading + .panel-block {
+    .actions-heading + .panel-block,
+    .panel-view > .panel-block:first-child {
         margin-top: 12px;
         padding-top: 0;
         border-top: none;
@@ -771,6 +772,100 @@
     display: inline-block;
     vertical-align: middle;
     margin-left: 8px;
+}
+
+.panel-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin-top: 8px;
+}
+
+.panel-status-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--pixel);
+    font-size: 11px;
+    color: var(--pine-dark);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.panel-status-item--full {
+    color: var(--roof);
+}
+
+.panel-status-ico {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.panel-tabs {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.panel-tab {
+    position: relative;
+    display: inline-flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 6px 10px;
+    font: inherit;
+    font-family: var(--pixel);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+.panel-tab-active {
+    color: var(--plank);
+    background: var(--pine);
+}
+
+.panel-tab:focus-visible {
+    outline: 3px solid var(--coin);
+    outline-offset: -3px;
+}
+
+.panel-tab-ico {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.panel-tab-pip {
+    position: absolute;
+    top: 4px;
+    right: 5px;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--ink);
+    background: var(--pine-dark);
+}
+
+.panel-tab-pip--idle,
+.panel-tab-pip--available {
+    background: var(--pine-dark);
+}
+
+.panel-tab-pip--affordable {
+    background: var(--coin);
+    box-shadow: 0 0 0 2px rgba(231, 168, 59, .6);
+}
+
+.panel-tab-pip--building {
+    background: var(--roof);
 }
 
     .actions-close:hover {
@@ -801,29 +896,6 @@
     font-size: 11px;
     color: var(--ink);
     margin-bottom: 10px;
-}
-
-.panel-block-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 8px 12px;
-    margin-bottom: 10px;
-}
-
-    .panel-block-head .panel-label {
-        margin-bottom: 0;
-    }
-
-.manufacture-slots {
-    font-family: var(--pixel);
-    font-size: 11px;
-    color: var(--pine-dark);
-    white-space: nowrap;
-}
-
-.manufacture-slots-full {
-    color: var(--roof);
 }
 
 .panel-block > .btn-game {
