@@ -82,7 +82,7 @@ public sealed class PacingTests
     }
 
     /// <summary>
-    /// Запуск рецепта на рыночном дворе списывает ровно 35 монет и производит 1 единицу указанного ресурса.
+    /// Запуск рецепта на рыночном дворе списывает ровно 45 монет и производит 1 единицу указанного ресурса.
     /// </summary>
     /// <param name="receiptId">Идентификатор рецепта.</param>
     /// <param name="resourceTypeId">Тип производимого ресурса.</param>
@@ -91,7 +91,7 @@ public sealed class PacingTests
     [TestCase(ReceiptIds.BuyClay, ResourceIds.Clay)]
     public void BuyReceiptWritesOffCoinsAndProducesResourceTest(int receiptId, int resourceTypeId)
     {
-        const int purchaseCost = 35;
+        const int purchaseCost = 45;
         const int producedAmount = 1;
 
         var player = TestPlayer.Create()
@@ -100,7 +100,7 @@ public sealed class PacingTests
 
         var marketId = player.DomikId(DomikIds.Market);
         player.Upgrade(marketId);
-        player.WithResource(ResourceIds.Coin, 505)
+        player.WithResource(ResourceIds.Coin, 515)
             .WithResource(ResourceIds.Stone, 15)
             .WithResource(ResourceIds.Wood, 15);
         player.Upgrade(marketId);
