@@ -82,6 +82,8 @@ public class ResourceManager
             12 => 45,
             13 => 10,
             16 => 10,
+            18 => 10,
+            19 => 40,
             15 => 20,
             _ => BaseMarketValue,
         };

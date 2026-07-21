@@ -19,6 +19,8 @@ public static class ResourceIds
     public const int Bread = 15;
     public const int Ore = 16;
     public const int Iron = 17;
+    public const int Wool = 18;
+    public const int Cloth = 19;
 }
 
 public static class DomikIds
@@ -39,6 +41,7 @@ public static class DomikIds
     public const int Field = 14;
     public const int Mill = 15;
     public const int Bakery = 16;
+    public const int Sheepfold = 17;
 }
 
 /// <summary>
@@ -137,6 +140,11 @@ public static class ReceiptIds
     public const int SellIron = 65;
     public const int SellIronX10 = 66;
     public const int SellOreX10 = 67;
+    public const int SheepGraze = 68;
+    public const int SheepShear = 69;
+    public const int MakeCloth = 70;
+    public const int SellWool = 71;
+    public const int SellCloth = 72;
 }
 
 public static class BlueprintIds
