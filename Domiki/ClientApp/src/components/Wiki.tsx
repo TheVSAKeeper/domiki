@@ -7,8 +7,8 @@ import { domikLore } from '../utils/domikLore';
 import { unlockLore } from '../utils/unlockLore';
 import { resourceLore } from '../utils/resourceLore';
 import { strongestWeatherEffect } from '../utils/game';
-import type { DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, VillageLevelDto, WeatherStateDto } from '../types/api';
-import { DecorSprite, DomikSprite, MechanicSprite, ResourceSprite, WeatherSprite } from './sprites';
+import type { ConvoyDto, DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, VillageLevelDto, WeatherStateDto } from '../types/api';
+import { DecorSprite, DomikSprite, MechanicSprite, NeighborSprite, ResourceSprite, WeatherSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import { PixelLoader } from './PixelLoader';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
@@ -24,6 +24,7 @@ interface Catalog {
     weather: WeatherStateDto;
     decor: DecorStateDto;
     villageLevel: VillageLevelDto;
+    convoys: ConvoyDto[];
 }
 
 interface Mechanic {
@@ -55,6 +56,13 @@ const MECHANICS: Mechanic[] = [
         name: 'Поручения соседей',
         teaser: 'квест-офферы на доске заказов',
         description: 'С обжитости 10 добор доски заказов может вместо обычного заказа принести поручение – квест с шансом 20 %: сосед просит помочь сыскать пропажу. Предложение висит 8 часов. Приняв, выбираешь зацепку (2 / 4 / 8 часов поисков, +3 / +5 / +8 репутации) и отправляешь 1–2 свободных трудяг; отказ от оффера и отзыв принятого – без штрафа. Награда – 10 монет за трудяго-час плюс репутация по зацепке, а с шансом 20 % (черта Везучий удваивает) поиски приносят ещё и бонусный ресурс соседа.',
+    },
+    {
+        key: 'convoy',
+        logic: 'market',
+        name: 'Обозы соседей',
+        teaser: 'докупить сырьё за монеты',
+        description: 'Обоз – прилавок соседа на твоей доске заказов: то, чем выселки богаты, можно докупить за монеты мгновенно, без трудяги, станка и ожидания. Цена кусачая – впятеро против рыночной, – и это намеренно: обоз не заменяет своё производство, а выручает, когда до заказа не хватает пары кирпичей, а ждать целую смену некогда. Заодно это главный сток монет: копить их без дела больше незачем.\n\nОбоз пригоняет только тот сосед, кто тебе доверяет – с репутации 5; до этого прилавок закрыт, и открывают его заказами. Основной товар соседа в продаже сразу, а с репутации 20 рядом появляется второй. Взять можно 3 штуки в сутки у каждого соседа, а с репутации 40 – 5. Сутки скользящие: отсчёт идёт от первой покупки, а не от полуночи, и на прилавке видно, сколько осталось и через сколько обоз вернётся. Монеты и золото обоз не возит – их так не выменять.',
     },
     {
         key: 'incidents',
@@ -338,9 +346,11 @@ interface WikiMechanicsSectionProps {
     weather: WeatherStateDto;
     decor: DecorStateDto;
     domikTypes: DomikTypeDto[];
+    convoys: ConvoyDto[];
+    resourceTypes: ResourceTypeDto[];
 }
 
-const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes }: WikiMechanicsSectionProps) => {
+const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes, convoys, resourceTypes }: WikiMechanicsSectionProps) => {
     const [openMechanics, setOpenMechanics] = useState<ReadonlySet<string>>(new Set());
     const unlocks = villageLevel.unlocks;
     const unlocked = unlocks.filter(unlock => unlock.unlocked);
@@ -488,6 +498,39 @@ const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes }: Wiki
                                             )}
                                         </div>
                                     )}
+                                    {m.key === 'convoy' && convoys.length > 0 && (
+                                        <div className="wiki-mechanic-live">
+                                            <span className="wiki-mechanic-live-label">Обозы твоих соседей сейчас</span>
+                                            <ul className="wiki-convoy-list">
+                                                {convoys.map(convoy => (
+                                                    <li key={convoy.neighborId} className={'wiki-convoy-row' + (convoy.isLocked ? ' wiki-convoy-row-locked' : '')}>
+                                                        <NeighborSprite logicName={convoy.neighborLogicName} size={24} className="neighbor-ico" aria-hidden="true" />
+                                                        <span className="wiki-convoy-name">{convoy.neighborName}</span>
+                                                        {convoy.isLocked
+                                                            ? <span className="wiki-convoy-note"><LockIcon aria-hidden="true" />обоз закрыт – мало доверия</span>
+                                                            : <>
+                                                                <span className="wiki-chips">
+                                                                    {convoy.items.map(item => {
+                                                                        const resourceType = resourceTypes.find(x => x.id === item.resourceTypeId);
+                                                                        if (resourceType == null) {
+                                                                            return null;
+                                                                        }
+                                                                        return (
+                                                                            <span key={item.resourceTypeId} className="wiki-chip" title={`${resourceType.name} за ${item.price}`}>
+                                                                                <ResourceSprite logicName={resourceType.logicName} aria-hidden="true" />
+                                                                                <ResourceSprite logicName="coin" aria-hidden="true" />
+                                                                                {item.price}
+                                                                            </span>
+                                                                        );
+                                                                    })}
+                                                                </span>
+                                                                <span className="wiki-convoy-note">осталось {convoy.remaining} из {convoy.limit}</span>
+                                                            </>}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
                                     {m.key === 'weather' && (
                                         <div className="wiki-mechanic-live">
                                             {weather.current != null && (
@@ -566,6 +609,7 @@ export const Wiki = () => {
                     weather: state.weather,
                     decor: state.decor,
                     villageLevel: state.villageLevel,
+                    convoys: state.convoys,
                 });
             } catch (err) {
                 if (err instanceof DOMException && err.name === 'AbortError') {
@@ -584,7 +628,7 @@ export const Wiki = () => {
         return <div className="wiki"><PixelLoader label="Загрузка справочника…" /></div>;
     }
 
-    const { domikTypes, resourceTypes, receipts, weather, decor, villageLevel } = catalog;
+    const { domikTypes, resourceTypes, receipts, weather, decor, villageLevel, convoys } = catalog;
 
     return (
         <div className="wiki">
@@ -617,7 +661,7 @@ export const Wiki = () => {
                 </div>
             </section>
 
-            <WikiMechanicsSection villageLevel={villageLevel} weather={weather} decor={decor} domikTypes={domikTypes} />
+            <WikiMechanicsSection villageLevel={villageLevel} weather={weather} decor={decor} domikTypes={domikTypes} convoys={convoys} resourceTypes={resourceTypes} />
         </div>
     );
 };
