@@ -5,17 +5,28 @@ import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
 import ChevronLeftIcon from 'pixelarticons/svg/chevron-left.svg?react';
 import ChevronRightIcon from 'pixelarticons/svg/chevron-right.svg?react';
-import RepeatIcon from 'pixelarticons/svg/repeat.svg?react';
 import BellIcon from 'pixelarticons/svg/bell.svg?react';
 import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
-import type { DomikDto, DomikTypeDto, ReceiptDto, ResourceDto, WeatherPeriodDto, WorkerDto } from '../types/api';
+import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ResourceDto, ResourceTypeDto, WeatherPeriodDto, WorkerDto } from '../types/api';
 import type { DomikNamer } from '../utils/domikNames';
-import { canAffordUpgrade, sortDomiks } from '../utils/game';
+import { canAffordUpgrade, manufactureProgressPercent, progressPercent, sortDomiks } from '../utils/game';
 import type { DomikSortMode } from '../utils/game';
-import { formatDuration, remainingSeconds } from '../utils/time';
-import { AbstractSprite, WorkerSprite } from './sprites';
+import { formatClock, remainingSeconds } from '../utils/time';
+import { WorkerSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
-import { UpgradeBox } from './UpgradeBox';
+import { ProgressBar } from './ProgressBar';
+import { PlotSign } from './PlotSign';
+import type { PlotState } from './PlotSign';
+
+const CREW_FACES = 5;
+
+const nearestManufacture = (manufactures: ManufactureDto[], now: number) => manufactures.reduce<ManufactureDto | null>(
+    (nearest, manufacture) => remainingSeconds(manufacture.finishDate, now) <= 0
+        ? nearest
+        : nearest == null || Date.parse(manufacture.finishDate) < Date.parse(nearest.finishDate)
+            ? manufacture
+            : nearest,
+    null);
 
 type SortModeEntry = { mode: DomikSortMode; label: string; Icon: typeof StoreIcon };
 
@@ -88,6 +99,7 @@ interface DomikGridSectionProps {
     domikTypes: DomikTypeDto[];
     receipts: ReceiptDto[];
     resources: ResourceDto[];
+    resourceTypes: ResourceTypeDto[];
     currentWeather: WeatherPeriodDto | null;
     now: number;
     sortMode: DomikSortMode;
@@ -97,7 +109,7 @@ interface DomikGridSectionProps {
     workers: WorkerDto[];
 }
 
-export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, currentWeather, now, sortMode, selectedDomikId, displayName: namer, onSelect, workers }: DomikGridSectionProps) => {
+export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, resourceTypes, currentWeather, now, sortMode, selectedDomikId, displayName: namer, onSelect, workers }: DomikGridSectionProps) => {
     const [rowsPerPage, setRowsPerPage] = useState<RowsPerPage>(() => {
         const saved = localStorage.getItem('domik-page-size');
         if (saved === '2') return 2;
@@ -193,13 +205,14 @@ export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, curr
                             ? `Автоповтор: ${repeatedRecipeNames.join(', ')}`
                             : null;
                         const durationSecondsText = domik.finishDate != null
-                            ? formatDuration(remainingSeconds(domik.finishDate, now))
+                            ? formatClock(remainingSeconds(domik.finishDate, now))
                             : null;
                         const cardWeather = currentWeather?.effects.find(
                             effect => effect.domikTypeId === domik.typeId && effect.outputPercent !== 100) ?? null;
-                        const crew = workers
-                            .filter(worker => worker.manufactureId != null && (domik.manufactures ?? []).some(manufacture => manufacture.id === worker.manufactureId))
-                            .slice(0, 4);
+                        const busyCrew = workers
+                            .filter(worker => worker.manufactureId != null && (domik.manufactures ?? []).some(manufacture => manufacture.id === worker.manufactureId));
+                        const crew = busyCrew.slice(0, CREW_FACES);
+                        const crewExtra = busyCrew.length - crew.length;
                         const displayName = namer(domik.typeId, domik.id, domikType.name, domikType.logicName);
                         const upgradeAvailable = canAffordUpgrade(domik, domikType, resources);
                         const cardStatus = domik.finishDate != null
@@ -209,44 +222,65 @@ export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, curr
                                 : upgradeAvailable
                                     ? 'доступно улучшение'
                                     : 'готов к работе';
+                        const nextManufacture = nearestManufacture(domik.manufactures ?? [], now);
+                        const nextOutputId = nextManufacture == null
+                            ? null
+                            : receipts.find(receipt => receipt.id === nextManufacture.receiptId)?.outputResources[0]?.typeId ?? null;
+                        const nextOutput = nextOutputId == null ? null : resourceTypes.find(type => type.id === nextOutputId) ?? null;
+                        const plotState: PlotState = domik.finishDate != null
+                            ? { kind: 'upgrading', label: `Ур. ${domik.level + 1}`, output: null, timer: durationSecondsText, slots: null, repeat: false }
+                            : hasManufacture
+                                ? {
+                                    kind: 'working',
+                                    label: nextOutput?.name ?? 'Работает',
+                                    output: nextOutput?.logicName ?? null,
+                                    timer: nextManufacture == null ? null : formatClock(remainingSeconds(nextManufacture.finishDate, now)),
+                                    slots: activeCount > 1 ? activeCount : null,
+                                    repeat: repeatTitle != null,
+                                }
+                                : upgradeAvailable
+                                    ? { kind: 'upgradeable', label: 'Улучшить', output: null, timer: null, slots: null, repeat: false }
+                                    : { kind: 'idle', label: 'Свободен', output: null, timer: null, slots: null, repeat: false };
+                        const progress = domik.finishDate != null
+                            ? domik.upgradeSeconds == null ? null : progressPercent(domik.finishDate, domik.upgradeSeconds, now)
+                            : nextManufacture == null ? null : manufactureProgressPercent(nextManufacture, now);
                         return (
                             <button key={domik.id} type="button"
-                                className={'plot' + (selectedDomikId === domik.id ? ' plot-selected' : '')}
-                                aria-label={`${displayName}, уровень ${domik.level}, ${cardStatus}`}
+                                className={'plot' + (plotState.kind === 'upgradeable' ? ' plot-callout' : '') + (selectedDomikId === domik.id ? ' plot-selected' : '')}
+                                aria-label={`${displayName}, уровень ${domik.level}, ${cardStatus}${busyCrew.length > 0 ? `, трудяг ${busyCrew.length}` : ''}`}
                                 aria-pressed={selectedDomikId === domik.id}
                                 onClick={() => onSelect(domik.id, domikType.logicName)}>
-                                {cardWeather != null &&
-                                    <span className={'plot-weather' + (cardWeather.outputPercent > 100 ? ' plot-weather-buff' : ' plot-weather-nerf')}
-                                        title={`Погода: ${cardWeather.outputPercent > 100 ? "+" : ""}${cardWeather.outputPercent - 100}% выход`}>
-                                        {cardWeather.outputPercent > 100 ? '+' : ''}{cardWeather.outputPercent - 100}%
+                                <span className="plot-head">
+                                    <span className="plot-name">{displayName}</span>
+                                    <span className="plot-marks">
+                                        <span className="plot-level" title={`Уровень ${domik.level}`}>{domik.level}</span>
+                                        {cardWeather != null &&
+                                            <span className={'plot-weather' + (cardWeather.outputPercent > 100 ? ' plot-weather-buff' : ' plot-weather-nerf')}
+                                                title={`Погода: ${cardWeather.outputPercent > 100 ? "+" : ""}${cardWeather.outputPercent - 100}% выход`}>
+                                                {cardWeather.outputPercent > 100 ? '+' : ''}{cardWeather.outputPercent - 100}%
+                                            </span>
+                                        }
                                     </span>
-                                }
-                                <AnimatedDomikSprite mode="levelup" className="plot-sprite" logicName={domikType.logicName} level={domik.level} working={hasManufacture} intensity={intensity} />
-                                {crew.length > 0 &&
-                                    <span className="plot-crew">
-                                        {crew.map(worker =>
-                                            <span key={worker.id} className="plot-crew-face" title={worker.name}>
-                                                <WorkerSprite name={worker.name} state="working" data-size="32" aria-hidden="true" />
-                                            </span>,
-                                        )}
-                                    </span>
-                                }
-                                <span className="plot-name">{displayName}</span>
-                                <UpgradeBox durationSeconds={durationSecondsText} level={domik.level} />
-                                <span className="plot-status">
-                                    {upgradeAvailable &&
-                                        <img className="status-icon" src="/images/upgrade_available.png" alt="" aria-hidden="true" title="Доступно улучшение" />
-                                    }
-                                    {domik.finishDate != null &&
-                                        <img className="status-icon icon-busy" src="/images/upgrade_in_process.png" alt="" aria-hidden="true" title="Идёт улучшение" />
-                                    }
-                                    {hasManufacture &&
-                                        <AbstractSprite logicName="production_recipe" size={24} className="status-icon" aria-hidden="true" />
-                                    }
-                                    {repeatTitle != null &&
-                                        <RepeatIcon className="status-icon status-repeat" aria-hidden="true" title={repeatTitle} />
+                                </span>
+                                <span className="plot-yard">
+                                    <AnimatedDomikSprite mode="levelup" className="plot-sprite" logicName={domikType.logicName} level={domik.level} working={hasManufacture} intensity={intensity} />
+                                    {crew.length > 0 &&
+                                        <span className="plot-crew" title={`Трудяг на работе: ${busyCrew.length}`}>
+                                            {crew.map(worker =>
+                                                <span key={worker.id} className="plot-crew-face">
+                                                    <WorkerSprite name={worker.name} state="working" data-size="32" aria-hidden="true" />
+                                                </span>,
+                                            )}
+                                            {crewExtra > 0 &&
+                                                <span className="plot-crew-more">+{crewExtra}</span>
+                                            }
+                                        </span>
                                     }
                                 </span>
+                                {progress != null &&
+                                    <ProgressBar className={'plot-progress plot-progress-' + plotState.kind} value={progress} max={100} />
+                                }
+                                <PlotSign {...plotState} />
                             </button>
                         );
                     })

@@ -6,6 +6,7 @@ import { ManufactureBox } from './ManufactureBox';
 const manufacture: ManufactureDto = {
     id: 17,
     finishDate: '2026-07-13T12:30:00.000Z',
+    durationSeconds: 3600,
     plodderCount: 2,
     receiptId: 4,
     autoRepeat: true,

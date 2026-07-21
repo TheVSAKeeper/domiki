@@ -234,6 +234,7 @@ public class DomikManager
                         {
                             Id = x.Id,
                             FinishDate = x.FinishDate,
+                            DurationSeconds = x.DurationSeconds,
                             PlodderCount = x.PlodderCount,
                             ReceiptId = x.ReceiptId,
                             AutoRepeat = x.AutoRepeat,

@@ -85,7 +85,7 @@ describe('computePlodderCount', () => {
     it('sums modificator values for domiks with a level and subtracts working manufactures', () => {
         const domiks: DomikDto[] = [
             { id: 1, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null },
-            { id: 2, typeId: 1, level: 2, finishDate: null, upgradeSeconds: null, manufactures: [{ id: 1, finishDate: '2026-01-01T00:00:00.000Z', plodderCount: 2, receiptId: 1, autoRepeat: false }] },
+            { id: 2, typeId: 1, level: 2, finishDate: null, upgradeSeconds: null, manufactures: [{ id: 1, finishDate: '2026-01-01T00:00:00.000Z', durationSeconds: 10, plodderCount: 2, receiptId: 1, autoRepeat: false }] },
         ];
 
         expect(computePlodderCount(domiks, domikTypes)).toEqual({ max: 8, free: 6 });
@@ -209,18 +209,6 @@ describe('zealApplies', () => {
 });
 
 describe('manufactureProgressPercent', () => {
-    const receipt: ReceiptDto = {
-        id: 1,
-        name: 'Доски',
-        logicName: 'planks',
-        inputResources: [],
-        optionalInputResources: [],
-        outputResources: [],
-        durationSeconds: 100,
-        outputBonusPercent: 0,
-        plodderCount: 1,
-    };
-
     it.each<[number, number]>([
         [0, 100],
         [50, 50],
@@ -229,8 +217,8 @@ describe('manufactureProgressPercent', () => {
         [-10, 100],
     ])('finishDate %i seconds from now -> %i%%', (secondsFromNow, expected) => {
         const now = 0;
-        const manufacture: ManufactureDto = { id: 1, finishDate: new Date(secondsFromNow * 1000).toISOString(), plodderCount: 1, receiptId: 1, autoRepeat: false };
-        expect(manufactureProgressPercent(manufacture, receipt, now)).toBe(expected);
+        const manufacture: ManufactureDto = { id: 1, finishDate: new Date(secondsFromNow * 1000).toISOString(), durationSeconds: 100, plodderCount: 1, receiptId: 1, autoRepeat: false };
+        expect(manufactureProgressPercent(manufacture, now)).toBe(expected);
     });
 });
 
@@ -277,7 +265,7 @@ describe('sortDomiks', () => {
     const upgradeReady: DomikDto = { id: 2, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null };
     const producing: DomikDto = {
         id: 3, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null,
-        manufactures: [{ id: 1, finishDate: '2026-01-01T00:00:00.000Z', plodderCount: 1, receiptId: 1, autoRepeat: false }],
+        manufactures: [{ id: 1, finishDate: '2026-01-01T00:00:00.000Z', durationSeconds: 10, plodderCount: 1, receiptId: 1, autoRepeat: false }],
     };
     const upgrading: DomikDto = { id: 4, typeId: 1, level: 1, finishDate: '2026-01-01T00:00:00.000Z', upgradeSeconds: 60, manufactures: null };
     const poorResources: ResourceDto[] = [{ typeId: 1, value: 0 }];

@@ -28,7 +28,7 @@ interface ManufactureBoxProps {
 
 export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldValue, goldType, onHurry, onToggleAutoRepeat }: ManufactureBoxProps) => {
     const [repeatExpanded, setRepeatExpanded] = useState(false);
-    const percent = manufactureProgressPercent(manufacture, receipt, now);
+    const percent = manufactureProgressPercent(manufacture, now);
     const hurryCost = instaFinishCost(manufacture.finishDate, now);
     const tooFar = !canInstaFinish(manufacture.finishDate, now);
     const notEnoughGold = goldValue < hurryCost;

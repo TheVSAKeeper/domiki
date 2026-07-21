@@ -18,6 +18,7 @@ public static class DomikDtoExtensions
                 {
                     Id = x.Id,
                     FinishDate = DateTimeHelper.AsUtc(x.FinishDate),
+                    DurationSeconds = x.DurationSeconds,
                     PlodderCount = x.PlodderCount,
                     ReceiptId = x.ReceiptId,
                     AutoRepeat = x.AutoRepeat,

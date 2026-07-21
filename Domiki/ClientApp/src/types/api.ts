@@ -23,6 +23,7 @@ export type ModificatorDto = z.infer<typeof modificatorSchema>;
 export const manufactureSchema = z.object({
     id: z.number(),
     finishDate: z.string(),
+    durationSeconds: z.number(),
     plodderCount: z.number(),
     receiptId: z.number(),
     autoRepeat: z.boolean(),

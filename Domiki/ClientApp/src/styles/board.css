@@ -159,7 +159,7 @@
 
 .domiks {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(136px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 16px;
     position: relative;
 }
@@ -548,10 +548,9 @@
 
 .plot {
     position: relative;
-    padding: 12px 8px 24px;
+    padding: 6px;
     display: flex;
     flex-direction: column;
-    align-items: center;
     gap: 6px;
     font: inherit;
     color: inherit;
@@ -559,7 +558,6 @@
     background: var(--plank);
     border: 3px solid var(--ink);
     clip-path: var(--cut);
-    box-shadow: inset 0 -8px 0 var(--grass-dark), inset 0 -16px 0 var(--grass);
     cursor: pointer;
     transition: transform .15s steps(2, end);
 }
@@ -573,22 +571,80 @@
         border-color: var(--coin);
     }
 
+.plot-callout {
+    border-color: var(--roof);
+    box-shadow: 3px 4px 0 rgba(194, 91, 51, .3);
+}
+
 .plot-selected {
     border-color: var(--coin);
     background: #fff7e0;
 }
 
-.plot-weather {
-    position: absolute;
-    top: 6px;
-    left: 6px;
+.plot-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    min-height: 36px;
+}
+
+.plot-name {
+    flex: 1;
+    min-width: 0;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: left;
+}
+
+.plot-marks {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+}
+
+.plot-level {
     font-family: var(--pixel);
     font-size: 10px;
-    padding: 2px 5px 1px;
-    border: 2px solid var(--ink);
+    padding: 3px 5px 2px;
+    color: var(--plank);
+    background: var(--pine);
     clip-path: var(--cut);
+    font-variant-numeric: tabular-nums;
+}
+
+.plot-yard {
+    position: relative;
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 6px 0 14px;
+    box-shadow: inset 0 -8px 0 var(--grass-dark), inset 0 -16px 0 var(--grass);
+}
+
+.plot-weather {
+    font-family: var(--pixel);
+    font-size: 8px;
+    padding: 3px 4px 2px;
+    border: 2px solid var(--ink);
+    background: var(--plank);
     line-height: 1;
-    z-index: 1;
+}
+
+.plot-weather-buff {
+    color: var(--pine);
+}
+
+.plot-weather-nerf {
+    color: var(--roof);
 }
 
 .plot-sprite {
@@ -599,19 +655,31 @@
 
 .plot-crew {
     position: absolute;
-    top: 4px;
-    right: 4px;
+    bottom: 4px;
+    right: 2px;
     z-index: 1;
     display: flex;
+    align-items: center;
 }
 
 .plot-crew-face {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
 }
 
 .plot-crew-face:not(:first-child) {
     margin-left: -10px;
+}
+
+.plot-crew-more {
+    font-family: var(--pixel);
+    font-size: 8px;
+    line-height: 1;
+    padding: 3px 3px 2px;
+    color: var(--plank);
+    background: var(--pine);
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
 }
 
 .plot-crew-face svg {
@@ -620,43 +688,120 @@
     image-rendering: pixelated;
 }
 
-.plot-name {
-    font-size: 13px;
-    font-weight: 600;
-    line-height: 1.2;
+.plot-progress {
+    height: 10px;
+    border: 2px solid var(--ink);
+    background-color: var(--plank-dark);
 }
 
-.plot-status {
+.plot-progress::-webkit-progress-bar {
+    background-color: var(--plank-dark);
+}
+
+.plot-progress-working::-webkit-progress-value {
+    background-color: var(--pine);
+}
+
+.plot-progress-working::-moz-progress-bar {
+    background-color: var(--pine);
+}
+
+.plot-sign {
     display: flex;
+    align-items: stretch;
+    font-family: 'Golos Text', 'Segoe UI', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    overflow: hidden;
+}
+
+.plot-sign-what {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 6px;
-    min-height: 22px;
-    font-size: 12px;
-    line-height: 1.25;
+    gap: 4px;
+    padding: 6px 5px 5px;
+}
+
+.plot-sign-ico {
+    flex: none;
+    width: 14px;
+    height: 14px;
+}
+
+.plot-sign-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.plot-sign-slots {
+    flex: none;
+    font-size: 10px;
+    opacity: .75;
+}
+
+.plot-sign-timer {
+    flex: none;
+    display: flex;
+    align-items: center;
+    padding: 6px 5px 5px;
+    font-family: var(--pixel);
+    font-size: 9px;
+    font-variant-numeric: tabular-nums;
+    background: rgba(51, 41, 26, .22);
+    border-left: 2px solid rgba(51, 41, 26, .45);
+}
+
+.plot-sign-repeat {
+    flex: none;
+    width: 11px;
+    height: 11px;
+}
+
+.plot-sign-upgrading {
+    color: var(--ink);
+    background: var(--coin);
+}
+
+.plot-sign-working {
+    color: var(--plank);
+    background: var(--pine);
+}
+
+.plot-sign-upgradeable {
+    color: var(--plank);
+    background: var(--roof);
+}
+
+.plot-sign-idle {
+    color: var(--ink-muted);
+    background: var(--plank-dark);
+    border-color: rgba(51, 41, 26, .35);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .plot-sign-upgrading {
+        animation: plot-sign-pulse 1.4s steps(2, end) infinite;
+    }
+}
+
+@keyframes plot-sign-pulse {
+    50% {
+        filter: brightness(1.12);
+    }
 }
 
 .status-icon {
     width: 22px;
     height: 22px;
     image-rendering: pixelated;
-}
-
-.icon-busy {
-    animation: bump 1s steps(2, end) infinite;
-}
-
-@keyframes bump {
-    50% {
-        transform: translateY(-3px);
-    }
-}
-
-.upgrade-box {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    margin-top: auto;
 }
 
 .domik-level {

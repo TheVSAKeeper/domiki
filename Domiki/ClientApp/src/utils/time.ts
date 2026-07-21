@@ -29,6 +29,20 @@ export function formatDurationShort(totalSeconds: number): string {
     return total < 60 ? `${total}с` : formatDuration(total - (total % 60));
 }
 
+export function formatClock(totalSeconds: number): string {
+    const total = Math.max(0, Math.round(totalSeconds));
+    const days = Math.floor(total / 86400);
+    if (days > 0) {
+        return `${days}д ${Math.floor((total % 86400) / 3600)}ч`;
+    }
+
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    const seconds = total % 60;
+    const pad = (value: number) => String(value).padStart(2, '0');
+    return hours > 0 ? `${hours}:${pad(minutes)}:${pad(seconds)}` : `${minutes}:${pad(seconds)}`;
+}
+
 export function remainingSeconds(finishDate: string, now: number): number {
     return (new Date(finishDate).getTime() - now) / 1000;
 }

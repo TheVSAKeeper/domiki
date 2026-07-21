@@ -17,6 +17,16 @@ public sealed record ManufactureDto
     public required DateTime FinishDate { get; init; }
 
     /// <summary>
+    /// Фактическая длительность производства.
+    /// </summary>
+    /// <value>Секунды.</value>
+    /// <remarks>
+    /// Учитывает скорость трудяг и стартовый бонус «нетронутые залежи», поэтому отличается от базовой
+    /// <see cref="Reference.Dto.ReceiptDto.DurationSeconds"/>. Вместе с <see cref="FinishDate"/> задаёт долю пройденного пути.
+    /// </remarks>
+    public required int DurationSeconds { get; init; }
+
+    /// <summary>
     /// Сколько трудяг занято в этом производстве.
     /// </summary>
     public required int PlodderCount { get; init; }

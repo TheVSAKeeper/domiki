@@ -20,6 +20,16 @@ public class Manufacture
     public DateTime FinishDate { get; set; }
 
     /// <summary>
+    /// Фактическая длительность производства.
+    /// </summary>
+    /// <value>Секунды.</value>
+    /// <remarks>
+    /// Учитывает скорость трудяг и стартовый бонус «нетронутые залежи», поэтому отличается от базовой
+    /// <see cref="Reference.Models.Receipt.DurationSeconds"/>.
+    /// </remarks>
+    public int DurationSeconds { get; set; }
+
+    /// <summary>
     /// Сколько трудяг занято в этом производстве.
     /// </summary>
     public int PlodderCount { get; set; }

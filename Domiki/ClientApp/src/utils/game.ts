@@ -230,8 +230,8 @@ export function progressPercent(finishDate: string, totalSeconds: number, now: n
     return Math.min(100, Math.max(0, percent));
 }
 
-export function manufactureProgressPercent(manufacture: ManufactureDto, receipt: ReceiptDto, now: number): number {
-    return progressPercent(manufacture.finishDate, receipt.durationSeconds, now);
+export function manufactureProgressPercent(manufacture: ManufactureDto, now: number): number {
+    return progressPercent(manufacture.finishDate, manufacture.durationSeconds, now);
 }
 
 export function instaFinishCost(finishDate: string, now: number): number {
