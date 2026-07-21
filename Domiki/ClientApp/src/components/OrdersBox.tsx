@@ -9,6 +9,7 @@ import { formatDuration, remainingSeconds } from '../utils/time';
 import { getErrandTemplate } from '../utils/errandTexts';
 import { ResourcesBox } from './ResourcesBox';
 import { ActionButton } from './ActionButton';
+import { ConvoyTally } from './ConvoyTally';
 import { ErrandAcceptModal } from './ErrandAcceptModal';
 import { AbstractSprite, MechanicSprite, NeighborSprite, ResourceSprite, WorkerSprite } from './sprites';
 
@@ -198,9 +199,12 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                                                 })}
                                             </div>
                                             <span className="convoy-row-status">
-                                                {convoy.remaining > 0
-                                                    ? `осталось ${convoy.remaining} из ${convoy.limit}`
-                                                    : <><ClockIcon aria-hidden="true" />{formatDuration(left)}</>}
+                                                <ConvoyTally remaining={convoy.remaining} limit={convoy.limit} />
+                                                {convoy.remaining <= 0 && (
+                                                    <span className="convoy-row-reset">
+                                                        <ClockIcon aria-hidden="true" />{formatDuration(left)}
+                                                    </span>
+                                                )}
                                             </span>
                                         </>}
                                 </div>

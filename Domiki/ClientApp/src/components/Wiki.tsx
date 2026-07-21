@@ -10,6 +10,7 @@ import { strongestWeatherEffect } from '../utils/game';
 import type { ConvoyDto, DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, VillageLevelDto, WeatherStateDto } from '../types/api';
 import { DecorSprite, DomikSprite, MechanicSprite, NeighborSprite, ResourceSprite, WeatherSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
+import { ConvoyTally } from './ConvoyTally';
 import { PixelLoader } from './PixelLoader';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import CheckIcon from 'pixelarticons/svg/check.svg?react';
@@ -504,12 +505,14 @@ const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes, convoy
                                             <ul className="wiki-convoy-list">
                                                 {convoys.map(convoy => (
                                                     <li key={convoy.neighborId} className={'wiki-convoy-row' + (convoy.isLocked ? ' wiki-convoy-row-locked' : '')}>
-                                                        <NeighborSprite logicName={convoy.neighborLogicName} size={24} className="neighbor-ico" aria-hidden="true" />
-                                                        <span className="wiki-convoy-name">{convoy.neighborName}</span>
+                                                        <span className="wiki-convoy-name">
+                                                            <NeighborSprite logicName={convoy.neighborLogicName} size={24} className="neighbor-ico" aria-hidden="true" />
+                                                            {convoy.neighborName}
+                                                        </span>
                                                         {convoy.isLocked
                                                             ? <span className="wiki-convoy-note"><LockIcon aria-hidden="true" />обоз закрыт – мало доверия</span>
                                                             : <>
-                                                                <span className="wiki-chips">
+                                                                <span className="wiki-chips wiki-convoy-items">
                                                                     {convoy.items.map(item => {
                                                                         const resourceType = resourceTypes.find(x => x.id === item.resourceTypeId);
                                                                         if (resourceType == null) {
@@ -524,7 +527,7 @@ const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes, convoy
                                                                         );
                                                                     })}
                                                                 </span>
-                                                                <span className="wiki-convoy-note">осталось {convoy.remaining} из {convoy.limit}</span>
+                                                                <ConvoyTally remaining={convoy.remaining} limit={convoy.limit} />
                                                             </>}
                                                     </li>
                                                 ))}
