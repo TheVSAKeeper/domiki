@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, setFeedWorkers as setFeedWorkersApi, setManufactureAutoRepeat as setManufactureAutoRepeatApi, setVillage as setVillageApi, startExpedition as startExpeditionApi, voteToloka as voteTolokaApi } from '../services/api';
+import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, buyFromConvoy as buyFromConvoyApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, setFeedWorkers as setFeedWorkersApi, setManufactureAutoRepeat as setManufactureAutoRepeatApi, setVillage as setVillageApi, startExpedition as startExpeditionApi, voteToloka as voteTolokaApi } from '../services/api';
 import { useToast } from '../services/toastContext';
 import {
     domikTypeSchema,
@@ -10,6 +10,7 @@ import {
     type DomikDto,
     type DomikIncidentDto,
     type DomikTypeDto,
+    type ConvoyDto,
     type ErrandDto,
     type IncidentDto,
     type ExpeditionStateDto,
@@ -52,6 +53,7 @@ export interface GameData {
     decor: DecorStateDto | null;
     toloka: TolokaStateDto | null;
     market: MarketStateDto | null;
+    convoys: ConvoyDto[];
     goals: GoalsStateDto | null;
     workers: WorkerDto[];
     purchaseDomikTypes: DomikTypeDto[] | null;
@@ -71,6 +73,7 @@ export interface GameData {
     postLot: (kind: number, giveResourceTypeId: number, giveValue: number, wantResourceTypeId: number, wantValue: number) => Promise<void>;
     acceptLot: (lotId: number) => Promise<void>;
     cancelLot: (lotId: number) => Promise<void>;
+    buyFromConvoy: (neighborId: number, resourceTypeId: number, count: number) => Promise<void>;
     recap: RecapDto | null;
     clearRecap: () => void;
     events: RecapEventDto[];
@@ -111,6 +114,7 @@ export function useGameData(): GameData {
     const [decor, setDecor] = useState<DecorStateDto | null>(null);
     const [toloka, setToloka] = useState<TolokaStateDto | null>(null);
     const [market, setMarket] = useState<MarketStateDto | null>(null);
+    const [convoys, setConvoys] = useState<ConvoyDto[]>([]);
     const [goals, setGoals] = useState<GoalsStateDto | null>(null);
     const [workers, setWorkers] = useState<WorkerDto[]>([]);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
@@ -130,6 +134,7 @@ export function useGameData(): GameData {
     const errandRef = useRef(errand);
     const incidentRef = useRef(incident);
     const domikIncidentRef = useRef(domikIncident);
+    const convoysRef = useRef(convoys);
     const reloadedRestDeadlinesRef = useRef<Set<string>>(new Set());
     const reloadedTolokaBuffDeadlinesRef = useRef<Set<string>>(new Set());
     const reloadedFinishDeadlinesRef = useRef<Set<string>>(new Set());
@@ -157,6 +162,10 @@ export function useGameData(): GameData {
     useEffect(() => {
         tolokaRef.current = toloka;
     }, [toloka]);
+
+    useEffect(() => {
+        convoysRef.current = convoys;
+    }, [convoys]);
 
     useEffect(() => {
         errandRef.current = errand;
@@ -218,6 +227,7 @@ export function useGameData(): GameData {
         setDecor(state.decor);
         setToloka(state.toloka);
         setMarket(state.market);
+        setConvoys(state.convoys);
         setGoals(state.goals);
         setEvents(state.events);
         if (state.recap != null && state.recap.events.length > 0) {
@@ -328,6 +338,11 @@ export function useGameData(): GameData {
         await refreshMarketAndResources();
     }, [refreshMarketAndResources]);
 
+    const buyFromConvoy = useCallback(async (neighborId: number, resourceTypeId: number, count: number) => {
+        await buyFromConvoyApi(neighborId, resourceTypeId, count);
+        scheduleReload();
+    }, [scheduleReload]);
+
     const clearRecap = useCallback(() => setRecap(null), []);
 
     const buyDecor = useCallback(async (decorTypeId: number) => {
@@ -374,6 +389,7 @@ export function useGameData(): GameData {
                 setDecor(state.decor);
                 setToloka(state.toloka);
                 setMarket(state.market);
+                setConvoys(state.convoys);
                 setGoals(state.goals);
                 setEvents(state.events);
                 if (state.recap != null && state.recap.events.length > 0) {
@@ -518,6 +534,18 @@ export function useGameData(): GameData {
             }
         }
 
+        for (const convoy of convoysRef.current) {
+            if (convoy.windowResetDate == null) {
+                continue;
+            }
+
+            const key = `convoy:${convoy.neighborId}:${convoy.windowResetDate}`;
+            if (!reloadedFinishDeadlinesRef.current.has(key) && remainingSeconds(convoy.windowResetDate, now) <= 0) {
+                reloadedFinishDeadlinesRef.current.add(key);
+                expiredFinish = true;
+            }
+        }
+
         const expiredTolokaBuffs = tolokaRef.current?.activeBuffs.filter(buff => {
             const key = `toloka:${buff.logicName}:${buff.buffUntil}`;
             return remainingSeconds(buff.buffUntil, now) <= 0 && !reloadedTolokaBuffDeadlinesRef.current.has(key);
@@ -553,6 +581,7 @@ export function useGameData(): GameData {
         decor,
         toloka,
         market,
+        convoys,
         goals,
         workers,
         purchaseDomikTypes,
@@ -573,6 +602,7 @@ export function useGameData(): GameData {
         postLot,
         acceptLot,
         cancelLot,
+        buyFromConvoy,
         recap,
         clearRecap,
         events,

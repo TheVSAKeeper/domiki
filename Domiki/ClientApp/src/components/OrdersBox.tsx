@@ -2,26 +2,29 @@ import { useState } from 'react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import HeartIcon from 'pixelarticons/svg/heart.svg?react';
 import HandIcon from 'pixelarticons/svg/hand.svg?react';
-import type { ErrandDto, NeighborReputationDto, OrderDto, ResourceDto, ResourceTypeDto, WorkerDto } from '../types/api';
+import LockIcon from 'pixelarticons/svg/lock.svg?react';
+import type { ConvoyDto, ErrandDto, NeighborReputationDto, OrderDto, ResourceDto, ResourceTypeDto, WorkerDto } from '../types/api';
 import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { getErrandTemplate } from '../utils/errandTexts';
 import { ResourcesBox } from './ResourcesBox';
 import { ActionButton } from './ActionButton';
 import { ErrandAcceptModal } from './ErrandAcceptModal';
-import { AbstractSprite, MechanicSprite, NeighborSprite, WorkerSprite } from './sprites';
+import { AbstractSprite, MechanicSprite, NeighborSprite, ResourceSprite, WorkerSprite } from './sprites';
 
 interface OrdersBoxProps {
     orders: OrderDto[];
     errand: ErrandDto | null;
     workers: WorkerDto[];
     reputation: NeighborReputationDto[];
+    convoys: ConvoyDto[];
     resourceTypes: ResourceTypeDto[];
     resources: ResourceDto[];
     now: number;
     onComplete: (orderId: number) => void;
     onAcceptErrand: (errandId: number, clueId: number, workerIds: number[]) => Promise<boolean>;
     onCancelErrand: (errandId: number) => Promise<boolean>;
+    onBuyFromConvoy: (neighborId: number, resourceTypeId: number, count: number) => Promise<boolean>;
 }
 
 const neighborPlea: Record<string, string> = {
@@ -110,7 +113,7 @@ const ErrandCard = ({ errand, workers, now, onAccept, onCancel }: ErrandCardProp
     );
 };
 
-export const OrdersBox = ({ orders, errand, workers, reputation, resourceTypes, resources, now, onComplete, onAcceptErrand, onCancelErrand }: OrdersBoxProps) => {
+export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resourceTypes, resources, now, onComplete, onAcceptErrand, onCancelErrand, onBuyFromConvoy }: OrdersBoxProps) => {
     const [errandModalId, setErrandModalId] = useState<number | null>(null);
     return (
         <section className="orders-panel pixel-panel">
@@ -148,6 +151,58 @@ export const OrdersBox = ({ orders, errand, workers, reputation, resourceTypes, 
                                             {next != null ? <>{item.points} / {next} <span className="standing-badge-cue">до вехи</span></> : <>{item.points} · в почёте</>}
                                         </span>
                                     </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>}
+            {convoys.length > 0 &&
+                <div className="convoy-board">
+                    <div className="convoy-board-head">
+                        <h4 className="convoy-board-title">Обозы</h4>
+                        <p className="convoy-board-hint">Раз в день сосед пригоняет обоз со своим товаром. Уступит немного и не задёшево – зато сразу и без хлопот.</p>
+                    </div>
+                    <div className="convoy-list">
+                        {convoys.map(convoy => {
+                            const left = convoy.windowResetDate == null ? 0 : remainingSeconds(convoy.windowResetDate, now);
+                            return (
+                                <div key={convoy.neighborId} className={'convoy-row' + (convoy.isLocked ? ' convoy-row-locked' : '')}>
+                                    <span className="convoy-row-neighbor">
+                                        <NeighborSprite logicName={convoy.neighborLogicName} size={24} className="neighbor-ico" aria-hidden="true" />
+                                        {convoy.neighborName}
+                                    </span>
+                                    {convoy.isLocked
+                                        ? <span className="convoy-row-locked-hint">
+                                            <LockIcon aria-hidden="true" />
+                                            Мало доверия для обоза – выручайте соседа заказами
+                                        </span>
+                                        : <>
+                                            <div className="convoy-items">
+                                                {convoy.items.map(item => {
+                                                    const resourceType = resourceTypes.find(x => x.id === item.resourceTypeId);
+                                                    if (resourceType == null) {
+                                                        return null;
+                                                    }
+
+                                                    const soldOut = convoy.remaining <= 0;
+                                                    return (
+                                                        <ActionButton key={item.resourceTypeId} className="convoy-item-chip" disabled={soldOut}
+                                                            title={soldOut ? 'Обоз на сегодня распродан' : `Купить ${resourceType.name} за ${item.price}`}
+                                                            onClick={async () => void await onBuyFromConvoy(convoy.neighborId, item.resourceTypeId, 1)}>
+                                                            <ResourceSprite logicName={resourceType.logicName} aria-hidden="true" />
+                                                            <span className="convoy-item-price">
+                                                                <ResourceSprite logicName="coin" aria-hidden="true" />{item.price}
+                                                            </span>
+                                                        </ActionButton>
+                                                    );
+                                                })}
+                                            </div>
+                                            <span className="convoy-row-status">
+                                                {convoy.remaining > 0
+                                                    ? `осталось ${convoy.remaining} из ${convoy.limit}`
+                                                    : <><ClockIcon aria-hidden="true" />{formatDuration(left)}</>}
+                                            </span>
+                                        </>}
                                 </div>
                             );
                         })}

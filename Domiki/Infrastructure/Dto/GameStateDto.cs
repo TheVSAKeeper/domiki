@@ -143,6 +143,14 @@ public sealed record GameStateDto
     public MarketStateDto? Market { get; init; }
 
     /// <summary>
+    /// Обозы соседей, открытых по обжитости деревни, с ассортиментом и остатком суточного лимита.
+    /// </summary>
+    /// <remarks>
+    /// См. <see cref="Economy.ConvoyManager.GetConvoys"/>.
+    /// </remarks>
+    public required ConvoyDto[] Convoys { get; init; }
+
+    /// <summary>
     /// Сводка «Пока вас не было».
     /// </summary>
     /// <remarks>

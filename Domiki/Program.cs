@@ -140,6 +140,7 @@ try
     builder.Services.AddScoped<DecorManager>();
     builder.Services.AddScoped<TolokaManager>();
     builder.Services.AddScoped<MarketManager>();
+    builder.Services.AddScoped<ConvoyManager>();
     builder.Services.AddScoped<WorldManager>();
     builder.Services.AddScoped<SeasonManager>();
     builder.Services.AddScoped<VillageLevelCalculator>();

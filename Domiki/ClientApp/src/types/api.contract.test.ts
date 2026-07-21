@@ -19,6 +19,8 @@ const backendDirectory = resolve(fileURLToPath(import.meta.url), '../../../..');
 const mappings: Record<string, ContractSchema> = {
     ActiveGoalDto: { schemaName: 'activeGoalSchema', shape: api.activeGoalSchema.shape },
     BlueprintDto: { schemaName: 'blueprintSchema', shape: api.blueprintSchema.shape },
+    ConvoyDto: { schemaName: 'convoySchema', shape: api.convoySchema.shape },
+    ConvoyItemDto: { schemaName: 'convoyItemSchema', shape: api.convoyItemSchema.shape },
     DecorStateDto: { schemaName: 'decorStateSchema', shape: api.decorStateSchema.shape },
     DecorTypeDto: { schemaName: 'decorTypeSchema', shape: api.decorTypeSchema.shape },
     DomikDto: { schemaName: 'domikSchema', shape: api.domikSchema.shape },
@@ -72,6 +74,7 @@ const mappings: Record<string, ContractSchema> = {
 };
 
 const skippedDtos: Record<string, string> = {
+    BuyFromConvoyDto: 'request payload BuyFromConvoy отправляется без zod-схемы',
     SetVillageDto: 'request payload SetVillage отправляется без zod-схемы',
     SetFeedWorkersDto: 'request payload SetFeedWorkers отправляется без zod-схемы',
     StartIncidentSearchDto: 'request payload StartIncidentSearch отправляется без zod-схемы',

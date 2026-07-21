@@ -348,6 +348,150 @@
     color: #8a6a12;
 }
 
+.convoy-board {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 11px 13px;
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.convoy-board-head {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.convoy-board-title {
+    margin: 0;
+    font-family: var(--pixel);
+    font-size: 12px;
+    color: var(--pine-dark);
+}
+
+.convoy-board-hint {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: rgba(51, 41, 26, .72);
+}
+
+.convoy-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.convoy-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    padding: 8px 10px;
+    background: var(--plank);
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.convoy-row-locked {
+    background: var(--plank-dark);
+    opacity: .7;
+}
+
+.convoy-row-neighbor {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    min-width: 130px;
+    font-family: var(--pixel);
+    font-size: 10px;
+    color: var(--ink);
+}
+
+.convoy-row-locked-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-style: italic;
+    color: rgba(51, 41, 26, .68);
+}
+
+.convoy-row-locked-hint svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+.convoy-items {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-width: 0;
+}
+
+.convoy-item-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink);
+    background: #fffaec;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+.convoy-item-chip:disabled {
+    cursor: not-allowed;
+    opacity: .5;
+}
+
+.convoy-item-chip svg:first-child {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+}
+
+.convoy-item-price {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-variant-numeric: tabular-nums;
+}
+
+.convoy-item-price svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    image-rendering: pixelated;
+}
+
+.convoy-row-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pine-dark);
+    font-variant-numeric: tabular-nums;
+}
+
+.convoy-row-status svg {
+    width: 13px;
+    height: 13px;
+}
+
 .orders-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

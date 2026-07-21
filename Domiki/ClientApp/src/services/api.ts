@@ -174,6 +174,9 @@ export const acceptLot = (lotId: number, signal?: AbortSignal): Promise<void> =>
 export const cancelLot = (lotId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/CancelLot/${lotId}`, signal);
 
+export const buyFromConvoy = (neighborId: number, resourceTypeId: number, count: number, signal?: AbortSignal): Promise<void> =>
+    request('POST', 'Domiki/BuyFromConvoy', null, signal, { neighborId, resourceTypeId, count });
+
 export const getPushPublicKey = (signal?: AbortSignal): Promise<string> =>
     apiGet('Push/PublicKey', z.string(), signal);
 

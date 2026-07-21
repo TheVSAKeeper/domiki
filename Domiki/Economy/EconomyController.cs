@@ -11,13 +11,15 @@ public class EconomyController : GameControllerBase
     private readonly OrderManager _orderManager;
     private readonly MarketManager _marketManager;
     private readonly ErrandManager _errandManager;
+    private readonly ConvoyManager _convoyManager;
 
-    public EconomyController(DomikManager domikManager, OrderManager orderManager, MarketManager marketManager, ErrandManager errandManager)
+    public EconomyController(DomikManager domikManager, OrderManager orderManager, MarketManager marketManager, ErrandManager errandManager, ConvoyManager convoyManager)
         : base(domikManager)
     {
         _orderManager = orderManager;
         _marketManager = marketManager;
         _errandManager = errandManager;
+        _convoyManager = convoyManager;
     }
 
     [HttpGet]
@@ -77,6 +79,14 @@ public class EconomyController : GameControllerBase
     {
         var playerId = GetPlayerId();
         _marketManager.CancelLot(playerId, lotId, DateTimeHelper.GetNowDate());
+    }
+
+    [HttpPost]
+    [Route("/Domiki/BuyFromConvoy")]
+    public void BuyFromConvoy([FromBody] BuyFromConvoyDto request)
+    {
+        var playerId = GetPlayerId();
+        _convoyManager.Buy(playerId, request.NeighborId, request.ResourceTypeId, request.Count, DateTimeHelper.GetNowDate());
     }
 
     [HttpPost]

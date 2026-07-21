@@ -115,4 +115,15 @@ public static class EconomyActs
         App.Act<OrderManager>(m => m.EnsureOrderBoard(p.Id));
         return p;
     }
+
+    public static TestPlayer BuyFromConvoy(this TestPlayer p, int neighborId, int resourceTypeId, int count = 1)
+    {
+        App.Act<ConvoyManager>(m => m.Buy(p.Id, neighborId, resourceTypeId, count, DateTimeHelper.GetNowDate()));
+        return p;
+    }
+
+    public static IReadOnlyList<Convoy> Convoys(this TestPlayer p)
+    {
+        return App.Act<ConvoyManager, IReadOnlyList<Convoy>>(m => m.GetConvoys(p.Id).ToList());
+    }
 }

@@ -20,6 +20,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Incident> Incidents { get; set; }
     public DbSet<Neighbor> Neighbors { get; set; }
     public DbSet<NeighborReputation> NeighborReputations { get; set; }
+    public DbSet<NeighborConvoy> NeighborConvoys { get; set; }
     public DbSet<Blueprint> Blueprints { get; set; }
     public DbSet<PlayerBlueprint> PlayerBlueprints { get; set; }
     public DbSet<Player> Players { get; set; }

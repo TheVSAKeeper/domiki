@@ -150,6 +150,24 @@ export const neighborReputationSchema = z.object({
 });
 export type NeighborReputationDto = z.infer<typeof neighborReputationSchema>;
 
+export const convoyItemSchema = z.object({
+    resourceTypeId: z.number(),
+    price: z.number(),
+});
+export type ConvoyItemDto = z.infer<typeof convoyItemSchema>;
+
+export const convoySchema = z.object({
+    neighborId: z.number(),
+    neighborName: z.string(),
+    neighborLogicName: z.string(),
+    items: z.array(convoyItemSchema),
+    limit: z.number(),
+    remaining: z.number(),
+    windowResetDate: z.string().nullable(),
+    isLocked: z.boolean(),
+});
+export type ConvoyDto = z.infer<typeof convoySchema>;
+
 export const blueprintSchema = z.object({
     id: z.number(),
     name: z.string(),
@@ -527,6 +545,7 @@ export const gameStateSchema = z.object({
     decor: decorStateSchema,
     toloka: tolokaStateSchema.nullable(),
     market: marketStateSchema.nullable(),
+    convoys: z.array(convoySchema),
     goals: goalsStateSchema,
     recap: recapSchema.nullish(),
     events: z.array(z.unknown()).transform(items => items.flatMap(item => {

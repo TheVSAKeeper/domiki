@@ -57,7 +57,7 @@ interface GameTab {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, incident, domikIncident, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, goals, workers, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, incident, domikIncident, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, convoys, goals, workers, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, recap, clearRecap, events } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -185,6 +185,9 @@ export const DomikiPage = () => {
 
     const buyDecorAction = (decorTypeId: number) => runAction(() => buyDecor(decorTypeId), 'Декор куплен');
 
+    const buyFromConvoyAction = (neighborId: number, resourceTypeId: number, count: number) =>
+        runAction(() => buyFromConvoy(neighborId, resourceTypeId, count), 'Товар куплен у обоза');
+
     const contributeTolokaAction = async (resourceTypeId: number, amount: number) => {
         await runAction(() => contributeToloka(resourceTypeId, amount), 'Вклад принят');
     };
@@ -233,8 +236,8 @@ export const DomikiPage = () => {
     const gameTabs: GameTab[] = [
         {
             key: 'orders', label: 'Заказы', icon: <MechanicSprite logicName="orders" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,
-            node: <OrdersBox orders={orders} errand={errand} workers={workers} reputation={reputation} resourceTypes={resourceTypes} resources={resources} now={now}
-                onComplete={completeOrder} onAcceptErrand={acceptErrandAction} onCancelErrand={cancelErrandAction} />,
+            node: <OrdersBox orders={orders} errand={errand} workers={workers} reputation={reputation} convoys={convoys} resourceTypes={resourceTypes} resources={resources} now={now}
+                onComplete={completeOrder} onAcceptErrand={acceptErrandAction} onCancelErrand={cancelErrandAction} onBuyFromConvoy={buyFromConvoyAction} />,
         },
         {
             key: 'blueprints', label: 'Вехи соседей', icon: <MechanicSprite logicName="blueprints" size={24} className="game-tab-ico" aria-hidden="true" />, visible: blueprints.length > 0 || (decor?.types ?? []).some(x => x.neighborId != null),

@@ -28,6 +28,7 @@ public class GameStateController : GameControllerBase
     private readonly DecorManager _decorManager;
     private readonly TolokaManager _tolokaManager;
     private readonly MarketManager _marketManager;
+    private readonly ConvoyManager _convoyManager;
     private readonly GiftManager _giftManager;
     private readonly PlayerEventManager _playerEventManager;
     private readonly GoalManager _goalManager;
@@ -35,7 +36,7 @@ public class GameStateController : GameControllerBase
     private readonly IncidentManager _incidentManager;
     private readonly WorkerMilestoneManager _workerMilestoneManager;
 
-    public GameStateController(DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, GiftManager giftManager, PlayerEventManager playerEventManager, GoalManager goalManager, ErrandManager errandManager, IncidentManager incidentManager, WorkerMilestoneManager workerMilestoneManager)
+    public GameStateController(DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, ConvoyManager convoyManager, GiftManager giftManager, PlayerEventManager playerEventManager, GoalManager goalManager, ErrandManager errandManager, IncidentManager incidentManager, WorkerMilestoneManager workerMilestoneManager)
         : base(domikManager)
     {
         _domikManager = domikManager;
@@ -49,6 +50,7 @@ public class GameStateController : GameControllerBase
         _decorManager = decorManager;
         _tolokaManager = tolokaManager;
         _marketManager = marketManager;
+        _convoyManager = convoyManager;
         _giftManager = giftManager;
         _playerEventManager = playerEventManager;
         _goalManager = goalManager;
@@ -90,6 +92,7 @@ public class GameStateController : GameControllerBase
             Decor = _decorManager.GetDecor(playerId).ToDto(_resourceManager.GetNeighbors()),
             Toloka = _tolokaManager.GetToloka(DateTimeHelper.GetNowDate(), playerId)?.ToDto(),
             Market = _marketManager.GetMarket(playerId)?.ToDto(),
+            Convoys = _convoyManager.GetConvoys(playerId).Select(x => x.ToDto()).ToArray(),
             Recap = _playerEventManager.TakeRecap(playerId, DateTimeHelper.GetNowDate()).ToDto(),
             Events = _playerEventManager.GetRecentEvents(playerId).Select(x => x.ToDto()).ToArray(),
             Goals = goals.ToDto(),
