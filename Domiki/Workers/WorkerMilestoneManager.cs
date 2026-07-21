@@ -2,6 +2,7 @@
 using Domiki.Web.Data.Entities;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Reference;
+using Domiki.Web.Village;
 using Microsoft.EntityFrameworkCore;
 
 namespace Domiki.Web.Workers;
@@ -62,6 +63,7 @@ public class WorkerMilestoneManager
     private readonly PlayerResourceManager _playerResourceManager;
     private readonly ResourceManager _resourceManager;
     private readonly PlayerEventManager _playerEventManager;
+    private readonly VillageLevelCalculator _villageLevelCalculator;
 
     /// <summary>
     /// Создаёт менеджер вех трудяг.
@@ -70,12 +72,14 @@ public class WorkerMilestoneManager
     /// <param name="playerResourceManager">Менеджер ресурсов и блокировки игрока.</param>
     /// <param name="resourceManager">Справочник построек, рецептов, походов, ресурсов и черт.</param>
     /// <param name="playerEventManager">Журнал игровых событий игрока.</param>
-    public WorkerMilestoneManager(ApplicationDbContext context, PlayerResourceManager playerResourceManager, ResourceManager resourceManager, PlayerEventManager playerEventManager)
+    /// <param name="villageLevelCalculator">Калькулятор обжитости деревни игрока.</param>
+    public WorkerMilestoneManager(ApplicationDbContext context, PlayerResourceManager playerResourceManager, ResourceManager resourceManager, PlayerEventManager playerEventManager, VillageLevelCalculator villageLevelCalculator)
     {
         _context = context;
         _playerResourceManager = playerResourceManager;
         _resourceManager = resourceManager;
         _playerEventManager = playerEventManager;
+        _villageLevelCalculator = villageLevelCalculator;
     }
 
     /// <summary>
@@ -124,7 +128,7 @@ public class WorkerMilestoneManager
         }
         else
         {
-            (resourceTypeId, value) = GrantFind(playerId, GetResourcePool(candidate), GetFindMultiplier(candidate.MilestoneType));
+            (resourceTypeId, value) = GrantFind(playerId, GetResourcePool(playerId, candidate), GetFindMultiplier(candidate.MilestoneType));
         }
 
         player.LastWorkerMilestoneDate = now;
@@ -270,7 +274,7 @@ public class WorkerMilestoneManager
         return (resourceTypeId, value);
     }
 
-    private int[] GetResourcePool(MilestoneCandidate candidate)
+    private int[] GetResourcePool(int playerId, MilestoneCandidate candidate)
     {
         var pool = candidate.MilestoneType switch
         {
@@ -279,7 +283,7 @@ public class WorkerMilestoneManager
             _ => Array.Empty<int>(),
         };
 
-        return pool.Length > 0 ? pool : GetBaseResourcePool();
+        return pool.Length > 0 ? pool : GetBaseResourcePool(playerId);
     }
 
     private static int GetFindMultiplier(WorkerMilestoneType milestoneType)
@@ -337,10 +341,26 @@ public class WorkerMilestoneManager
             .ToArray();
     }
 
-    private int[] GetBaseResourcePool()
+    /// <summary>
+    /// Возвращает базовый пул находок игрока – дешёвое сырьё рецептов без входов из построек, уже открытых обжитостью деревни.
+    /// </summary>
+    /// <remarks>
+    /// Отсечка по <see cref="Core.Models.DomikType.UnlockLevel"/> не даёт вехе подарить ресурс, который игроку негде производить и некуда деть.
+    /// </remarks>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <returns>Идентификаторы типов ресурсов, из которых выбирается находка.</returns>
+    public int[] GetBaseResourcePool(int playerId)
     {
+        var villageLevel = _villageLevelCalculator.GetLevel(playerId).Level;
+        var receiptIds = _resourceManager.GetDomikTypes()
+            .Where(x => x.UnlockLevel <= villageLevel)
+            .SelectMany(x => x.Levels)
+            .SelectMany(x => x.Receipts)
+            .Select(x => x.Id)
+            .ToHashSet();
+
         return _resourceManager.GetReceipts()
-            .Where(x => x.InputResources.Length == 0)
+            .Where(x => receiptIds.Contains(x.Id) && x.InputResources.Length == 0)
             .SelectMany(x => x.OutputResources)
             .Select(x => x.Type.Id)
             .Where(x => ResourceManager.GetMarketValue(x) <= ResourceManager.BaseMarketValue)

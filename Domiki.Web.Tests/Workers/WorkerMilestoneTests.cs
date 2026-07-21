@@ -141,7 +141,7 @@ public sealed class WorkerMilestoneTests
     public void MonthInBarracksThresholdTest(int daysSinceHire, bool expectedGranted)
     {
         const int villageLevel = WorkerMilestoneManager.WorkerMilestoneUnlockLevel;
-        var baseResourcePool = new[] { ResourceIds.Stone, ResourceIds.Wood, ResourceIds.Clay, ResourceIds.Grain, ResourceIds.Ore };
+        var baseResourcePool = new[] { ResourceIds.Stone, ResourceIds.Wood, ResourceIds.Clay, ResourceIds.Grain };
 
         var player = TestPlayer.Create();
         var worker = player.Workers().Single();
@@ -163,6 +163,38 @@ public sealed class WorkerMilestoneTests
         else
         {
             Assert.That(recap.Events.Select(x => x.Type), Does.Not.Contain(PlayerEventType.WorkerMilestone));
+        }
+    }
+
+    /// <summary>
+    /// Базовая находка трудяги не содержит шерсть и руду до открытия их добывающих построек, а после открытия содержит обе.
+    /// </summary>
+    [Test]
+    public void BaseFindPoolRespectsVillageUnlocksTest()
+    {
+        const int startingVillageLevel = 4;
+        const int sheepfoldUnlockLevel = 14;
+        const int oreMineUnlockLevel = 15;
+        const int highVillageLevel = 20;
+
+        var lowLevelPlayer = TestPlayer.Create();
+
+        var highLevelPlayer = TestPlayer.Create()
+            .WithDomiks(DomikIds.ClayMine, highVillageLevel - startingVillageLevel);
+
+        var lowLevelPool = GetBaseResourcePool(lowLevelPlayer.Id);
+        var highLevelPool = GetBaseResourcePool(highLevelPlayer.Id);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(lowLevelPlayer.GetVillageLevel().Level, Is.EqualTo(startingVillageLevel));
+            Assert.That(lowLevelPlayer.GetVillageLevel().Level, Is.LessThan(sheepfoldUnlockLevel));
+            Assert.That(lowLevelPlayer.GetVillageLevel().Level, Is.LessThan(oreMineUnlockLevel));
+            Assert.That(highLevelPlayer.GetVillageLevel().Level, Is.GreaterThanOrEqualTo(sheepfoldUnlockLevel));
+            Assert.That(highLevelPlayer.GetVillageLevel().Level, Is.GreaterThanOrEqualTo(oreMineUnlockLevel));
+            Assert.That(lowLevelPool, Does.Not.Contain(ResourceIds.Wool));
+            Assert.That(lowLevelPool, Does.Not.Contain(ResourceIds.Ore));
+            Assert.That(highLevelPool, Does.Contain(ResourceIds.Wool));
+            Assert.That(highLevelPool, Does.Contain(ResourceIds.Ore));
         }
     }
 
@@ -406,6 +438,11 @@ public sealed class WorkerMilestoneTests
         return App.Read(context => context.Workers.Where(x => x.Id == workerId)
             .Select(x => new WorkerActivity(x.IncidentId, x.ErrandId, x.ManufactureId))
             .Single());
+    }
+
+    private static int[] GetBaseResourcePool(int playerId)
+    {
+        return App.Act<WorkerMilestoneManager, int[]>(manager => manager.GetBaseResourcePool(playerId));
     }
 
     private sealed record WorkerActivity(int? IncidentId, int? ErrandId, int? ManufactureId);
