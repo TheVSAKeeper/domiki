@@ -17,6 +17,7 @@ var connectionString = configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Не задана ConnectionStrings:DefaultConnection");
 var options = new DbContextOptionsBuilder<ApplicationDbContext>()
     .UseNpgsql(connectionString)
+    .UseSnakeCaseNamingConvention()
     .Options;
 
 var resources = new ResourceManager(new PooledDbContextFactory<ApplicationDbContext>(options));
