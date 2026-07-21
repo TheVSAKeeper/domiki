@@ -277,9 +277,9 @@ export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, reso
                                         </span>
                                     }
                                 </span>
-                                {progress != null &&
-                                    <ProgressBar className={'plot-progress plot-progress-' + plotState.kind} value={progress} max={100} />
-                                }
+                                <ProgressBar
+                                    className={'plot-progress plot-progress-' + plotState.kind + (progress == null ? ' plot-progress-empty' : '')}
+                                    value={progress ?? 0} max={100} />
                                 <PlotSign {...plotState} />
                             </button>
                         );

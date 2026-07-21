@@ -694,6 +694,10 @@
     background-color: var(--plank-dark);
 }
 
+.plot-progress-empty {
+    visibility: hidden;
+}
+
 .plot-progress::-webkit-progress-bar {
     background-color: var(--plank-dark);
 }
@@ -784,18 +788,6 @@
     color: var(--ink-muted);
     background: var(--plank-dark);
     border-color: rgba(51, 41, 26, .35);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-    .plot-sign-upgrading {
-        animation: plot-sign-pulse 1.4s steps(2, end) infinite;
-    }
-}
-
-@keyframes plot-sign-pulse {
-    50% {
-        filter: brightness(1.12);
-    }
 }
 
 .status-icon {
