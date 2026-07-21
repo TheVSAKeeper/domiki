@@ -34,6 +34,10 @@ public static class OrderDtoExtensions
             NeighborName = reputation.Neighbor.Name,
             NeighborLogicName = reputation.Neighbor.LogicName,
             Points = reputation.Points,
+            NextThreshold = reputation.NextThreshold,
+            NextRewardName = reputation.NextRewardName,
+            IsFriend = reputation.IsFriend,
+            IsOpen = reputation.IsOpen,
         };
     }
 }

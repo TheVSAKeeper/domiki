@@ -50,15 +50,15 @@ public sealed class PacingTests
 
     /// <summary>
     /// Объём и денежная награда заказа на передельный ресурс нормированы по тиру спроса и одинаковы для равнозначных типов
-    /// ресурса (6 и 7).
+    /// ресурса (6 и 7); заказ никогда не просит меньше 2 единиц, даже когда нормировка по тиру дала бы меньше.
     /// </summary>
     /// <param name="resourceTypeId">Тип запрашиваемого ресурса.</param>
     /// <param name="expectedQuantity">Ожидаемое нормированное количество ресурса.</param>
     /// <param name="expectedRewardCoins">Ожидаемая награда в монетах.</param>
-    [TestCase(ResourceIds.Brick, 1, 53)]
+    [TestCase(ResourceIds.Brick, 2, 105)]
     [TestCase(ResourceIds.Brick, 4, 280)]
     [TestCase(ResourceIds.Brick, 9, 945)]
-    [TestCase(ResourceIds.Board, 1, 53)]
+    [TestCase(ResourceIds.Board, 2, 105)]
     [TestCase(ResourceIds.Board, 4, 280)]
     [TestCase(ResourceIds.Board, 9, 945)]
     public void ProcessedResourceOrderUsesNormalizedQuantityAndRewardTest(int resourceTypeId, int expectedQuantity, int expectedRewardCoins)

@@ -147,6 +147,10 @@ export const neighborReputationSchema = z.object({
     neighborName: z.string(),
     neighborLogicName: z.string(),
     points: z.number(),
+    nextThreshold: z.number().nullable(),
+    nextRewardName: z.string().nullable(),
+    isFriend: z.boolean(),
+    isOpen: z.boolean(),
 });
 export type NeighborReputationDto = z.infer<typeof neighborReputationSchema>;
 

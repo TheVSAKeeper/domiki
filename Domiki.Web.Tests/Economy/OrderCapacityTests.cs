@@ -5,13 +5,14 @@ namespace Domiki.Web.Tests;
 public sealed class OrderCapacityTests
 {
     /// <summary>
-    /// Стартовая производственная мощность по глине (1 в сутки) ограничивает объём заказа для любого тира спроса.
+    /// Стартовая производственная мощность по глине (1 в сутки) ограничивает объём заказа для любого тира спроса: заказ
+    /// рассчитан на половину двора, поэтому лимит – не вся суточная мощность, а её половина за длительность тира.
     /// </summary>
     /// <param name="tierIndex">Индекс тира спроса.</param>
     /// <param name="expectedQuantity">Ожидаемое количество ресурса в заказе.</param>
     [TestCase(0, 2)]
-    [TestCase(1, 5)]
-    [TestCase(2, 16)]
+    [TestCase(1, 2)]
+    [TestCase(2, 8)]
     public void NewPlayerClayOrderQuantityIsCappedByStartingCapacityTest(int tierIndex, int expectedQuantity)
     {
         const int expectedCapacity = 1;
@@ -31,7 +32,7 @@ public sealed class OrderCapacityTests
 
     /// <summary>
     /// Ресурс, который игрок вообще не производит (нулевая мощность), всё равно даёт заказ не меньше чем на 2 единицы, для
-    /// любого тира спроса.
+    /// любого тира спроса – сосед никогда не просит ресурс поштучно, даже когда двор его не производит вовсе.
     /// </summary>
     /// <param name="tierIndex">Индекс тира спроса.</param>
     [TestCase(0)]

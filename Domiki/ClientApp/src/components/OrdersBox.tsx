@@ -23,9 +23,11 @@ interface OrdersBoxProps {
     resources: ResourceDto[];
     now: number;
     onComplete: (orderId: number) => void;
+    onCancel: (orderId: number) => void;
     onAcceptErrand: (errandId: number, clueId: number, workerIds: number[]) => Promise<boolean>;
     onCancelErrand: (errandId: number) => Promise<boolean>;
     onBuyFromConvoy: (neighborId: number, resourceTypeId: number, count: number) => Promise<boolean>;
+    onSetFriend: (neighborId: number | null) => Promise<boolean>;
 }
 
 const neighborPlea: Record<string, string> = {
@@ -38,12 +40,7 @@ const neighborPlea: Record<string, string> = {
 
 const pleaFor = (logicName: string) => neighborPlea[logicName] ?? 'Соседи будут рады подмоге – и добром отплатят.';
 
-const reputationMilestones = [10, 25, 50];
-
-const nextReputationMilestone = (points: number) => reputationMilestones.find(value => value > points);
-
-const previousReputationMilestone = (points: number) =>
-    [...reputationMilestones].reverse().find(value => value <= points) ?? 0;
+const FRIEND_HINT = 'Выбери, с кем деревня нынче водит дружбу: заказы этого соседа будут появляться на доске чаще. Дружить можно с одним, передумать – в любой день.';
 
 const URGENT_SECONDS = 3600;
 
@@ -114,7 +111,7 @@ const ErrandCard = ({ errand, workers, now, onAccept, onCancel }: ErrandCardProp
     );
 };
 
-export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resourceTypes, resources, now, onComplete, onAcceptErrand, onCancelErrand, onBuyFromConvoy }: OrdersBoxProps) => {
+export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resourceTypes, resources, now, onComplete, onCancel, onAcceptErrand, onCancelErrand, onBuyFromConvoy, onSetFriend }: OrdersBoxProps) => {
     const [errandModalId, setErrandModalId] = useState<number | null>(null);
     return (
         <section className="orders-panel pixel-panel">
@@ -133,25 +130,50 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
             </div>
             {reputation.length > 0 &&
                 <div className="standing-board">
-                    <span className="standing-board-label"><HeartIcon aria-hidden="true" />доброе имя<br />по выселкам</span>
+                    <div className="standing-board-head">
+                        <h4 className="standing-board-title"><HeartIcon aria-hidden="true" />Доброе имя по выселкам</h4>
+                        <p className="standing-board-hint">Сердечком отмечен сосед, с которым деревня водит дружбу – его заказы приходят чаще. Дружить можно с одним, передумать – в любой день.</p>
+                    </div>
                     <div className="standing-list">
                         {reputation.map(item => {
-                            const next = nextReputationMilestone(item.points);
-                            const floor = previousReputationMilestone(item.points);
-                            const span = next != null ? next - floor : 1;
+                            const next = item.nextThreshold;
+                            const fillPercent = next != null ? Math.min(100, Math.round((item.points / next) * 100)) : 100;
+                            const title = !item.isOpen
+                                ? 'Дорога ещё не открыта'
+                                : next != null
+                                    ? `До вехи ${next}: ещё ${next - item.points}${item.nextRewardName != null ? ` – ${item.nextRewardName}` : ''}`
+                                    : 'Доброе имя в почёте';
                             return (
-                                <div key={item.neighborId} className={'standing-badge' + (next == null ? ' standing-badge-honored' : '')}
-                                    title={next != null ? `До вехи ${next}: ещё ${next - item.points}` : 'Доброе имя в почёте'}>
+                                <div key={item.neighborId}
+                                    className={'standing-badge'
+                                        + (next == null ? ' standing-badge-honored' : '')
+                                        + (item.isFriend ? ' standing-badge-friend' : '')
+                                        + (!item.isOpen ? ' standing-badge-locked' : '')}
+                                    title={title}>
                                     <NeighborSprite logicName={item.neighborLogicName} size={24} className="neighbor-ico" aria-hidden="true" />
                                     <div className="standing-badge-body">
                                         <span className="standing-badge-name">{item.neighborName}</span>
                                         <div className="standing-track" aria-hidden="true">
-                                            <span className="standing-track-fill" style={{ width: `${Math.round(((item.points - floor) / span) * 100)}%` }} />
+                                            <span className="standing-track-fill" style={{ width: `${fillPercent}%` }} />
                                         </div>
-                                        <span className="standing-badge-goal">
-                                            {next != null ? <>{item.points} / {next} <span className="standing-badge-cue">до вехи</span></> : <>{item.points} · в почёте</>}
-                                        </span>
+                                        {item.isOpen &&
+                                            <span className="standing-badge-goal">
+                                                {next != null ? <>{item.points}/{next}</> : <>{item.points} · в почёте</>}
+                                            </span>}
+                                        {item.isOpen
+                                            ? next != null && item.nextRewardName != null &&
+                                                <span className="standing-badge-cue" title={item.nextRewardName}>{item.nextRewardName}</span>
+                                            : <span className="standing-badge-cue">дорога ещё не открыта</span>}
                                     </div>
+                                    {item.isOpen
+                                        ? <ActionButton className={'standing-friend-mark' + (item.isFriend ? ' standing-friend-mark-on' : '')}
+                                            aria-pressed={item.isFriend}
+                                            aria-label={item.isFriend ? `Дружим с выселком ${item.neighborName} – перестать` : `Водить дружбу с выселком ${item.neighborName}`}
+                                            title={FRIEND_HINT}
+                                            onClick={async () => void await onSetFriend(item.isFriend ? null : item.neighborId)}>
+                                            <HeartIcon aria-hidden="true" />
+                                        </ActionButton>
+                                        : <span className="standing-friend-mark standing-friend-mark-locked" aria-hidden="true"><LockIcon /></span>}
                                 </div>
                             );
                         })}
@@ -256,11 +278,18 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                                         </span>
                                     </div>
                                 </div>
-                                <ActionButton className="btn-game" disabled={!canComplete}
-                                    title={canComplete ? undefined : 'Не хватает ресурсов'}
-                                    onClick={() => onComplete(order.id)}>
-                                    Сдать заказ
-                                </ActionButton>
+                                <div className="order-actions">
+                                    <ActionButton className="btn-game" disabled={!canComplete}
+                                        title={canComplete ? undefined : 'Не хватает ресурсов'}
+                                        onClick={() => onComplete(order.id)}>
+                                        Сдать заказ
+                                    </ActionButton>
+                                    <ActionButton className="btn-game btn-ghost"
+                                        title="Заказ уйдёт в другую деревню – без обиды, но и без награды. Новый спрос появится не сразу."
+                                        onClick={() => onCancel(order.id)}>
+                                        Уступить
+                                    </ActionButton>
+                                </div>
                             </div>
                         );
                     })}

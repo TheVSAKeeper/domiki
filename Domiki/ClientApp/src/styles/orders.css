@@ -242,33 +242,44 @@
 
 .standing-board {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    gap: 10px;
     margin-bottom: 14px;
-    padding: 9px 12px;
+    padding: 11px 13px;
     background: #fffaec;
     border: 3px solid var(--ink);
     clip-path: var(--cut);
     box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
-.standing-board-label {
-    display: inline-flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 3px 6px;
-    flex-shrink: 0;
-    font-family: var(--pixel);
-    font-size: 9px;
-    line-height: 1.5;
-    color: var(--pine-dark);
-    text-transform: lowercase;
+.standing-board-head {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
 }
 
-.standing-board-label svg {
+.standing-board-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    font-family: var(--pixel);
+    font-size: 12px;
+    color: var(--pine-dark);
+}
+
+.standing-board-title svg {
     width: 14px;
     height: 14px;
+    flex: none;
     color: var(--roof);
+}
+
+.standing-board-hint {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: rgba(51, 41, 26, .72);
 }
 
 .standing-list {
@@ -280,12 +291,13 @@
 }
 
 .standing-badge {
+    position: relative;
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    flex: 1 1 160px;
+    flex: 1 1 150px;
     min-width: 0;
-    padding: 6px 10px 6px 7px;
+    padding: 7px 33px 8px 7px;
     background: var(--plank-dark);
     border: 2px solid var(--ink);
     clip-path: var(--cut);
@@ -299,7 +311,7 @@
 .standing-badge-body {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     min-width: 0;
     flex: 1;
 }
@@ -307,14 +319,14 @@
 .standing-badge-name {
     overflow: hidden;
     font-family: var(--pixel);
-    font-size: 9px;
+    font-size: 10px;
     color: var(--ink);
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .standing-track {
-    height: 9px;
+    height: 12px;
     overflow: hidden;
     background: #efe2c2;
     border: 2px solid var(--ink);
@@ -335,17 +347,116 @@
 .standing-badge-goal {
     font-family: var(--pixel);
     font-size: 9px;
-    color: var(--pine-dark);
+    line-height: 1.4;
+    color: var(--ink);
+    white-space: nowrap;
     font-variant-numeric: tabular-nums;
 }
 
 .standing-badge-cue {
-    color: rgba(51, 41, 26, .5);
-    text-transform: lowercase;
+    display: block;
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.25;
+    color: rgba(51, 41, 26, .85);
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .standing-badge-honored .standing-badge-goal {
     color: #8a6a12;
+}
+
+.standing-friend-mark {
+    position: absolute;
+    top: var(--px);
+    right: var(--px);
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    font-size: 10px;
+    color: rgba(51, 41, 26, .45);
+    background: #fffaec;
+    border: 2px solid rgba(51, 41, 26, .35);
+    clip-path: var(--cut);
+    cursor: pointer;
+    transition: background-color .15s, color .15s, border-color .15s;
+}
+
+.standing-friend-mark svg {
+    width: 14px;
+    height: 14px;
+}
+
+.standing-friend-mark .btn-spin {
+    margin-right: 0;
+}
+
+.standing-friend-mark.is-busy svg {
+    display: none;
+}
+
+.standing-friend-mark:hover:not(:disabled) {
+    color: var(--pine);
+    background: #e4ecd6;
+    border-color: var(--pine);
+}
+
+.standing-friend-mark:focus-visible {
+    outline: none;
+    border-color: var(--coin);
+    box-shadow: inset 0 0 0 2px var(--coin);
+}
+
+.standing-friend-mark:disabled {
+    cursor: default;
+}
+
+.standing-friend-mark-on {
+    color: #fffaec;
+    background: var(--pine);
+    border-color: var(--pine-dark);
+}
+
+.standing-friend-mark-locked {
+    color: rgba(51, 41, 26, .4);
+    background: transparent;
+    border-color: transparent;
+}
+
+.standing-badge-friend {
+    background: #e4ecd6;
+    border-color: var(--pine);
+    box-shadow: inset 0 0 0 2px #fffaec;
+}
+
+.standing-badge-honored.standing-badge-friend {
+    background: #eaf0d3;
+}
+
+.standing-badge-locked {
+    background: repeating-linear-gradient(45deg, #e6dcc4 0 6px, #ded2b6 6px 12px);
+    border-color: rgba(51, 41, 26, .45);
+}
+
+.standing-badge-locked .neighbor-ico {
+    filter: grayscale(1);
+    opacity: .6;
+}
+
+.standing-badge-locked .standing-badge-name {
+    color: rgba(51, 41, 26, .6);
+}
+
+.standing-badge-locked .standing-track {
+    background: transparent;
+    border-color: rgba(51, 41, 26, .35);
+}
+
+.standing-badge-locked .standing-badge-cue {
+    font-style: italic;
 }
 
 .convoy-board {
@@ -704,7 +815,33 @@
 
 .order-card .btn-game {
     justify-content: center;
+}
+
+.order-actions {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
     margin-top: auto;
+}
+
+.order-actions .btn-game {
+    flex: 1 1 auto;
+}
+
+.order-actions .btn-game.btn-ghost {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: rgba(51, 41, 26, .72);
+    background: transparent;
+    border-width: 2px;
+    border-color: rgba(51, 41, 26, .38);
+}
+
+.order-actions .btn-game.btn-ghost:hover:not(:disabled) {
+    color: var(--roof);
+    background: #fffaec;
+    border-color: var(--roof);
 }
 
 .neighbor-ico {

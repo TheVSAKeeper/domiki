@@ -105,6 +105,15 @@ public class Player
     public DateTime? NextOrderRefillAt { get; set; }
 
     /// <summary>
+    /// Сосед, с которым деревня нынче водит дружбу.
+    /// </summary>
+    /// <remarks>
+    /// Ссылка на справочник соседей (см. <see cref="Reference.ResourceManager.GetNeighbors"/>): заказы дружественного соседа
+    /// чаще появляются на доске (см. <see cref="Economy.OrderManager.FriendWeight"/>). <see langword="null"/> – игрок ни с кем не дружит.
+    /// </remarks>
+    public int? FriendNeighborId { get; set; }
+
+    /// <summary>
     /// Сколько золота уже добыто прямой добычей (рудником) за текущие календарные сутки UTC.
     /// </summary>
     /// <value>Золото.</value>

@@ -15,6 +15,28 @@ namespace Domiki.Web.Economy;
 public class OrderManager
 {
     public const int BoardSize = 3;
+
+    /// <summary>
+    /// Во сколько раз чаще на доске появляется заказ соседа, с которым игрок водит дружбу (см. <see cref="Data.Entities.Player.FriendNeighborId"/>).
+    /// </summary>
+    public const int FriendWeight = 3;
+
+    /// <summary>
+    /// Сколько ячеек доски может занять сосед, с которым водят дружбу: хотя бы одна весточка всегда приходит от других выселок.
+    /// </summary>
+    public const int FriendBoardLimit = BoardSize - 1;
+
+    /// <summary>
+    /// Доля двора, на которую рассчитан один заказ: один заказ рассчитан на половину мощности двора за свой срок, чтобы
+    /// доска из трёх заказов была посильна, а не занимала весь двор целиком.
+    /// </summary>
+    public const int BoardShare = 2;
+
+    /// <summary>
+    /// Расчётная длительность одного производственного цикла в часах.
+    /// </summary>
+    public const double ManufactureCycleHours = 1.5;
+
     public const int OrderRefillDelaySeconds = 30 * 60;
     private const int CoinResourceTypeId = 1;
     private const int GoldResourceTypeId = 5;
@@ -66,13 +88,26 @@ public class OrderManager
 
     public static int GetOrderQuantity(OrderTier tier, int resourceTypeId)
     {
-        return Math.Max(1, (int)Math.Round(tier.Quantity * (double)ResourceManager.BaseMarketValue / ResourceManager.GetMarketValue(resourceTypeId), MidpointRounding.AwayFromZero));
+        return Math.Max(2, (int)Math.Round(tier.Quantity * (double)ResourceManager.BaseMarketValue / ResourceManager.GetMarketValue(resourceTypeId), MidpointRounding.AwayFromZero));
     }
 
-    public static int GetEffectiveQuantity(OrderTier tier, int resourceTypeId, int capacity)
+    /// <summary>
+    /// Считает посильный объём заказа: нормированное по ценности количество, урезанное мощностью двора за срок заказа.
+    /// </summary>
+    /// <remarks>
+    /// Заказ рассчитан на долю двора <see cref="BoardShare"/>, а каждый следующий заказ на тот же ресурс делит эту долю
+    /// дальше – иначе доска, где сосед-друг просит одно и то же в нескольких ячейках, просила бы больше суточной выработки.
+    /// </remarks>
+    /// <param name="tier">Тир спроса, задающий базовое количество и срок.</param>
+    /// <param name="resourceTypeId">Ссылка на справочник типов ресурсов – что просит сосед.</param>
+    /// <param name="capacity">Мощность двора по этому ресурсу: меньшее из числа трудяг и слотов подходящих построек.</param>
+    /// <param name="sameResourceOrders">Сколько заказов на этот же ресурс уже висит на доске.</param>
+    /// <returns>Количество единиц ресурса, которое сосед просит в заказе.</returns>
+    public static int GetEffectiveQuantity(OrderTier tier, int resourceTypeId, int capacity, int sameResourceOrders = 0)
     {
         var quantity = GetOrderQuantity(tier, resourceTypeId);
-        var capacityLimit = Math.Max(2, (int)Math.Floor(capacity * tier.DurationSeconds / 3600.0 / 1.5));
+        var share = ManufactureCycleHours * BoardShare * (sameResourceOrders + 1);
+        var capacityLimit = Math.Max(2, (int)Math.Floor(capacity * tier.DurationSeconds / 3600.0 / share));
         return Math.Min(quantity, capacityLimit);
     }
 
@@ -98,10 +133,16 @@ public class OrderManager
 
         var villageLevel = _villageLevelCalculator.GetLevel(playerId).Level;
         var created = new List<CalculateInfo>();
+        var boardOrders = _context.OrderResources
+            .Where(x => x.Order.PlayerId == playerId)
+            .Select(x => new { x.Order.NeighborId, x.ResourceTypeId })
+            .ToArray()
+            .Select(x => (x.NeighborId, x.ResourceTypeId))
+            .ToList();
 
         while (count < BoardSize)
         {
-            var calcInfo = CreateOrder(playerId, villageLevel);
+            var calcInfo = CreateOrder(playerId, villageLevel, boardOrders, player.FriendNeighborId);
             created.Add(calcInfo);
             count++;
         }
@@ -181,6 +222,38 @@ public class OrderManager
         _goalManager.OnOrderCompleted(playerId);
     }
 
+    /// <summary>
+    /// Уступает заказ соседу без выполнения: ресурсы не списываются, награда не начисляется, слот освобождается.
+    /// </summary>
+    /// <remarks>
+    /// Задержка на пополнение доски накапливается: уступка отодвигает <see cref="Data.Entities.Player.NextOrderRefillAt"/>
+    /// на <see cref="OrderRefillDelaySeconds"/> вперёд от уже выставленного момента (если он ещё в будущем), а не выставляет
+    /// его заново от текущего времени – поэтому сдать всю доску разом и тут же получить новую нельзя.
+    /// </remarks>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <param name="orderId">Идентификатор заказа, от которого игрок отказывается.</param>
+    public void CancelOrder(int playerId, int orderId)
+    {
+        _playerResourceManager.LockDbPlayerRow(playerId);
+
+        var dbOrder = _context.Orders.FirstOrDefault(x => x.Id == orderId);
+        if (dbOrder == null || dbOrder.PlayerId != playerId)
+        {
+            throw new BusinessException("Этого заказа уже нет на доске – видно, сосед не дождался.");
+        }
+
+        _context.Orders.Remove(dbOrder);
+        _context.SaveChanges();
+
+        var player = _context.Players.First(x => x.Id == playerId);
+        var now = DateTimeHelper.GetNowDate();
+        var baseline = player.NextOrderRefillAt is { } existingRefillAt && existingRefillAt > now ? existingRefillAt : now;
+        player.NextOrderRefillAt = baseline.AddSeconds(OrderRefillDelaySeconds);
+        _context.SaveChanges();
+
+        EnsureOrderBoard(playerId);
+    }
+
     public bool FinishOrder(DateTime date, CalculateInfo calcInfo)
     {
         _playerResourceManager.LockDbPlayerRow(calcInfo.PlayerId);
@@ -210,16 +283,78 @@ public class OrderManager
         return false;
     }
 
+    /// <summary>
+    /// Назначает (или снимает) дружбу игрока с соседом: заказы дружественного соседа впредь чаще появляются на доске.
+    /// </summary>
+    /// <remarks>
+    /// Не трогает уже выложенные на доску заказы – эффект проявляется только в последующей генерации (см. <see cref="CreateOrder"/>).
+    /// </remarks>
+    /// <param name="playerId">Игрок.</param>
+    /// <param name="neighborId">Сосед, с которым назначается дружба – ссылка на справочник <see cref="Neighbor.Id"/>; <see langword="null"/> снимает дружбу.</param>
+    public void SetFriendNeighbor(int playerId, int? neighborId)
+    {
+        _playerResourceManager.LockDbPlayerRow(playerId);
+
+        var player = _context.Players.First(x => x.Id == playerId);
+
+        if (neighborId != null)
+        {
+            var villageLevel = _villageLevelCalculator.GetLevel(playerId).Level;
+            var isOpen = _resourceManager.GetNeighbors().Any(x => x.Id == neighborId)
+                && _villageLevelCalculator.GetOpenNeighbors(villageLevel).Any(x => x.Id == neighborId);
+
+            if (!isOpen)
+            {
+                throw new BusinessException("С этой деревней вы пока не знакомы – дорога к ней откроется с ростом обжитости.");
+            }
+        }
+
+        player.FriendNeighborId = neighborId;
+        _context.SaveChanges();
+    }
+
     public IEnumerable<NeighborReputation> GetReputation(int playerId)
     {
+        var player = _context.Players.First(x => x.Id == playerId);
         var reputations = _context.NeighborReputations.Where(x => x.PlayerId == playerId).ToArray();
+        var villageLevel = _villageLevelCalculator.GetLevel(playerId).Level;
+        var openNeighborIds = _villageLevelCalculator.GetOpenNeighbors(villageLevel).Select(x => x.Id).ToHashSet();
         return _resourceManager.GetNeighbors()
-            .Select(neighbor => new NeighborReputation
+            .Select(neighbor =>
             {
-                Neighbor = neighbor,
-                Points = reputations.FirstOrDefault(x => x.NeighborId == neighbor.Id)?.Points ?? 0,
+                var points = reputations.FirstOrDefault(x => x.NeighborId == neighbor.Id)?.Points ?? 0;
+                var (nextThreshold, nextRewardName) = GetNextReputationMilestone(neighbor, points);
+                return new NeighborReputation
+                {
+                    Neighbor = neighbor,
+                    Points = points,
+                    NextThreshold = nextThreshold,
+                    NextRewardName = nextRewardName,
+                    IsFriend = player.FriendNeighborId == neighbor.Id,
+                    IsOpen = openNeighborIds.Contains(neighbor.Id),
+                };
             })
             .ToArray();
+    }
+
+    private (int? Threshold, string? Name) GetNextReputationMilestone(Neighbor neighbor, int points)
+    {
+        var candidates = new List<(int Threshold, string Name)>();
+
+        candidates.AddRange(_resourceManager.GetBlueprints()
+            .Where(x => x.NeighborId == neighbor.Id)
+            .Select(x => (x.ReputationThreshold, $"«{x.Name}»")));
+
+        candidates.AddRange(_resourceManager.GetDecorTypes()
+            .Where(x => x.NeighborId == neighbor.Id && x.ReputationThreshold > 0)
+            .Select(x => (x.ReputationThreshold, $"украшение «{x.Name}»")));
+
+        candidates.Add((ConvoyManager.AccessReputationThreshold, "обоз соседа"));
+        candidates.Add((ConvoyManager.SecondaryReputationThreshold, "второй товар в обозе"));
+        candidates.Add((ConvoyManager.HighLimitReputationThreshold, "щедрый обоз"));
+
+        var next = candidates.Where(x => x.Threshold > points).OrderBy(x => x.Threshold).FirstOrDefault();
+        return next.Name == null ? (null, null) : (next.Threshold, next.Name);
     }
 
     public int GetCapacity(int playerId, int resourceTypeId)
@@ -252,7 +387,7 @@ public class OrderManager
             .ToArray();
     }
 
-    private CalculateInfo CreateOrder(int playerId, int villageLevel)
+    private CalculateInfo CreateOrder(int playerId, int villageLevel, List<(int NeighborId, int ResourceTypeId)> boardOrders, int? friendNeighborId)
     {
         var neighbors = _villageLevelCalculator.GetOpenNeighbors(villageLevel);
         var producible = GetProducibleResourceTypeIds(playerId);
@@ -261,11 +396,35 @@ public class OrderManager
             .Where(x => x.ResourceTypeId != 0 && producible.Contains(x.ResourceTypeId))
             .ToArray();
 
+        var friendHasFreeSlot = boardOrders.Count(x => x.NeighborId == friendNeighborId) < FriendBoardLimit;
+        var distinctPairs = pairs
+            .Where(x => (friendHasFreeSlot && x.Neighbor.Id == friendNeighborId) || boardOrders.All(y => y.ResourceTypeId != x.ResourceTypeId))
+            .ToArray();
+
+        if (distinctPairs.Length > 0)
+        {
+            pairs = distinctPairs;
+        }
+
         Neighbor neighbor;
         int resourceTypeId;
         if (pairs.Length > 0)
         {
-            (neighbor, resourceTypeId) = pairs[Random.Shared.Next(pairs.Length)];
+            var weights = pairs.Select(x => x.Neighbor.Id == friendNeighborId ? FriendWeight : 1).ToArray();
+            var roll = Random.Shared.Next(weights.Sum());
+            var cumulative = 0;
+            var index = 0;
+            for (var i = 0; i < pairs.Length; i++)
+            {
+                cumulative += weights[i];
+                if (roll < cumulative)
+                {
+                    index = i;
+                    break;
+                }
+            }
+
+            (neighbor, resourceTypeId) = pairs[index];
         }
         else
         {
@@ -273,11 +432,13 @@ public class OrderManager
             resourceTypeId = neighbor.PrimaryResourceTypeId;
         }
 
+        var sameResourceOrders = boardOrders.Count(x => x.ResourceTypeId == resourceTypeId);
+        boardOrders.Add((neighbor.Id, resourceTypeId));
         var tier = Tiers[Random.Shared.Next(Tiers.Length)];
         var now = DateTimeHelper.GetNowDate();
         var expireDate = now.AddSeconds(tier.DurationSeconds);
         var capacity = GetCapacity(playerId, resourceTypeId);
-        var quantity = GetEffectiveQuantity(tier, resourceTypeId, capacity);
+        var quantity = GetEffectiveQuantity(tier, resourceTypeId, capacity, sameResourceOrders);
         var rewardCoins = (int)Math.Round(quantity * ResourceManager.GetMarketValue(resourceTypeId) * tier.DemandMultiplier, MidpointRounding.AwayFromZero);
 
         var order = new Data.Entities.Order

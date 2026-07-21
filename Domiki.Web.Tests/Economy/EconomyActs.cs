@@ -86,6 +86,12 @@ public static class EconomyActs
         return p;
     }
 
+    public static TestPlayer CancelOrder(this TestPlayer p, int orderId)
+    {
+        App.Act<OrderManager>(m => m.CancelOrder(p.Id, orderId));
+        return p;
+    }
+
     public static TestPlayer FinishOrder(this TestPlayer p, int orderId, DateTime date)
     {
         var result = App.Act<OrderManager, bool>(m => m.FinishOrder(date, new()
@@ -125,5 +131,11 @@ public static class EconomyActs
     public static IReadOnlyList<Convoy> Convoys(this TestPlayer p)
     {
         return App.Act<ConvoyManager, IReadOnlyList<Convoy>>(m => m.GetConvoys(p.Id).ToList());
+    }
+
+    public static TestPlayer SetFriendNeighbor(this TestPlayer p, int? neighborId)
+    {
+        App.Act<OrderManager>(m => m.SetFriendNeighbor(p.Id, neighborId));
+        return p;
     }
 }

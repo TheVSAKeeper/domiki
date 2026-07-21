@@ -95,6 +95,9 @@ export async function apiPost(url: string, signal?: AbortSignal): Promise<void> 
 export const completeOrder = (orderId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/CompleteOrder/${orderId}`, signal);
 
+export const cancelOrder = (orderId: number, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/CancelOrder/${orderId}`, signal);
+
 export const acceptErrand = (errandId: number, clueId: number, workerIds: number[], signal?: AbortSignal): Promise<void> => {
     const workerIdsQuery = workerIds.map(id => `&workerIds=${id}`).join('');
     return apiPost(`Domiki/AcceptErrand/${errandId}?clueId=${clueId}${workerIdsQuery}`, signal);
@@ -176,6 +179,9 @@ export const cancelLot = (lotId: number, signal?: AbortSignal): Promise<void> =>
 
 export const buyFromConvoy = (neighborId: number, resourceTypeId: number, count: number, signal?: AbortSignal): Promise<void> =>
     request('POST', 'Domiki/BuyFromConvoy', null, signal, { neighborId, resourceTypeId, count });
+
+export const setFriendNeighbor = (neighborId: number | null, signal?: AbortSignal): Promise<void> =>
+    request('POST', 'Domiki/SetFriendNeighbor', null, signal, { neighborId });
 
 export const getPushPublicKey = (signal?: AbortSignal): Promise<string> =>
     apiGet('Push/PublicKey', z.string(), signal);

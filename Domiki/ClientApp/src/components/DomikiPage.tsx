@@ -6,7 +6,7 @@ import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import SettingsIcon from 'pixelarticons/svg/settings-cog.svg?react';
 import EarthIcon from 'pixelarticons/svg/earth.svg?react';
 import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
-import { acceptErrand as acceptErrandApi, apiPost, ApiError, cancelErrand as cancelErrandApi, completeOrder as completeOrderApi, startIncidentSearch as startIncidentSearchApi } from '../services/api';
+import { acceptErrand as acceptErrandApi, apiPost, ApiError, cancelErrand as cancelErrandApi, cancelOrder as cancelOrderApi, completeOrder as completeOrderApi, setFriendNeighbor as setFriendNeighborApi, startIncidentSearch as startIncidentSearchApi } from '../services/api';
 import { useToast } from '../services/toastContext';
 import { useGameData } from '../hooks/useGameData';
 import { GOLD_RESOURCE_TYPE_ID, computeSelectedDomikView, isWorkerFree } from '../utils/game';
@@ -155,6 +155,24 @@ export const DomikiPage = () => {
         scheduleReload();
     }, 'Заказ выполнен');
 
+    const cancelOrder = (orderId: number) => runAction(async () => {
+        await cancelOrderApi(orderId);
+        scheduleReload();
+    }, 'Заказ уступили – новый спрос подойдёт со временем.');
+
+    const setFriendNeighborAction = (neighborId: number | null) => {
+        const neighborName = neighborId == null ? null : reputation.find(item => item.neighborId === neighborId)?.neighborName ?? null;
+        const successMessage = neighborId == null
+            ? undefined
+            : neighborName != null
+                ? `Теперь водим дружбу с «${neighborName}» – их заказы будут заглядывать чаще.`
+                : 'Теперь водим дружбу – её заказы будут заглядывать чаще.';
+        return runAction(async () => {
+            await setFriendNeighborApi(neighborId);
+            scheduleReload();
+        }, successMessage);
+    };
+
     const acceptErrandAction = (errandId: number, clueId: number, workerIds: number[]) => runAction(async () => {
         await acceptErrandApi(errandId, clueId, workerIds);
         scheduleReload();
@@ -237,7 +255,8 @@ export const DomikiPage = () => {
         {
             key: 'orders', label: 'Заказы', icon: <MechanicSprite logicName="orders" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,
             node: <OrdersBox orders={orders} errand={errand} workers={workers} reputation={reputation} convoys={convoys} resourceTypes={resourceTypes} resources={resources} now={now}
-                onComplete={completeOrder} onAcceptErrand={acceptErrandAction} onCancelErrand={cancelErrandAction} onBuyFromConvoy={buyFromConvoyAction} />,
+                onComplete={completeOrder} onCancel={cancelOrder} onAcceptErrand={acceptErrandAction} onCancelErrand={cancelErrandAction}
+                onBuyFromConvoy={buyFromConvoyAction} onSetFriend={setFriendNeighborAction} />,
         },
         {
             key: 'blueprints', label: 'Вехи соседей', icon: <MechanicSprite logicName="blueprints" size={24} className="game-tab-ico" aria-hidden="true" />, visible: blueprints.length > 0 || (decor?.types ?? []).some(x => x.neighborId != null),

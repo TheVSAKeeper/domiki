@@ -39,6 +39,73 @@ public sealed class OrdersTests
     }
 
     /// <summary>
+    /// Уступить чужой или несуществующий заказ нельзя: обе попытки бросают ошибку, а чужой заказ остаётся на исходной доске.
+    /// </summary>
+    [Test]
+    public void CancelForeignOrMissingOrderThrowsTest()
+    {
+        var firstPlayer = TestPlayer.Create();
+
+        var secondPlayer = TestPlayer.Create();
+
+        var order = firstPlayer.Orders().First();
+
+        Assert.Throws<BusinessException>(() => secondPlayer.CancelOrder(order.Id));
+        Assert.Throws<BusinessException>(() => secondPlayer.CancelOrder(int.MaxValue));
+
+        Assert.That(firstPlayer.Orders().Any(x => x.Id == order.Id), Is.True);
+    }
+
+    /// <summary>
+    /// Уступка заказа освобождает слот на доске, не начисляет ни монет, ни репутации соседа и ставит обычную задержку на
+    /// пополнение доски (слот не заполняется сразу).
+    /// </summary>
+    [Test]
+    public void CancelOrderFreesSlotWithoutRewardsTest()
+    {
+        const int expectedOrderCount = 2;
+
+        var player = TestPlayer.Create();
+        var order = player.Orders().First();
+        var beforeResources = player.Resources();
+        var beforeReputation = player.Reputation().First(x => x.Neighbor.Id == order.Neighbor.Id).Points;
+
+        player.CancelOrder(order.Id);
+
+        var afterResources = player.Resources();
+        var afterReputation = player.Reputation().First(x => x.Neighbor.Id == order.Neighbor.Id).Points;
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(afterResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo(beforeResources.Select(x => (x.Type.Id, x.Value))));
+            Assert.That(afterReputation, Is.EqualTo(beforeReputation));
+        }
+
+        var orders = player.Orders();
+        Assert.That(orders.Count, Is.EqualTo(expectedOrderCount));
+        Assert.That(orders.Any(x => x.Id == order.Id), Is.False);
+    }
+
+    /// <summary>
+    /// Доска из трёх заказов не повторяет тип ресурса, когда двор способен производить три разных ресурса.
+    /// </summary>
+    [Test]
+    public void OrderBoardDoesNotRepeatResourceWithThreeProducibleResourcesTest()
+    {
+        const int expectedDistinctResourceCount = 3;
+
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.LumberMill)
+            .WithDomik(DomikIds.StoneMine);
+
+        RaiseVillageLevelTo(player.Id, 3);
+
+        var orders = player.Orders();
+        var resourceTypeIds = orders.SelectMany(x => x.Resources).Select(x => x.Type.Id).Distinct().ToArray();
+
+        Assert.That(resourceTypeIds, Has.Length.EqualTo(expectedDistinctResourceCount));
+    }
+
+    /// <summary>
     /// Освободившийся после выполнения заказа слот доски не заполняется заново при повторных запросах доски.
     /// </summary>
     [Test]

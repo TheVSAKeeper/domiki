@@ -39,6 +39,18 @@ public class EconomyController : GameControllerBase
         _orderManager.CompleteOrder(playerId, orderId);
     }
 
+    /// <summary>
+    /// Уступает заказ соседу без выполнения – заказ снимается с доски, слот освобождается на обычную задержку пополнения.
+    /// </summary>
+    /// <param name="orderId">Идентификатор заказа.</param>
+    [HttpPost]
+    [Route("/Domiki/CancelOrder/{orderId}")]
+    public void CancelOrder(int orderId)
+    {
+        var playerId = GetPlayerId();
+        _orderManager.CancelOrder(playerId, orderId);
+    }
+
     [HttpGet]
     [Route("/Domiki/GetReputation")]
     public NeighborReputationDto[] GetReputation()
@@ -46,6 +58,18 @@ public class EconomyController : GameControllerBase
         var playerId = GetPlayerId();
 
         return _orderManager.GetReputation(playerId).Select(x => x.ToDto()).ToArray();
+    }
+
+    /// <summary>
+    /// Назначает (или снимает) дружбу игрока с соседом.
+    /// </summary>
+    /// <param name="request">Сосед, с которым назначается дружба; <see langword="null"/> в <see cref="SetFriendNeighborDto.NeighborId"/> снимает дружбу.</param>
+    [HttpPost]
+    [Route("/Domiki/SetFriendNeighbor")]
+    public void SetFriendNeighbor([FromBody] SetFriendNeighborDto request)
+    {
+        var playerId = GetPlayerId();
+        _orderManager.SetFriendNeighbor(playerId, request.NeighborId);
     }
 
     [HttpGet]
