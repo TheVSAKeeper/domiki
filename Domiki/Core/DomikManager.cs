@@ -90,6 +90,7 @@ public class DomikManager
     private readonly ResourceManager _resourceManager;
     private readonly PlayerResourceManager _playerResourceManager;
     private readonly WorkerManager _workerManager;
+    private readonly TavernManager _tavernManager;
     private readonly WeatherManager _weatherManager;
     private readonly VillageLevelCalculator _villageLevelCalculator;
     private readonly BlueprintManager _blueprintManager;
@@ -99,7 +100,7 @@ public class DomikManager
     private readonly ILogger<DomikManager> _logger;
     private readonly IncidentManager _incidentManager;
 
-    public DomikManager(UnitOfWork uow, ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, TolokaManager tolokaManager, PlayerEventManager playerEventManager, GoalManager goalManager, ILogger<DomikManager> logger, IncidentManager incidentManager)
+    public DomikManager(UnitOfWork uow, ApplicationDbContext context, ICalculator calculator, ResourceManager resourceManager, PlayerResourceManager playerResourceManager, WorkerManager workerManager, TavernManager tavernManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, TolokaManager tolokaManager, PlayerEventManager playerEventManager, GoalManager goalManager, ILogger<DomikManager> logger, IncidentManager incidentManager)
     {
         _context = context;
         _calculator = calculator;
@@ -107,6 +108,7 @@ public class DomikManager
         _resourceManager = resourceManager;
         _playerResourceManager = playerResourceManager;
         _workerManager = workerManager;
+        _tavernManager = tavernManager;
         _weatherManager = weatherManager;
         _villageLevelCalculator = villageLevelCalculator;
         _blueprintManager = blueprintManager;
@@ -154,16 +156,7 @@ public class DomikManager
             VillageName = dbPlayer.VillageName,
             CrestIcon = dbPlayer.CrestIcon,
             CrestColor = dbPlayer.CrestColor,
-            FeedWorkers = dbPlayer.FeedWorkers,
         };
-    }
-
-    public void SetFeedWorkers(int playerId, bool enabled)
-    {
-        _playerResourceManager.LockDbPlayerRow(playerId);
-
-        var dbPlayer = _context.Players.Single(x => x.Id == playerId);
-        dbPlayer.FeedWorkers = enabled;
     }
 
     public void SetVillageIdentity(int playerId, string? name, int crestIcon, int crestColor)
@@ -699,13 +692,16 @@ public class DomikManager
 
             var restSeconds = RestSeconds * (100 - Math.Min(RestComfortMaxPercent, comfort)) / 100;
             var sickSeconds = SickDurationSeconds * (100 - Math.Min(RestComfortMaxPercent, comfort)) / 100;
+            var tavernLevel = _tavernManager.GetLevel(playerId);
+            if (tavernLevel >= TavernManager.WarmCornerMinLevel)
+            {
+                sickSeconds = sickSeconds * (100 - TavernManager.WarmCornerRecoveryPercent) / 100;
+            }
+
             var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
             var sickChance = dbManufacture.SickChance;
             var currentlySick = _context.Workers.Count(x => x.PlayerId == playerId && x.SickUntil > date);
             var isTradeDomik = _resourceManager.GetDomikTypes().First(x => x.LogicName == "market").Id == dbDomik.TypeId;
-            var breadRes = _context.Resources.Local.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == 15)
-                           ?? _context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == 15);
-
             var freedWorkerIds = new List<int>();
             var workerNames = new List<string>();
             var assignedWorkers = _context.Workers.Where(x => x.ManufactureId == dbManufacture.Id).OrderBy(x => x.Id).ToArray();
@@ -721,10 +717,13 @@ public class DomikManager
                     worker.WorkedSeconds += dbManufacture.DurationSeconds;
                     if (worker.WorkedSeconds >= FatigueThresholdSeconds)
                     {
-                        var fed = dbPlayer.FeedWorkers && breadRes?.Value >= 1;
+                        var food = tavernLevel >= TavernManager.MealMinLevel
+                            ? _tavernManager.CollectFood(playerId, 1)
+                            : [];
+                        var fed = food.Length > 0;
                         if (fed)
                         {
-                            breadRes!.Value -= 1;
+                            _playerResourceManager.WriteOffResources(playerId, food);
                         }
 
                         worker.RestUntil = date.AddSeconds(fed ? restSeconds / 2 : restSeconds);

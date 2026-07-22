@@ -156,14 +156,6 @@ public class Player
     public DateTime? HelpsReceivedDate { get; set; }
 
     /// <summary>
-    /// Игрок включил автоматическое кормление уставших трудяг хлебом.
-    /// </summary>
-    /// <remarks>
-    /// Наполовину сокращает срок отдыха при наличии хлеба (см. <see cref="Core.DomikManager.FinishManufacture"/>).
-    /// </remarks>
-    public bool FeedWorkers { get; set; }
-
-    /// <summary>
     /// Остаток зарядов «нетронутых залежей» – ограниченное число ускоренных производств.
     /// </summary>
     /// <value><c>×4</c> на первых зарядах, затем <c>×2</c>.</value>

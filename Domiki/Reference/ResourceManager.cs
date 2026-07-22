@@ -89,6 +89,7 @@ public class ResourceManager
             19 => 40,
             20 => 120,
             15 => 20,
+            21 => 25,
             _ => BaseMarketValue,
         };
     }
@@ -154,7 +155,7 @@ public class ResourceManager
     private static ResourceType[] LoadResourceTypes(ApplicationDbContext context)
     {
         return context.ResourceTypes
-            .Select(x => new ResourceType { Id = x.Id, LogicName = x.LogicName, Name = x.Name })
+            .Select(x => new ResourceType { Id = x.Id, LogicName = x.LogicName, Name = x.Name, IsFood = x.IsFood })
             .ToArray();
     }
 

@@ -21,6 +21,11 @@ public sealed record ResourceTypeDto
     public required string LogicName { get; init; }
 
     /// <summary>
+    /// Можно ли использовать ресурс как еду для трудяг и провиант в походах.
+    /// </summary>
+    public required bool IsFood { get; init; }
+
+    /// <summary>
     /// Цена в магазине с фиксированными ценами.
     /// </summary>
     /// <value>Монеты.</value>

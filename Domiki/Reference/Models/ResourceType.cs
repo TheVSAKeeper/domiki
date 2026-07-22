@@ -23,4 +23,9 @@ public class ResourceType
     /// Технический код типа ресурса, используется как ключ на клиенте.
     /// </summary>
     public string? LogicName { get; set; }
+
+    /// <summary>
+    /// Можно ли использовать ресурс как еду для трудяг и провиант в походах.
+    /// </summary>
+    public bool IsFood { get; set; }
 }

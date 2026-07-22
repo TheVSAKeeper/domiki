@@ -33,7 +33,9 @@ public class PlayerResourceManager
     public void WriteOffResources(int playerId, Resource[] resources)
     {
         resources = resources.Where(x => x.Value > 0).ToArray();
-        var dbResources = _context.Resources.Where(x => x.PlayerId == playerId).ToArray();
+        var dbResources = _context.Resources.Where(x => x.PlayerId == playerId).ToArray()
+            .Union(_context.Resources.Local.Where(x => x.PlayerId == playerId))
+            .ToArray();
         var resourceTypes = _resourceManager.GetResourceTypes();
         foreach (var group in resources.GroupBy(x => x.Type.Id))
         {

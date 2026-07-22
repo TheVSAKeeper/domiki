@@ -1,7 +1,7 @@
 ﻿namespace Domiki.Web.Village.Dto;
 
 /// <summary>
-/// Идентичность деревни игрока – название, герб и настройка кормления трудяг.
+/// Идентичность деревни – название и герб.
 /// </summary>
 public sealed record VillageDto
 {
@@ -19,16 +19,7 @@ public sealed record VillageDto
     /// Индекс цвета герба из готового набора.
     /// </summary>
     public required int CrestColor { get; init; }
-
-    /// <summary>
-    /// Включено ли кормление трудяг хлебом.
-    /// </summary>
-    /// <remarks>
-    /// <see langword="true"/> – кормление включено: вдвое сокращает время отдыха уставшего трудяги ценой <c>1</c> хлеба за случай.
-    /// </remarks>
-    public required bool FeedWorkers { get; init; }
 }
-
 /// <summary>
 /// Запрос на смену имени и герба деревни.
 /// </summary>
@@ -51,21 +42,4 @@ public sealed record SetVillageDto
     /// Новый индекс цвета герба.
     /// </summary>
     public int CrestColor { get; init; }
-}
-
-/// <summary>
-/// Запрос на включение или выключение кормления трудяг.
-/// </summary>
-/// <remarks>
-/// Устанавливает <see cref="VillageDto.FeedWorkers"/>.
-/// </remarks>
-public sealed record SetFeedWorkersDto
-{
-    /// <summary>
-    /// Новое значение флага кормления хлебом.
-    /// </summary>
-    /// <remarks>
-    /// <see langword="true"/> – включить кормление, <see langword="false"/> – выключить.
-    /// </remarks>
-    public bool Enabled { get; init; }
 }

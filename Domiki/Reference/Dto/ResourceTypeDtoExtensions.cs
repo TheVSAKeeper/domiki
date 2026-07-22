@@ -11,6 +11,7 @@ public static class ResourceTypeDtoExtentions
             Id = resourceType.Id,
             LogicName = resourceType.LogicName ?? "",
             Name = resourceType.Name ?? "",
+            IsFood = resourceType.IsFood,
             MarketValue = ResourceManager.GetMarketValue(resourceType.Id),
         };
     }

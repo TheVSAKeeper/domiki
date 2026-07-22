@@ -22,4 +22,9 @@ public class ResourceType
     /// Технический код типа ресурса – по нему код находит конкретный ресурс по смыслу, а не по <see cref="Id"/>.
     /// </summary>
     public required string LogicName { get; set; }
+
+    /// <summary>
+    /// Можно ли использовать ресурс как еду для трудяг и провиант в походах.
+    /// </summary>
+    public bool IsFood { get; set; }
 }

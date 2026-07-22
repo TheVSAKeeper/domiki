@@ -49,14 +49,6 @@ public class VillageController : GameControllerBase
         _domikManager.SetVillageIdentity(playerId, request?.Name, request?.CrestIcon ?? -1, request?.CrestColor ?? -1);
     }
 
-    [HttpPost]
-    [Route("/Domiki/SetFeedWorkers")]
-    public void SetFeedWorkers([FromBody] SetFeedWorkersDto request)
-    {
-        var playerId = GetPlayerId();
-        _domikManager.SetFeedWorkers(playerId, request?.Enabled ?? false);
-    }
-
     [HttpGet]
     [Route("/Domiki/GetVillageLevel")]
     public VillageLevelDto GetVillageLevel()

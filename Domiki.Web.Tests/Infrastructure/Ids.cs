@@ -22,6 +22,10 @@ public static class ResourceIds
     public const int Wool = 18;
     public const int Cloth = 19;
     public const int Cloak = 20;
+    /// <summary>
+    /// Сыр.
+    /// </summary>
+    public const int Cheese = 21;
 }
 
 public static class DomikIds
@@ -43,6 +47,10 @@ public static class DomikIds
     public const int Mill = 15;
     public const int Bakery = 16;
     public const int Sheepfold = 17;
+    /// <summary>
+    /// Корчма.
+    /// </summary>
+    public const int Tavern = 18;
 }
 
 /// <summary>
@@ -151,6 +159,14 @@ public static class ReceiptIds
     public const int SellWool = 71;
     public const int SellCloth = 72;
     public const int SewCloak = 73;
+    /// <summary>
+    /// Сварить сыр.
+    /// </summary>
+    public const int MakeCheese = 74;
+    /// <summary>
+    /// Продать сыр.
+    /// </summary>
+    public const int SellCheese = 75;
 }
 
 public static class BlueprintIds
