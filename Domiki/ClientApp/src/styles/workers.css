@@ -104,19 +104,8 @@
     background: #8a5fb0;
 }
 
-.workers-feed {
-    flex-wrap: wrap;
-    row-gap: 2px;
-}
-
-.workers-feed-effect {
-    width: 100%;
-    color: var(--ink-muted);
-    font-size: 10px;
-    font-weight: 600;
-}
-
-.workers-cloaks {
+.workers-cloaks,
+.workers-larder {
     flex: none;
     font-size: 11px;
     font-weight: 700;
@@ -124,7 +113,8 @@
     font-variant-numeric: tabular-nums;
 }
 
-.workers-cloaks b {
+.workers-cloaks b,
+.workers-larder b {
     color: var(--ink);
 }
 

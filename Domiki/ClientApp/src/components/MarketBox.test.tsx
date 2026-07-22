@@ -4,9 +4,9 @@ import type { MarketStateDto, ResourceTypeDto } from '../types/api';
 import { MarketBox } from './MarketBox';
 
 const resourceTypes: ResourceTypeDto[] = [
-    { id: 1, name: 'Монеты', logicName: 'coins', marketValue: 1 },
-    { id: 2, name: 'Дерево', logicName: 'wood', marketValue: 2 },
-    { id: 5, name: 'Золото', logicName: 'gold', marketValue: 10 },
+    { id: 1, name: 'Монеты', logicName: 'coins', marketValue: 1, isFood: false },
+    { id: 2, name: 'Дерево', logicName: 'wood', marketValue: 2, isFood: false },
+    { id: 5, name: 'Золото', logicName: 'gold', marketValue: 10, isFood: false },
 ];
 
 const market: MarketStateDto = {

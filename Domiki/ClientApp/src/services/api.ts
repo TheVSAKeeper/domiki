@@ -124,9 +124,6 @@ export const getVillage = (signal?: AbortSignal): Promise<VillageDto> =>
 export const setVillage = (name: string, crestIcon: number, crestColor: number, signal?: AbortSignal): Promise<void> =>
     request('POST', 'Domiki/SetVillage', null, signal, { name, crestIcon, crestColor });
 
-export const setFeedWorkers = (enabled: boolean, signal?: AbortSignal): Promise<void> =>
-    request('POST', 'Domiki/SetFeedWorkers', null, signal, { enabled });
-
 export const getWorld = (signal?: AbortSignal): Promise<WorldDto> =>
     apiGet('Domiki/GetWorld', worldSchema, signal);
 

@@ -79,7 +79,6 @@ const skippedDtos: Record<string, string> = {
     BuyFromConvoyDto: 'request payload BuyFromConvoy отправляется без zod-схемы',
     SetVillageDto: 'request payload SetVillage отправляется без zod-схемы',
     SetFriendNeighborDto: 'request payload SetFriendNeighbor отправляется без zod-схемы',
-    SetFeedWorkersDto: 'request payload SetFeedWorkers отправляется без zod-схемы',
     StartIncidentSearchDto: 'request payload StartIncidentSearch отправляется без zod-схемы',
     PushSubscribeDto: 'request payload Push/Subscribe отправляется без zod-схемы',
     PushUnsubscribeDto: 'request payload Push/Unsubscribe отправляется без zod-схемы',

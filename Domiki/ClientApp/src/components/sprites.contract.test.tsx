@@ -30,10 +30,10 @@ describe('sprite registry contract', () => {
         expect(container.querySelectorAll('svg')).toHaveLength(6);
     });
 
-    it('renders the cloak resource from the registry', () => {
-        const { container } = render(<ResourceSprite logicName="cloak" />);
+    it('renders the cheese resource and tavern from the registry', () => {
+        const { container } = render(<><ResourceSprite logicName="cheese" /><DomikSprite logicName="tavern" /></>);
 
-        expect(container.querySelector('svg')).toBeInTheDocument();
+        expect(container.querySelectorAll('svg')).toHaveLength(2);
     });
 
     it('renders nothing for an unknown strict-registry logicName', () => {

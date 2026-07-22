@@ -15,6 +15,8 @@ import { ProgressBar } from './ProgressBar';
 import { ActionButton } from './ActionButton';
 import { AbstractSprite, DecorSprite, MechanicSprite, ResourceSprite, WorkerSprite } from './sprites';
 
+const TAVERN_PROVISION_LEVEL = 2;
+
 const durationBetween = (startDate: string, finishDate: string) =>
     Math.max(1, Math.round((new Date(finishDate).getTime() - new Date(startDate).getTime()) / 1000));
 
@@ -24,6 +26,7 @@ interface ExpeditionsBoxProps {
     decorTypes: DecorTypeDto[];
     resources: ResourceDto[];
     workers: WorkerDto[];
+    tavernLevel: number;
     now: number;
     onStart: (expeditionTypeId: number, workerIds?: number[], provisions?: boolean) => void;
 }
@@ -60,7 +63,7 @@ const RareFind = ({ icon, label, title }: { icon: ReactNode; label: string; titl
     </span>
 );
 
-export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resources, workers, now, onStart }: ExpeditionsBoxProps) => {
+export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resources, workers, tavernLevel, now, onStart }: ExpeditionsBoxProps) => {
     const [manualMode, setManualMode] = useState<Record<number, boolean>>({});
     const [picks, setPicks] = useState<Record<number, number[]>>({});
     const [provisions, setProvisions] = useState<Record<number, boolean>>({});
@@ -74,6 +77,9 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
     const untilPity = Math.max(0, expeditions.pityThreshold - expeditions.expeditionsSincePity);
     const goldType = resourceTypes.find(x => x.id === GOLD_RESOURCE_TYPE_ID);
     const allOut = expeditions.active.length >= expeditions.maxActive;
+    const foodStock = resourceTypes
+        .filter(resourceType => resourceType.isFood)
+        .reduce((sum, resourceType) => sum + (resources.find(resource => resource.typeId === resourceType.id)?.value ?? 0), 0);
 
     const toggleManual = (typeId: number) => setManualMode(mode => ({ ...mode, [typeId]: !mode[typeId] }));
     const toggleProvisions = (typeId: number) => setProvisions(current => ({ ...current, [typeId]: !current[typeId] }));
@@ -120,7 +126,10 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                     const canAffordGold = hasResourcesFor([{ typeId: GOLD_RESOURCE_TYPE_ID, value: type.goldCost }], resources);
                     const equipment = type.equipment.filter(entry => !entry.isOptional);
                     const provisionEquipment = type.equipment.filter(entry => entry.isOptional);
-                    const useProvisions = provisions[type.id] ?? false;
+                    const automaticProvisions = tavernLevel >= TAVERN_PROVISION_LEVEL;
+                    const provisionCount = provisionEquipment.reduce((sum, entry) => sum + entry.value, 0);
+                    const provisionsReady = foodStock >= provisionCount;
+                    const useProvisions = automaticProvisions ? provisionsReady : provisions[type.id] === true;
                     const equipmentReqs = equipment.map(e => ({ typeId: e.resourceTypeId, value: e.value }));
                     const canAffordEquipment = hasResourcesFor(equipmentReqs, resources);
                     const hasWorkers = freeWorkers.length >= type.workerCount;
@@ -172,11 +181,17 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                 </div>}
                             {provisionEquipment.length > 0 &&
                                 <>
-                                    <label className="receipt-optional expedition-manual-toggle">
-                                        <input type="checkbox" checked={useProvisions} onChange={() => toggleProvisions(type.id)} />
-                                        Провизия в дорогу
-                                    </label>
-                                    {useProvisions &&
+                                    {automaticProvisions
+                                        ? <span className="receipt-optional expedition-manual-toggle" title="Корчма кладёт в котомки любую еду со склада, дешёвую первой">
+                                            {provisionsReady
+                                                ? `Котомки собирает корчма: ${provisionCount} еды из запаса`
+                                                : 'Котомки собрать не из чего – еды в запасе нет'}
+                                        </span>
+                                        : <label className="receipt-optional expedition-manual-toggle">
+                                            <input type="checkbox" checked={useProvisions} onChange={() => toggleProvisions(type.id)} />
+                                            Провизия в дорогу
+                                        </label>}
+                                    {!automaticProvisions && useProvisions &&
                                         <div className="expedition-req">
                                             <span className="panel-label">провизия</span>
                                             <div className="expedition-chips">
@@ -258,7 +273,9 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                 </div>
                             }
                             <ActionButton className="btn-game" disabled={!canStart} title={blockedTitle}
-                                onClick={() => onStart(type.id, isManual ? picked : undefined, useProvisions)}>
+                                onClick={() => automaticProvisions
+                                    ? onStart(type.id, isManual ? picked : undefined)
+                                    : onStart(type.id, isManual ? picked : undefined, useProvisions)}>
                                 <ExpeditionEmblem logicName={type.logicName} size={24} className="btn-ico" />
                                 Отправить
                             </ActionButton>

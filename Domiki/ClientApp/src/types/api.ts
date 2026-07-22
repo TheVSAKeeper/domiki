@@ -68,6 +68,7 @@ export const resourceTypeSchema = z.object({
     name: z.string(),
     logicName: z.string(),
     marketValue: z.number(),
+    isFood: z.boolean(),
 });
 export type ResourceTypeDto = z.infer<typeof resourceTypeSchema>;
 
@@ -188,7 +189,6 @@ export const villageSchema = z.object({
     villageName: z.string().nullable(),
     crestIcon: z.number(),
     crestColor: z.number(),
-    feedWorkers: z.boolean(),
 });
 export type VillageDto = z.infer<typeof villageSchema>;
 

@@ -57,7 +57,7 @@ interface GameTab {
 
 export const DomikiPage = () => {
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, incident, domikIncident, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, sickTypes, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, setFeedWorkers, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, incident, domikIncident, reputation, blueprints, village, villageLevel, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, sickTypes, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, hurryDomik, startExpedition, buyDecor, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, recap, clearRecap, events } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -85,6 +85,9 @@ export const DomikiPage = () => {
         [selectedDomikId, domiks, domikTypes, receipts, resources, now],
     );
     const domikDisplayName = useMemo(() => buildDomikNamer(domiks), [domiks]);
+    const tavernLevel = useMemo(() => Math.max(0, ...domiks
+        .filter(domik => domikTypes.find(type => type.id === domik.typeId)?.logicName === 'tavern')
+        .map(domik => domik.level)), [domiks, domikTypes]);
     const currentWeather = weather?.current ?? null;
     const goldValue = resources.find(x => x.typeId === GOLD_RESOURCE_TYPE_ID)?.value ?? 0;
     const goldType = resourceTypes.find(x => x.id === GOLD_RESOURCE_TYPE_ID);
@@ -199,8 +202,6 @@ export const DomikiPage = () => {
 
     const startExpeditionAction = (expeditionTypeId: number, workerIds?: number[], provisions?: boolean) => runAction(() => startExpedition(expeditionTypeId, workerIds, provisions), 'Экспедиция отправлена');
 
-    const toggleFeedWorkers = (enabled: boolean) => runAction(() => setFeedWorkers(enabled));
-
     const buyDecorAction = (decorTypeId: number) => runAction(() => buyDecor(decorTypeId), 'Декор куплен');
 
     const buyFromConvoyAction = (neighborId: number, resourceTypeId: number, count: number) =>
@@ -264,7 +265,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'expeditions', label: 'Экспедиции', icon: <MechanicSprite logicName="expeditions" size={24} className="game-tab-ico" aria-hidden="true" />, visible: expeditions != null,
-            node: <ExpeditionsBox expeditions={expeditions} resourceTypes={resourceTypes} decorTypes={decor?.types ?? []} resources={resources} workers={workers} now={now} onStart={startExpeditionAction} />,
+            node: <ExpeditionsBox expeditions={expeditions} resourceTypes={resourceTypes} decorTypes={decor?.types ?? []} resources={resources} workers={workers} tavernLevel={tavernLevel} now={now} onStart={startExpeditionAction} />,
         },
         {
             key: 'decor', label: 'Декор', icon: <MechanicSprite logicName="decor" size={24} className="game-tab-ico" aria-hidden="true" />, visible: decor != null,
@@ -281,7 +282,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'workers', label: 'Трудяги', icon: <MechanicSprite logicName="workers" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,
-            node: <WorkersBox workers={workers} domikTypes={domikTypes} domiks={domiks} expeditions={expeditions} errand={errand} incident={incident} domikIncident={domikIncident} cloaks={cloaks} sickTypes={sickTypes} feedWorkers={village?.feedWorkers ?? false} now={now} onToggleFeedWorkers={toggleFeedWorkers} />,
+            node: <WorkersBox workers={workers} domikTypes={domikTypes} domiks={domiks} expeditions={expeditions} errand={errand} incident={incident} domikIncident={domikIncident} cloaks={cloaks} sickTypes={sickTypes} resourceTypes={resourceTypes} resources={resources} tavernLevel={tavernLevel} now={now} />,
         },
         {
             key: 'journal', label: 'Журнал', icon: <AbstractSprite logicName="journal" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,

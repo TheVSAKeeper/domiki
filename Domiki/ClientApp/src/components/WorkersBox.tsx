@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import CrownIcon from 'pixelarticons/svg/crown.svg?react';
-import type { CloakStateDto, DomikDto, DomikIncidentDto, DomikTypeDto, ErrandDto, ExpeditionStateDto, IncidentDto, SickTypeDto, WorkerDto } from '../types/api';
+import type { CloakStateDto, DomikDto, DomikIncidentDto, DomikTypeDto, ErrandDto, ExpeditionStateDto, IncidentDto, ResourceDto, ResourceTypeDto, SickTypeDto, WorkerDto } from '../types/api';
 import { buildDomikNamer, type DomikNamer } from '../utils/domikNames';
 import { formatDuration, formatDurationShort, remainingSeconds } from '../utils/time';
 import { describeWorker, describeWorkerParts, isSkilledWorker, rankedSkills } from '../utils/worker';
@@ -22,9 +22,10 @@ interface WorkersBoxProps {
     domikIncident: DomikIncidentDto | null;
     cloaks: CloakStateDto;
     sickTypes: SickTypeDto[];
-    feedWorkers: boolean;
+    resourceTypes: ResourceTypeDto[];
+    resources: ResourceDto[];
+    tavernLevel: number;
     now: number;
-    onToggleFeedWorkers: (enabled: boolean) => void;
 }
 
 const stateLabels: Record<WorkerState, string> = { expedition: 'В экспедиции', errand: 'В поручении', incidentMissing: 'Задержался', incidentSearch: 'В поисках', domikIncidentSearch: 'Разбирается', busy: 'Работает', resting: 'Отдыхает', free: 'Свободен' };
@@ -79,12 +80,20 @@ const WorkerDetails = ({ worker, domikTypes, domiks, namer, style }: { worker: W
     );
 };
 
-export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, errand, incident, domikIncident, cloaks, sickTypes, feedWorkers, now, onToggleFeedWorkers }: WorkersBoxProps) => {
+export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, errand, incident, domikIncident, cloaks, sickTypes, resourceTypes, resources, tavernLevel, now }: WorkersBoxProps) => {
     const [hover, setHover] = useState<{ worker: WorkerDto; rect: DOMRect } | null>(null);
     const clearHover = (id: number) => setHover(prev => (prev?.worker.id === id ? null : prev));
     const namer = useMemo(() => buildDomikNamer(domiks), [domiks]);
     const freeCloaks = Math.max(0, cloaks.stock - cloaks.outOnShifts);
     const hasCloaks = cloaks.stock > 0 || cloaks.outOnShifts > 0 || cloaks.wearPoints > 0;
+    const foodStocks = resourceTypes
+        .filter(resourceType => resourceType.isFood)
+        .map(resourceType => ({
+            name: resourceType.name.toLocaleLowerCase('ru-RU'),
+            value: resources.find(resource => resource.typeId === resourceType.id)?.value ?? 0,
+        }));
+    const hasFood = foodStocks.some(food => food.value > 0);
+    const tavernPerks = ['«котёл»', '«котомки в дорогу»', '«тёплый угол»'].slice(0, tavernLevel).join(' · ');
 
     const stateOf = (worker: WorkerDto): WorkerState => {
         if (worker.incidentId != null) {
@@ -138,14 +147,16 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, errand, i
                         }
                     </div>
                 </div>
-                <label className="receipt-optional workers-feed" title="Хлеб вдвое сокращает отдых">
-                    <input type="checkbox" checked={feedWorkers} onChange={event => onToggleFeedWorkers(event.target.checked)} />
-                    <span className="workers-feed-text">Кормить трудяг хлебом</span>
-                    <span className="workers-feed-effect">вдвое сокращает отдых</span>
-                </label>
                 {hasCloaks &&
                     <div className="workers-cloaks" title="Плащи сами уходят на смены с погодным бонусом">
                         <b>Плащи:</b> свободно {freeCloaks} · на сменах {cloaks.outOnShifts} · износ {cloaks.wearPoints}/{cloaks.lifetimeShifts}
+                    </div>
+                }
+                {(tavernLevel > 0 || hasFood) &&
+                    <div className="workers-larder" title={tavernLevel > 0 ? `Корчма, уровень ${tavernLevel}: ${tavernPerks}` : undefined}>
+                        {tavernLevel === 0
+                            ? 'Корчмы нет – уставшие трудяги отдыхают полный срок'
+                            : <><b>Корчма:</b> обед из запаса – {foodStocks.map(food => `${food.name} ${food.value}`).join(' · ')}</>}
                     </div>
                 }
             </div>

@@ -14,6 +14,7 @@ import PotterySprite from '../assets/domikTypes/pottery.svg?react';
 import BakerySprite from '../assets/domikTypes/bakery.svg?react';
 import ScoutHutSprite from '../assets/domikTypes/scout_hut.svg?react';
 import SheepfoldSprite from '../assets/domikTypes/sheepfold.svg?react';
+import TavernSprite from '../assets/domikTypes/tavern.svg?react';
 import StoneMineSprite from '../assets/domikTypes/stone_mine.svg?react';
 import StonecutterSprite from '../assets/domikTypes/stonecutter.svg?react';
 import WorkshopSprite from '../assets/domikTypes/workshop.svg?react';
@@ -96,6 +97,7 @@ import IronResSprite from '../assets/resourceTypes/iron.svg?react';
 import WoolResSprite from '../assets/resourceTypes/wool.svg?react';
 import ClothResSprite from '../assets/resourceTypes/cloth.svg?react';
 import CloakResSprite from '../assets/resourceTypes/cloak.svg?react';
+import CheeseResSprite from '../assets/resourceTypes/cheese.svg?react';
 
 type SpriteComponent = FC<SVGProps<SVGSVGElement>>;
 
@@ -135,6 +137,7 @@ const domikSprites: Record<string, SpriteComponent> = {
     pottery: PotterySprite,
     scout_hut: ScoutHutSprite,
     sheepfold: SheepfoldSprite,
+    tavern: TavernSprite,
     stone_mine: StoneMineSprite,
     stonecutter: StonecutterSprite,
     workshop: WorkshopSprite,
@@ -229,6 +232,7 @@ const resourceSprites: Record<string, SpriteComponent> = {
     wool: WoolResSprite,
     cloth: ClothResSprite,
     cloak: CloakResSprite,
+    cheese: CheeseResSprite,
 };
 
 interface IconSpriteProps extends SVGProps<SVGSVGElement> {

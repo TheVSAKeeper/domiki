@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, buyFromConvoy as buyFromConvoyApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, setFeedWorkers as setFeedWorkersApi, setManufactureAutoRepeat as setManufactureAutoRepeatApi, setVillage as setVillageApi, startExpedition as startExpeditionApi, voteToloka as voteTolokaApi } from '../services/api';
+import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, buyFromConvoy as buyFromConvoyApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, setManufactureAutoRepeat as setManufactureAutoRepeatApi, setVillage as setVillageApi, startExpedition as startExpeditionApi, voteToloka as voteTolokaApi } from '../services/api';
 import { useToast } from '../services/toastContext';
 import {
     domikTypeSchema,
@@ -66,7 +66,6 @@ export interface GameData {
     scheduleReload: () => void;
     refreshPurchaseTypes: () => Promise<void>;
     setVillage: (name: string, crestIcon: number, crestColor: number) => Promise<void>;
-    setFeedWorkers: (enabled: boolean) => Promise<void>;
     hurryManufacture: (manufactureId: number) => Promise<void>;
     setManufactureAutoRepeat: (manufactureId: number, autoRepeat: boolean) => Promise<void>;
     hurryDomik: (domikId: number) => Promise<void>;
@@ -279,11 +278,6 @@ export function useGameData(): GameData {
 
     const setVillage = useCallback(async (name: string, crestIcon: number, crestColor: number) => {
         await setVillageApi(name, crestIcon, crestColor);
-        setVillageState(await getVillage());
-    }, []);
-
-    const setFeedWorkers = useCallback(async (enabled: boolean) => {
-        await setFeedWorkersApi(enabled);
         setVillageState(await getVillage());
     }, []);
 
@@ -601,7 +595,6 @@ export function useGameData(): GameData {
         scheduleReload,
         refreshPurchaseTypes,
         setVillage,
-        setFeedWorkers,
         hurryManufacture,
         setManufactureAutoRepeat,
         hurryDomik,
