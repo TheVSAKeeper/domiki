@@ -184,16 +184,16 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                     {automaticProvisions
                                         ? <span className="receipt-optional expedition-manual-toggle" title="Корчма кладёт в котомки любую еду со склада, дешёвую первой">
                                             {provisionsReady
-                                                ? `Котомки собирает корчма: ${provisionCount} еды из запаса`
+                                                ? `Котомки собирает корчма: еды из запаса – ${provisionCount}`
                                                 : 'Котомки собрать не из чего – еды в запасе нет'}
                                         </span>
                                         : <label className="receipt-optional expedition-manual-toggle">
                                             <input type="checkbox" checked={useProvisions} onChange={() => toggleProvisions(type.id)} />
-                                            Провизия в дорогу
+                                            Котомка в дорогу
                                         </label>}
                                     {!automaticProvisions && useProvisions &&
                                         <div className="expedition-req">
-                                            <span className="panel-label">провизия</span>
+                                            <span className="panel-label">котомка</span>
                                             <div className="expedition-chips">
                                                 {provisionEquipment.map(entry => {
                                                     const resourceType = resourceTypes.find(x => x.id === entry.resourceTypeId);

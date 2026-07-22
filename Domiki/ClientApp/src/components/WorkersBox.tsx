@@ -153,7 +153,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, errand, i
                     </div>
                 }
                 {(tavernLevel > 0 || hasFood) &&
-                    <div className="workers-larder" title={tavernLevel > 0 ? `Корчма, уровень ${tavernLevel}: ${tavernPerks}` : undefined}>
+                    <div className="workers-larder" title={tavernLevel > 0 ? `Корчма, ступень ${tavernLevel}: ${tavernPerks}` : undefined}>
                         {tavernLevel === 0
                             ? 'Корчмы нет – уставшие трудяги отдыхают полный срок'
                             : <><b>Корчма:</b> обед из запаса – {foodStocks.map(food => `${food.name} ${food.value}`).join(' · ')}</>}
