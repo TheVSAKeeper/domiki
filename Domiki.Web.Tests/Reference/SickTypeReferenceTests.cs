@@ -8,7 +8,7 @@ namespace Domiki.Web.Tests;
 public sealed class SickTypeReferenceTests
 {
     /// <summary>
-    /// Каждая погодная хворь привязана к своему виду погоды, а перегрев единственный не защищается плащом.
+    /// Каждая погодная хворь привязана к своему виду погоды, а жар единственный не защищается плащом.
     /// </summary>
     /// <param name="sickTypeId">Тип хвори.</param>
     /// <param name="weatherTypeId">Погода, вызывающая хворь.</param>

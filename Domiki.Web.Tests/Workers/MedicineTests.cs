@@ -148,7 +148,7 @@ public sealed class MedicineTests
     }
 
     /// <summary>
-    /// Сушь вызывает перегрев, но плащи на такую смену не выдаются.
+    /// Сушь вызывает жар, но плащи на такую смену не выдаются.
     /// </summary>
     [Test]
     public void DroughtDoesNotTakeCloaksTest()
