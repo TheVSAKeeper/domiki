@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" data-active="true" data-state="idle" data-motion="on" role="img" aria-labelledby="carved-gate-title carved-gate-desc" focusable="false">
+  <title id="carved-gate-title">Резная калитка</title>
+  <desc id="carved-gate-desc">Низкая тёплая деревянная калитка в плетне с резным узором на верхней планке.</desc>
+  <style>
+    .tiny,.micro{display:inline}
+    svg[data-size="32"] .tiny,svg[data-size="24"] .tiny{display:none}
+    svg[data-size="24"] .micro{display:none}
+    svg[data-state="disabled"] .scene{filter:saturate(.25);opacity:.58}
+    @media (prefers-reduced-motion:reduce){.scene{animation:none!important;transform:none!important}}
+  </style>
+  <g class="scene">
+    <rect x="4" y="44" width="56" height="12" fill="#262626"/>
+    <rect x="6" y="46" width="52" height="8" fill="#b07c42"/>
+    <rect x="4" y="50" width="56" height="4" fill="#6f4a24"/>
+    <rect x="8" y="20" width="8" height="34" fill="#262626"/>
+    <rect x="10" y="22" width="4" height="30" fill="#9a6a38"/>
+    <rect x="48" y="20" width="8" height="34" fill="#262626"/>
+    <rect x="50" y="22" width="4" height="30" fill="#9a6a38"/>
+    <rect x="14" y="28" width="36" height="26" fill="#262626"/>
+    <rect x="16" y="30" width="32" height="22" fill="#b07c42"/>
+    <rect x="16" y="30" width="32" height="6" fill="#9a6a38"/>
+    <rect x="30" y="30" width="4" height="22" fill="#6f4a24"/>
+    <rect x="18" y="38" width="28" height="4" fill="#6f4a24"/>
+    <g class="micro">
+      <rect x="20" y="32" width="4" height="4" fill="#e0a63a"/>
+      <rect x="26" y="32" width="4" height="4" fill="#6f4a24"/>
+      <rect x="34" y="32" width="4" height="4" fill="#e0a63a"/>
+      <rect x="40" y="32" width="4" height="4" fill="#6f4a24"/>
+      <rect x="22" y="44" width="4" height="4" fill="#9a6a38"/>
+      <rect x="38" y="44" width="4" height="4" fill="#9a6a38"/>
+    </g>
+    <g class="tiny">
+      <rect x="2" y="54" width="60" height="2" fill="#565656"/>
+      <rect x="12" y="18" width="4" height="2" fill="#e0a63a"/>
+      <rect x="48" y="18" width="4" height="2" fill="#e0a63a"/>
+    </g>
+  </g>
+</svg>

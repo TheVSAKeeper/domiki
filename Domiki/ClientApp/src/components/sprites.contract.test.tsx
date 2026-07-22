@@ -20,10 +20,14 @@ describe('sprite registry contract', () => {
             <>
                 <DecorSprite logicName="brick_arch" />
                 <DecorSprite logicName="lantern" />
+                <DecorSprite logicName="carved_gate" />
+                <DecorSprite logicName="crane_well" />
+                <DecorSprite logicName="gazebo" />
+                <DecorSprite logicName="carp_pond" />
             </>,
         );
 
-        expect(container.querySelectorAll('svg')).toHaveLength(2);
+        expect(container.querySelectorAll('svg')).toHaveLength(6);
     });
 
     it('renders nothing for an unknown strict-registry logicName', () => {

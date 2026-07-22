@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" data-active="true" data-state="idle" data-motion="on" role="img" aria-labelledby="carp-pond-title carp-pond-desc" focusable="false">
+  <title id="carp-pond-title">Пруд с карасями</title>
+  <desc id="carp-pond-desc">Широкий овальный пруд с камнями по краю и двумя золотистыми карасями.</desc>
+  <style>
+    .tiny,.micro{display:inline}
+    svg[data-size="32"] .tiny,svg[data-size="24"] .tiny{display:none}
+    svg[data-size="24"] .micro{display:none}
+    .ripple{transform-box:fill-box;transform-origin:center}
+    svg[data-motion="on"][data-active="true"] .ripple{animation:pond-ripple 3.2s steps(1,end) infinite}
+    svg[data-state="disabled"] .scene{filter:saturate(.25);opacity:.58}
+    @keyframes pond-ripple{0%,45%,100%{opacity:.7}50%,62%{opacity:1;transform:translateX(2px)}66%{transform:translateX(0)}}
+    @media (prefers-reduced-motion:reduce){.scene,.ripple{animation:none!important;transform:none!important}}
+  </style>
+  <g class="scene">
+    <rect x="8" y="28" width="48" height="22" fill="#262626"/>
+    <rect x="12" y="22" width="40" height="34" fill="#262626"/>
+    <rect x="16" y="18" width="32" height="42" fill="#262626"/>
+    <rect x="12" y="30" width="40" height="18" fill="#4a7ab5"/>
+    <rect x="16" y="24" width="32" height="30" fill="#4a7ab5"/>
+    <rect x="20" y="22" width="24" height="34" fill="#4a7ab5"/>
+    <rect x="8" y="32" width="6" height="8" fill="#8f8f8f"/>
+    <rect x="50" y="38" width="6" height="8" fill="#8f8f8f"/>
+    <rect x="16" y="18" width="8" height="6" fill="#c9c2b4"/>
+    <rect x="40" y="52" width="8" height="6" fill="#c9c2b4"/>
+    <rect x="18" y="36" width="12" height="4" fill="#e0a63a"/>
+    <rect x="16" y="34" width="4" height="8" fill="#e0a63a"/>
+    <rect x="28" y="34" width="4" height="8" fill="#e0a63a"/>
+    <rect x="34" y="46" width="12" height="4" fill="#e8b83a"/>
+    <rect x="44" y="44" width="4" height="8" fill="#e8b83a"/>
+    <rect x="32" y="44" width="4" height="8" fill="#e8b83a"/>
+    <g class="ripple">
+      <rect x="24" y="28" width="12" height="2" fill="#7ab3a9"/>
+      <rect x="26" y="52" width="10" height="2" fill="#7ab3a9"/>
+    </g>
+    <g class="micro">
+      <rect x="22" y="38" width="2" height="2" fill="#262626"/>
+      <rect x="40" y="48" width="2" height="2" fill="#262626"/>
+      <rect x="6" y="44" width="4" height="4" fill="#6e6e6e"/>
+    </g>
+    <g class="tiny">
+      <rect x="22" y="20" width="4" height="2" fill="#565656"/>
+      <rect x="48" y="28" width="4" height="2" fill="#565656"/>
+    </g>
+  </g>
+</svg>

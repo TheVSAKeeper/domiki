@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" data-active="true" data-state="idle" data-motion="on" role="img" aria-labelledby="crane-well-title crane-well-desc" focusable="false">
+  <title id="crane-well-title">Колодец-журавль</title>
+  <desc id="crane-well-desc">Сруб колодца с высоким наклонным журавлём и ведром на цепи.</desc>
+  <style>
+    .tiny,.micro{display:inline}
+    svg[data-size="32"] .tiny,svg[data-size="24"] .tiny{display:none}
+    svg[data-size="24"] .micro{display:none}
+    .bucket{transform-box:fill-box;transform-origin:top center}
+    svg[data-motion="on"][data-active="true"] .bucket{animation:bucket-swing 3.4s steps(1,end) infinite}
+    svg[data-state="disabled"] .scene{filter:saturate(.25);opacity:.58}
+    @keyframes bucket-swing{0%,48%,100%{transform:translateX(0)}52%,60%{transform:translateX(2px)}64%{transform:translateX(0)}}
+    @media (prefers-reduced-motion:reduce){.scene,.bucket{animation:none!important;transform:none!important}}
+  </style>
+  <g class="scene">
+    <rect x="8" y="48" width="40" height="10" fill="#262626"/>
+    <rect x="10" y="50" width="36" height="6" fill="#8f8f8f"/>
+    <rect x="14" y="34" width="28" height="18" fill="#262626"/>
+    <rect x="16" y="36" width="24" height="14" fill="#9a6a38"/>
+    <rect x="16" y="40" width="24" height="4" fill="#b07c42"/>
+    <rect x="16" y="46" width="24" height="4" fill="#6f4a24"/>
+    <rect x="8" y="10" width="6" height="42" fill="#262626"/>
+    <rect x="10" y="12" width="2" height="38" fill="#b07c42"/>
+    <rect x="10" y="10" width="38" height="6" fill="#262626"/>
+    <rect x="12" y="12" width="34" height="2" fill="#b07c42"/>
+    <rect x="42" y="12" width="6" height="14" fill="#262626"/>
+    <rect x="44" y="14" width="2" height="10" fill="#b07c42"/>
+    <rect x="44" y="24" width="2" height="18" fill="#262626"/>
+    <g class="bucket">
+      <rect x="40" y="40" width="10" height="12" fill="#262626"/>
+      <rect x="42" y="42" width="6" height="8" fill="#565656"/>
+      <rect x="40" y="38" width="10" height="2" fill="#c9c2b4"/>
+    </g>
+    <g class="micro">
+      <rect x="20" y="36" width="4" height="4" fill="#e0a63a"/>
+      <rect x="30" y="36" width="4" height="4" fill="#e0a63a"/>
+      <rect x="4" y="52" width="4" height="4" fill="#6e6e6e"/>
+    </g>
+    <g class="tiny">
+      <rect x="6" y="56" width="48" height="2" fill="#565656"/>
+      <rect x="48" y="10" width="4" height="4" fill="#e0a63a"/>
+    </g>
+  </g>
+</svg>

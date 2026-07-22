@@ -20,7 +20,9 @@ export const DecorBox =({ decor, resourceTypes, resources, reputations, onBuy }:
         return null;
     }
 
-    const purchasable = decor.types.filter(x => x.isPurchasable);
+    const ordinaryPurchasable = decor.types.filter(x => x.isPurchasable && x.maxCount == null);
+    const mastersPurchasable = decor.types.filter((type): type is DecorTypeDto & { maxCount: number } => type.isPurchasable && type.maxCount != null);
+    const mastersOwned = mastersPurchasable.filter(type => (decor.owned.find(x => x.decorTypeId === type.id)?.count ?? 0) >= type.maxCount).length;
     const exclusiveOwned = decor.owned
         .map(owned => ({ owned, type: decor.types.find(x => x.id === owned.decorTypeId) }))
         .filter((entry): entry is { owned: PlayerDecorDto; type: DecorTypeDto } => entry.type != null && !entry.type.isPurchasable);
@@ -41,7 +43,7 @@ export const DecorBox =({ decor, resourceTypes, resources, reputations, onBuy }:
                 </div>
             </div>
             <div className="decor-grid">
-                {purchasable.map(type => {
+                {ordinaryPurchasable.map(type => {
                     const owned = decor.owned.find(x => x.decorTypeId === type.id)?.count ?? 0;
                     const rep = type.neighborId == null ? null : reputations.find(x => x.neighborId === type.neighborId);
                     const points = type.neighborId == null ? null : (rep?.points ?? 0);
@@ -50,7 +52,7 @@ export const DecorBox =({ decor, resourceTypes, resources, reputations, onBuy }:
                     return (
                         <div key={type.id} className={'decor-card' + (locked ? ' decor-card-locked' : '') + (owned > 0 ? ' decor-card-owned' : '')}>
                             <div className="decor-shelf">
-                                <span className="decor-comfort">+{type.comfortPoints} уюта</span>
+                                <span className="decor-comfort">{type.comfortPoints === 0 ? 'Витрина' : `+${type.comfortPoints} уюта`}</span>
                                 {owned > 0 && <span className="decor-owned-tag" aria-label={`в деревне: ${owned}`}>×{owned}</span>}
                                 <DecorSprite logicName={type.logicName} className="decor-card-ico" aria-hidden="true" />
                                 {locked && <span className="decor-lock"><LockIcon className="decor-lock-ico" aria-label="Закрыто" /></span>}
@@ -77,6 +79,48 @@ export const DecorBox =({ decor, resourceTypes, resources, reputations, onBuy }:
                     );
                 })}
             </div>
+            {mastersPurchasable.length > 0 &&
+                <div className="decor-masters">
+                    <div className="decor-masters-heading">
+                        <span className="panel-label">Заезжие мастера</span>
+                        <span className="decor-masters-count">{mastersOwned} из {mastersPurchasable.length}</span>
+                    </div>
+                    <div className="decor-grid">
+                        {mastersPurchasable.map(type => {
+                            const owned = decor.owned.find(x => x.decorTypeId === type.id)?.count ?? 0;
+                            const purchased = owned >= type.maxCount;
+                            const prerequisiteOwned = type.requiresDecorTypeId == null
+                                || (decor.owned.find(x => x.decorTypeId === type.requiresDecorTypeId)?.count ?? 0) > 0;
+                            const locked = !purchased && !prerequisiteOwned;
+                            const canBuy = !locked && !purchased && hasResourcesFor(type.cost, resources);
+                            return (
+                                <div key={type.id} className={'decor-card' + (locked ? ' decor-card-locked' : '') + (purchased ? ' decor-card-owned' : '')}>
+                                    <div className="decor-shelf">
+                                        <span className="decor-comfort">{type.comfortPoints === 0 ? 'Витрина' : `+${type.comfortPoints} уюта`}</span>
+                                        {owned > 0 && <span className="decor-owned-tag" aria-label={`в деревне: ${owned}`}>×{owned}</span>}
+                                        <DecorSprite logicName={type.logicName} className="decor-card-ico" aria-hidden="true" />
+                                        {locked && <span className="decor-lock"><LockIcon className="decor-lock-ico" aria-label="Закрыто" /></span>}
+                                    </div>
+                                    <span className="decor-name">{type.name}</span>
+                                    {purchased
+                                        ? <span className="decor-masters-badge">Поставлено</span>
+                                        : locked
+                                            ? <div className="decor-gate"><span className="decor-gate-requirement">Сначала: {type.requiresDecorName}</span></div>
+                                            : <>
+                                                <ResourcesBox resources={type.cost} resourceTypes={resourceTypes} have={resources} />
+                                                <ActionButton className="btn-game" disabled={!canBuy}
+                                                    title={canBuy ? undefined : 'Не хватает ресурсов'}
+                                                    onClick={() => onBuy(type.id)}>
+                                                    <PlusIcon className="btn-ico" aria-hidden="true" />
+                                                    Поставить
+                                                </ActionButton>
+                                            </>}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            }
             {exclusiveOwned.length > 0 &&
                 <div className="decor-exclusive">
                     <span className="panel-label">Трофеи экспедиций</span>
@@ -85,7 +129,7 @@ export const DecorBox =({ decor, resourceTypes, resources, reputations, onBuy }:
                             return (
                                 <div key={type.id} className="decor-card decor-card-exclusive">
                                     <div className="decor-shelf decor-shelf-gold">
-                                        <span className="decor-comfort">+{type.comfortPoints} уюта</span>
+                                        <span className="decor-comfort">{type.comfortPoints === 0 ? 'Витрина' : `+${type.comfortPoints} уюта`}</span>
                                         <span className="decor-owned-tag" aria-label={`в деревне: ${owned.count}`}>×{owned.count}</span>
                                         <DecorSprite logicName={type.logicName} className="decor-card-ico" aria-hidden="true" />
                                     </div>

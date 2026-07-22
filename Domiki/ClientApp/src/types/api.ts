@@ -404,11 +404,14 @@ export const decorTypeSchema = z.object({
     name: z.string(),
     logicName: z.string(),
     comfortPoints: z.number(),
+    maxCount: z.number().nullable(),
     isPurchasable: z.boolean(),
     cost: z.array(resourceSchema),
     neighborId: z.number().nullable(),
     neighborName: z.string().nullable(),
     reputationThreshold: z.number(),
+    requiresDecorTypeId: z.number().nullable(),
+    requiresDecorName: z.string().nullable(),
 });
 export type DecorTypeDto = z.infer<typeof decorTypeSchema>;
 

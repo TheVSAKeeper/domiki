@@ -219,6 +219,44 @@
     border-top: 3px dotted rgba(51, 41, 26, .3);
 }
 
+.decor-masters {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 3px dotted rgba(51, 41, 26, .3);
+}
+
+.decor-masters-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.decor-masters-count,
+.decor-masters-badge {
+    align-self: center;
+    font-family: var(--pixel);
+    font-size: 10px;
+    line-height: 1;
+    padding: 4px 7px 3px;
+    color: var(--pine-dark);
+    background: #e3f0d1;
+    border: 2px solid var(--pine);
+    clip-path: var(--cut);
+    font-variant-numeric: tabular-nums;
+}
+
+.decor-masters-badge {
+    margin-top: auto;
+}
+
+.decor-gate-requirement {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--roof);
+}
+
 .decor-card-exclusive {
     background: #fdf0c4;
     border-color: #b8860b;
