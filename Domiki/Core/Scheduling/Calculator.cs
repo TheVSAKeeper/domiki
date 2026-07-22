@@ -14,8 +14,15 @@ public class Calculator : ICalculator
     private const int PoisonRetrySeconds = 300;
     private const int MaxEventsPerTick = 100;
 
+    /// <summary>
+    /// Опоздание обсчёта относительно плановой даты, с которого запись в лог поднимается до предупреждения.
+    /// </summary>
+    /// <remarks>Планировщик держит очередь в памяти одного экземпляра приложения, и растущее опоздание – первый признак того, что событий в секунду больше, чем он успевает обсчитать. События, запланированные до старта процесса, порог не поднимают: их опоздание – простой во время рестарта, а не насыщение.</remarks>
+    private const int SaturationLagMs = 5000;
+
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<Calculator> _logger;
+    private readonly DateTime _startedAt = DateTimeHelper.GetNowDate();
     private List<CalculateInfo>? _datas;
     private Timer t = null!;
     private bool _isInit;
@@ -137,15 +144,20 @@ public class Calculator : ICalculator
         try
         {
             var startDate = DateTime.Now;
+            var lag = (DateTime.UtcNow - calcDate.Date).TotalMilliseconds;
             var result = ProcessEvent(date, calcDate);
             var time = (DateTime.Now - startDate).TotalMilliseconds;
-            _logger.LogInformation("Calculator - tick success: " + calcDate.PlayerId + " - " + calcDate.ObjectId + " - " + calcDate.Type + " " + time + "ms");
             if (result)
             {
                 _datas.Remove(calcDate);
                 MinDateForTest = _datas.Count > 0 ? _datas[0].Date : null;
                 _logger.LogInformation("Calculator - tick remove data: " + calcDate.PlayerId + " - " + calcDate.ObjectId + " - " + calcDate.Type);
             }
+
+            var saturated = result && lag >= SaturationLagMs && calcDate.Date >= _startedAt;
+            _logger.Log(saturated ? LogLevel.Warning : LogLevel.Information,
+                "Calculator - tick success: {PlayerId} - {ObjectId} - {Type} {Time}ms, lag {Lag}ms, queue {Queue}",
+                calcDate.PlayerId, calcDate.ObjectId, calcDate.Type, time, lag, _datas.Count);
 
             _failingEvent = null;
             _failingCount = 0;

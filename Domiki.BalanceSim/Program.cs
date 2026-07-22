@@ -5,6 +5,7 @@ using Domiki.Web.Reference;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 
 var configuration = new ConfigurationBuilder()
     .SetBasePath(AppContext.BaseDirectory)
@@ -20,7 +21,7 @@ var options = new DbContextOptionsBuilder<ApplicationDbContext>()
     .UseSnakeCaseNamingConvention()
     .Options;
 
-var resources = new ResourceManager(new PooledDbContextFactory<ApplicationDbContext>(options));
+var resources = new ResourceManager(new PooledDbContextFactory<ApplicationDbContext>(options), NullLogger<ResourceManager>.Instance);
 var data = SimulationData.Load(resources);
 var simulator = new BalanceSimulator(data);
 if (args.Contains("--ftue", StringComparer.OrdinalIgnoreCase))

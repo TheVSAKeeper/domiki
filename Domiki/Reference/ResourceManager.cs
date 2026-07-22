@@ -1,6 +1,8 @@
-﻿using Domiki.Web.Core.Models;
+﻿using System.Data;
+using Domiki.Web.Core.Models;
 using Domiki.Web.Data;
 using Domiki.Web.Data.Entities;
+using Domiki.Web.Infrastructure;
 using Domiki.Web.Reference.Models;
 using Microsoft.EntityFrameworkCore;
 using Blueprint = Domiki.Web.Activities.Models.Blueprint;
@@ -28,8 +30,24 @@ public class ResourceManager
 {
     public const int BaseMarketValue = 10;
 
+    /// <summary>
+    /// Как долго снимок справочников считается свежим: правка справочных таблиц доезжает до игры за это время без рестарта.
+    /// </summary>
+    private static readonly TimeSpan CacheLifetime = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// Пауза перед новой попыткой, если перечитывание упало: без неё каждый запрос платил бы своим таймаутом к недоступной базе данных.
+    /// </summary>
+    private static readonly TimeSpan ReloadRetryDelay = TimeSpan.FromSeconds(30);
+
     private sealed class Snapshot
     {
+        /// <summary>
+        /// Момент загрузки снимка, по нему считается срок жизни кеша.
+        /// </summary>
+        /// <value>Момент в UTC.</value>
+        public required DateTime LoadedAt { get; init; }
+
         public required ModificatorType[] ModificatorTypes { get; init; }
         public required ResourceType[] ResourceTypes { get; init; }
         public required Receipt[] Receipts { get; init; }
@@ -46,31 +64,80 @@ public class ResourceManager
         public required StarterGoal[] StarterGoals { get; init; }
     }
 
-    private readonly Lazy<Snapshot> _data;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
+    private readonly ILogger<ResourceManager> _logger;
+    private readonly Lock _reloadLock = new();
+    private volatile Snapshot? _snapshot;
+    private DateTime _retryAfter;
 
-    public ResourceManager(IDbContextFactory<ApplicationDbContext> contextFactory)
+    public ResourceManager(IDbContextFactory<ApplicationDbContext> contextFactory, ILogger<ResourceManager> logger)
     {
-        _data = new Lazy<Snapshot>(() =>
+        _contextFactory = contextFactory;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Снимок справочников; протухший старше <see cref="CacheLifetime"/> перечитывается из базы данных первым же обратившимся.
+    /// </summary>
+    /// <remarks>Загрузку держит один поток под блокировкой, остальные ждут готовый снимок и не дублируют запросы. Упавшее перечитывание не роняет запрос: пока есть прежний снимок, отдаётся он, а новая попытка откладывается на <see cref="ReloadRetryDelay"/>.</remarks>
+    /// <value>Свежий снимок справочных данных.</value>
+    private Snapshot Data
+    {
+        get
         {
-            using var context = contextFactory.CreateDbContext();
-            return new Snapshot
+            var current = _snapshot;
+            if (current != null && DateTimeHelper.GetNowDate() - current.LoadedAt < CacheLifetime)
             {
-                ModificatorTypes = LoadModificatorTypes(context),
-                ResourceTypes = LoadResourceTypes(context),
-                Receipts = LoadReceipts(context),
-                DomikTypes = LoadDomikTypes(context),
-                DomikTypeCountGates = LoadDomikTypeCountGates(context),
-                Neighbors = LoadNeighbors(context),
-                Traits = LoadTraits(context),
-                WeatherTypes = LoadWeatherTypes(context),
-                SickTypes = LoadSickTypes(context),
-                Blueprints = LoadBlueprints(context),
-                ExpeditionTypes = LoadExpeditionTypes(context),
-                DecorTypes = LoadDecorTypes(context),
-                TolokaTypes = LoadTolokaTypes(context),
-                StarterGoals = LoadStarterGoals(context),
-            };
-        });
+                return current;
+            }
+
+            lock (_reloadLock)
+            {
+                current = _snapshot;
+                var now = DateTimeHelper.GetNowDate();
+                if (current != null && (now - current.LoadedAt < CacheLifetime || now < _retryAfter))
+                {
+                    return current;
+                }
+
+                try
+                {
+                    var snapshot = Load();
+                    _snapshot = snapshot;
+                    return snapshot;
+                }
+                catch (Exception ex) when (current != null)
+                {
+                    _retryAfter = now.Add(ReloadRetryDelay);
+                    _logger.LogWarning(ex, "ResourceManager - reference reload failed, serving snapshot from {LoadedAt}", current.LoadedAt);
+                    return current;
+                }
+            }
+        }
+    }
+
+    private Snapshot Load()
+    {
+        using var context = _contextFactory.CreateDbContext();
+        using var transaction = context.Database.BeginTransaction(IsolationLevel.RepeatableRead);
+        return new Snapshot
+        {
+            LoadedAt = DateTimeHelper.GetNowDate(),
+            ModificatorTypes = LoadModificatorTypes(context),
+            ResourceTypes = LoadResourceTypes(context),
+            Receipts = LoadReceipts(context),
+            DomikTypes = LoadDomikTypes(context),
+            DomikTypeCountGates = LoadDomikTypeCountGates(context),
+            Neighbors = LoadNeighbors(context),
+            Traits = LoadTraits(context),
+            WeatherTypes = LoadWeatherTypes(context),
+            SickTypes = LoadSickTypes(context),
+            Blueprints = LoadBlueprints(context),
+            ExpeditionTypes = LoadExpeditionTypes(context),
+            DecorTypes = LoadDecorTypes(context),
+            TolokaTypes = LoadTolokaTypes(context),
+            StarterGoals = LoadStarterGoals(context),
+        };
     }
 
     public static int GetMarketValue(int resourceTypeId)
@@ -94,37 +161,37 @@ public class ResourceManager
         };
     }
 
-    public ModificatorType[] GetModificatorTypes() => _data.Value.ModificatorTypes;
+    public ModificatorType[] GetModificatorTypes() => Data.ModificatorTypes;
 
-    public Trait[] GetTraits() => _data.Value.Traits;
+    public Trait[] GetTraits() => Data.Traits;
 
-    public ResourceType[] GetResourceTypes() => _data.Value.ResourceTypes;
+    public ResourceType[] GetResourceTypes() => Data.ResourceTypes;
 
-    public StarterGoal[] GetStarterGoals() => _data.Value.StarterGoals;
+    public StarterGoal[] GetStarterGoals() => Data.StarterGoals;
 
-    public Receipt[] GetReceipts() => _data.Value.Receipts;
+    public Receipt[] GetReceipts() => Data.Receipts;
 
-    public Neighbor[] GetNeighbors() => _data.Value.Neighbors;
+    public Neighbor[] GetNeighbors() => Data.Neighbors;
 
-    public Blueprint[] GetBlueprints() => _data.Value.Blueprints;
+    public Blueprint[] GetBlueprints() => Data.Blueprints;
 
-    public WeatherType[] GetWeatherTypes() => _data.Value.WeatherTypes;
+    public WeatherType[] GetWeatherTypes() => Data.WeatherTypes;
 
     /// <summary>
     /// Возвращает справочник хворей, связанных с погодой.
     /// </summary>
     /// <returns>Все типы хворей.</returns>
-    public SickType[] GetSickTypes() => _data.Value.SickTypes;
+    public SickType[] GetSickTypes() => Data.SickTypes;
 
-    public ExpeditionType[] GetExpeditionTypes() => _data.Value.ExpeditionTypes;
+    public ExpeditionType[] GetExpeditionTypes() => Data.ExpeditionTypes;
 
-    public TolokaType[] GetTolokaTypes() => _data.Value.TolokaTypes;
+    public TolokaType[] GetTolokaTypes() => Data.TolokaTypes;
 
-    public DecorType[] GetDecorTypes() => _data.Value.DecorTypes;
+    public DecorType[] GetDecorTypes() => Data.DecorTypes;
 
-    public DomikType[] GetDomikTypes() => _data.Value.DomikTypes;
+    public DomikType[] GetDomikTypes() => Data.DomikTypes;
 
-    public DomikTypeCountGate[] GetDomikTypeCountGates() => _data.Value.DomikTypeCountGates;
+    public DomikTypeCountGate[] GetDomikTypeCountGates() => Data.DomikTypeCountGates;
 
     private static ModificatorType[] LoadModificatorTypes(ApplicationDbContext context)
     {
