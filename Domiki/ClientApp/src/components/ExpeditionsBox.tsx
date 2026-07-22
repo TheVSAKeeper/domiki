@@ -1,10 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import BackpackIcon from 'pixelarticons/svg/backpack.svg?react';
 import MapPinIcon from 'pixelarticons/svg/map-pin.svg?react';
-import GiftIcon from 'pixelarticons/svg/gift.svg?react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
-import CoinsIcon from 'pixelarticons/svg/coins.svg?react';
-import UsersIcon from 'pixelarticons/svg/users.svg?react';
 import type { DecorTypeDto, ExpeditionStateDto, ResourceDto, ResourceTypeDto, WorkerDto } from '../types/api';
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_RESOURCE, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE, GOLD_RESOURCE_TYPE_ID, hasResourcesFor, isWorkerFree } from '../utils/game';
 import { isSkilledWorker } from '../utils/worker';
@@ -38,10 +34,8 @@ const EXPEDITION_EMBLEM: Record<string, string> = {
 };
 
 const ExpeditionEmblem = ({ logicName, size = 40, className }: { logicName: string | undefined; size?: 24 | 32 | 40; className?: string }) => {
-    const emblem = logicName == null ? undefined : EXPEDITION_EMBLEM[logicName];
-    return emblem == null
-        ? <BackpackIcon className={className} aria-hidden="true" />
-        : <AbstractSprite logicName={emblem} size={size} className={className} aria-hidden="true" />;
+    const emblem = (logicName == null ? undefined : EXPEDITION_EMBLEM[logicName]) ?? 'expedition_generic';
+    return <AbstractSprite logicName={emblem} size={size} className={className} aria-hidden="true" />;
 };
 
 const EXPEDITION_FLAVOR: Record<string, string> = {
@@ -115,7 +109,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                     <div className="expeditions-trail-track" aria-hidden="true">
                         {Array.from({ length: expeditions.pityThreshold }, (_, index) =>
                             <span key={index} className={'trail-pip' + (index < expeditions.expeditionsSincePity ? ' trail-pip-done' : '')} />)}
-                        <span className="expeditions-trail-goal"><GiftIcon aria-hidden="true" /></span>
+                        <span className="expeditions-trail-goal"><AbstractSprite logicName="rare_expedition_find" size={24} aria-hidden="true" /></span>
                     </div>
                     <span className="expeditions-trail-count">ещё {untilPity}</span>
                 </div>}
@@ -163,7 +157,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                 </StatChip>
                                 {goldType != null
                                     ? <ResourceChip resourceType={goldType} value={type.goldCost} />
-                                    : <StatChip icon={<CoinsIcon className="stat-chip-ico" aria-hidden="true" />} tone="gold" title="Золото">{type.goldCost}</StatChip>}
+                                    : <StatChip icon={<ResourceSprite logicName="gold" size={24} className="stat-chip-ico" aria-hidden="true" />} tone="gold" title="Золото">{type.goldCost}</StatChip>}
                             </div>
                             {equipment.length > 0 &&
                                 <div className={'expedition-req' + (canAffordEquipment ? '' : ' expedition-req-short')}>
@@ -310,7 +304,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                             </span>
                                         ))}
                                         {crew.length === 0 && type != null &&
-                                            <StatChip icon={<UsersIcon className="stat-chip-ico" aria-hidden="true" />} title="Трудяг в походе">
+                                            <StatChip icon={<MechanicSprite logicName="workers" size={24} className="stat-chip-ico" aria-hidden="true" />} title="Трудяг в походе">
                                                 ×{type.workerCount}
                                             </StatChip>}
                                     </div>

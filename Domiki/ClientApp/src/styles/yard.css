@@ -77,6 +77,16 @@
     outline: none;
 }
 
+.yard-sheep {
+    transition: transform 1.8s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .yard-sheep {
+        transition: none;
+    }
+}
+
     .yard-domik:focus-visible,
     .yard-vignette:focus-visible {
         outline: 2px solid #e8b83a;

@@ -1,13 +1,5 @@
 import type { FC, ReactNode, SVGProps } from 'react';
-import BackpackIcon from 'pixelarticons/svg/backpack.svg?react';
-import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
-import BuildingCommunityIcon from 'pixelarticons/svg/building-community.svg?react';
-import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
-import CheckboxOnIcon from 'pixelarticons/svg/checkbox-on.svg?react';
-import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
-import HandIcon from 'pixelarticons/svg/hand.svg?react';
-import SearchIcon from 'pixelarticons/svg/search.svg?react';
 import type { DecorTypeDto, DomikTypeDto, RecapEventDto, ResourceTypeDto } from '../types/api';
 import { isNumber, isRecord, lootEntryKey, readLootEntry, readResource } from '../utils/recap';
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
@@ -32,6 +24,10 @@ interface JournalBoxProps {
 }
 
 type SvgIcon = FC<SVGProps<SVGSVGElement>>;
+
+const mechanicIcon = (logicName: string): SvgIcon => props => <MechanicSprite logicName={logicName} {...props} />;
+const abstractIcon = (logicName: string): SvgIcon => props => <AbstractSprite logicName={logicName} {...props} />;
+const domikIcon = (logicName: string): SvgIcon => props => <DomikSprite logicName={logicName} {...props} />;
 
 interface EntryContent {
     tone: string;
@@ -84,7 +80,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
         });
         return {
             tone: 'prod',
-            Icon: GridIcon,
+            Icon: abstractIcon('production_recipe'),
             body: (
                 <>
                     {domikType != null && <DomikSprite logicName={domikType.logicName} aria-hidden="true" />}
@@ -104,20 +100,15 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
         const domikType = domikTypes.find(x => x.id === data.domikTypeId);
         return {
             tone: 'build',
-            Icon: BuildingIcon,
-            body: (
-                <>
-                    {domikType != null && <DomikSprite logicName={domikType.logicName} aria-hidden="true" />}
-                    <span className="journal-text">{(domikType?.name ?? `Постройка #${data.domikTypeId}`) + ` → ур. ${data.level}`}</span>
-                </>
-            ),
+            Icon: domikType != null ? domikIcon(domikType.logicName) : BuildingIcon,
+            body: <span className="journal-text">{(domikType?.name ?? `Постройка #${data.domikTypeId}`) + ` → ур. ${data.level}`}</span>,
         };
     }
 
     if (event.type === 'CloakWornOut') {
         return {
             tone: 'errand',
-            Icon: BackpackIcon,
+            Icon: mechanicIcon('expeditions'),
             body: <><ResourceSprite logicName="cloak" aria-hidden="true" /><span className="journal-text">Плащ отслужил пятьдесят смен и рассыпался</span></>,
         };
     }
@@ -126,10 +117,9 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
         const loot = data.loot.flatMap(entry => readLootEntry(entry));
         return {
             tone: 'exp',
-            Icon: BackpackIcon,
+            Icon: mechanicIcon('expeditions'),
             body: (
                 <>
-                    <MechanicSprite logicName="expeditions" aria-hidden="true" />
                     <span className="journal-text">Экспедиция вернулась</span>
                     <span className="journal-chips">
                         {withStableKeys(loot, lootEntryKey).map(({ key, item: entry }) => {
@@ -163,7 +153,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
         const wantType = want == null ? null : findResourceType(resourceTypes, want.typeId);
         return {
             tone: 'market',
-            Icon: StoreIcon,
+            Icon: mechanicIcon('market'),
             body: (
                 <>
                     <span className="journal-text">Продано</span>
@@ -182,7 +172,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
         const giveType = give == null ? null : findResourceType(resourceTypes, give.typeId);
         return {
             tone: 'market',
-            Icon: StoreIcon,
+            Icon: mechanicIcon('market'),
             body: (
                 <>
                     <span className="journal-text">Лот истёк</span>
@@ -197,7 +187,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
     if (event.type === 'TolokaCompleted' && isNumber(data.tolokaTypeId)) {
         return {
             tone: 'toloka',
-            Icon: BuildingCommunityIcon,
+            Icon: mechanicIcon('toloka'),
             body: <span className="journal-text">Толока завершена</span>,
         };
     }
@@ -205,7 +195,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
     if (event.type === 'GuestbookEntryLeft' && typeof data.guestVillageName === 'string' && isNumber(data.guestCrestIcon) && isNumber(data.guestCrestColor) && isNumber(data.phraseId)) {
         return {
             tone: 'guestbook',
-            Icon: BookOpenIcon,
+            Icon: mechanicIcon('guestbook'),
             body: (
                 <>
                     <Crest icon={data.guestCrestIcon} color={data.guestCrestColor} className="crest-badge-small" />
@@ -219,7 +209,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
     if (event.type === 'VillageHelped' && typeof data.guestVillageName === 'string' && isNumber(data.guestCrestIcon) && isNumber(data.guestCrestColor) && typeof data.domikTypeName === 'string' && isNumber(data.reducedSeconds)) {
         return {
             tone: 'help',
-            Icon: HandIcon,
+            Icon: mechanicIcon('village_help'),
             body: (
                 <>
                     <Crest icon={data.guestCrestIcon} color={data.guestCrestColor} className="crest-badge-small" />
@@ -237,7 +227,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
         const bonusType = isNumber(data.bonusResourceTypeId) ? findResourceType(resourceTypes, data.bonusResourceTypeId) : undefined;
         return {
             tone: 'errand',
-            Icon: SearchIcon,
+            Icon: mechanicIcon('errands'),
             body: (
                 <>
                     <MechanicSprite logicName="orders" aria-hidden="true" />
@@ -259,30 +249,30 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
     }
 
     if (event.type === 'WorkerMissing' && typeof data.workerName === 'string' && isNumber(data.workerGender) && isNumber(data.templateId)) {
-        return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{data.workerName} {genderForm(data.workerGender, 'задержался', 'задержалась')} в походе – есть зацепки<span className="journal-errand-thanks">«{getIncidentTemplate(data.templateId).title}»</span></span></> };
+        return { tone: 'errand', Icon: abstractIcon('incident'), body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{data.workerName} {genderForm(data.workerGender, 'задержался', 'задержалась')} в походе – есть зацепки<span className="journal-errand-thanks">«{getIncidentTemplate(data.templateId).title}»</span></span></> };
     }
 
     if (event.type === 'IncidentResolved' && typeof data.workerName === 'string' && isNumber(data.workerGender) && isNumber(data.templateId) && typeof data.autoReturned === 'boolean') {
         const template = getIncidentTemplate(data.templateId);
         if (data.autoReturned) {
-            return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{incidentText('{имя} вернул{ся|ась} сам{|а} – дорогу на{шёл|шла} без подмоги.', data.workerName, data.workerGender)}</span></> };
+            return { tone: 'errand', Icon: abstractIcon('incident'), body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{incidentText('{имя} вернул{ся|ась} сам{|а} – дорогу на{шёл|шла} без подмоги.', data.workerName, data.workerGender)}</span></> };
         }
         if (!isNumber(data.clueId)) {
             return null;
         }
         const resourceType = isNumber(data.resourceTypeId) ? findResourceType(resourceTypes, data.resourceTypeId) : undefined;
-        return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{incidentText(template.resolutions[data.clueId] ?? '', data.workerName, data.workerGender)}<span className="journal-errand-thanks"><i>{incidentText(template.epilogue, data.workerName, data.workerGender)}</i></span></span><span className="journal-chips">{resourceType != null && isNumber(data.value) && <ResourceChip resourceType={resourceType} value={data.value} />}{data.traitUpgraded === true && typeof data.newTrait === 'string' && <span className="journal-loot-rare">Черта: {traitLabel(typeof data.newTraitLogicName === 'string' ? data.newTraitLogicName : '', data.newTrait, data.workerGender)}</span>}</span></> };
+        return { tone: 'errand', Icon: abstractIcon('incident'), body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{incidentText(template.resolutions[data.clueId] ?? '', data.workerName, data.workerGender)}<span className="journal-errand-thanks"><i>{incidentText(template.epilogue, data.workerName, data.workerGender)}</i></span></span><span className="journal-chips">{resourceType != null && isNumber(data.value) && <ResourceChip resourceType={resourceType} value={data.value} />}{data.traitUpgraded === true && typeof data.newTrait === 'string' && <span className="journal-loot-rare">Черта: {traitLabel(typeof data.newTraitLogicName === 'string' ? data.newTraitLogicName : '', data.newTrait, data.workerGender)}</span>}</span></> };
     }
 
     if (event.type === 'DomikIncidentStarted' && isNumber(data.domikTypeId) && isNumber(data.templateId)) {
         const domikName = domikTypes.find(type => type.id === data.domikTypeId)?.name ?? `Постройке #${data.domikTypeId}`;
-        return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">В {domikName} что-то неспокойно – есть зацепки<span className="journal-errand-thanks">«{getDomikIncidentTemplate(data.templateId).title}»</span></span></> };
+        return { tone: 'errand', Icon: abstractIcon('incident'), body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">В {domikName} что-то неспокойно – есть зацепки<span className="journal-errand-thanks">«{getDomikIncidentTemplate(data.templateId).title}»</span></span></> };
     }
 
     if (event.type === 'DomikIncidentResolved' && isNumber(data.domikTypeId) && isNumber(data.templateId) && typeof data.autoResolved === 'boolean') {
         const domikName = domikTypes.find(type => type.id === data.domikTypeId)?.name ?? `Постройке #${data.domikTypeId}`;
         if (data.autoResolved) {
-            return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">Загадка в {domikName} разгадалась сама</span></> };
+            return { tone: 'errand', Icon: abstractIcon('incident'), body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">Загадка в {domikName} разгадалась сама</span></> };
         }
         if (!isNumber(data.clueId) || typeof data.heroWorkerName !== 'string') {
             return null;
@@ -291,7 +281,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
         const heroGender = isNumber(data.heroWorkerGender) ? data.heroWorkerGender : undefined;
         const resourceType = isNumber(data.resourceTypeId) ? findResourceType(resourceTypes, data.resourceTypeId) : undefined;
         const upgradedWorkerName = typeof data.upgradedWorkerName === 'string' ? data.upgradedWorkerName : 'Трудяга';
-        return { tone: 'errand', Icon: SearchIcon, body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{domikIncidentText(template.resolutions[data.clueId] ?? '', domikName, data.heroWorkerName, heroGender)}<span className="journal-errand-thanks"><i>{domikIncidentText(template.epilogue, domikName, data.heroWorkerName, heroGender)}</i></span></span><span className="journal-chips">{resourceType != null && isNumber(data.value) && <ResourceChip resourceType={resourceType} value={data.value} />}{data.traitUpgraded === true && typeof data.newTrait === 'string' && <span className="journal-loot-rare">Черта: {upgradedWorkerName} – {traitLabel(typeof data.newTraitLogicName === 'string' ? data.newTraitLogicName : '', data.newTrait, heroGender)}</span>}</span></> };
+        return { tone: 'errand', Icon: abstractIcon('incident'), body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{domikIncidentText(template.resolutions[data.clueId] ?? '', domikName, data.heroWorkerName, heroGender)}<span className="journal-errand-thanks"><i>{domikIncidentText(template.epilogue, domikName, data.heroWorkerName, heroGender)}</i></span></span><span className="journal-chips">{resourceType != null && isNumber(data.value) && <ResourceChip resourceType={resourceType} value={data.value} />}{data.traitUpgraded === true && typeof data.newTrait === 'string' && <span className="journal-loot-rare">Черта: {upgradedWorkerName} – {traitLabel(typeof data.newTraitLogicName === 'string' ? data.newTraitLogicName : '', data.newTrait, heroGender)}</span>}</span></> };
     }
 
     if (event.type === 'WorkerMilestone' && isNumber(data.milestoneType) && isNumber(data.workerId) && typeof data.workerName === 'string' && isNumber(data.workerGender)) {
@@ -299,14 +289,14 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
         const partnerName = typeof data.workerName2 === 'string' ? data.workerName2 : undefined;
         const partnerGender = isNumber(data.workerGender2) ? data.workerGender2 : undefined;
         const resourceType = isNumber(data.resourceTypeId) ? findResourceType(resourceTypes, data.resourceTypeId) : undefined;
-        return { tone: 'goal', Icon: CheckboxOnIcon, body: <><span className="journal-text">{workerMilestoneText(template.journal, data.workerName, data.workerGender, partnerName, partnerGender)}<span className="journal-errand-thanks"><i>{workerMilestoneText(template.epilogue, data.workerName, data.workerGender, partnerName, partnerGender)}</i></span></span><span className="journal-chips">{resourceType != null && isNumber(data.value) && <ResourceChip resourceType={resourceType} value={data.value} />}{data.traitUpgraded === true && typeof data.newTrait === 'string' && <span className="journal-loot-rare">Черта: {data.workerName} – {traitLabel(typeof data.newTraitLogicName === 'string' ? data.newTraitLogicName : '', data.newTrait, data.workerGender)}</span>}</span></> };
+        return { tone: 'goal', Icon: abstractIcon('worker_milestone'), body: <><span className="journal-text">{workerMilestoneText(template.journal, data.workerName, data.workerGender, partnerName, partnerGender)}<span className="journal-errand-thanks"><i>{workerMilestoneText(template.epilogue, data.workerName, data.workerGender, partnerName, partnerGender)}</i></span></span><span className="journal-chips">{resourceType != null && isNumber(data.value) && <ResourceChip resourceType={resourceType} value={data.value} />}{data.traitUpgraded === true && typeof data.newTrait === 'string' && <span className="journal-loot-rare">Черта: {data.workerName} – {traitLabel(typeof data.newTraitLogicName === 'string' ? data.newTraitLogicName : '', data.newTrait, data.workerGender)}</span>}</span></> };
     }
 
     if (event.type === 'GoalCompleted' && typeof data.name === 'string' && isNumber(data.rewardCoins)) {
         const coinType = findResourceType(resourceTypes, 1);
         return {
             tone: 'goal',
-            Icon: CheckboxOnIcon,
+            Icon: abstractIcon('goal'),
             body: (
                 <>
                     <span className="journal-text">Наказ выполнен: {data.name}</span>

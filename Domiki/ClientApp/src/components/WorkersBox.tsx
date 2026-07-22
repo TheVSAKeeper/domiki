@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
-import CrownIcon from 'pixelarticons/svg/crown.svg?react';
 import type { CloakStateDto, DomikDto, DomikIncidentDto, DomikTypeDto, ErrandDto, ExpeditionStateDto, IncidentDto, ResourceDto, ResourceTypeDto, SickTypeDto, WorkerDto } from '../types/api';
 import { buildDomikNamer, type DomikNamer } from '../utils/domikNames';
 import { formatDuration, formatDurationShort, remainingSeconds } from '../utils/time';
@@ -259,7 +258,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, expeditions, errand, i
                             <div className="worker-card-body">
                                 <span className="worker-portrait">
                                     <WorkerSprite name={worker.name} state={portraitState} skilled={isSkilledWorker(worker)} className="worker-avatar" aria-hidden="true" />
-                                    {craft.tier === 'master' && <CrownIcon className="worker-seal" aria-hidden="true" />}
+                                    {craft.tier === 'master' && <AbstractSprite logicName="worker_mastery" size={24} className="worker-seal" aria-hidden="true" />}
                                     {!worker.noFatigue && worker.workedSeconds > 0 &&
                                         <span className="worker-fatigue" data-level={fatigueLevel}
                                             title={`Усталость: ${formatDuration(worker.workedSeconds)} из ${formatDuration(FATIGUE_THRESHOLD_SECONDS)}`}>

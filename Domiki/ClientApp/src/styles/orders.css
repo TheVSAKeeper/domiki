@@ -478,10 +478,19 @@
 }
 
 .convoy-board-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
     margin: 0;
     font-family: var(--pixel);
     font-size: 12px;
     color: var(--pine-dark);
+}
+
+.convoy-board-title svg {
+    width: 14px;
+    height: 14px;
+    flex: none;
 }
 
 .convoy-board-hint {

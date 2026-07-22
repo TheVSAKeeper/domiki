@@ -19,9 +19,11 @@ import StoneMineSprite from '../assets/domikTypes/stone_mine.svg?react';
 import StonecutterSprite from '../assets/domikTypes/stonecutter.svg?react';
 import WorkshopSprite from '../assets/domikTypes/workshop.svg?react';
 import BridgeSprite from '../assets/tolokaTypes/bridge.svg?react';
+import CaravanSprite from '../assets/tolokaTypes/caravan.svg?react';
 import GranarySprite from '../assets/tolokaTypes/granary.svg?react';
 import KilnSprite from '../assets/tolokaTypes/kiln.svg?react';
 import WorkerPortrait from '../assets/workers/portrait.svg?react';
+import SheepActorSprite from '../assets/actors/sheep.svg?react';
 import WeatherClearSprite from '../assets/weather/clear.svg?react';
 import WeatherRainSprite from '../assets/weather/rain.svg?react';
 import WeatherDroughtSprite from '../assets/weather/drought.svg?react';
@@ -67,6 +69,13 @@ import BlueprintSprite from '../assets/abstract/blueprint.svg?react';
 import UntouchedDepositsSprite from '../assets/abstract/untouched_deposits.svg?react';
 import JournalAbstractSprite from '../assets/abstract/journal.svg?react';
 import ElderOrderSprite from '../assets/abstract/elder_order.svg?react';
+import SmartArtelSprite from '../assets/abstract/smart_artel.svg?react';
+import HurrySprite from '../assets/abstract/hurry.svg?react';
+import IncidentSprite from '../assets/abstract/incident.svg?react';
+import WorkerMilestoneSprite from '../assets/abstract/worker_milestone.svg?react';
+import GoalSprite from '../assets/abstract/goal.svg?react';
+import WorkerMasterySprite from '../assets/abstract/worker_mastery.svg?react';
+import ExpeditionGenericSprite from '../assets/abstract/expedition_generic.svg?react';
 import MechObzhitostSprite from '../assets/mechanics/obzhitost.svg?react';
 import MechOrdersSprite from '../assets/mechanics/orders.svg?react';
 import MechWorkersSprite from '../assets/mechanics/workers.svg?react';
@@ -77,6 +86,16 @@ import MechMarketSprite from '../assets/mechanics/market.svg?react';
 import MechTolokaSprite from '../assets/mechanics/toloka.svg?react';
 import MechDecorSprite from '../assets/mechanics/decor.svg?react';
 import MechGiftsSprite from '../assets/mechanics/gifts.svg?react';
+import MechGuestbookSprite from '../assets/mechanics/guestbook.svg?react';
+import MechVestnikSprite from '../assets/mechanics/vestnik.svg?react';
+import MechErrandsSprite from '../assets/mechanics/errands.svg?react';
+import MechConvoySprite from '../assets/mechanics/convoy.svg?react';
+import MechFriendshipSprite from '../assets/mechanics/friendship.svg?react';
+import MechWikiSprite from '../assets/mechanics/wiki.svg?react';
+import MechWorldSprite from '../assets/mechanics/world.svg?react';
+import MechShopSprite from '../assets/mechanics/shop.svg?react';
+import MechVillageHelpSprite from '../assets/mechanics/village_help.svg?react';
+import MechSeasonSprite from '../assets/mechanics/season.svg?react';
 import ClayResSprite from '../assets/resourceTypes/clay.svg?react';
 import CoinResSprite from '../assets/resourceTypes/coin.svg?react';
 import GoldResSprite from '../assets/resourceTypes/gold.svg?react';
@@ -113,6 +132,7 @@ const cleanSpriteProps = (props: SVGProps<SVGSVGElement>): SVGProps<SVGSVGElemen
     const hidden = props['aria-hidden'] ?? (props['aria-label'] == null ? true : undefined);
     return {
         ...props,
+        className: props.className == null ? 'px-sprite' : `px-sprite ${props.className}`,
         ref: prepareInlineSprite,
         role: hidden ? undefined : (props.role ?? 'img'),
         'aria-hidden': hidden,
@@ -147,8 +167,7 @@ const tolokaSprites: Record<string, SpriteComponent> = {
     bridge: BridgeSprite,
     granary: GranarySprite,
     kiln: KilnSprite,
-    // TODO: караван – заглушка эмблемой толоки, нарисовать canon-спрайт (ASSETS.md арт-долг)
-    caravan: MechTolokaSprite,
+    caravan: CaravanSprite,
 };
 
 const weatherSprites: Record<string, SpriteComponent> = {
@@ -209,6 +228,13 @@ const abstractSprites: Record<string, SpriteComponent> = {
     untouched_deposits: UntouchedDepositsSprite,
     journal: JournalAbstractSprite,
     elder_order: ElderOrderSprite,
+    smart_artel: SmartArtelSprite,
+    hurry: HurrySprite,
+    incident: IncidentSprite,
+    worker_milestone: WorkerMilestoneSprite,
+    goal: GoalSprite,
+    worker_mastery: WorkerMasterySprite,
+    expedition_generic: ExpeditionGenericSprite,
 };
 
 const resourceSprites: Record<string, SpriteComponent> = {
@@ -274,6 +300,16 @@ const mechanicSprites: Record<string, SpriteComponent> = {
     toloka: MechTolokaSprite,
     decor: MechDecorSprite,
     gifts: MechGiftsSprite,
+    guestbook: MechGuestbookSprite,
+    vestnik: MechVestnikSprite,
+    errands: MechErrandsSprite,
+    convoy: MechConvoySprite,
+    friendship: MechFriendshipSprite,
+    wiki: MechWikiSprite,
+    world: MechWorldSprite,
+    shop: MechShopSprite,
+    village_help: MechVillageHelpSprite,
+    season: MechSeasonSprite,
 };
 
 export const MechanicSprite = (props: IconSpriteProps) => <>{renderIconSprite('mechanic', mechanicSprites, undefined, props)}</>;
@@ -290,14 +326,18 @@ interface SpriteProps extends SVGProps<SVGSVGElement> {
     working?: boolean;
 }
 
+interface DomikSpriteProps extends SpriteProps {
+    weather?: string | undefined;
+}
+
 const clampLevel = (level: number) => Math.min(5, Math.max(1, Math.floor(level)));
 
-export const DomikSprite = ({ logicName, level = 1, working = false, ...props }: SpriteProps) => {
+export const DomikSprite = ({ logicName, level = 1, working = false, weather, ...props }: DomikSpriteProps) => {
     const Sprite = domikSprites[logicName];
     if (Sprite == null) {
         warnUnknownSprite('domik', logicName);
     }
-    return Sprite == null ? null : <Sprite data-level={clampLevel(level)} data-working={working ? 'true' : 'false'} {...cleanSpriteProps(props)} />;
+    return Sprite == null ? null : <Sprite data-level={clampLevel(level)} data-working={working ? 'true' : 'false'} data-weather={weather} {...cleanSpriteProps(props)} />;
 };
 
 export const TolokaSprite = ({ logicName, level = 1, ...props }: SpriteProps) => {
@@ -307,6 +347,13 @@ export const TolokaSprite = ({ logicName, level = 1, ...props }: SpriteProps) =>
     }
     return Sprite == null ? null : <Sprite data-level={clampLevel(level)} {...cleanSpriteProps(props)} />;
 };
+
+interface SheepSpriteProps extends SVGProps<SVGSVGElement> {
+    state?: 'idle' | 'walking';
+}
+
+export const SheepSprite = ({ state = 'idle', ...props }: SheepSpriteProps) =>
+    <SheepActorSprite data-state={state} {...cleanSpriteProps(props)} />;
 
 type WorkerLook = [skin: number, hair: number, style: string, beard: number, hat: number, shirt: number, extra: number];
 

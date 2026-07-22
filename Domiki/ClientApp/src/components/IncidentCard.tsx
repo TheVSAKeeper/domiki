@@ -53,7 +53,7 @@ export const IncidentCard = ({ incident, workers, now, onStartSearch }: Incident
         return (
             <section className="incident-card goal-card pixel-panel">
                 <div className="goal-hero incident-hero">
-                    <div className="goal-emblem"><AbstractSprite logicName="journal" size={32} className="goal-emblem-ico" aria-hidden="true" /></div>
+                    <div className="goal-emblem"><AbstractSprite logicName="incident" size={32} className="goal-emblem-ico" aria-hidden="true" /></div>
                     <div className="goal-hero-text"><span className="errand-badge">Происшествие</span><h3 className="goal-title">{template.title}</h3></div>
                 </div>
                 <p className="incident-clue"><b>{clue.label}</b><span>{incidentText(clue.detail, workerName, workerGender)}</span></p>
@@ -70,7 +70,7 @@ export const IncidentCard = ({ incident, workers, now, onStartSearch }: Incident
     return (
         <section className="incident-card goal-card pixel-panel">
             <div className="goal-hero incident-hero">
-                <div className="goal-emblem"><AbstractSprite logicName="journal" size={32} className="goal-emblem-ico" aria-hidden="true" /></div>
+                <div className="goal-emblem"><AbstractSprite logicName="incident" size={32} className="goal-emblem-ico" aria-hidden="true" /></div>
                 <div className="goal-hero-text"><span className="errand-badge">Происшествие</span><h3 className="goal-title">{template.title}</h3></div>
             </div>
             <p className="incident-hook">{incidentText(template.hook, workerName, workerGender)}</p>

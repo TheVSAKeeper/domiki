@@ -11,6 +11,11 @@
     cursor: pointer;
 }
 
+.hud-news-ico {
+    width: 20px;
+    height: 20px;
+}
+
 .hud-news-dot {
     position: absolute;
     top: 3px;

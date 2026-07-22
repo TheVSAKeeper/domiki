@@ -1,16 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { FC, SVGProps } from 'react';
 import { Link } from 'react-router-dom';
 import ArrowLeftIcon from 'pixelarticons/svg/arrow-left.svg?react';
-import HomeIcon from 'pixelarticons/svg/home.svg?react';
-import CoinsIcon from 'pixelarticons/svg/coins.svg?react';
-import UsersIcon from 'pixelarticons/svg/users.svg?react';
-import MapPinIcon from 'pixelarticons/svg/map-pin.svg?react';
-import HeartIcon from 'pixelarticons/svg/heart.svg?react';
-import CalendarIcon from 'pixelarticons/svg/calendar.svg?react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
-import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
-import TrophyIcon from 'pixelarticons/svg/trophy.svg?react';
-import HandIcon from 'pixelarticons/svg/hand.svg?react';
 import { ApiError, getWorld, helpVillage, leaveGuestbookEntry, visitVillage } from '../services/api';
 import { useToast } from '../services/toastContext';
 import { GUESTBOOK_PHRASES } from '../constants/guestbookPhrases';
@@ -22,16 +14,21 @@ import { WorldMap } from './WorldMap';
 import { Crest } from './Crest';
 import { GuestbookEntryRow } from './GuestbookEntryRow';
 import { villageKey } from '../utils/worldMap';
+import { MechanicSprite } from './sprites';
 import type { VillageVisitDto, WorldDto, WorldVillageDto } from '../types/api';
 
 type SortKey = 'level' | 'seasonOrders' | 'seasonToloka' | 'seasonExpeditions' | 'comfort';
 
-const SORT_META: Record<SortKey, { label: string; Icon: typeof HomeIcon }> = {
-    level: { label: 'Обжитость', Icon: HomeIcon },
-    seasonOrders: { label: 'Поставщик', Icon: CoinsIcon },
-    seasonToloka: { label: 'Толока', Icon: UsersIcon },
-    seasonExpeditions: { label: 'Странник', Icon: MapPinIcon },
-    comfort: { label: 'Уют', Icon: HeartIcon },
+type MetaIcon = FC<SVGProps<SVGSVGElement>>;
+
+const mechanicIcon = (logicName: string): MetaIcon => props => <MechanicSprite logicName={logicName} size={24} {...props} />;
+
+const SORT_META: Record<SortKey, { label: string; Icon: MetaIcon }> = {
+    level: { label: 'Обжитость', Icon: mechanicIcon('obzhitost') },
+    seasonOrders: { label: 'Поставщик', Icon: mechanicIcon('orders') },
+    seasonToloka: { label: 'Толока', Icon: mechanicIcon('toloka') },
+    seasonExpeditions: { label: 'Странник', Icon: mechanicIcon('expeditions') },
+    comfort: { label: 'Уют', Icon: mechanicIcon('decor') },
 };
 
 const SORT_TABS = (Object.keys(SORT_META) as SortKey[]).map(key => ({ key, ...SORT_META[key] }));
@@ -199,10 +196,10 @@ export const WorldPage = () => {
                 <div>
                     <h1 className="wiki-title">Мир</h1>
                     <div className="world-head-stats">
-                        <StatChip icon={<HomeIcon className="stat-chip-ico" aria-hidden="true" />} title="Деревень в мире">
+                        <StatChip icon={<MechanicSprite logicName="obzhitost" size={24} className="stat-chip-ico" aria-hidden="true" />} title="Деревень в мире">
                             {world.villages.length} деревень
                         </StatChip>
-                        <StatChip icon={<CalendarIcon className="stat-chip-ico" aria-hidden="true" />} title="Текущий сезон">
+                        <StatChip icon={<MechanicSprite logicName="season" size={24} className="stat-chip-ico" aria-hidden="true" />} title="Текущий сезон">
                             Сезон {world.season.number}
                         </StatChip>
                         <StatChip icon={<ClockIcon className="stat-chip-ico" aria-hidden="true" />} title="До конца сезона">
@@ -278,7 +275,7 @@ export const WorldPage = () => {
 
                     <div className="world-artifacts pixel-panel">
                         <h2 className="panel-title world-artifacts-title">
-                            <TrophyIcon className="world-tab-ico" aria-hidden="true" />
+                            <MechanicSprite logicName="toloka" size={24} className="world-tab-ico" aria-hidden="true" />
                             Всем миром
                         </h2>
                         {world.tolokaArtifacts.length === 0
@@ -350,7 +347,7 @@ export const WorldPage = () => {
                                     {visit.canHelp &&
                                         <button type="button" className="btn-game" disabled={helpBusy}
                                             onClick={() => { void submitHelp(); }}>
-                                            <HandIcon className="btn-ico" aria-hidden="true" />
+                                            <MechanicSprite logicName="village_help" size={24} className="btn-ico" aria-hidden="true" />
                                             Подсобить
                                         </button>
                                     }
@@ -371,7 +368,7 @@ export const WorldPage = () => {
 
                             <div className="world-guestbook">
                                 <h3 className="panel-title world-guestbook-title">
-                                    <BookOpenIcon className="world-guestbook-ico" aria-hidden="true" />
+                                    <MechanicSprite logicName="guestbook" size={24} className="world-guestbook-ico" aria-hidden="true" />
                                     Книга гостей
                                 </h3>
                                 {visit.guestbook.length === 0
@@ -399,7 +396,7 @@ export const WorldPage = () => {
                                                 </div>
                                                 <button type="button" className="btn-game" disabled={guestbookPhraseId == null || guestbookBusy}
                                                     onClick={() => { void submitGuestbookEntry(); }}>
-                                                    <BookOpenIcon className="btn-ico" aria-hidden="true" />
+                                                    <MechanicSprite logicName="guestbook" size={24} className="btn-ico" aria-hidden="true" />
                                                     Расписаться
                                                 </button>
                                             </>

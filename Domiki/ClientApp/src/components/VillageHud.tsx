@@ -2,13 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
-import HomeIcon from 'pixelarticons/svg/home.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
-import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 import type { DomikTypeDto, PlodderCount, ResourceDto, ResourceTypeDto, VillageLevelDto, WeatherStateDto } from '../types/api';
 import { COIN_RESOURCE_TYPE_ID, strongestWeatherEffect } from '../utils/game';
 import { remainingSeconds } from '../utils/time';
-import { DomikSprite, MechanicSprite, WeatherSprite } from './sprites';
+import { AbstractSprite, DomikSprite, MechanicSprite, NeighborSprite, WeatherSprite } from './sprites';
 import { HudResource } from './HudResource';
 import { ProgressBar } from './ProgressBar';
 import { GiftVisitDots } from './GiftVisitDots';
@@ -155,8 +153,8 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, vill
                                                         {unlock.kind === 'building'
                                                             ? <DomikSprite logicName={unlock.logicName ?? ''} className="vlf-ico" aria-hidden="true" />
                                                             : unlock.kind === 'neighbor'
-                                                                ? <HomeIcon className="vlf-ico" aria-hidden="true" />
-                                                                : <ZapIcon className="vlf-ico" aria-hidden="true" />}
+                                                                ? <NeighborSprite logicName={unlock.logicName ?? ''} size={24} className="vlf-ico" aria-hidden="true" />
+                                                                : <AbstractSprite logicName="smart_artel" size={24} className="vlf-ico" aria-hidden="true" />}
                                                         <span className="vlf-body">
                                                             <span className="vlf-name">{unlock.label}</span>
                                                             {unlock.level == null && unlock.requirement != null &&

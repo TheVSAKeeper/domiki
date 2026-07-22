@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import ArticleIcon from 'pixelarticons/svg/article.svg?react';
 import { latestChangelogId } from '../constants/changelog';
 import { ChangelogModal } from './ChangelogModal';
+import { MechanicSprite } from './sprites';
 
 const STORAGE_KEY = 'changelog-last-seen';
 
@@ -25,7 +25,7 @@ export const ChangelogButton = () => {
         <>
             <button type="button" className="hud-news" title="Сельский вестник" aria-label="Сельский вестник – история изменений"
                 onClick={() => { setOpen(true); }}>
-                <ArticleIcon aria-hidden="true" />
+                <MechanicSprite logicName="vestnik" size={24} className="hud-news-ico" aria-hidden="true" />
                 {unread && <span className="hud-news-dot" aria-hidden="true" />}
             </button>
             {open && <ChangelogModal lastSeenId={lastSeen} onClose={close} />}

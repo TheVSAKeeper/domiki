@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" role="img" aria-labelledby="worker-milestone-title worker-milestone-desc" focusable="false" preserveAspectRatio="xMidYMid meet" color-interpolation="sRGB" data-active="true" data-state="idle" data-motion="on" data-animation-profile="grounded" style="--asset-phase:-1.6s">
+<title id="worker-milestone-title">Веха трудяги</title><desc id="worker-milestone-desc">Крупный путевой знак с силуэтом трудяги на широкой ступенчатой опоре.</desc>
+<style>
+svg{--asset-loop:4.8s;--asset-step:1px;overflow:hidden}
+.asset-stage,.asset-fx,.asset-fx *{transform-box:fill-box;transform-origin:center}
+.asset-fx,.asset-fx *{pointer-events:none}
+svg[data-motion="on"][data-active="true"] .profile-grounded{animation:asset-enter .28s steps(3,end) both,asset-rest var(--asset-loop) steps(1,end) var(--asset-phase,-.6s) infinite}
+svg[data-motion="on"][data-active="true"] .profile-nudge{animation:asset-enter .28s steps(3,end) both,asset-nudge var(--asset-loop) steps(1,end) var(--asset-phase,-.6s) infinite}
+svg[data-motion="on"][data-active="true"] .asset-accent{animation:asset-accent 3.4s steps(1,end) var(--asset-phase,-.6s) infinite}
+.fx-selection,.fx-attention{display:none}
+svg[data-state="selected"] .fx-selection{display:inline;animation:asset-pulse 1.2s steps(1,end) infinite}
+svg[data-state="attention"] .fx-attention{display:inline;animation:asset-attention 1s steps(1,end) infinite}
+svg[data-state="pressed"] .asset-stage{animation:none!important;transform:translateY(var(--asset-step))}
+svg[data-state="disabled"] .asset-stage,svg[data-state="disabled"] .asset-fx{animation:none!important;filter:saturate(.25);opacity:.58}
+svg[data-state="hidden"] .asset-stage,svg[data-state="hidden"] .asset-fx{visibility:hidden}
+svg[data-motion="slow"]{--asset-loop:6.8s}svg[data-motion="fast"]{--asset-loop:3.1s}
+svg[data-motion="paused"] *{animation-play-state:paused!important}svg[data-motion="off"] *{animation:none!important}
+@keyframes asset-enter{0%{opacity:0;transform:translateY(2px)}70%{opacity:1;transform:translateY(-1px)}100%{opacity:1;transform:none}}
+@keyframes asset-rest{0%,78%,100%{opacity:1}82%{opacity:.96}86%{opacity:1}}
+@keyframes asset-nudge{0%,70%,100%{transform:none}76%,82%{transform:translate(1px,1px)}86%{transform:none}}
+@keyframes asset-accent{0%,44%,58%,100%{opacity:1}48%{opacity:.72}52%{opacity:1}56%{opacity:.86}}
+@keyframes asset-pulse{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes asset-attention{0%,32%,100%{opacity:0}38%,68%{opacity:1}74%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.asset-stage,.asset-fx *,.asset-accent{animation:none!important;transform:none!important}.fx-attention{display:none!important}}
+</style>
+<g class="asset-stage profile-grounded">
+  <!-- широкая табличка: основной силуэт сохраняется на 16 px -->
+  <rect x="10" y="8" width="44" height="24" fill="#262626"/>
+  <rect x="14" y="12" width="36" height="16" fill="#4a7ab5"/>
+  <!-- крупный бюст без микродеталей -->
+  <rect x="26" y="12" width="12" height="10" fill="#e8c9a2"/>
+  <rect x="24" y="10" width="16" height="6" fill="#443528"/>
+  <rect x="20" y="22" width="24" height="6" fill="#c03434"/>
+  <!-- столб -->
+  <rect x="26" y="30" width="12" height="24" fill="#262626"/>
+  <rect x="30" y="30" width="4" height="22" fill="#b07c42"/>
+  <!-- три крупные ступени роста -->
+  <rect x="24" y="40" width="16" height="6" fill="#e8b83a"/>
+  <rect x="20" y="46" width="24" height="6" fill="#4f9a3c"/>
+  <rect x="14" y="52" width="36" height="8" fill="#262626"/>
+  <rect x="18" y="52" width="28" height="6" fill="#8f8f8f"/>
+</g>
+<g class="asset-fx fx-selection" aria-hidden="true"><rect x="4" y="4" width="12" height="4" fill="#e8b83a"/><rect x="4" y="4" width="4" height="12" fill="#e8b83a"/><rect x="48" y="4" width="12" height="4" fill="#e8b83a"/><rect x="60" y="4" width="4" height="12" fill="#e8b83a"/><rect x="4" y="60" width="12" height="4" fill="#e8b83a"/><rect x="4" y="48" width="4" height="12" fill="#e8b83a"/><rect x="48" y="60" width="12" height="4" fill="#e8b83a"/><rect x="60" y="48" width="4" height="12" fill="#e8b83a"/></g>
+<g class="asset-fx fx-attention" aria-hidden="true"><rect x="48" y="4" width="6" height="10" fill="#c03434"/><rect x="46" y="2" width="10" height="4" fill="#e8b83a"/></g>
+</svg>

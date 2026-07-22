@@ -1,13 +1,12 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import CloseIcon from 'pixelarticons/svg/close.svg?react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
-import HandIcon from 'pixelarticons/svg/hand.svg?react';
 import type { ErrandDto, WorkerDto } from '../types/api';
 import { errandClueDurationsHours, errandCoinsPerWorkerHour, errandReputationByClue, getErrandTemplate } from '../utils/errandTexts';
 import { isWorkerFree } from '../utils/game';
 import { isSkilledWorker } from '../utils/worker';
 import { ActionButton } from './ActionButton';
-import { AbstractSprite, WorkerSprite } from './sprites';
+import { AbstractSprite, MechanicSprite, WorkerSprite } from './sprites';
 
 const ERRAND_MAX_WORKERS = 2;
 
@@ -104,7 +103,7 @@ export const ErrandAcceptModal = ({ errand, workers, now, onConfirm, onClose }: 
                 </div>
             }
             <ActionButton className="btn-game" disabled={!canConfirm} onClick={confirm}>
-                <HandIcon className="btn-ico" aria-hidden="true" />
+                <MechanicSprite logicName="errands" size={24} className="btn-ico" aria-hidden="true" />
                 Отправить на поиски
             </ActionButton>
         </dialog>

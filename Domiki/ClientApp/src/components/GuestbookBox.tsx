@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
 import { ApiError, getGuestbook } from '../services/api';
 import { useToast } from '../services/toastContext';
 import type { GuestbookDto } from '../types/api';
 import { GuestbookEntryRow } from './GuestbookEntryRow';
 import { PixelLoader } from './PixelLoader';
+import { MechanicSprite } from './sprites';
 
 interface GuestbookBoxProps {
     now: number;
@@ -36,7 +36,7 @@ export const GuestbookBox = ({ now }: GuestbookBoxProps) => {
     return (
         <section className="guestbook-panel pixel-panel">
             <header className="guestbook-hero">
-                <span className="guestbook-hero-emblem" aria-hidden="true"><BookOpenIcon /></span>
+                <span className="guestbook-hero-emblem" aria-hidden="true"><MechanicSprite logicName="guestbook" /></span>
                 <div className="guestbook-hero-text">
                     <h3 className="guestbook-hero-title panel-title">Книга гостей</h3>
                     <p className="guestbook-hero-sub">Гостей за сезон: {guestbook?.visitsThisSeason ?? 0}</p>

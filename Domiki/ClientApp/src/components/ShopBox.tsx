@@ -1,12 +1,11 @@
 import { useMemo } from 'react';
-import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
 import CloseIcon from 'pixelarticons/svg/close.svg?react';
 import type { BlueprintDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, VillageLevelDto } from '../types/api';
 import { hasResourcesFor, resourceShortfall, resourceSourceMap } from '../utils/game';
 import { resourceLore } from '../utils/resourceLore';
-import { DomikSprite, ResourceSprite } from './sprites';
+import { DomikSprite, MechanicSprite, ResourceSprite } from './sprites';
 import { ResourcesBox } from './ResourcesBox';
 import { ActionButton } from './ActionButton';
 
@@ -29,7 +28,7 @@ export const ShopBox = ({ purchaseDomikTypes, domikTypes, receipts, resourceType
         <section className="shop pixel-panel" aria-label="Плотницкий двор">
             <header className="shop-head">
                 <div className="shop-title">
-                    <StoreIcon className="shop-title-ico" aria-hidden="true" />
+                    <MechanicSprite logicName="shop" size={32} className="shop-title-ico" aria-hidden="true" />
                     <div>
                         <h2 className="panel-title">Плотницкий двор</h2>
                         <p className="shop-sub">Выберите, что построить в деревне</p>

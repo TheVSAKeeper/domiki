@@ -8,15 +8,13 @@ import { unlockLore } from '../utils/unlockLore';
 import { resourceLore } from '../utils/resourceLore';
 import { strongestWeatherEffect } from '../utils/game';
 import type { ConvoyDto, DecorStateDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, VillageLevelDto, WeatherStateDto } from '../types/api';
-import { DecorSprite, DomikSprite, MechanicSprite, NeighborSprite, ResourceSprite, WeatherSprite } from './sprites';
+import { AbstractSprite, DecorSprite, DomikSprite, MechanicSprite, NeighborSprite, ResourceSprite, WeatherSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import { ConvoyTally } from './ConvoyTally';
 import { PixelLoader } from './PixelLoader';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import CheckIcon from 'pixelarticons/svg/check.svg?react';
-import HomeIcon from 'pixelarticons/svg/home.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
-import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 
 interface Catalog {
     domikTypes: DomikTypeDto[];
@@ -390,11 +388,11 @@ const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes, convoy
         }
 
         if (unlock.kind === 'neighbor') {
-            return <HomeIcon className="unlock-ico" aria-hidden="true" />;
+            return <NeighborSprite logicName={unlock.logicName ?? ''} size={24} className="unlock-ico" aria-hidden="true" />;
         }
 
         if (unlock.kind === 'feature') {
-            return <ZapIcon className="unlock-ico" aria-hidden="true" />;
+            return <AbstractSprite logicName="smart_artel" size={24} className="unlock-ico" aria-hidden="true" />;
         }
 
         return null;

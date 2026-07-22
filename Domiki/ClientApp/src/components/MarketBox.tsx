@@ -1,13 +1,11 @@
 import { useMemo, useState } from 'react';
+import type { FC, SVGProps } from 'react';
 import ArrowsIcon from 'pixelarticons/svg/arrows-horizontal.svg?react';
 import CheckIcon from 'pixelarticons/svg/check.svg?react';
-import CoinsIcon from 'pixelarticons/svg/coins.svg?react';
 import HandIcon from 'pixelarticons/svg/hand.svg?react';
-import HandbagIcon from 'pixelarticons/svg/handbag.svg?react';
-import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import TrashIcon from 'pixelarticons/svg/trash.svg?react';
 import type { MarketStateDto, ResourceDto, ResourceTypeDto, TradeLotDto } from '../types/api';
-import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
+import { Crest } from './Crest';
 import { MechanicSprite, ResourceSprite } from './sprites';
 import { hasResourcesFor, resourceShortfall, tradeDeal, tradeRatio, type TradeDeal } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
@@ -77,24 +75,20 @@ const LotResources = ({ lot, resourceTypes, have }: { lot: TradeLotDto; resource
 const LotKindBadge = ({ lot }: { lot: TradeLotDto }) =>
     lot.kind === LOT_BUY ? (
         <span className="market-lot-badge market-lot-badge-buy">
-            <HandbagIcon className="btn-ico" aria-hidden="true" />
+            <MechanicSprite logicName="market" size={24} className="btn-ico" aria-hidden="true" />
             Куплю
         </span>
     ) : (
         <span className="market-lot-badge market-lot-badge-sell">
-            <StoreIcon className="btn-ico" aria-hidden="true" />
+            <MechanicSprite logicName="market" size={24} className="btn-ico" aria-hidden="true" />
             Продажа
         </span>
     );
 
 const SellerBadge = ({ lot }: { lot: TradeLotDto }) => {
-    const CrestIcon = VILLAGE_CREST_ICONS[lot.sellerCrestIcon] ?? DEFAULT_VILLAGE_ICON;
-    const crestColor = VILLAGE_CREST_COLORS[lot.sellerCrestColor] ?? VILLAGE_CREST_COLORS[0];
     return (
         <div className="market-seller">
-            <span className="crest-badge crest-badge-small" style={{ backgroundColor: crestColor }}>
-                <CrestIcon className="crest-ico" aria-hidden="true" />
-            </span>
+            <Crest icon={lot.sellerCrestIcon} color={lot.sellerCrestColor} className="crest-badge-small" />
             <span className="market-village-name">{lot.sellerVillageName ?? 'Безымянная деревня'}</span>
         </div>
     );
@@ -120,9 +114,11 @@ const ResourcePicker = ({ resourceTypes, selectedId, onSelect, label }: { resour
     </div>
 );
 
-const LOT_MODE_OPTIONS: { mode: LotMode; label: string; Icon: typeof StoreIcon }[] = [
-    { mode: 'sell', label: 'Продаю', Icon: StoreIcon },
-    { mode: 'buy', label: 'Куплю', Icon: HandbagIcon },
+const MarketModeIcon: FC<SVGProps<SVGSVGElement>> = props => <MechanicSprite logicName="market" size={24} {...props} />;
+
+const LOT_MODE_OPTIONS: { mode: LotMode; label: string; Icon: FC<SVGProps<SVGSVGElement>> }[] = [
+    { mode: 'sell', label: 'Продаю', Icon: MarketModeIcon },
+    { mode: 'buy', label: 'Куплю', Icon: MarketModeIcon },
 ];
 
 const ModeToggle = ({ mode, onSelect }: { mode: LotMode; onSelect: (mode: LotMode) => void }) => (
@@ -273,7 +269,7 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                     </div>
                     {!invalidPair && <TradeMeta giveValue={giveValue} wantValue={wantValue} deal={dealFor(giveResourceTypeId, giveValue, wantResourceTypeId, wantValue)} />}
                     <div className="market-commission">
-                        <CoinsIcon className="btn-ico" aria-hidden="true" />
+                        <ResourceSprite logicName="coin" size={24} className="btn-ico" aria-hidden="true" />
                         Комиссия за лот: {commissionFee} монет
                     </div>
                     <div className="market-cost">
@@ -285,7 +281,7 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                     <ActionButton className="btn-game" disabled={!canPost}
                         title={lotsFull ? 'Все места на прилавке заняты' : canAffordPost ? undefined : 'Не хватает ресурсов'}
                         onClick={submitPost}>
-                        <StoreIcon className="btn-ico" aria-hidden="true" />
+                        <MechanicSprite logicName="market" size={24} className="btn-ico" aria-hidden="true" />
                         Выставить лот
                     </ActionButton>
                 </form>

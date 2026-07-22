@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 import RepeatIcon from 'pixelarticons/svg/repeat.svg?react';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import type { ManufactureDto, ReceiptDto, ResourceTypeDto } from '../types/api';
 import { canInstaFinish, instaFinishCost, manufactureProgressPercent } from '../utils/game';
 import { ProgressBar } from './ProgressBar';
 import { ActionButton } from './ActionButton';
-import { ResourceSprite } from './sprites';
+import { AbstractSprite, ResourceSprite } from './sprites';
 
 const REPEAT_AT_FORMAT = new Intl.DateTimeFormat('ru-RU', {
     day: 'numeric',
@@ -51,7 +50,7 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
                 disabled={tooFar || notEnoughGold}
                 title={hurryTitle}
                 onClick={() => onHurry(manufacture.id)}>
-                <ZapIcon className="btn-ico" aria-hidden="true" />
+                <AbstractSprite logicName="hurry" size={24} className="btn-ico" aria-hidden="true" />
                 Поторопить – {Math.max(1, hurryCost)}
                 {goldType != null &&
                     <ResourceSprite logicName={goldType.logicName} className="hurry-cost-ico" aria-hidden="true" />

@@ -5,10 +5,8 @@ import BriefcaseIcon from 'pixelarticons/svg/briefcase.svg?react';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import CloseIcon from 'pixelarticons/svg/close.svg?react';
-import GridIcon from 'pixelarticons/svg/grid-3x3.svg?react';
 import InfoBoxIcon from 'pixelarticons/svg/info-box.svg?react';
 import PlayIcon from 'pixelarticons/svg/play.svg?react';
-import ZapIcon from 'pixelarticons/svg/zap.svg?react';
 import type { DomikTypeDto, GoalsStateDto, ReceiptDto, ResourceDto, ResourceTypeDto, SelectedDomikView, VillageLevelDto, WeatherEffectDto, WeatherPeriodDto, WorkerDto } from '../types/api';
 import type { DomikNamer } from '../utils/domikNames';
 import { SICK_CHANCE_PERCENT, SICK_MIN_VILLAGE_LEVEL, canInstaFinish, computeReceiptView, instaFinishCost, isWorkerFree, progressPercent, resourceShortfall, workerFitness } from '../utils/game';
@@ -439,7 +437,7 @@ export const SelectedDomikPanel = ({ selected, resources, resourceTypes, receipt
                                 {maxManufactures > 0 &&
                                     <span className={'panel-status-item' + (atManufactureCap ? ' panel-status-item--full' : '')}
                                         title="Занятые слоты производства">
-                                        <GridIcon className="panel-status-ico" aria-hidden="true" />
+                                        <AbstractSprite logicName="production_recipe" size={24} className="panel-status-ico" aria-hidden="true" />
                                         {runningManufactures} / {maxManufactures}
                                     </span>
                                 }
@@ -473,7 +471,7 @@ export const SelectedDomikPanel = ({ selected, resources, resourceTypes, receipt
                                                 +{upgradeBenefits.plodderDelta} {pluralRu(upgradeBenefits.plodderDelta, 'трудяга', 'трудяги', 'трудяг')}
                                             </StatChip>}
                                         {upgradeBenefits.manufactureDelta > 0 &&
-                                            <StatChip icon={<GridIcon className="stat-chip-ico" aria-hidden="true" />} title="Одновременные производства">
+                                            <StatChip icon={<AbstractSprite logicName="production_recipe" size={24} className="stat-chip-ico" aria-hidden="true" />} title="Одновременные производства">
                                                 +{upgradeBenefits.manufactureDelta} {pluralRu(upgradeBenefits.manufactureDelta, 'производство', 'производства', 'производств')}
                                             </StatChip>}
                                         {upgradeBenefits.newReceipts.slice(0, 3).map(receipt =>
@@ -513,7 +511,7 @@ export const SelectedDomikPanel = ({ selected, resources, resourceTypes, receipt
                                             disabled={tooFar || notEnoughGold}
                                             title={hurryTitle}
                                             onClick={() => onHurryDomik(selected.domik.id)}>
-                                            <ZapIcon className="btn-ico" aria-hidden="true" />
+                                            <AbstractSprite logicName="hurry" size={24} className="btn-ico" aria-hidden="true" />
                                             Поторопить – {Math.max(1, hurryCost)}
                                             {goldType != null &&
                                                 <ResourceSprite logicName={goldType.logicName} className="hurry-cost-ico" aria-hidden="true" />

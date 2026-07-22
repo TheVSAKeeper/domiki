@@ -2,10 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { NeighborReputationDto } from '../types/api';
 import { Link } from 'react-router-dom';
-import StoreIcon from 'pixelarticons/svg/store.svg?react';
 import SettingsIcon from 'pixelarticons/svg/settings-cog.svg?react';
-import EarthIcon from 'pixelarticons/svg/earth.svg?react';
-import BookOpenIcon from 'pixelarticons/svg/book-open.svg?react';
 import { acceptErrand as acceptErrandApi, apiPost, ApiError, cancelErrand as cancelErrandApi, cancelOrder as cancelOrderApi, completeOrder as completeOrderApi, setFriendNeighbor as setFriendNeighborApi, startIncidentSearch as startIncidentSearchApi } from '../services/api';
 import { useToast } from '../services/toastContext';
 import { useGameData } from '../hooks/useGameData';
@@ -37,7 +34,7 @@ import { RecapModal } from './RecapModal';
 import { AbstractSprite, MechanicSprite } from './sprites';
 import { PixelLoader } from './PixelLoader';
 import { ResourceInfoProvider } from './ResourceInfo';
-import { DEFAULT_VILLAGE_ICON, VILLAGE_CREST_COLORS, VILLAGE_CREST_ICONS } from '../constants/village';
+import { Crest } from './Crest';
 import { buildRecapView } from '../utils/recap';
 
 
@@ -104,8 +101,6 @@ export const DomikiPage = () => {
 
     const currentCrestIcon = village?.crestIcon ?? 0;
     const currentCrestColor = village?.crestColor ?? 0;
-    const VillageIcon = VILLAGE_CREST_ICONS[currentCrestIcon] ?? DEFAULT_VILLAGE_ICON;
-    const villageColor = VILLAGE_CREST_COLORS[currentCrestColor] ?? VILLAGE_CREST_COLORS[0];
     const villageName = village?.villageName ?? 'Безымянная деревня';
     const identityVisible = identity === 'open' || (identity === 'auto' && village?.villageName === null);
 
@@ -289,7 +284,7 @@ export const DomikiPage = () => {
             node: <JournalBox events={events} resourceTypes={resourceTypes} domikTypes={domikTypes} decorTypes={decor?.types ?? []} now={now} />,
         },
         {
-            key: 'guestbook', label: 'Гости', icon: <BookOpenIcon className="game-tab-ico" aria-hidden="true" />, visible: true,
+            key: 'guestbook', label: 'Гости', icon: <MechanicSprite logicName="guestbook" size={24} className="game-tab-ico" aria-hidden="true" />, visible: true,
             node: <GuestbookBox now={now} />,
         },
     ];
@@ -334,9 +329,7 @@ export const DomikiPage = () => {
             }
             <div className="village-header">
                 <div className="village-identity">
-                    <span className="crest-badge" style={{ backgroundColor: villageColor }}>
-                        <VillageIcon className="crest-ico" aria-hidden="true" />
-                    </span>
+                    <Crest icon={currentCrestIcon} color={currentCrestColor} />
                     <h2 className="section-title village-name">{villageName}</h2>
                     <button type="button" className="identity-button" title="Настроить деревню" onClick={openIdentity}>
                         <SettingsIcon className="btn-ico" aria-hidden="true" />
@@ -346,12 +339,12 @@ export const DomikiPage = () => {
                     {domiks.length > 1 && <DomikSortMenu value={sortMode} onChange={changeSortMode} />}
                     <PushToggle />
                     <Link className="btn-game" to="/world">
-                        <EarthIcon className="btn-ico" aria-hidden="true" />
+                        <MechanicSprite logicName="world" size={24} className="btn-ico" aria-hidden="true" />
                         Мир
                     </Link>
                     {purchaseDomikTypes != null &&
                         <ActionButton className="btn-game" onClick={() => toggleShop()}>
-                            <StoreIcon className="btn-ico" aria-hidden="true" />
+                            <MechanicSprite logicName="shop" size={24} className="btn-ico" aria-hidden="true" />
                             {shopVisible ? 'Закрыть' : 'Плотник'}
                         </ActionButton>
                     }

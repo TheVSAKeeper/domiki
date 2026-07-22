@@ -95,6 +95,17 @@ code {
     flex-shrink: 0;
 }
 
+.btn-game:not(.btn-ghost) .px-sprite {
+    padding: 2px;
+    background: var(--plank);
+}
+
+.game-tab .px-sprite,
+.world-tab .px-sprite {
+    padding: 2px;
+    background: #fffaec;
+}
+
 @media (max-width: 575px) {
     .brand {
         margin-right: 0;

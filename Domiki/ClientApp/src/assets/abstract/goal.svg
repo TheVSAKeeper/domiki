@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" role="img" aria-labelledby="goal-title goal-desc" focusable="false" preserveAspectRatio="xMidYMid meet" color-interpolation="sRGB" data-active="true" data-state="idle" data-motion="on" data-animation-profile="grounded" style="--asset-phase:-.4s">
+<title id="goal-title">Наказ выполнен</title><desc id="goal-desc">Свиток наказа с крупной зелёной отметкой и печатью.</desc>
+<style>
+.micro{} .tiny{}
+svg[data-size="32"] .tiny,svg[data-size="24"] .tiny{display:none}
+svg[data-size="24"] .micro{display:none}
+svg{--asset-loop:4.8s;--asset-step:1px;overflow:hidden}
+.asset-stage,.asset-fx,.asset-fx *{transform-box:fill-box;transform-origin:center}
+.asset-fx,.asset-fx *{pointer-events:none}
+svg[data-motion="on"][data-active="true"] .profile-bob{animation:enter .28s steps(3,end) both,bob var(--asset-loop) steps(1,end) var(--asset-phase,-.6s) infinite}
+svg[data-motion="on"][data-active="true"] .profile-nudge{animation:enter .28s steps(3,end) both,nudge var(--asset-loop) steps(1,end) var(--asset-phase,-.6s) infinite}
+svg[data-motion="on"][data-active="true"] .profile-grounded{animation:enter .28s steps(3,end) both,blink 4.2s steps(1,end) var(--asset-phase,-.6s) infinite}
+.asset-accent{animation:accent 3.4s steps(1,end) var(--asset-phase,-.6s) infinite}
+.fx-glint,.fx-rise,.fx-trail,.fx-pulse{opacity:0}
+svg[data-motion="on"][data-active="true"] .fx-glint{animation:glint 3.2s steps(1,end) var(--asset-phase,-.5s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-rise{animation:rise 3.8s steps(1,end) var(--asset-phase,-.8s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-trail{animation:trail 3.4s steps(1,end) var(--asset-phase,-.3s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-pulse{animation:pulse 2.8s steps(1,end) var(--asset-phase,-.4s) infinite}
+.fx-selection,.fx-attention{display:none}
+svg[data-state="selected"] .fx-selection{display:inline;animation:pulse 1.2s steps(1,end) infinite}
+svg[data-state="attention"] .fx-attention{display:inline;animation:attention 1s steps(1,end) infinite}
+svg[data-state="pressed"] .asset-stage{transform:translateY(1px)}
+svg[data-state="disabled"] .asset-stage,svg[data-state="disabled"] .asset-fx{filter:saturate(.25);opacity:.58}
+svg[data-state="hidden"] .asset-stage,svg[data-state="hidden"] .asset-fx{visibility:hidden}
+svg[data-motion="slow"]{--asset-loop:6.8s}svg[data-motion="fast"]{--asset-loop:3.1s}
+svg[data-motion="paused"] *{animation-play-state:paused!important}svg[data-motion="off"] *{animation:none!important}
+@keyframes enter{0%{opacity:0;transform:translateY(2px)}70%{opacity:1;transform:translateY(-1px)}100%{opacity:1;transform:none}}
+@keyframes bob{0%,72%,100%{transform:none}78%,84%{transform:translateY(-1px)}88%{transform:none}}
+@keyframes nudge{0%,70%,100%{transform:none}76%,82%{transform:translate(1px,1px)}86%{transform:none}}
+@keyframes blink{0%,78%,100%{opacity:1}82%{opacity:.96}86%{opacity:1}}
+@keyframes accent{0%,44%,58%,100%{opacity:1}48%{opacity:.72}52%{opacity:1}56%{opacity:.86}}
+@keyframes glint{0%,52%,100%{opacity:0}58%,66%{opacity:1}70%{opacity:0}}
+@keyframes rise{0%,44%{opacity:0;transform:translateY(1px)}50%,58%{opacity:1}66%,100%{opacity:0;transform:translateY(-2px)}}
+@keyframes trail{0%,38%{opacity:0;transform:translateX(-1px)}44%,58%{opacity:1}66%,100%{opacity:0;transform:translateX(2px)}}
+@keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes attention{0%,32%,100%{opacity:0}38%,68%{opacity:1}74%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.asset-stage,.asset-fx *,.asset-accent{animation:none!important;transform:none!important}.fx-glint,.fx-rise,.fx-trail,.fx-pulse,.fx-attention{display:none!important}}
+</style>
+<g class="asset-stage profile-grounded"><rect x="10" y="12" width="44" height="40" fill="#262626"/><rect x="14" y="8" width="36" height="8" fill="#b07c42"/><rect x="14" y="48" width="36" height="8" fill="#b07c42"/><rect x="12" y="14" width="40" height="36" fill="#efe6d4"/><rect x="18" y="20" width="22" height="4" fill="#565656"/><rect x="18" y="28" width="18" height="4" fill="#565656"/><rect x="20" y="38" width="8" height="6" fill="#4f9a3c"/><rect x="26" y="42" width="8" height="6" fill="#4f9a3c"/><rect x="32" y="36" width="8" height="6" fill="#4f9a3c"/><rect x="38" y="30" width="8" height="6" fill="#4f9a3c"/><rect x="42" y="44" width="10" height="10" fill="#e8b83a"/><rect x="44" y="46" width="6" height="6" fill="#c03434" class="asset-accent"/></g>
+<g class="asset-fx" aria-hidden="true"><g class="fx-glint"><rect x="48" y="10" width="4" height="4" fill="#efe6d4"/></g></g><g class="asset-fx fx-selection" aria-hidden="true"><rect x="4" y="4" width="12" height="4" fill="#e8b83a"/><rect x="4" y="4" width="4" height="12" fill="#e8b83a"/><rect x="48" y="4" width="12" height="4" fill="#e8b83a"/><rect x="60" y="4" width="4" height="12" fill="#e8b83a"/><rect x="4" y="60" width="12" height="4" fill="#e8b83a"/><rect x="4" y="48" width="4" height="12" fill="#e8b83a"/><rect x="48" y="60" width="12" height="4" fill="#e8b83a"/><rect x="60" y="48" width="4" height="12" fill="#e8b83a"/></g><g class="asset-fx fx-attention" aria-hidden="true"><rect x="48" y="8" width="4" height="8" fill="#c03434"/><rect x="44" y="4" width="12" height="4" fill="#e8b83a"/><rect x="48" y="16" width="4" height="4" fill="#efe6d4"/></g></svg>

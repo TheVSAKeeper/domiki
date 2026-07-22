@@ -263,7 +263,7 @@ export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, reso
                                     </span>
                                 </span>
                                 <span className="plot-yard">
-                                    <AnimatedDomikSprite mode="levelup" className="plot-sprite" logicName={domikType.logicName} level={domik.level} working={hasManufacture} intensity={intensity} />
+                                    <AnimatedDomikSprite mode="levelup" className="plot-sprite" logicName={domikType.logicName} level={domik.level} working={hasManufacture} intensity={intensity} weather={currentWeather?.logicName} />
                                     {crew.length > 0 &&
                                         <span className="plot-crew" title={`Трудяг на работе: ${busyCrew.length}`}>
                                             {crew.map(worker =>

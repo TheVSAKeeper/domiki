@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
-import HeartIcon from 'pixelarticons/svg/heart.svg?react';
-import HandIcon from 'pixelarticons/svg/hand.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
 import type { ConvoyDto, ErrandDto, NeighborReputationDto, OrderDto, ResourceDto, ResourceTypeDto, WorkerDto } from '../types/api';
 import { hasResourcesFor } from '../utils/game';
@@ -100,7 +98,7 @@ const ErrandCard = ({ errand, workers, now, onAccept, onCancel }: ErrandCardProp
                     <p className="order-plea errand-offer-text">{template.offer}</p>
                     <div className="errand-actions">
                         <ActionButton className="btn-game" onClick={onAccept}>
-                            <HandIcon className="btn-ico" aria-hidden="true" />
+                            <MechanicSprite logicName="errands" size={24} className="btn-ico" aria-hidden="true" />
                             Помочь
                         </ActionButton>
                         <ActionButton className="btn-game btn-ghost" onClick={onCancel}>Отказаться</ActionButton>
@@ -131,8 +129,8 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
             {reputation.length > 0 &&
                 <div className="standing-board">
                     <div className="standing-board-head">
-                        <h4 className="standing-board-title"><HeartIcon aria-hidden="true" />Доброе имя по выселкам</h4>
-                        <p className="standing-board-hint">Сердечком отмечен сосед, с которым деревня водит дружбу – его заказы приходят чаще. Дружить можно с одним, передумать – в любой день.</p>
+                        <h4 className="standing-board-title"><MechanicSprite logicName="friendship" size={24} aria-hidden="true" />Доброе имя по выселкам</h4>
+                        <p className="standing-board-hint">Крепко завязан узелок у соседа, с которым деревня водит дружбу – его заказы приходят чаще. Дружить можно с одним, передумать – в любой день.</p>
                     </div>
                     <div className="standing-list">
                         {reputation.map(item => {
@@ -171,7 +169,7 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                                             aria-label={item.isFriend ? `Дружим с выселком ${item.neighborName} – перестать` : `Водить дружбу с выселком ${item.neighborName}`}
                                             title={FRIEND_HINT}
                                             onClick={async () => void await onSetFriend(item.isFriend ? null : item.neighborId)}>
-                                            <HeartIcon aria-hidden="true" />
+                                            <MechanicSprite logicName="friendship" size={24} aria-hidden="true" />
                                         </ActionButton>
                                         : <span className="standing-friend-mark standing-friend-mark-locked" aria-hidden="true"><LockIcon /></span>}
                                 </div>
@@ -182,7 +180,7 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
             {convoys.length > 0 &&
                 <div className="convoy-board">
                     <div className="convoy-board-head">
-                        <h4 className="convoy-board-title">Обозы</h4>
+                        <h4 className="convoy-board-title"><MechanicSprite logicName="convoy" size={24} aria-hidden="true" />Обозы</h4>
                         <p className="convoy-board-hint">Раз в день сосед пригоняет обоз со своим товаром. Уступит немного и не задёшево – зато сразу и без хлопот.</p>
                     </div>
                     <div className="convoy-list">

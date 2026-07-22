@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import MenuIcon from 'pixelarticons/svg/menu.svg?react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
-import BookIcon from 'pixelarticons/svg/book-open.svg?react';
 import { LoginMenu } from './api-authorization/LoginMenu';
+import { MechanicSprite } from './sprites';
 
 export const NavMenu = () => {
     const [open, setOpen] = useState(false);
@@ -32,7 +32,7 @@ export const NavMenu = () => {
                         </li>
                         <li>
                             <Link className="nav-link" to="/wiki" onClick={close}>
-                                <BookIcon className="nav-ico" aria-hidden="true" />
+                                <MechanicSprite logicName="wiki" size={24} className="nav-ico" aria-hidden="true" />
                                 Справочник
                             </Link>
                         </li>

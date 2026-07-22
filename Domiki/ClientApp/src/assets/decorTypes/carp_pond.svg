@@ -1,45 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" data-active="true" data-state="idle" data-motion="on" role="img" aria-labelledby="carp-pond-title carp-pond-desc" focusable="false">
-  <title id="carp-pond-title">Пруд с карасями</title>
-  <desc id="carp-pond-desc">Широкий овальный пруд с камнями по краю и двумя золотистыми карасями.</desc>
-  <style>
-    .tiny,.micro{display:inline}
-    svg[data-size="32"] .tiny,svg[data-size="24"] .tiny{display:none}
-    svg[data-size="24"] .micro{display:none}
-    .ripple{transform-box:fill-box;transform-origin:center}
-    svg[data-motion="on"][data-active="true"] .ripple{animation:pond-ripple 3.2s steps(1,end) infinite}
-    svg[data-state="disabled"] .scene{filter:saturate(.25);opacity:.58}
-    @keyframes pond-ripple{0%,45%,100%{opacity:.7}50%,62%{opacity:1;transform:translateX(2px)}66%{transform:translateX(0)}}
-    @media (prefers-reduced-motion:reduce){.scene,.ripple{animation:none!important;transform:none!important}}
-  </style>
-  <g class="scene">
-    <rect x="8" y="28" width="48" height="22" fill="#262626"/>
-    <rect x="12" y="22" width="40" height="34" fill="#262626"/>
-    <rect x="16" y="18" width="32" height="42" fill="#262626"/>
-    <rect x="12" y="30" width="40" height="18" fill="#4a7ab5"/>
-    <rect x="16" y="24" width="32" height="30" fill="#4a7ab5"/>
-    <rect x="20" y="22" width="24" height="34" fill="#4a7ab5"/>
-    <rect x="8" y="32" width="6" height="8" fill="#8f8f8f"/>
-    <rect x="50" y="38" width="6" height="8" fill="#8f8f8f"/>
-    <rect x="16" y="18" width="8" height="6" fill="#c9c2b4"/>
-    <rect x="40" y="52" width="8" height="6" fill="#c9c2b4"/>
-    <rect x="18" y="36" width="12" height="4" fill="#e0a63a"/>
-    <rect x="16" y="34" width="4" height="8" fill="#e0a63a"/>
-    <rect x="28" y="34" width="4" height="8" fill="#e0a63a"/>
-    <rect x="34" y="46" width="12" height="4" fill="#e8b83a"/>
-    <rect x="44" y="44" width="4" height="8" fill="#e8b83a"/>
-    <rect x="32" y="44" width="4" height="8" fill="#e8b83a"/>
-    <g class="ripple">
-      <rect x="24" y="28" width="12" height="2" fill="#7ab3a9"/>
-      <rect x="26" y="52" width="10" height="2" fill="#7ab3a9"/>
-    </g>
-    <g class="micro">
-      <rect x="22" y="38" width="2" height="2" fill="#262626"/>
-      <rect x="40" y="48" width="2" height="2" fill="#262626"/>
-      <rect x="6" y="44" width="4" height="4" fill="#6e6e6e"/>
-    </g>
-    <g class="tiny">
-      <rect x="22" y="20" width="4" height="2" fill="#565656"/>
-      <rect x="48" y="28" width="4" height="2" fill="#565656"/>
-    </g>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" data-active="true" data-state="idle" data-motion="on" role="img" aria-labelledby="carp_pond-title carp_pond-desc" focusable="false" preserveAspectRatio="xMidYMid meet" color-interpolation="sRGB"><title id="carp_pond-title">Пруд с карасями</title><desc id="carp_pond-desc">Ступенчатый синий пруд с двумя крупными контрастными карасями и камышом.</desc><style>
+.micro{} .tiny{}
+svg[data-size="32"] .tiny,svg[data-size="24"] .tiny{display:none}svg[data-size="24"] .micro{display:none}
+svg{--asset-loop:4.8s;--asset-step:1px;overflow:hidden}.asset-stage,.asset-fx,.asset-fx *{transform-box:fill-box;transform-origin:center}.asset-fx,.asset-fx *{pointer-events:none}
+svg[data-motion="on"][data-active="true"] .asset-stage{animation:asset-enter .28s steps(3,end) both,asset-grounded var(--asset-loop) steps(1,end) -.6s infinite}
+.asset-accent{animation:asset-accent 3.4s steps(1,end) -.8s infinite}.fx-glint{opacity:0}svg[data-motion="on"][data-active="true"] .fx-glint{animation:asset-glint 3.2s steps(1,end) -.5s infinite}
+.fx-selection,.fx-attention{display:none}svg[data-state="selected"] .fx-selection{display:inline;animation:asset-pulse 1.2s steps(1,end) infinite}svg[data-state="attention"] .fx-attention{display:inline;animation:asset-attention 1s steps(1,end) infinite}
+svg[data-state="pressed"] .asset-stage{transform:translateY(1px)}svg[data-state="disabled"] .asset-stage,svg[data-state="disabled"] .asset-fx{filter:saturate(.25);opacity:.58}svg[data-state="hidden"] .asset-stage,svg[data-state="hidden"] .asset-fx{visibility:hidden}
+svg[data-motion="slow"]{--asset-loop:6.8s}svg[data-motion="fast"]{--asset-loop:3.1s}svg[data-motion="paused"] *{animation-play-state:paused!important}svg[data-motion="off"] *{animation:none!important}
+@keyframes asset-enter{0%{opacity:0;transform:translateY(2px)}70%{opacity:1;transform:translateY(-1px)}100%{opacity:1;transform:none}}@keyframes asset-grounded{0%,78%,100%{opacity:1}82%{opacity:.96}86%{opacity:1}}@keyframes asset-accent{0%,44%,58%,100%{opacity:1}48%{opacity:.72}52%{opacity:1}56%{opacity:.86}}@keyframes asset-glint{0%,52%,100%{opacity:0}58%,66%{opacity:1}70%{opacity:0}}@keyframes asset-pulse{0%,100%{opacity:.45}50%{opacity:1}}@keyframes asset-attention{0%,32%,100%{opacity:0}38%,68%{opacity:1}74%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.asset-stage,.asset-fx *,.asset-accent{animation:none!important;transform:none!important}.fx-glint,.fx-attention{display:none!important}}
+</style><g class="asset-stage">
+<rect x="8" y="34" width="48" height="14" fill="#262626"/><rect x="12" y="28" width="40" height="26" fill="#262626"/><rect x="16" y="24" width="32" height="34" fill="#262626"/>
+<rect x="10" y="36" width="44" height="10" fill="#4a7ab5"/><rect x="14" y="30" width="36" height="22" fill="#4a7ab5"/><rect x="18" y="26" width="28" height="30" fill="#4a7ab5"/>
+<rect x="14" y="34" width="14" height="8" fill="#262626"/><rect x="12" y="36" width="4" height="4" fill="#262626"/><rect x="28" y="36" width="4" height="4" fill="#262626"/><rect x="16" y="36" width="10" height="4" fill="#e0a63a"/><rect x="18" y="34" width="6" height="2" fill="#efe6d4"/><rect x="18" y="38" width="2" height="2" fill="#262626"/>
+<rect x="34" y="40" width="14" height="8" fill="#262626"/><rect x="30" y="42" width="6" height="4" fill="#262626"/><rect x="48" y="42" width="4" height="4" fill="#262626"/><rect x="36" y="42" width="10" height="4" fill="#efe6d4"/><rect x="38" y="40" width="6" height="2" fill="#e0a63a"/><rect x="44" y="44" width="2" height="2" fill="#262626"/>
+<rect x="8" y="22" width="2" height="16" fill="#4f9a3c"/><rect x="12" y="18" width="2" height="16" fill="#4f9a3c"/><rect x="52" y="22" width="2" height="16" fill="#4f9a3c"/><rect x="48" y="20" width="2" height="14" fill="#4f9a3c"/><rect x="22" y="28" width="10" height="2" fill="#7ab3a9" class="micro"/>
+</g><g class="asset-fx fx-glint" aria-hidden="true"><rect x="30" y="30" width="8" height="2" fill="#efe6d4"/><rect x="34" y="28" width="2" height="2" fill="#efe6d4"/></g>
+<g class="asset-fx fx-selection" aria-hidden="true"><rect x="4" y="4" width="12" height="4" fill="#e8b83a"/><rect x="4" y="4" width="4" height="12" fill="#e8b83a"/><rect x="48" y="4" width="12" height="4" fill="#e8b83a"/><rect x="60" y="4" width="4" height="12" fill="#e8b83a"/><rect x="4" y="60" width="12" height="4" fill="#e8b83a"/><rect x="4" y="48" width="4" height="12" fill="#e8b83a"/><rect x="48" y="60" width="12" height="4" fill="#e8b83a"/><rect x="60" y="48" width="4" height="12" fill="#e8b83a"/></g>
+<g class="asset-fx fx-attention" aria-hidden="true"><rect x="48" y="8" width="4" height="8" fill="#cf3c3c"/><rect x="44" y="4" width="12" height="4" fill="#e8b83a"/><rect x="48" y="16" width="4" height="4" fill="#efe6d4"/></g></svg>
