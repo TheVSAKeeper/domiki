@@ -13,6 +13,7 @@ import MillSprite from '../assets/domikTypes/mill.svg?react';
 import PotterySprite from '../assets/domikTypes/pottery.svg?react';
 import BakerySprite from '../assets/domikTypes/bakery.svg?react';
 import ScoutHutSprite from '../assets/domikTypes/scout_hut.svg?react';
+import SheepfoldSprite from '../assets/domikTypes/sheepfold.svg?react';
 import StoneMineSprite from '../assets/domikTypes/stone_mine.svg?react';
 import StonecutterSprite from '../assets/domikTypes/stonecutter.svg?react';
 import WorkshopSprite from '../assets/domikTypes/workshop.svg?react';
@@ -88,6 +89,8 @@ import FlourResSprite from '../assets/resourceTypes/flour.svg?react';
 import BreadResSprite from '../assets/resourceTypes/bread.svg?react';
 import OreResSprite from '../assets/resourceTypes/ore.svg?react';
 import IronResSprite from '../assets/resourceTypes/iron.svg?react';
+import WoolResSprite from '../assets/resourceTypes/wool.svg?react';
+import ClothResSprite from '../assets/resourceTypes/cloth.svg?react';
 
 type SpriteComponent = FC<SVGProps<SVGSVGElement>>;
 
@@ -126,6 +129,7 @@ const domikSprites: Record<string, SpriteComponent> = {
     mill: MillSprite,
     pottery: PotterySprite,
     scout_hut: ScoutHutSprite,
+    sheepfold: SheepfoldSprite,
     stone_mine: StoneMineSprite,
     stonecutter: StonecutterSprite,
     workshop: WorkshopSprite,
@@ -213,6 +217,8 @@ const resourceSprites: Record<string, SpriteComponent> = {
     bread: BreadResSprite,
     ore: OreResSprite,
     iron: IronResSprite,
+    wool: WoolResSprite,
+    cloth: ClothResSprite,
 };
 
 interface IconSpriteProps extends SVGProps<SVGSVGElement> {
