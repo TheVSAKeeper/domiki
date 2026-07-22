@@ -95,6 +95,7 @@ import OreResSprite from '../assets/resourceTypes/ore.svg?react';
 import IronResSprite from '../assets/resourceTypes/iron.svg?react';
 import WoolResSprite from '../assets/resourceTypes/wool.svg?react';
 import ClothResSprite from '../assets/resourceTypes/cloth.svg?react';
+import CloakResSprite from '../assets/resourceTypes/cloak.svg?react';
 
 type SpriteComponent = FC<SVGProps<SVGSVGElement>>;
 
@@ -227,6 +228,7 @@ const resourceSprites: Record<string, SpriteComponent> = {
     iron: IronResSprite,
     wool: WoolResSprite,
     cloth: ClothResSprite,
+    cloak: CloakResSprite,
 };
 
 interface IconSpriteProps extends SVGProps<SVGSVGElement> {

@@ -231,6 +231,15 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
                     })}
                 </div>
             }
+            {view.cloakWornOut > 0 &&
+                <div className="recap-section" data-tone="build">
+                    <span className="recap-line">
+                        {view.cloakWornOut === 1
+                            ? 'Плащ отслужил пятьдесят смен и рассыпался'
+                            : `Плащей отслужило своё: ${view.cloakWornOut}`}
+                    </span>
+                </div>
+            }
             {tolokaEntries.length > 0 &&
                 <div className="recap-section" data-tone="toloka">
                     <div className="recap-section-head">

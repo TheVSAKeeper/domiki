@@ -324,9 +324,27 @@ export const workerSchema = z.object({
     workedSeconds: z.number(),
     restUntil: z.string().nullable(),
     sickUntil: z.string().nullable(),
+    sickTypeId: z.number().nullable(),
     skills: z.array(workerSkillSchema),
 });
 export type WorkerDto = z.infer<typeof workerSchema>;
+
+export const sickTypeSchema = z.object({
+    id: z.number(),
+    name: z.string(),
+    logicName: z.string(),
+    weatherTypeId: z.number(),
+    cloakProtects: z.boolean(),
+});
+export type SickTypeDto = z.infer<typeof sickTypeSchema>;
+
+export const cloakStateSchema = z.object({
+    stock: z.number(),
+    outOnShifts: z.number(),
+    wearPoints: z.number(),
+    lifetimeShifts: z.number(),
+});
+export type CloakStateDto = z.infer<typeof cloakStateSchema>;
 
 export const weatherEffectSchema = z.object({
     domikTypeId: z.number(),
@@ -546,6 +564,8 @@ export const gameStateSchema = z.object({
     village: villageSchema,
     villageLevel: villageLevelSchema,
     workers: workerSchema.array(),
+    cloaks: cloakStateSchema,
+    sickTypes: sickTypeSchema.array(),
     purchaseAvailableDomiks: domikTypeSchema.array(),
     weather: weatherStateSchema,
     expeditions: expeditionStateSchema.nullable(),

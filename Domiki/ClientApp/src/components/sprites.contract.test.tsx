@@ -30,6 +30,12 @@ describe('sprite registry contract', () => {
         expect(container.querySelectorAll('svg')).toHaveLength(6);
     });
 
+    it('renders the cloak resource from the registry', () => {
+        const { container } = render(<ResourceSprite logicName="cloak" />);
+
+        expect(container.querySelector('svg')).toBeInTheDocument();
+    });
+
     it('renders nothing for an unknown strict-registry logicName', () => {
         const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
         const { container: domik } = render(<DomikSprite logicName="missing_domik" />);

@@ -59,6 +59,14 @@ describe('buildRecapView', () => {
         expect(loot[3]).toEqual({ kind: 4, isRare: true, blueprintId: 2, blueprintName: 'Чертёж каменотёса' });
     });
 
+    it('keeps a worn-out cloak in the recap', () => {
+        const recap = buildRecapView([
+            { type: 'CloakWornOut', date: '2026-07-10T00:05:00Z', data: { resourceTypeId: 20, value: 1 } },
+        ]);
+
+        expect(recap.cloakWornOut).toBe(1);
+    });
+
     it('parses ordinary and big neighbor gifts', () => {
         const recap = buildRecapView([
             { type: 'NeighborGift', date: '2026-07-10T00:06:00Z', data: { neighborId: 2, resources: [{ resourceTypeId: 3, value: 12 }], decorTypeId: null, visitIndex: 4, big: false } },

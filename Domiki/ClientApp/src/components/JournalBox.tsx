@@ -19,7 +19,7 @@ import { withStableKeys } from '../utils/keys';
 import { formatDuration, formatRelativeTime } from '../utils/time';
 import { genderForm, traitLabel } from '../utils/gender';
 import { guestbookPhraseText } from '../constants/guestbookPhrases';
-import { AbstractSprite, DomikSprite, MechanicSprite } from './sprites';
+import { AbstractSprite, DomikSprite, MechanicSprite, ResourceSprite } from './sprites';
 import { ResourceChip } from './ResourceChip';
 import { Crest } from './Crest';
 
@@ -111,6 +111,14 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
                     <span className="journal-text">{(domikType?.name ?? `Постройка #${data.domikTypeId}`) + ` → ур. ${data.level}`}</span>
                 </>
             ),
+        };
+    }
+
+    if (event.type === 'CloakWornOut') {
+        return {
+            tone: 'errand',
+            Icon: BackpackIcon,
+            body: <><ResourceSprite logicName="cloak" aria-hidden="true" /><span className="journal-text">Плащ отслужил пятьдесят смен и рассыпался</span></>,
         };
     }
 

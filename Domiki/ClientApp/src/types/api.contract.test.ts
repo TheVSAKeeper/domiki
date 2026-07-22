@@ -19,6 +19,7 @@ const backendDirectory = resolve(fileURLToPath(import.meta.url), '../../../..');
 const mappings: Record<string, ContractSchema> = {
     ActiveGoalDto: { schemaName: 'activeGoalSchema', shape: api.activeGoalSchema.shape },
     BlueprintDto: { schemaName: 'blueprintSchema', shape: api.blueprintSchema.shape },
+    CloakStateDto: { schemaName: 'cloakStateSchema', shape: api.cloakStateSchema.shape },
     ConvoyDto: { schemaName: 'convoySchema', shape: api.convoySchema.shape },
     ConvoyItemDto: { schemaName: 'convoyItemSchema', shape: api.convoyItemSchema.shape },
     DecorStateDto: { schemaName: 'decorStateSchema', shape: api.decorStateSchema.shape },
@@ -51,6 +52,7 @@ const mappings: Record<string, ContractSchema> = {
     ResourceDto: { schemaName: 'resourceSchema', shape: api.resourceSchema.shape },
     ResourceTypeDto: { schemaName: 'resourceTypeSchema', shape: api.resourceTypeSchema.shape },
     SeasonDto: { schemaName: 'seasonSchema', shape: api.seasonSchema.shape },
+    SickTypeDto: { schemaName: 'sickTypeSchema', shape: api.sickTypeSchema.shape },
     TolokaActiveBuffDto: { schemaName: 'tolokaActiveBuffSchema', shape: api.tolokaActiveBuffSchema.shape },
     TolokaArtifactDto: { schemaName: 'tolokaArtifactSchema', shape: api.tolokaArtifactSchema.shape },
     TolokaDto: { schemaName: 'tolokaSchema', shape: api.tolokaSchema.shape },

@@ -20,6 +20,7 @@ export interface RecapView {
     expeditions: { expeditionTypeId: number; loot: RecapLootEntry[] }[];
     market: { kind: 'sold' | 'expired'; give: { typeId: number; value: number }; want?: { typeId: number; value: number } }[];
     upgrades: { domikTypeId: number; level: number }[];
+    cloakWornOut: number;
     toloka: { tolokaTypeId: number }[];
     gifts: { neighborId: number; resources: { resourceTypeId: number; value: number }[]; decorTypeId: number | null; visitIndex: number; big: boolean; date: string }[];
     guestbookEntries: { guestVillageName: string; guestCrestIcon: number; guestCrestColor: number; phraseId: number; date: string }[];
@@ -71,6 +72,7 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
     const expeditions: RecapView['expeditions'] = [];
     const market: RecapView['market'] = [];
     const upgrades: RecapView['upgrades'] = [];
+    let cloakWornOut = 0;
     const toloka: RecapView['toloka'] = [];
     const gifts: RecapView['gifts'] = [];
     const guestbookEntries: RecapView['guestbookEntries'] = [];
@@ -114,6 +116,10 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
 
         if (event.type === 'DomikUpgraded' && isNumber(event.data.domikTypeId) && isNumber(event.data.level)) {
             upgrades.push({ domikTypeId: event.data.domikTypeId, level: event.data.level });
+        }
+
+        if (event.type === 'CloakWornOut') {
+            cloakWornOut += 1;
         }
 
         if (event.type === 'TolokaCompleted' && isNumber(event.data.tolokaTypeId)) {
@@ -195,6 +201,7 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
         expeditions,
         market,
         upgrades,
+        cloakWornOut,
         toloka,
         gifts,
         guestbookEntries,

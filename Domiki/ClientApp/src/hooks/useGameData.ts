@@ -6,6 +6,7 @@ import {
     resourceSchema,
     villageLevelSchema,
     type BlueprintDto,
+    type CloakStateDto,
     type DecorStateDto,
     type DomikDto,
     type DomikIncidentDto,
@@ -23,6 +24,7 @@ import {
     type ResourceTypeDto,
     type RecapDto,
     type RecapEventDto,
+    type SickTypeDto,
     type TolokaStateDto,
     type VillageDto,
     type VillageLevelDto,
@@ -56,6 +58,8 @@ export interface GameData {
     convoys: ConvoyDto[];
     goals: GoalsStateDto | null;
     workers: WorkerDto[];
+    cloaks: CloakStateDto;
+    sickTypes: SickTypeDto[];
     purchaseDomikTypes: DomikTypeDto[] | null;
     now: number;
     reload: () => Promise<void>;
@@ -117,6 +121,8 @@ export function useGameData(): GameData {
     const [convoys, setConvoys] = useState<ConvoyDto[]>([]);
     const [goals, setGoals] = useState<GoalsStateDto | null>(null);
     const [workers, setWorkers] = useState<WorkerDto[]>([]);
+    const [cloaks, setCloaks] = useState<CloakStateDto>({ stock: 0, outOnShifts: 0, wearPoints: 0, lifetimeShifts: 0 });
+    const [sickTypes, setSickTypes] = useState<SickTypeDto[]>([]);
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [recap, setRecap] = useState<RecapDto | null>(null);
     const [events, setEvents] = useState<RecapEventDto[]>([]);
@@ -222,6 +228,8 @@ export function useGameData(): GameData {
         setVillageState(state.village);
         setVillageLevel(state.villageLevel);
         setWorkers(state.workers);
+        setCloaks(state.cloaks);
+        setSickTypes(state.sickTypes);
         setWeather(state.weather);
         setExpeditions(state.expeditions);
         setDecor(state.decor);
@@ -584,6 +592,8 @@ export function useGameData(): GameData {
         convoys,
         goals,
         workers,
+        cloaks,
+        sickTypes,
         purchaseDomikTypes,
         now,
         loading,
