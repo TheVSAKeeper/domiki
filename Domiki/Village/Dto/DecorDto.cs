@@ -49,6 +49,14 @@ public sealed record DecorTypeDto
     public required int ComfortPoints { get; init; }
 
     /// <summary>
+    /// Предельное число экземпляров декора у одного игрока.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – декор можно ставить без ограничения.
+    /// </remarks>
+    public int? MaxCount { get; init; }
+
+    /// <summary>
     /// Можно ли купить декор в магазине напрямую.
     /// </summary>
     /// <remarks>
@@ -79,6 +87,22 @@ public sealed record DecorTypeDto
     /// Сравнивается с <see cref="Economy.Dto.NeighborReputationDto.Points"/> у этого соседа.
     /// </remarks>
     public required int ReputationThreshold { get; init; }
+
+    /// <summary>
+    /// Идентификатор декора, который требуется поставить перед покупкой этого украшения.
+    /// </summary>
+    /// <remarks>
+    /// Ссылка на <see cref="Id"/> другого элемента каталога; <see langword="null"/> – предварительное украшение не требуется.
+    /// </remarks>
+    public int? RequiresDecorTypeId { get; init; }
+
+    /// <summary>
+    /// Отображаемое имя декора, который требуется поставить перед покупкой этого украшения.
+    /// </summary>
+    /// <remarks>
+    /// Разрешается из каталога декора; <see langword="null"/>, если <see cref="RequiresDecorTypeId"/> не задан.
+    /// </remarks>
+    public string? RequiresDecorName { get; init; }
 
     /// <summary>
     /// Стоимость одного экземпляра декора в ресурсах.

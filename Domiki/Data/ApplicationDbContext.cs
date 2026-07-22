@@ -92,6 +92,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .WithMany()
             .HasForeignKey(p => p.WorkerId);
 
+        modelBuilder.Entity<DecorType>()
+            .HasOne<DecorType>()
+            .WithMany()
+            .HasForeignKey(p => p.RequiresDecorTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         modelBuilder.Entity<StarterGoal>()
             .HasData(new StarterGoal { Id = 1, Ordinal = 1, Name = "Поставь копку глины", ConditionType = GoalConditionType.StartAnyManufacture, Param = 0, Param2 = 0, RewardCoins = 10 },
                 new StarterGoal { Id = 2, Ordinal = 2, Name = "Купи Лавку", ConditionType = GoalConditionType.BuildDomikType, Param = 7, Param2 = 0, RewardCoins = 20 },

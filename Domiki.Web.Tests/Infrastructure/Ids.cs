@@ -64,6 +64,10 @@ public static class DecorIds
     public const int WandererBanner = 7;
     public const int BrickArch = 8;
     public const int Lantern = 9;
+    public const int CarvedGate = 10;
+    public const int CraneWell = 11;
+    public const int Gazebo = 12;
+    public const int CarpPond = 13;
 }
 
 public static class NeighborIds

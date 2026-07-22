@@ -63,6 +63,33 @@ public class DecorManager
             }
         }
 
+        if (type.RequiresDecorTypeId != null)
+        {
+            var required = _resourceManager.GetDecorTypes().First(x => x.Id == type.RequiresDecorTypeId);
+            var requiredCount = _context.PlayerDecors
+                .Where(x => x.PlayerId == playerId && x.DecorTypeId == type.RequiresDecorTypeId)
+                .Select(x => x.Count)
+                .FirstOrDefault();
+
+            if (requiredCount < 1)
+            {
+                throw new BusinessException($"Сначала поставьте: {required.Name}");
+            }
+        }
+
+        if (type.MaxCount != null)
+        {
+            var ownedCount = _context.PlayerDecors
+                .Where(x => x.PlayerId == playerId && x.DecorTypeId == decorTypeId)
+                .Select(x => x.Count)
+                .FirstOrDefault();
+
+            if (ownedCount >= type.MaxCount)
+            {
+                throw new BusinessException("Такое украшение уже поставлено");
+            }
+        }
+
         _playerResourceManager.WriteOffResources(playerId, type.Cost);
         GrantDecor(playerId, decorTypeId, 1);
     }

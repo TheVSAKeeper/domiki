@@ -329,9 +329,11 @@ public class ResourceManager
                 Name = x.Name,
                 LogicName = x.LogicName,
                 ComfortPoints = x.ComfortPoints,
+                MaxCount = x.MaxCount,
                 IsPurchasable = x.IsPurchasable,
                 NeighborId = x.NeighborId,
                 ReputationThreshold = x.ReputationThreshold,
+                RequiresDecorTypeId = x.RequiresDecorTypeId,
             })
             .ToArray();
 

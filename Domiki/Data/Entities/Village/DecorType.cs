@@ -33,6 +33,14 @@ public class DecorType
     public int ComfortPoints { get; set; }
 
     /// <summary>
+    /// Предельное число экземпляров декора у одного игрока.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – декор можно ставить без ограничения.
+    /// </remarks>
+    public int? MaxCount { get; set; }
+
+    /// <summary>
     /// Декор можно купить за ресурсы (см. <see cref="Village.DecorManager.BuyDecor"/>).
     /// </summary>
     /// <remarks>
@@ -55,4 +63,12 @@ public class DecorType
     /// Не имеет смысла при <see cref="NeighborId"/> == <see langword="null"/>.
     /// </remarks>
     public int ReputationThreshold { get; set; }
+
+    /// <summary>
+    /// Тип декора, который игрок должен поставить перед покупкой этого украшения.
+    /// </summary>
+    /// <remarks>
+    /// Самоссылка на справочник <see cref="DecorType"/>; <see langword="null"/> – предварительное украшение не требуется.
+    /// </remarks>
+    public int? RequiresDecorTypeId { get; set; }
 }

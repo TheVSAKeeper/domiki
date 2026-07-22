@@ -177,7 +177,7 @@ public sealed class DecorTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(decor.Types.Select(x => x.LogicName), Is.EquivalentTo(["fence", "flowerbed", "garden", "fountain", "bench", "trail_idol", "wanderer_banner", "brick_arch", "lantern"]));
+            Assert.That(decor.Types.Select(x => x.LogicName), Is.EquivalentTo(["fence", "flowerbed", "garden", "fountain", "bench", "trail_idol", "wanderer_banner", "brick_arch", "lantern", "carved_gate", "crane_well", "gazebo", "carp_pond"]));
             Assert.That(decor.Types.Where(x => x.LogicName is "trail_idol" or "wanderer_banner").All(x => !x.IsPurchasable), Is.True);
             Assert.That(decor.Types.Where(x => x.LogicName is not ("trail_idol" or "wanderer_banner")).All(x => x.IsPurchasable), Is.True);
             Assert.That(decor.Owned, Is.Empty);
@@ -197,6 +197,83 @@ public sealed class DecorTests
         player.GrantDecorViaManager(DecorIds.TrailIdol, 2);
 
         Assert.That(player.Decor().Owned.Single(x => x.DecorTypeId == DecorIds.TrailIdol).Count, Is.EqualTo(3));
+    }
+
+    /// <summary>
+    /// Каждая последующая вещь заезжих мастеров требует уже поставленную предыдущую ступень лестницы.
+    /// </summary>
+    /// <param name="decorTypeId">Тип недоступного украшения.</param>
+    /// <param name="requiredDecorName">Название обязательного предыдущего украшения.</param>
+    [TestCase(DecorIds.CraneWell, "Резная калитка")]
+    [TestCase(DecorIds.Gazebo, "Колодец-журавль")]
+    [TestCase(DecorIds.CarpPond, "Беседка")]
+    public void ArtisanDecorRequiresPreviousStepTest(int decorTypeId, string requiredDecorName)
+    {
+        var player = TestPlayer.Create();
+
+        var ex = Throws.Business(() => player.BuyDecor(decorTypeId));
+
+        Assert.That(ex.Message, Is.EqualTo($"Сначала поставьте: {requiredDecorName}"));
+    }
+
+    /// <summary>
+    /// Каждое украшение заезжих мастеров можно купить только один раз.
+    /// </summary>
+    [Test]
+    public void ArtisanDecorCannotBeBoughtTwiceTest()
+    {
+        const int coinCost = 600;
+        const int purchaseCount = 2;
+
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Coin, coinCost * purchaseCount);
+
+        player.BuyDecor(DecorIds.CarvedGate);
+        var ex = Throws.Business(() => player.BuyDecor(DecorIds.CarvedGate));
+
+        Assert.That(ex.Message, Is.EqualTo("Такое украшение уже поставлено"));
+    }
+
+    /// <summary>
+    /// Покупка резной калитки снимает её цену в монетах и ставит один экземпляр украшения.
+    /// </summary>
+    [Test]
+    public void BuyArtisanDecorWritesOffCoinsTest()
+    {
+        const int coinCost = 600;
+
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Coin, coinCost);
+
+        var startCoins = player.Resource(ResourceIds.Coin);
+
+        player.BuyDecor(DecorIds.CarvedGate);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(player.Resource(ResourceIds.Coin), Is.EqualTo(startCoins - coinCost));
+            Assert.That(player.Decor().Owned.Single(x => x.DecorTypeId == DecorIds.CarvedGate).Count, Is.EqualTo(1));
+        }
+    }
+
+    /// <summary>
+    /// Полная лестница заезжих мастеров добавляет деревне только два очка уюта.
+    /// </summary>
+    [Test]
+    public void ArtisanDecorLadderAddsTwoComfortTest()
+    {
+        const int totalCoinCost = 600 + 4000 + 25000 + 70000;
+        const int expectedComfort = 2;
+
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Coin, totalCoinCost);
+
+        player.BuyDecor(DecorIds.CarvedGate);
+        player.BuyDecor(DecorIds.CraneWell);
+        player.BuyDecor(DecorIds.Gazebo);
+        player.BuyDecor(DecorIds.CarpPond);
+
+        Assert.That(player.Decor().Comfort, Is.EqualTo(expectedComfort));
     }
 
     /// <summary>

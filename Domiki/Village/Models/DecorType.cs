@@ -35,6 +35,14 @@ public class DecorType
     public int ComfortPoints { get; set; }
 
     /// <summary>
+    /// Предельное число экземпляров декора у одного игрока.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – декор можно ставить без ограничения.
+    /// </remarks>
+    public int? MaxCount { get; set; }
+
+    /// <summary>
     /// Можно ли купить декор в магазине напрямую.
     /// </summary>
     /// <remarks>
@@ -54,6 +62,14 @@ public class DecorType
     /// Порог репутации у соседа, открывающий покупку декора.
     /// </summary>
     public int ReputationThreshold { get; set; }
+
+    /// <summary>
+    /// Идентификатор декора, который требуется поставить перед покупкой этого украшения.
+    /// </summary>
+    /// <remarks>
+    /// Ссылка на <see cref="Id"/> другого элемента этого же справочника; <see langword="null"/> – предварительное украшение не требуется.
+    /// </remarks>
+    public int? RequiresDecorTypeId { get; set; }
 
     /// <summary>
     /// Стоимость одного экземпляра декора в ресурсах.

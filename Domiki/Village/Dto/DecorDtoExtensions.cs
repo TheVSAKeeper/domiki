@@ -10,13 +10,13 @@ public static class DecorDtoExtensions
     {
         return new()
         {
-            Types = state.Types.Select(x => x.ToDto(neighbors)).ToArray(),
+            Types = state.Types.Select(x => x.ToDto(neighbors, state.Types)).ToArray(),
             Owned = state.Owned.Select(x => x.ToDto()).ToArray(),
             Comfort = state.Comfort,
         };
     }
 
-    public static DecorTypeDto ToDto(this DecorType type, Neighbor[] neighbors)
+    public static DecorTypeDto ToDto(this DecorType type, Neighbor[] neighbors, DecorType[] types)
     {
         return new()
         {
@@ -24,10 +24,13 @@ public static class DecorDtoExtensions
             Name = type.Name,
             LogicName = type.LogicName,
             ComfortPoints = type.ComfortPoints,
+            MaxCount = type.MaxCount,
             IsPurchasable = type.IsPurchasable,
             NeighborId = type.NeighborId,
             NeighborName = type.NeighborId == null ? null : neighbors.First(x => x.Id == type.NeighborId).Name,
             ReputationThreshold = type.ReputationThreshold,
+            RequiresDecorTypeId = type.RequiresDecorTypeId,
+            RequiresDecorName = type.RequiresDecorTypeId == null ? null : types.First(x => x.Id == type.RequiresDecorTypeId).Name,
             Cost = type.Cost.Select(x => x.ToDto()).ToArray(),
         };
     }
