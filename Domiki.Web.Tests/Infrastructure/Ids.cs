@@ -21,6 +21,7 @@ public static class ResourceIds
     public const int Iron = 17;
     public const int Wool = 18;
     public const int Cloth = 19;
+    public const int Cloak = 20;
 }
 
 public static class DomikIds
@@ -149,6 +150,7 @@ public static class ReceiptIds
     public const int MakeCloth = 70;
     public const int SellWool = 71;
     public const int SellCloth = 72;
+    public const int SewCloak = 73;
 }
 
 public static class BlueprintIds
@@ -166,6 +168,14 @@ public static class WeatherIds
     public const int Drought = 3;
     public const int Frost = 4;
     public const int Wind = 5;
+}
+
+public static class SickTypeIds
+{
+    public const int Cold = 1;
+    public const int Heatstroke = 2;
+    public const int Chill = 3;
+    public const int Lumbago = 4;
 }
 
 public static class TolokaTypeIds

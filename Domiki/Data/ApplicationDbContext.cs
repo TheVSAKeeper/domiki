@@ -43,6 +43,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<DomikTypeLevelReceipt> DomikTypeLevelRecepts { get; set; }
 
     public DbSet<WeatherType> WeatherTypes { get; set; }
+    public DbSet<SickType> SickTypes { get; set; }
     public DbSet<WeatherTypeEffect> WeatherTypeEffects { get; set; }
     public DbSet<WeatherPeriod> WeatherPeriods { get; set; }
 
@@ -96,6 +97,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .HasOne<DecorType>()
             .WithMany()
             .HasForeignKey(p => p.RequiresDecorTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<SickType>()
+            .HasOne(x => x.WeatherType)
+            .WithMany()
+            .HasForeignKey(x => x.WeatherTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Manufacture>()
+            .HasOne(x => x.SickType)
+            .WithMany()
+            .HasForeignKey(x => x.SickTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Worker>()
+            .HasOne(x => x.SickType)
+            .WithMany()
+            .HasForeignKey(x => x.SickTypeId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<StarterGoal>()

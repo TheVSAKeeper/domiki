@@ -40,6 +40,23 @@ public class WorkerManager
         return MapWorkers(playerId);
     }
 
+    /// <summary>
+    /// Возвращает состояние плащей игрока.
+    /// </summary>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <returns>Остаток плащей, число выданных на смены и накопленный износ.</returns>
+    public Models.CloakState GetCloakState(int playerId)
+    {
+        var player = _context.Players.Single(x => x.Id == playerId);
+        return new()
+        {
+            Stock = _context.Resources.Where(x => x.PlayerId == playerId && x.TypeId == Core.DomikManager.CloakResourceTypeId).Select(x => (int?)x.Value).FirstOrDefault() ?? 0,
+            OutOnShifts = _context.Manufactures.Where(x => x.DomikPlayerId == playerId).Sum(x => (int?)x.CloakCount) ?? 0,
+            WearPoints = player.CloakWearPoints,
+            LifetimeShifts = Core.DomikManager.CloakLifetimeShifts,
+        };
+    }
+
     public Worker[] EnsureWorkers(int playerId)
     {
         var capacity = GetCapacity(playerId);
@@ -162,6 +179,7 @@ public class WorkerManager
                 WorkedSeconds = x.WorkedSeconds,
                 RestUntil = x.RestUntil,
                 SickUntil = x.SickUntil,
+                SickTypeId = x.SickTypeId,
                 Skills = skills.GetValueOrDefault(x.Id, Array.Empty<WorkerSkill>()),
             })
             .ToArray();

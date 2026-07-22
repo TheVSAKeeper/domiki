@@ -112,6 +112,14 @@ public class Worker
     public DateTime? SickUntil { get; set; }
 
     /// <summary>
+    /// Последняя перенесённая трудягой хворь.
+    /// </summary>
+    /// <remarks>
+    /// Значение не очищается после выздоровления и читается только вместе с <see cref="SickUntil"/>. <see langword="null"/> – трудяга ещё не болел либо его болезнь была зафиксирована до появления справочника хворей.
+    /// </remarks>
+    public int? SickTypeId { get; set; }
+
+    /// <summary>
     /// Навигационное свойство к игроку-владельцу.
     /// </summary>
     public Player Player { get; set; } = null!;
@@ -140,6 +148,11 @@ public class Worker
     /// Навигационное свойство к происшествию, которым занят или в котором пропал трудяга.
     /// </summary>
     public Incident? Incident { get; set; }
+
+    /// <summary>
+    /// Навигационное свойство к текущей хвори трудяги.
+    /// </summary>
+    public SickType? SickType { get; set; }
 
     /// <summary>
     /// Прокачка трудяги по типам домиков – накопленное число использований и производный бонус к выходу.

@@ -23,7 +23,30 @@ public class DomikManager
     public const int FatigueThresholdSeconds = 8 * 3600;
     public const int RestSeconds = 2 * 3600;
     public const int RestComfortMaxPercent = 50;
-    public const int SickChancePercent = 15;
+    /// <summary>
+    /// Процент шанса хвори на каждый процентный пункт погодного бонуса сверх <c>100</c>.
+    /// </summary>
+    public const double SickChancePerBonusPoint = 0.3;
+
+    /// <summary>
+    /// Наименьший шанс хвори для трудяги, прикрытого плащом.
+    /// </summary>
+    public const int MinSickChancePercent = 2;
+
+    /// <summary>
+    /// Число смен, после которого плащ изнашивается.
+    /// </summary>
+    public const int CloakLifetimeShifts = 50;
+
+    /// <summary>
+    /// Процент от исходного риска хвори, остающийся под защитой плаща.
+    /// </summary>
+    public const int CloakProtectionPercent = 50;
+
+    /// <summary>
+    /// Идентификатор типа ресурса «Плащ».
+    /// </summary>
+    public const int CloakResourceTypeId = 20;
     public const int SickDurationSeconds = 8 * 3600;
     public const int MaxSickPerPlayer = 2;
     public const int SickImmunitySeconds = 24 * 3600;
@@ -556,9 +579,22 @@ public class DomikManager
             outputPercent += receipt.OutputBonusPercent;
         }
 
-        var sickChance = weatherPercent > 100 && _villageLevelCalculator.GetLevel(playerId).Level >= SickMinVillageLevel
-            ? SickChancePercent
-            : 0;
+        var sickType = weatherPercent > 100 && _villageLevelCalculator.GetLevel(playerId).Level >= SickMinVillageLevel
+            ? _weatherManager.GetCurrentPeriod(date) is { } weatherPeriod
+                ? _resourceManager.GetSickTypes().FirstOrDefault(x => x.WeatherTypeId == weatherPeriod.WeatherType.Id)
+                : null
+            : null;
+        var sickChance = sickType == null
+            ? 0
+            : (int)Math.Round((weatherPercent - 100) * SickChancePerBonusPoint, MidpointRounding.AwayFromZero);
+        var cloakCount = 0;
+        if (sickType?.CloakProtects == true)
+        {
+            var cloakStock = _context.Resources.Where(x => x.PlayerId == playerId && x.TypeId == CloakResourceTypeId).Select(x => (int?)x.Value).FirstOrDefault() ?? 0;
+            var cloaksOut = _context.Manufactures.Where(x => x.DomikPlayerId == playerId).Sum(x => (int?)x.CloakCount) ?? 0;
+            var eligibleWorkerCount = selectedWorkers.Count(x => !traits[x.TraitId].NoSick && !traits[x.TraitId].NoFatigue);
+            cloakCount = Math.Min(eligibleWorkerCount, Math.Max(0, cloakStock - cloaksOut));
+        }
 
         _playerResourceManager.WriteOffResources(playerId, writeOffResources);
 
@@ -574,6 +610,8 @@ public class DomikManager
             AutoRepeat = autoRepeat,
             UseOptional = useOptionalApplied,
             SickChance = sickChance,
+            SickTypeId = sickType?.Id,
+            CloakCount = cloakCount,
         };
 
         _context.Manufactures.Add(manufacture);
@@ -663,18 +701,22 @@ public class DomikManager
             var sickSeconds = SickDurationSeconds * (100 - Math.Min(RestComfortMaxPercent, comfort)) / 100;
             var traits = _resourceManager.GetTraits().ToDictionary(x => x.Id, x => x);
             var sickChance = dbManufacture.SickChance;
-            var currentlySick = sickChance > 0 ? _context.Workers.Count(x => x.PlayerId == playerId && x.SickUntil > date) : 0;
+            var currentlySick = _context.Workers.Count(x => x.PlayerId == playerId && x.SickUntil > date);
             var isTradeDomik = _resourceManager.GetDomikTypes().First(x => x.LogicName == "market").Id == dbDomik.TypeId;
             var breadRes = _context.Resources.Local.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == 15)
                            ?? _context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == 15);
 
             var freedWorkerIds = new List<int>();
             var workerNames = new List<string>();
-            foreach (var worker in _context.Workers.Where(x => x.ManufactureId == dbManufacture.Id).ToArray())
+            var assignedWorkers = _context.Workers.Where(x => x.ManufactureId == dbManufacture.Id).OrderBy(x => x.Id).ToArray();
+            var eligibleWorkerIndex = 0;
+            for (var workerIndex = 0; workerIndex < assignedWorkers.Length; workerIndex++)
             {
+                var worker = assignedWorkers[workerIndex];
+                var trait = traits[worker.TraitId];
                 workerNames.Add(worker.Name);
                 IncrementWorkerSkill(worker.Id, dbDomik.TypeId);
-                if (!traits[worker.TraitId].NoFatigue && !isTradeDomik)
+                if (!trait.NoFatigue && !isTradeDomik)
                 {
                     worker.WorkedSeconds += dbManufacture.DurationSeconds;
                     if (worker.WorkedSeconds >= FatigueThresholdSeconds)
@@ -690,14 +732,17 @@ public class DomikManager
                     }
                 }
 
-                if (sickChance > 0
+                var canGetSick = !trait.NoSick && !trait.NoFatigue;
+                var workerSickChance = canGetSick
+                    ? GetWorkerSickChance(sickChance, dbManufacture.CloakCount, eligibleWorkerIndex++)
+                    : 0;
+                if (workerSickChance > 0
                     && currentlySick < MaxSickPerPlayer
-                    && !traits[worker.TraitId].NoSick
-                    && !traits[worker.TraitId].NoFatigue
                     && (worker.SickUntil == null || date >= worker.SickUntil.Value.AddSeconds(SickImmunitySeconds))
-                    && Random.Shared.Next(100) < sickChance)
+                    && Random.Shared.Next(100) < workerSickChance)
                 {
                     worker.SickUntil = date.AddSeconds(sickSeconds);
+                    worker.SickTypeId = dbManufacture.SickTypeId;
                     if (worker.RestUntil == null || worker.RestUntil < worker.SickUntil)
                     {
                         worker.RestUntil = worker.SickUntil;
@@ -708,6 +753,21 @@ public class DomikManager
 
                 worker.ManufactureId = null;
                 freedWorkerIds.Add(worker.Id);
+            }
+
+            dbPlayer.CloakWearPoints += dbManufacture.CloakCount;
+            var cloakStock = _context.Resources.Local.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == CloakResourceTypeId)
+                             ?? _context.Resources.FirstOrDefault(x => x.PlayerId == playerId && x.TypeId == CloakResourceTypeId);
+            while (dbPlayer.CloakWearPoints >= CloakLifetimeShifts && cloakStock?.Value > 0)
+            {
+                _playerResourceManager.WriteOffResources(playerId, [new Resource { Type = new() { Id = CloakResourceTypeId }, Value = 1 }]);
+                dbPlayer.CloakWearPoints -= CloakLifetimeShifts;
+                _playerEventManager.Record(playerId, PlayerEventType.CloakWornOut, new { resourceTypeId = CloakResourceTypeId, value = 1 });
+            }
+
+            if (cloakStock == null || cloakStock.Value <= 0)
+            {
+                dbPlayer.CloakWearPoints = 0;
             }
 
             _context.Manufactures.Remove(dbManufacture);
@@ -866,6 +926,25 @@ public class DomikManager
                 Value = cost,
             },
         });
+    }
+
+    /// <summary>
+    /// Возвращает шанс хвори для трудяги смены с учётом выданного ему плаща.
+    /// </summary>
+    /// <param name="sickChance">Зафиксированный шанс хвори для смены в процентах.</param>
+    /// <param name="cloakCount">Число плащей, выданных на смену.</param>
+    /// <param name="workerIndex">Порядковый номер восприимчивого трудяги в смене по идентификатору.</param>
+    /// <returns>Шанс хвори трудяги в процентах.</returns>
+    internal static int GetWorkerSickChance(int sickChance, int cloakCount, int workerIndex)
+    {
+        if (sickChance <= 0)
+        {
+            return 0;
+        }
+
+        return workerIndex < cloakCount
+            ? Math.Max(MinSickChancePercent, sickChance * CloakProtectionPercent / 100)
+            : sickChance;
     }
 
     private string NormalizeVillageName(string? name)

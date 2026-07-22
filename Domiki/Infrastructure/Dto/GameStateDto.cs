@@ -101,6 +101,16 @@ public sealed record GameStateDto
     public required WorkerDto[] Workers { get; init; }
 
     /// <summary>
+    /// Запас, выдача и износ плащей игрока.
+    /// </summary>
+    public required CloakStateDto Cloaks { get; init; }
+
+    /// <summary>
+    /// Справочник хворей, связанных с погодой.
+    /// </summary>
+    public required SickTypeDto[] SickTypes { get; init; }
+
+    /// <summary>
     /// Типы построек, доступные к покупке прямо сейчас.
     /// </summary>
     /// <remarks>

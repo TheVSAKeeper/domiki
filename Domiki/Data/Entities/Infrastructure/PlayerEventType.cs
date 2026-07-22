@@ -114,4 +114,9 @@ public enum PlayerEventType
     /// См. <see cref="Workers.WorkerMilestoneManager"/>.
     /// </remarks>
     WorkerMilestone = 16,
+
+    /// <summary>
+    /// Плащ износился после выработки срока службы и был списан.
+    /// </summary>
+    CloakWornOut = 17,
 }

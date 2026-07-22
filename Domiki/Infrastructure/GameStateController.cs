@@ -86,6 +86,8 @@ public class GameStateController : GameControllerBase
             Village = _domikManager.GetVillage(playerId).ToDto(),
             VillageLevel = villageLevel.ToDto(),
             Workers = _workerManager.GetWorkers(playerId).Select(x => x.ToDto()).ToArray(),
+            Cloaks = _workerManager.GetCloakState(playerId).ToDto(),
+            SickTypes = _resourceManager.GetSickTypes().Select(x => x.ToDto()).ToArray(),
             PurchaseAvailableDomiks = _domikManager.GetPurchaseAvailableDomiks(playerId).Select(x => x.Type.ToDto(x.AvailableCount, blueprints.FirstOrDefault(b => b.DomikTypeId == x.Type.Id)?.Id, x.NextCountGateLevel)).ToArray(),
             Weather = _weatherManager.GetWeather(DateTimeHelper.GetNowDate()).ToDto(),
             Expeditions = _expeditionManager.GetExpeditions(playerId)?.ToDto(),

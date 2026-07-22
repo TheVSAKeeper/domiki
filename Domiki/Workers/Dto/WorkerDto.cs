@@ -63,7 +63,8 @@ public sealed record WorkerDto
     /// <see langword="true"/> – трудяга с этой чертой не подвержен болезни.
     /// </summary>
     /// <remarks>
-    /// При <see langword="true"/> <see cref="SickUntil"/> никогда не выставляется (см. <see cref="Core.DomikManager.SickChancePercent"/>).
+    /// При <see langword="true"/> <see cref="SickUntil"/> никогда не выставляется, независимо от погодного бонуса и плаща
+    /// (см. <see cref="Core.DomikManager.FinishManufacture"/>).
     /// </remarks>
     public required bool NoSick { get; init; }
 
@@ -123,10 +124,18 @@ public sealed record WorkerDto
     /// </summary>
     /// <value>Момент в UTC.</value>
     /// <remarks>
-    /// <see langword="null"/> – трудяга не болен. Шанс заболеть при завершении производства – <see cref="Core.DomikManager.SickChancePercent"/>
-    /// (см. <see cref="Core.DomikManager.FinishManufacture"/>).
+    /// <see langword="null"/> – трудяга не болен. Шанс при завершении производства выводится из величины погодного бонуса,
+    /// а плащ может его снизить (см. <see cref="Core.DomikManager.FinishManufacture"/>).
     /// </remarks>
     public DateTime? SickUntil { get; init; }
+
+    /// <summary>
+    /// Последняя перенесённая трудягой хворь – ссылка на <see cref="Village.Dto.SickTypeDto.Id"/>.
+    /// </summary>
+    /// <remarks>
+    /// Значение не очищается после выздоровления и читается только вместе с <see cref="SickUntil"/>. <see langword="null"/> – трудяга ещё не болел либо его болезнь возникла до появления справочника хворей.
+    /// </remarks>
+    public int? SickTypeId { get; init; }
 
     /// <summary>
     /// Наработанные навыки трудяги по типам построек.

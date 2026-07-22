@@ -15,6 +15,7 @@ using Neighbor = Domiki.Web.Economy.Models.Neighbor;
 using Receipt = Domiki.Web.Reference.Models.Receipt;
 using Resource = Domiki.Web.Reference.Models.Resource;
 using ResourceType = Domiki.Web.Reference.Models.ResourceType;
+using SickType = Domiki.Web.Village.Models.SickType;
 using TolokaType = Domiki.Web.Activities.Models.TolokaType;
 using TolokaTypePosition = Domiki.Web.Activities.Models.TolokaTypePosition;
 using Trait = Domiki.Web.Workers.Models.Trait;
@@ -37,6 +38,7 @@ public class ResourceManager
         public required Neighbor[] Neighbors { get; init; }
         public required Trait[] Traits { get; init; }
         public required WeatherType[] WeatherTypes { get; init; }
+        public required SickType[] SickTypes { get; init; }
         public required Blueprint[] Blueprints { get; init; }
         public required ExpeditionType[] ExpeditionTypes { get; init; }
         public required DecorType[] DecorTypes { get; init; }
@@ -61,6 +63,7 @@ public class ResourceManager
                 Neighbors = LoadNeighbors(context),
                 Traits = LoadTraits(context),
                 WeatherTypes = LoadWeatherTypes(context),
+                SickTypes = LoadSickTypes(context),
                 Blueprints = LoadBlueprints(context),
                 ExpeditionTypes = LoadExpeditionTypes(context),
                 DecorTypes = LoadDecorTypes(context),
@@ -84,6 +87,7 @@ public class ResourceManager
             16 => 10,
             18 => 10,
             19 => 40,
+            20 => 120,
             15 => 20,
             _ => BaseMarketValue,
         };
@@ -104,6 +108,12 @@ public class ResourceManager
     public Blueprint[] GetBlueprints() => _data.Value.Blueprints;
 
     public WeatherType[] GetWeatherTypes() => _data.Value.WeatherTypes;
+
+    /// <summary>
+    /// Возвращает справочник хворей, связанных с погодой.
+    /// </summary>
+    /// <returns>Все типы хворей.</returns>
+    public SickType[] GetSickTypes() => _data.Value.SickTypes;
 
     public ExpeditionType[] GetExpeditionTypes() => _data.Value.ExpeditionTypes;
 
@@ -242,6 +252,24 @@ public class ResourceManager
         }
 
         return weatherTypes;
+    }
+
+    /// <summary>
+    /// Загружает справочник хворей из базы данных.
+    /// </summary>
+    /// <param name="context">Контекст базы данных.</param>
+    /// <returns>Все типы хворей.</returns>
+    private static SickType[] LoadSickTypes(ApplicationDbContext context)
+    {
+        return context.SickTypes.Select(x => new SickType
+            {
+                Id = x.Id,
+                Name = x.Name,
+                LogicName = x.LogicName,
+                WeatherTypeId = x.WeatherTypeId,
+                CloakProtects = x.CloakProtects,
+            })
+            .ToArray();
     }
 
     private static ExpeditionType[] LoadExpeditionTypes(ApplicationDbContext context)

@@ -86,4 +86,22 @@ public class Manufacture
     /// Следствие плохой погоды.
     /// </remarks>
     public int SickChance { get; set; }
+
+    /// <summary>
+    /// Тип хвори, риск которой зафиксирован при старте производства.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – погода не несёт риска хвори для этого производства.
+    /// </remarks>
+    public int? SickTypeId { get; set; }
+
+    /// <summary>
+    /// Число плащей, выданных трудягам на эту смену.
+    /// </summary>
+    public int CloakCount { get; set; }
+
+    /// <summary>
+    /// Навигационное свойство к типу хвори риска производства.
+    /// </summary>
+    public SickType? SickType { get; set; }
 }

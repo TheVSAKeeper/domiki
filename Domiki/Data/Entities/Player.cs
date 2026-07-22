@@ -174,6 +174,14 @@ public class Player
     public int ZealCharges { get; set; } = 24;
 
     /// <summary>
+    /// Общий накопленный износ плащей от завершённых смен.
+    /// </summary>
+    /// <remarks>
+    /// По достижении срока службы один плащ списывается в <see cref="Core.DomikManager.FinishManufacture"/>.
+    /// </remarks>
+    public int CloakWearPoints { get; set; }
+
+    /// <summary>
     /// Идентификатор внешнего аккаунта ASP.NET Identity (claim <c>NameIdentifier</c>), к которому привязан игрок.
     /// </summary>
     [MaxLength(450)]
