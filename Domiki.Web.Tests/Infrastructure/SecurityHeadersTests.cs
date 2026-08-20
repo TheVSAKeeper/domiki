@@ -1,4 +1,6 @@
-﻿namespace Domiki.Web.Tests;
+﻿using Domiki.Web.Infrastructure;
+
+namespace Domiki.Web.Tests;
 
 public sealed class SecurityHeadersTests
 {
@@ -18,5 +20,22 @@ public sealed class SecurityHeadersTests
         var response = await client.GetAsync("/healthz");
 
         Assert.That(response.Headers.GetValues(header), Does.Contain(expected));
+    }
+
+    /// <summary>
+    /// Директива form-action пускает origin внешнего провайдера входа, а при пустом или относительном адресе остаётся при 'self'.
+    /// </summary>
+    /// <param name="oidcAuthority">настройка Oidc:Authority</param>
+    /// <param name="expected">ожидаемая директива в политике</param>
+    [TestCase("https://auth.keep2space.ru/", "form-action 'self' https://auth.keep2space.ru;")]
+    [TestCase("https://auth.keep2space.ru:8443/realms/keep", "form-action 'self' https://auth.keep2space.ru:8443;")]
+    [TestCase("auth.keep2space.ru", "form-action 'self';")]
+    [TestCase("", "form-action 'self';")]
+    [TestCase(null, "form-action 'self';")]
+    public void FormActionAllowsOidcAuthorityTest(string? oidcAuthority, string expected)
+    {
+        var policy = SecurityHeadersMiddleware.BuildContentSecurityPolicy(oidcAuthority);
+
+        Assert.That(policy, Does.Contain(expected));
     }
 }

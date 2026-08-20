@@ -98,7 +98,7 @@ public sealed class InstaFinishTests
     {
         var player = CreatePlayerWithManufacture(out var manufactureId);
         player.WithResource(ResourceIds.Gold, 10);
-        SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddHours(6).AddSeconds(1));
+        SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddHours(6).AddMinutes(5));
 
         var ex = Throws.Business(() => player.HurryManufacture(manufactureId));
 
