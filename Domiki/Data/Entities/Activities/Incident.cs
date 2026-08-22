@@ -63,7 +63,8 @@ public class Incident
     /// Индекс клиентского шаблона текста происшествия.
     /// </summary>
     /// <remarks>
-    /// Диапазон 0..<see cref="Activities.IncidentManager.IncidentTemplateCount"/> - 1; тексты находятся на клиенте.
+    /// Тексты находятся на клиенте. У происшествия похода диапазон – 0..<see cref="Activities.IncidentManager.IncidentTemplateCount"/> - 1,
+    /// у загадки постройки шаблон задан типом постройки и берётся из своего, меньшего пула.
     /// </remarks>
     public int TemplateId { get; set; }
 

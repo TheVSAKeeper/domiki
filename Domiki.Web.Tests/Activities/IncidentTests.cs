@@ -432,6 +432,35 @@ public sealed class IncidentTests
         }
     }
 
+    /// <summary>
+    /// Сюжет нового происшествия в походе не повторяет три последних – выбор шаблона исключает половину пула из
+    /// шести.
+    /// </summary>
+    [Test]
+    public void PickTemplateIdAvoidsRecentTemplatesTest()
+    {
+        const int AvoidCount = IncidentManager.IncidentTemplateCount / 2;
+
+        var player = TestPlayer.Create()
+            .WithDomiks(DomikIds.Barrack, 3);
+
+        var workerIds = player.Workers().Select(x => x.Id).ToArray();
+        var date = DateTimeHelper.GetNowDate();
+        var recentTemplateIds = Enumerable.Range(0, AvoidCount).ToArray();
+        foreach (var recentTemplateId in recentTemplateIds)
+        {
+            CreateIncident(player, workerIds[recentTemplateId % workerIds.Length], ExpeditionTypeIds.ShortScout, recentTemplateId, date);
+        }
+
+        var templateId = player.PickIncidentTemplateId();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(recentTemplateIds, Has.None.EqualTo(templateId));
+            Assert.That(templateId, Is.InRange(0, IncidentManager.IncidentTemplateCount - 1));
+        }
+    }
+
     private static readonly int[] IncidentResourceIds = [ResourceIds.Stone, ResourceIds.Wood, ResourceIds.Clay, ResourceIds.Tool, ResourceIds.Ore];
 
     private static IEnumerable<TestCaseData> InvalidSearchSelectionCases()
@@ -593,6 +622,11 @@ public sealed class IncidentTests
 
 file static class IncidentTestsActs
 {
+    public static int PickIncidentTemplateId(this TestPlayer p)
+    {
+        return App.Act<IncidentManager, int>(m => m.PickTemplateId(p.Id));
+    }
+
     public static TestPlayer StartSearch(this TestPlayer p, int incidentId, int clueId, int[] workerIds)
     {
         using (App.PendingEvents())

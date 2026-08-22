@@ -109,8 +109,8 @@ public sealed class ErrandTests
     }
 
     /// <summary>
-    /// Непринятый оффер удаляется планировщиком только по достижении ExpireDate; до этого момента FinishErrand
-    /// возвращает false, и оффер остаётся на месте.
+    /// Непринятый оффер протухает только по достижении ExpireDate; до этого момента FinishErrand возвращает false,
+    /// а после – помечает запись исходом Expired, оставляя её в истории сюжетов.
     /// </summary>
     [Test]
     public void FinishErrandExpiresUnacceptedOfferOnlyAtExpireDateTest()
@@ -124,18 +124,21 @@ public sealed class ErrandTests
 
         var tooEarly = player.FinishErrand(expireDate.AddSeconds(-1), errandId);
         Assert.That(tooEarly, Is.False);
-        Assert.That(player.HasErrandRow(errandId), Is.True);
+        Assert.That(player.ErrandRow(errandId).Outcome, Is.EqualTo(ErrandOutcome.None));
 
         var onTime = player.FinishErrand(expireDate, errandId);
+        var errand = player.ErrandRow(errandId);
         using (Assert.EnterMultipleScope())
         {
             Assert.That(onTime, Is.True);
-            Assert.That(player.HasErrandRow(errandId), Is.False);
+            Assert.That(errand.Outcome, Is.EqualTo(ErrandOutcome.Expired));
+            Assert.That(errand.ResolvedDate, Is.EqualTo(expireDate));
         }
     }
 
     /// <summary>
-    /// Отмена принятого поручения освобождает трудяг и удаляет запись без начисления монет и репутации.
+    /// Отмена принятого поручения освобождает трудяг и помечает запись исходом Cancelled без начисления монет и
+    /// репутации.
     /// </summary>
     [Test]
     public void CancelAcceptedErrandFreesWorkersWithoutRewardsTest()
@@ -157,7 +160,8 @@ public sealed class ErrandTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(player.HasErrandRow(errandId), Is.False);
+            Assert.That(player.ErrandRow(errandId).Outcome, Is.EqualTo(ErrandOutcome.Cancelled));
+            Assert.That(player.ErrandRow(errandId).ResolvedDate, Is.Not.Null);
             Assert.That(player.Workers().Where(x => workerIds.Contains(x.Id)).Select(x => x.ErrandId), Is.All.Null);
             Assert.That(player.Resource(ResourceIds.Coin), Is.EqualTo(coinsBefore));
             Assert.That(player.Reputation().Single(x => x.Neighbor.Id == neighborId).Points, Is.EqualTo(reputationBefore));
@@ -165,10 +169,10 @@ public sealed class ErrandTests
     }
 
     /// <summary>
-    /// Отмена непринятого оффера (без задействованных трудяг) удаляет запись поручения.
+    /// Отмена непринятого оффера помечает запись исходом Cancelled и снимает гейт на новое предложение.
     /// </summary>
     [Test]
-    public void CancelOfferWithoutWorkersRemovesRowTest()
+    public void CancelOfferWithoutWorkersMarksCancelledTest()
     {
         var player = TestPlayer.Create();
 
@@ -178,7 +182,35 @@ public sealed class ErrandTests
 
         player.CancelErrand(errandId);
 
-        Assert.That(player.HasErrandRow(errandId), Is.False);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(player.ErrandRow(errandId).Outcome, Is.EqualTo(ErrandOutcome.Cancelled));
+            Assert.That(player.CreateErrandOffer(ErrandManager.ErrandUnlockLevel), Is.Not.Null);
+        }
+    }
+
+    /// <summary>
+    /// Подряд предложенные сюжеты поручений не повторяются: выбор шаблона исключает половину пула, выпавшую
+    /// последней, поэтому четыре предложения кряду приходят с разными сюжетами.
+    /// </summary>
+    [Test]
+    public void OfferSeriesDoesNotRepeatRecentTemplatesTest()
+    {
+        const int SeriesLength = ErrandManager.ErrandTemplateCount / 2 + 1;
+
+        var player = TestPlayer.Create();
+        var templateIds = new List<int>();
+
+        for (var i = 0; i < SeriesLength; i++)
+        {
+            var offer = player.CreateErrandOffer(ErrandManager.ErrandUnlockLevel);
+            Assert.That(offer, Is.Not.Null);
+            var errandId = offer!.ObjectId;
+            templateIds.Add(player.ErrandRow(errandId).TemplateId);
+            player.FinishErrand(player.ErrandRow(errandId).ExpireDate, errandId);
+        }
+
+        Assert.That(templateIds, Is.Unique);
     }
 
     /// <summary>
@@ -428,6 +460,17 @@ public sealed class ErrandTests
                 }),
                 "Предложение истекло")
             .SetName("ExpiredOffer");
+
+        yield return new TestCaseData(
+                new Func<TestPlayer, int[], int>((player, _) =>
+                {
+                    player.WithErrand(NeighborIds.Zarechye);
+                    var errandId = player.LastErrandId();
+                    player.CancelErrand(errandId);
+                    return errandId;
+                }),
+                "Поручение не найдено")
+            .SetName("CancelledOffer");
     }
 
     private static IEnumerable<TestCaseData> AcceptWorkerSelectionCases()
@@ -479,11 +522,6 @@ file static class ErrandTestsActs
     public static Errand ErrandRow(this TestPlayer p, int errandId)
     {
         return App.Read(context => context.Errands.Single(x => x.Id == errandId && x.PlayerId == p.Id));
-    }
-
-    public static bool HasErrandRow(this TestPlayer p, int errandId)
-    {
-        return App.Read(context => context.Errands.Any(x => x.Id == errandId && x.PlayerId == p.Id));
     }
 
     public static int LastErrandId(this TestPlayer p)

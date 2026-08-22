@@ -81,7 +81,12 @@ public class IncidentManager
     /// <summary>
     /// Число клиентских шаблонов текста происшествия в походе.
     /// </summary>
-    public const int IncidentTemplateCount = 6;
+    /// <remarks>
+    /// Держится равным длине массива в <c>ClientApp/src/utils/incidentTexts.ts</c>: клиент выбирает текст по остатку
+    /// от деления, поэтому пул, обогнавший фронт, покажет вернувшемуся игроку чужой сюжет. Загадки построек
+    /// (<see cref="IncidentSourceType.Domik"/>) считают свой пул – он задан <see cref="DomikIncidentTemplates"/>.
+    /// </remarks>
+    public const int IncidentTemplateCount = 12;
 
     /// <summary>
     /// Длительность поисков по зацепке, индекс = ClueId.
@@ -187,7 +192,7 @@ public class IncidentManager
             SourceType = IncidentSourceType.Expedition,
             MissingWorkerId = missingWorker.Id,
             ExpeditionTypeId = expeditionTypeId,
-            TemplateId = Random.Shared.Next(IncidentTemplateCount),
+            TemplateId = PickTemplateId(player.Id),
             CreateDate = date,
         };
         _context.Incidents.Add(incident);
@@ -215,6 +220,27 @@ public class IncidentManager
         };
         (calculateInfo.PushTitle, calculateInfo.PushBody) = GetStartPush(missingWorker.Name);
         return calculateInfo;
+    }
+
+    /// <summary>
+    /// Выбирает сюжет происшествия в походе, разводя его с недавними происшествиями этого игрока.
+    /// </summary>
+    /// <param name="playerId">Id игрока.</param>
+    /// <returns>Индекс клиентского шаблона в диапазоне 0..<see cref="IncidentTemplateCount"/> - 1.</returns>
+    /// <remarks>
+    /// Загадки построек (<see cref="IncidentSourceType.Domik"/>) в историю не входят – там свой пул текстов,
+    /// привязанный к типу постройки.
+    /// </remarks>
+    public int PickTemplateId(int playerId)
+    {
+        var recentTemplateIds = _context.Incidents
+            .Where(x => x.PlayerId == playerId && x.SourceType == IncidentSourceType.Expedition)
+            .OrderByDescending(x => x.Id)
+            .Take(TemplatePicker.AvoidCount(IncidentTemplateCount))
+            .Select(x => x.TemplateId)
+            .ToArray();
+
+        return TemplatePicker.Pick(IncidentTemplateCount, recentTemplateIds);
     }
 
     /// <summary>

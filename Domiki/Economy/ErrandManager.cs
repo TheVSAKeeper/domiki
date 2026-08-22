@@ -66,7 +66,11 @@ public class ErrandManager
     /// <summary>
     /// Число клиентских шаблонов текста поручения.
     /// </summary>
-    public const int ErrandTemplateCount = 6;
+    /// <remarks>
+    /// Держится равным длине массива в <c>ClientApp/src/utils/errandTexts.ts</c>: клиент выбирает текст по остатку
+    /// от деления, поэтому пул, обогнавший фронт, покажет вернувшемуся игроку чужой сюжет.
+    /// </remarks>
+    public const int ErrandTemplateCount = 12;
 
     /// <summary>
     /// Текст пуша при завершении поисков по принятому поручению.
@@ -152,7 +156,7 @@ public class ErrandManager
         {
             PlayerId = playerId,
             NeighborId = neighbor.Id,
-            TemplateId = Random.Shared.Next(ErrandTemplateCount),
+            TemplateId = PickTemplateId(playerId),
             ExpireDate = now.AddHours(ErrandOfferDurationHours),
         };
 
@@ -166,6 +170,27 @@ public class ErrandManager
             Date = errand.ExpireDate,
             Type = CalculateTypes.Errand,
         };
+    }
+
+    /// <summary>
+    /// Выбирает сюжет поручения, разводя его с недавними предложениями этого игрока.
+    /// </summary>
+    /// <param name="playerId">Id игрока.</param>
+    /// <returns>Индекс клиентского шаблона в диапазоне 0..<see cref="ErrandTemplateCount"/> - 1.</returns>
+    /// <remarks>
+    /// История берётся по всем поручениям игрока, включая отвергнутые и протухшие офферы (<see cref="Data.Entities.Errand.Outcome"/>):
+    /// игрок видел их сюжет на доске, даже если не взялся за поиски.
+    /// </remarks>
+    public int PickTemplateId(int playerId)
+    {
+        var recentTemplateIds = _context.Errands
+            .Where(x => x.PlayerId == playerId)
+            .OrderByDescending(x => x.Id)
+            .Take(TemplatePicker.AvoidCount(ErrandTemplateCount))
+            .Select(x => x.TemplateId)
+            .ToArray();
+
+        return TemplatePicker.Pick(ErrandTemplateCount, recentTemplateIds);
     }
 
     /// <summary>
@@ -208,7 +233,7 @@ public class ErrandManager
     {
         _playerResourceManager.LockDbPlayerRow(playerId);
 
-        var dbErrand = _context.Errands.FirstOrDefault(x => x.Id == errandId && x.PlayerId == playerId);
+        var dbErrand = _context.Errands.FirstOrDefault(x => x.Id == errandId && x.PlayerId == playerId && x.ResolvedDate == null);
         if (dbErrand == null)
         {
             throw new BusinessException("Поручение не найдено");
@@ -296,7 +321,8 @@ public class ErrandManager
     /// <param name="playerId">Id игрока.</param>
     /// <param name="errandId">Id поручения.</param>
     /// <remarks>
-    /// Трудяги освобождаются, запись поручения удаляется без наград и штрафов.
+    /// Трудяги освобождаются, наград и штрафов нет. Запись остаётся в истории с <see cref="Data.Entities.ErrandOutcome.Cancelled"/> –
+    /// отвергнутый сюжет учитывается в <see cref="PickTemplateId"/> и в замере аптейка офферов.
     /// </remarks>
     public void Cancel(int playerId, int errandId)
     {
@@ -314,7 +340,8 @@ public class ErrandManager
             worker.ErrandId = null;
         }
 
-        _context.Errands.Remove(dbErrand);
+        dbErrand.ResolvedDate = DateTimeHelper.GetNowDate();
+        dbErrand.Outcome = Data.Entities.ErrandOutcome.Cancelled;
         _context.SaveChanges();
 
         var afterEventAction = _uow.AfterEventAction;
@@ -348,7 +375,8 @@ public class ErrandManager
                 return false;
             }
 
-            _context.Errands.Remove(dbErrand);
+            dbErrand.ResolvedDate = date;
+            dbErrand.Outcome = Data.Entities.ErrandOutcome.Expired;
             _context.SaveChanges();
             return true;
         }
@@ -386,6 +414,7 @@ public class ErrandManager
         }
 
         dbErrand.ResolvedDate = date;
+        dbErrand.Outcome = Data.Entities.ErrandOutcome.Resolved;
         _playerEventManager.Record(calcInfo.PlayerId, Data.Entities.PlayerEventType.ErrandResolved, new
         {
             neighborId = dbErrand.NeighborId,

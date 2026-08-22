@@ -84,6 +84,16 @@ public class Errand
     public DateTime? ResolvedDate { get; set; }
 
     /// <summary>
+    /// Чем закончилось поручение.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="ErrandOutcome.None"/> – поручение ещё активно. Отвергнутые и протухшие офферы тоже остаются
+    /// в истории: по ней <see cref="Economy.ErrandManager.PickTemplateId"/> разводит соседние сюжеты, а замер
+    /// аптейка считает долю принятых предложений.
+    /// </remarks>
+    public ErrandOutcome Outcome { get; set; }
+
+    /// <summary>
     /// Игрок, которому принадлежит поручение.
     /// </summary>
     public Player Player { get; set; } = null!;
