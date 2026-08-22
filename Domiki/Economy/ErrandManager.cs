@@ -322,7 +322,9 @@ public class ErrandManager
     /// <param name="errandId">Id поручения.</param>
     /// <remarks>
     /// Трудяги освобождаются, наград и штрафов нет. Запись остаётся в истории с <see cref="Data.Entities.ErrandOutcome.Cancelled"/> –
-    /// отвергнутый сюжет учитывается в <see cref="PickTemplateId"/> и в замере аптейка офферов.
+    /// отвергнутый сюжет учитывается в <see cref="PickTemplateId"/> и в замере аптейка офферов. Оффер, чей срок уже
+    /// вышел, а планировщик до него ещё не дошёл, помечается как <see cref="Data.Entities.ErrandOutcome.Expired"/>:
+    /// игрок отказался от того, чего уже не было.
     /// </remarks>
     public void Cancel(int playerId, int errandId)
     {
@@ -340,8 +342,11 @@ public class ErrandManager
             worker.ErrandId = null;
         }
 
-        dbErrand.ResolvedDate = DateTimeHelper.GetNowDate();
-        dbErrand.Outcome = Data.Entities.ErrandOutcome.Cancelled;
+        var now = DateTimeHelper.GetNowDate();
+        dbErrand.ResolvedDate = now;
+        dbErrand.Outcome = dbErrand.AcceptDate == null && now >= dbErrand.ExpireDate
+            ? Data.Entities.ErrandOutcome.Expired
+            : Data.Entities.ErrandOutcome.Cancelled;
         _context.SaveChanges();
 
         var afterEventAction = _uow.AfterEventAction;

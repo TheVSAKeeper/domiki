@@ -43,7 +43,8 @@ public class Errand
     /// </summary>
     /// <value>Момент в UTC.</value>
     /// <remarks>
-    /// Планировщик <see cref="Core.Scheduling.Calculator"/> удаляет непринятое поручение по достижении этой даты.
+    /// По достижении этой даты планировщик <see cref="Core.Scheduling.Calculator"/> закрывает непринятое поручение:
+    /// запись остаётся в истории с <see cref="ErrandOutcome.Expired"/>.
     /// </remarks>
     public DateTime ExpireDate { get; set; }
 

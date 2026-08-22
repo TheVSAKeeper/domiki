@@ -16,6 +16,8 @@ namespace Domiki.Web.Data.Migrations
                 type: "integer",
                 nullable: false,
                 defaultValue: 0);
+
+            migrationBuilder.Sql("UPDATE errands SET outcome = 1 WHERE resolved_date IS NOT NULL;");
         }
 
         /// <inheritdoc />

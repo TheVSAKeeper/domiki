@@ -190,8 +190,24 @@ public sealed class ErrandTests
     }
 
     /// <summary>
-    /// Подряд предложенные сюжеты поручений не повторяются: выбор шаблона исключает половину пула, выпавшую
-    /// последней, поэтому четыре предложения кряду приходят с разными сюжетами.
+    /// Отказ от оффера, чей срок уже вышел, а планировщик до него ещё не дошёл, помечается исходом Expired: в
+    /// замере аптейка это протухшее предложение, а не отвергнутое.
+    /// </summary>
+    [Test]
+    public void CancelExpiredOfferMarksExpiredTest()
+    {
+        var player = TestPlayer.Create()
+            .WithErrand(NeighborIds.Zarechye, expireDate: DateTimeHelper.GetNowDate().AddSeconds(-1));
+
+        var errandId = player.LastErrandId();
+        player.CancelErrand(errandId);
+
+        Assert.That(player.ErrandRow(errandId).Outcome, Is.EqualTo(ErrandOutcome.Expired));
+    }
+
+    /// <summary>
+    /// Подряд предложенные сюжеты поручений не повторяются: выбор шаблона исключает выпавшую последней половину
+    /// пула из двенадцати, поэтому семь предложений кряду приходят с разными сюжетами.
     /// </summary>
     [Test]
     public void OfferSeriesDoesNotRepeatRecentTemplatesTest()
