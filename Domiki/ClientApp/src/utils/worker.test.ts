@@ -5,6 +5,7 @@ import { describeWorker } from './worker';
 const domikTypes: DomikTypeDto[] = [
     { id: 1, name: 'Рынок', logicName: 'market', maxCount: 1, availableCount: 0, maxLevel: 5, unlockLevel: 0, blueprintId: null, nextCountGateLevel: null, levels: [] },
     { id: 2, name: 'Кузня', logicName: 'forge', maxCount: 1, availableCount: 0, maxLevel: 5, unlockLevel: 0, blueprintId: null, nextCountGateLevel: null, levels: [] },
+    { id: 3, name: 'Овчарня', logicName: 'sheepfold', maxCount: 1, availableCount: 0, maxLevel: 5, unlockLevel: 0, blueprintId: null, nextCountGateLevel: null, levels: [] },
 ];
 
 const baseWorker: WorkerDto = {
@@ -51,6 +52,7 @@ describe('describeWorker', () => {
             { domikTypeId: 2, uses: 1, bonusPercent: 30 },
         ], 'Знатная кузнечиха, начинающая торговка. Искры летят, а работа поёт.'],
         ['male name ending in -я stays male', 'Илья', 1, [{ domikTypeId: 2, uses: 1, bonusPercent: 10 }], 'Умелый кузнец. Искры летят, а работа поёт.'],
+        ['sheepfold has its own craft', 'Пелагея', 2, [{ domikTypeId: 3, uses: 1, bonusPercent: 25 }], 'Знатная пастушка. Стрижёт так, что овца и не заметит.'],
     ])('%s -> %s', (_name, name, gender, skills, expected) => {
         expect(describeWorker({ ...baseWorker, name, gender, skills }, domikTypes)).toBe(expected);
     });

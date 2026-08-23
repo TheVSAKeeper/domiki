@@ -11,6 +11,10 @@ describe('domikThemedName', () => {
         expect(domikThemedName('Пекарня', 'bakery', 7)).toBe('Пекарня 7');
     });
 
+    it('covers every barracks slot up to the eighth hut', () => {
+        expect(domikThemedName('Артельная изба', 'barracks', 8)).toBe('Артельная изба «Запечье»');
+    });
+
     it('uses the fallback pool for an unknown logic name', () => {
         expect(domikThemedName('Домик', 'unknown', 1)).toBe('Домик «Жёлудь»');
     });
