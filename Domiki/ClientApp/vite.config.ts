@@ -2,6 +2,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import svgr from 'vite-plugin-svgr';
+import { VitePWA } from 'vite-plugin-pwa';
 import fs from 'node:fs';
 import path from 'node:path';
 import child_process from 'node:child_process';
@@ -128,7 +129,24 @@ export default defineConfig(({ command, mode }) => {
 
     return {
         base: '/',
-        plugins: [react(), svgr(), precompress()],
+        plugins: [
+            react(),
+            svgr(),
+            VitePWA({
+                strategies: 'injectManifest',
+                srcDir: 'src',
+                filename: 'sw.js',
+                injectRegister: false,
+                manifest: false,
+                injectManifest: {
+                    globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
+                    globIgnores: ['**/*.{br,gz}'],
+                    maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+                },
+                devOptions: { enabled: false },
+            }),
+            precompress(),
+        ],
         build: {
             outDir: 'build',
             emptyOutDir: true,

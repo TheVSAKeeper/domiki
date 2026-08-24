@@ -1,5 +1,32 @@
-self.addEventListener('install', () => self.skipWaiting());
+import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
+
+const serverRoutes = [
+    /^\/Domiki\//,
+    /^\/Push\//,
+    /^\/authentication\//,
+    /^\/Identity\//,
+    /^\/connect\//,
+    /^\/\.well-known\//,
+    /^\/_framework\//,
+    /^\/ApplyDatabaseMigrations/,
+    /^\/signin-oidc/,
+    /^\/signout-callback-oidc/,
+    /^\/healthz/,
+];
+
+precacheAndRoute(self.__WB_MANIFEST);
+cleanupOutdatedCaches();
+
+registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html'), { denylist: serverRoutes }));
+
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+
+self.addEventListener('message', (event) => {
+    if (event.data?.type === 'SKIP_WAITING') {
+        void self.skipWaiting();
+    }
+});
 
 self.addEventListener('push', (event) => {
     let title = 'Домики';

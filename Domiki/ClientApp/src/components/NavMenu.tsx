@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import MenuIcon from 'pixelarticons/svg/menu.svg?react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import { LoginMenu } from './api-authorization/LoginMenu';
+import { InstallHint } from './InstallHint';
 import { PushToggle } from './PushToggle';
 import { MechanicSprite } from './sprites';
 
@@ -40,6 +41,9 @@ export const NavMenu = () => {
                         </li>
                         <li>
                             <PushToggle />
+                        </li>
+                        <li>
+                            <InstallHint />
                         </li>
                         <LoginMenu />
                     </ul>

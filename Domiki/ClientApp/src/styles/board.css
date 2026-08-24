@@ -1283,7 +1283,8 @@
     padding: 0;
 }
 
-.nav-link.push-toggle {
+.nav-link.push-toggle,
+.nav-link.install-hint {
     font: inherit;
     font-weight: 600;
     background: none;
@@ -1291,7 +1292,8 @@
     cursor: pointer;
 }
 
-    .nav-link.push-toggle:disabled {
+    .nav-link.push-toggle:disabled,
+    .nav-link.install-hint:disabled {
         opacity: .6;
         cursor: default;
     }
