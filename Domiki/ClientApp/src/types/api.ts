@@ -690,6 +690,7 @@ export const goalsStateSchema = z.object({
 export type GoalsStateDto = z.infer<typeof goalsStateSchema>;
 
 export const gameStateSchema = z.object({
+    playerId: z.number(),
     domikTypes: domikTypeSchema.array(),
     resourceTypes: resourceTypeSchema.array(),
     receipts: receiptSchema.array(),

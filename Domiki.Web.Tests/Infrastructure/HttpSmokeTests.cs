@@ -32,7 +32,7 @@ public sealed class HttpSmokeTests
 
     /// <summary>
     /// Демо-вход выдаёт куку аутентификации, и авторизованный запрос состояния игры возвращает 200 с телом-DTO без
-    /// конверта.
+    /// конверта; снимок подписан идентификатором игрока, по которому клиент отличает свой офлайн-кэш от чужого.
     /// </summary>
     [Test]
     public async Task DemoLoginThenGetGameStateReturnsStateTest()
@@ -47,6 +47,7 @@ public sealed class HttpSmokeTests
 
         using var json = JsonDocument.Parse(await gameStateResponse.Content.ReadAsStringAsync());
         Assert.That(json.RootElement.GetProperty("domikTypes").GetArrayLength(), Is.GreaterThan(0));
+        Assert.That(json.RootElement.GetProperty("playerId").GetInt32(), Is.GreaterThan(0));
     }
 
     /// <summary>

@@ -15,6 +15,7 @@ import {
     type ErrandDto,
     type IncidentDto,
     type ExpeditionStateDto,
+    type GameStateDto,
     type GoalsStateDto,
     type MarketStateDto,
     type NeighborReputationDto,
@@ -36,6 +37,7 @@ import {
     type WeatherStateDto,
     type WorkerDto,
 } from '../types/api';
+import { loadSnapshot, saveSnapshot } from '../services/offlineSnapshot';
 import { isNumber, isRecord } from '../utils/recap';
 import { remainingSeconds } from '../utils/time';
 import { getWorkerMilestoneTemplate, workerMilestoneText } from '../utils/workerMilestoneTexts';
@@ -93,6 +95,7 @@ export interface GameData {
     buyFromConvoy: (neighborId: number, resourceTypeId: number, count: number) => Promise<void>;
     relocate: (valleyId: number, villageName: string | null) => Promise<void>;
     buyPerk: (perkType: number) => Promise<void>;
+    staleSince: number | null;
     recap: RecapDto | null;
     clearRecap: () => void;
     events: RecapEventDto[];
@@ -111,6 +114,26 @@ const workerMilestoneEvent = (event: RecapEventDto) => {
         workerName2: typeof event.data.workerName2 === 'string' ? event.data.workerName2 : undefined,
     };
 };
+
+async function loadInitialState(signal: AbortSignal, markStale: (savedAt: number) => void): Promise<GameStateDto> {
+    try {
+        const state = await getGameState(signal);
+        void saveSnapshot(state);
+        return state;
+    } catch (err) {
+        if (!(err instanceof ApiError)) {
+            throw err;
+        }
+
+        const snapshot = await loadSnapshot();
+        if (snapshot == null) {
+            throw err;
+        }
+
+        markStale(snapshot.savedAt);
+        return snapshot.state;
+    }
+}
 
 export function useGameData(): GameData {
     const toast = useToast();
@@ -147,6 +170,7 @@ export function useGameData(): GameData {
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [recap, setRecap] = useState<RecapDto | null>(null);
     const [events, setEvents] = useState<RecapEventDto[]>([]);
+    const [staleSince, setStaleSince] = useState<number | null>(null);
     const [now, setNow] = useState(() => Date.now());
     const [loading, setLoading] = useState(true);
 
@@ -213,6 +237,8 @@ export function useGameData(): GameData {
 
     const reload = useCallback(async () => {
         const state = await getGameState();
+        setStaleSince(null);
+        void saveSnapshot(state);
         const prevActive = expeditionsRef.current?.active ?? [];
         const nextActive = state.expeditions?.active ?? [];
         for (const finished of prevActive) {
@@ -432,7 +458,7 @@ export function useGameData(): GameData {
 
         void (async () => {
             try {
-                const state = await getGameState(signal);
+                const state = await loadInitialState(signal, setStaleSince);
                 setDomikTypes(state.domikTypes);
                 setResourceTypes(state.resourceTypes);
                 setReceipts(state.receipts);
@@ -685,6 +711,7 @@ export function useGameData(): GameData {
         buyFromConvoy,
         relocate,
         buyPerk,
+        staleSince,
         recap,
         clearRecap,
         events,

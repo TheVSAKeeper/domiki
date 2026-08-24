@@ -2,6 +2,7 @@ import { type MouseEvent, useEffect, useState } from 'react';
 import PlayIcon from 'pixelarticons/svg/play.svg?react';
 import LoginIcon from 'pixelarticons/svg/login.svg?react';
 import LogoutIcon from 'pixelarticons/svg/logout.svg?react';
+import { clearSnapshot } from '../../services/offlineSnapshot';
 import UserIcon from 'pixelarticons/svg/user.svg?react';
 import { authService } from '../../services/auth';
 
@@ -58,7 +59,7 @@ export const LoginMenu = () => {
                 </span>
             </li>
             <li>
-                <a className="nav-link" href="/authentication/logout">
+                <a className="nav-link" href="/authentication/logout" onClick={() => void clearSnapshot()}>
                     <LogoutIcon className="nav-ico" aria-hidden="true" />
                     Выйти
                 </a>

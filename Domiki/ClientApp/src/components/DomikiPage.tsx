@@ -45,6 +45,7 @@ import { RelocationBox } from './RelocationBox';
 import { ShopBox } from './ShopBox';
 import { RecapModal } from './RecapModal';
 import { AbstractSprite, MechanicSprite } from './sprites';
+import { OfflineBanner } from './OfflineBanner';
 import { PixelLoader } from './PixelLoader';
 import { ResourceInfoProvider } from './ResourceInfo';
 import { Crest } from './Crest';
@@ -69,7 +70,7 @@ export const DomikiPage = () => {
     useEffect(() => { perfCommitProbe(); });
 
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, staleSince, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -465,6 +466,7 @@ export const DomikiPage = () => {
                     <PixelLoader label="Загрузка деревни…" />
                 </div>
             }
+            <OfflineBanner staleSince={staleSince} />
             {villageSlot != null && createPortal(
                 <h1 className="village-title">
                     <button type="button" className="village-identity" title="Настроить деревню" onClick={openIdentity}>

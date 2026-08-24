@@ -16,6 +16,14 @@ namespace Domiki.Web.Infrastructure.Dto;
 public sealed record GameStateDto
 {
     /// <summary>
+    /// Идентификатор игрока, которому принадлежит снимок.
+    /// </summary>
+    /// <remarks>
+    /// Не секрет: клиент подписывает им офлайн-снимок состояния и не показывает чужой снимок на общем устройстве.
+    /// </remarks>
+    public required int PlayerId { get; init; }
+
+    /// <summary>
     /// Справочник типов построек вместе с персонализацией под игрока.
     /// </summary>
     /// <remarks>

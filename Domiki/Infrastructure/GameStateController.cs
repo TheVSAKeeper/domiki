@@ -84,6 +84,7 @@ public class GameStateController : GameControllerBase
 
         var content = new GameStateDto
         {
+            PlayerId = playerId,
             DomikTypes = _resourceManager.GetDomikTypes().Select(x => x.ToDto(blueprintId: blueprints.FirstOrDefault(b => b.DomikTypeId == x.Id)?.Id)).ToArray(),
             ResourceTypes = _resourceManager.GetResourceTypes().Select(x => x.ToDto()).ToArray(),
             Receipts = _resourceManager.GetReceipts().Select(x => x.ToDto()).ToArray(),
