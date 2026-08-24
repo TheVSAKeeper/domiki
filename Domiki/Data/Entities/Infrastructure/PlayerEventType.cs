@@ -161,4 +161,13 @@ public enum PlayerEventType
     /// См. <see cref="Village.RelocationManager.Relocate"/>.
     /// </remarks>
     Relocated = 22,
+
+    /// <summary>
+    /// Жила рудника на сегодня выбрана – золотой наряд снят до новой породы.
+    /// </summary>
+    /// <remarks>
+    /// Своё событие, а не <see cref="ManufactureRepeatFailed"/>: штатный конец суточной добычи не должен читаться как
+    /// поломка наряда. См. <see cref="Core.DomikManager.FinishManufacture"/>.
+    /// </remarks>
+    ManufactureGoldCapReached = 23,
 }

@@ -9,7 +9,7 @@ import InfoBoxIcon from 'pixelarticons/svg/info-box.svg?react';
 import PlayIcon from 'pixelarticons/svg/play.svg?react';
 import type { DomikTypeDto, GoalsStateDto, ReceiptDto, ResourceDto, ResourceTypeDto, SelectedDomikView, SickTypeDto, VillageLevelDto, WeatherEffectDto, WeatherPeriodDto, WorkerDto } from '../types/api';
 import type { DomikNamer } from '../utils/domikNames';
-import { PLODDER_MODIFICATOR_TYPE_ID, SICK_MIN_VILLAGE_LEVEL, computeReceiptView, isWorkerFree, progressPercent, residentsGain, resourceShortfall, workIntensity, workerFitness } from '../utils/game';
+import { PLODDER_MODIFICATOR_TYPE_ID, SICK_MIN_VILLAGE_LEVEL, computeReceiptView, goldVeinView, isWorkerFree, progressPercent, residentsGain, resourceShortfall, workIntensity, workerFitness, type GoldVeinContext, type GoldVeinView } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { formatOutputDelta, sickRiskPercent, sickTypeForWeather, weatherMark } from '../utils/weather';
 import { domikLore } from '../utils/domikLore';
@@ -26,6 +26,7 @@ import { AbstractSprite, DomikSprite, ResourceSprite, WorkerSprite } from './spr
 
 const MEASURE_MIN_LEVEL = 2;
 const SHOWN_OUTPUTS = 2;
+const GOLD_VEIN_LORE = 'Рудник за сутки отдаёт золота по своей ступени: ступень 3 – три крупицы. Золото не разменять – им торопят стройку, снаряжают походы да доплачивают за новые постройки, потому и копится по крупице. Углубишь рудник – жила станет щедрее.';
 
 interface ReceiptUiState {
     expandedIds: ReadonlySet<number>;
@@ -101,13 +102,14 @@ interface ReceiptRowProps {
     atManufactureCap: boolean;
     runningManufactures: number;
     maxManufactures: number;
+    goldVein: GoldVeinView | null;
     ui: { expanded: boolean; useOptional: boolean; autoRepeat: boolean; isManual: boolean; selectedWorkerIds: number[] };
     dispatch: Dispatch<ReceiptUiAction>;
     onStart: (domikId: number, receiptId: number, useOptional: boolean, autoRepeat: boolean, workerIds?: number[]) => Promise<boolean>;
     formatShortfall: (cost: { typeId: number; value: number }[]) => string;
 }
 
-const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, workers, goals, villageLevel, weatherEffect, sickName, now, plodderFree, atManufactureCap, runningManufactures, maxManufactures, ui, dispatch, onStart, formatShortfall }: ReceiptRowProps) => {
+const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, workers, goals, villageLevel, weatherEffect, sickName, now, plodderFree, atManufactureCap, runningManufactures, maxManufactures, goldVein, ui, dispatch, onStart, formatShortfall }: ReceiptRowProps) => {
     const { expanded, useOptional, autoRepeat, isManual, selectedWorkerIds } = ui;
     const hasOptional = receipt.optionalInputResources.length > 0;
     const view = computeReceiptView(receipt, resources, plodderFree, hasOptional && useOptional, goals?.zealCharges, domikType);
@@ -123,7 +125,7 @@ const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, wor
     const capReason = atManufactureCap ? `Все места заняты: ${runningManufactures} из ${maxManufactures}` : null;
     const canRun = (isManual
         ? view.hasResources && validSelectedIds.length === receipt.plodderCount
-        : view.canRun) && !atManufactureCap;
+        : view.canRun) && !atManufactureCap && goldVein?.blockReason == null;
     const workerBlockReason = isManual
         ? validSelectedIds.length !== receipt.plodderCount
             ? `Выберите ровно ${receipt.plodderCount} трудяг (сейчас ${validSelectedIds.length})`
@@ -131,6 +133,7 @@ const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, wor
         : !view.hasPlodders ? `Не хватает свободных трудяг: ${automaticWorkerShortfall}` : null;
     const blockTitle = [
         capReason,
+        goldVein?.blockReason ?? null,
         !view.hasResources ? `Не хватает: ${missingResourcesText}` : null,
         workerBlockReason,
     ].filter(reason => reason != null).join('; ');
@@ -178,6 +181,10 @@ const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, wor
                             <ClockIcon aria-hidden="true" />
                             {formatDuration(view.effectiveDurationSeconds)}
                         </span>
+                        {goldVein != null &&
+                            <span className={'receipt-vein' + (goldVein.exhausted ? ' receipt-vein--spent' : '')} title={GOLD_VEIN_LORE}>
+                                {goldVein.exhausted ? 'жила выбрана' : `жила: ${goldVein.mined} из ${goldVein.cap}`}
+                            </span>}
                         {view.zealMultiplier > 1 && <span className="receipt-zeal">×{view.zealMultiplier}</span>}
                         {lackLabel != null && <span className="receipt-lack" title={summaryBlockTitle}>{lackLabel}</span>}
                     </span>
@@ -208,6 +215,13 @@ const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, wor
                     {weatherEffect != null && sickName != null && weatherEffect.outputPercent > 100 && (villageLevel?.level ?? 0) >= SICK_MIN_VILLAGE_LEVEL &&
                         <p className="weather-modifier weather-modifier--risk">
                             {sickName}: риск {sickRiskPercent(weatherEffect.outputPercent)} %
+                        </p>
+                    }
+                    {goldVein != null &&
+                        <p className="weather-modifier" title={GOLD_VEIN_LORE}>
+                            {goldVein.exhausted
+                                ? `Жила на сегодня выбрана: ${goldVein.mined} из ${goldVein.cap} – столько рудник за сутки и отдаёт. Свежая порода подойдёт через ${goldVein.hoursToFresh} ч.`
+                                : `Жила на сегодня: намыто ${goldVein.mined} из ${goldVein.cap} – рудник отдаёт за сутки по своей ступени.`}
                         </p>
                     }
                     <div className="receipt-options">
@@ -267,13 +281,14 @@ const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, wor
                         <PlayIcon className="btn-ico" aria-hidden="true" />
                         Запустить
                     </ActionButton>
-                     {!canRun && (!view.hasResources || workerBlockReason != null) &&
+                     {!canRun && (!view.hasResources || workerBlockReason != null || goldVein?.blockReason != null) &&
                         <div className="note-warn resource-shortfall">
                             <img src="/images/upgrade_no_resources.png" alt="" />
                             {!view.hasResources
                                 ? <><span>Не хватает</span><ResourcesBox resources={missingResources} resourceTypes={resourceTypes} showNames /></>
                                 : null}
                             {workerBlockReason != null && <span>{workerBlockReason}</span>}
+                            {goldVein?.blockReason != null && <span>{goldVein.blockReason}</span>}
                         </div>
                      }
                 </div>
@@ -375,6 +390,7 @@ interface SelectedDomikPanelProps {
     now: number;
     goldValue: number;
     goldType: ResourceTypeDto | undefined;
+    goldVein: GoldVeinContext;
     plodderFree: number;
     displayName: DomikNamer;
     onClose: () => void;
@@ -387,7 +403,7 @@ interface SelectedDomikPanelProps {
     onSetManufactureMeasure: (manufactureId: number, resourceTypeId: number | null, value: number | null) => void;
 }
 
-export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, receipts, workers, goals, villageLevel, currentWeather, sickTypes, now, goldValue, goldType, plodderFree, displayName, onClose, onUpgrade, onHurryDomik, onStartManufacture, onHurryManufacture, onToggleManufactureRepeat, elderHouseLevel, onSetManufactureMeasure }: SelectedDomikPanelProps) => {
+export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, receipts, workers, goals, villageLevel, currentWeather, sickTypes, now, goldValue, goldType, goldVein, plodderFree, displayName, onClose, onUpgrade, onHurryDomik, onStartManufacture, onHurryManufacture, onToggleManufactureRepeat, elderHouseLevel, onSetManufactureMeasure }: SelectedDomikPanelProps) => {
     const [ui, dispatch] = useReducer(receiptUiReducer, initialReceiptUiState);
     const [tab, setTab] = useState<PanelView>('work');
     const [tabbedDomikId, setTabbedDomikId] = useState(selected?.domik.id);
@@ -460,7 +476,8 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
     const readyReceipts: ReceiptDto[] = [];
     const blockedReceipts: ReceiptDto[] = [];
     for (const receipt of selected?.receipts ?? []) {
-        const canRun = computeReceiptView(receipt, resources, plodderFree, false, goals?.zealCharges, selected?.domikType).canRun;
+        const veinBlocked = selected != null && goldVeinView(receipt, selected.domik, goldVein)?.blockReason != null;
+        const canRun = computeReceiptView(receipt, resources, plodderFree, false, goals?.zealCharges, selected?.domikType).canRun && !veinBlocked;
         (canRun ? readyReceipts : blockedReceipts).push(receipt);
     }
 
@@ -481,6 +498,7 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
             atManufactureCap={atManufactureCap}
             runningManufactures={runningManufactures}
             maxManufactures={maxManufactures}
+            goldVein={goldVeinView(receipt, view.domik, goldVein)}
             ui={{
                 expanded: ui.expandedIds.has(receipt.id),
                 useOptional: ui.optionalIds.has(receipt.id),

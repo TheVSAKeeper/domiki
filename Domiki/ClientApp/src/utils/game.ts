@@ -309,3 +309,49 @@ export function strongestWeatherEffect(effects: { domikTypeId: number; outputPer
     }
     return best;
 }
+
+const DAY_MS = 86400000;
+const HOUR_MS = 3600000;
+
+export interface GoldVeinView {
+    mined: number;
+    cap: number;
+    exhausted: boolean;
+    hoursToFresh: number;
+    blockReason: string | null;
+}
+
+export interface GoldVeinContext {
+    domiks: DomikDto[];
+    receipts: ReceiptDto[];
+    goldMinedToday: number;
+    now: number;
+}
+
+export function goldVeinView(receipt: ReceiptDto, domik: DomikDto, { domiks, receipts, goldMinedToday, now }: GoldVeinContext): GoldVeinView | null {
+    if (domik.level <= 0 || !receipt.outputResources.some(output => output.typeId === GOLD_RESOURCE_TYPE_ID)) {
+        return null;
+    }
+
+    const nextUtcMidnight = (Math.floor(now / DAY_MS) + 1) * DAY_MS;
+    const cap = domik.level;
+    const mined = Math.min(goldMinedToday, cap);
+    const remaining = cap - mined;
+    const hoursToFresh = Math.max(1, Math.ceil((nextUtcMidnight - now) / HOUR_MS));
+    const crossesMidnight = now + receipt.durationSeconds * 1000 >= nextUtcMidnight;
+    const reserved = domiks.flatMap(item => item.manufactures ?? []).reduce((sum, manufacture) => {
+        if (Date.parse(manufacture.finishDate) >= nextUtcMidnight) {
+            return sum;
+        }
+        const running = receipts.find(x => x.id === manufacture.receiptId);
+        return sum + (running?.outputResources.filter(output => output.typeId === GOLD_RESOURCE_TYPE_ID).reduce((gold, output) => gold + output.value, 0) ?? 0);
+    }, 0);
+    const blockReason = crossesMidnight
+        ? null
+        : remaining <= 0
+            ? `Жила на сегодня выбрана: ${mined} из ${cap} – новая через ${hoursToFresh} ч`
+            : remaining <= reserved
+                ? 'Остаток жилы уже на вороте – его заберёт смена, что сейчас идёт'
+                : null;
+    return { mined, cap, exhausted: remaining <= 0, hoursToFresh, blockReason };
+}

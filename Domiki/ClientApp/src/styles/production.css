@@ -133,6 +133,21 @@
     clip-path: var(--cut);
 }
 
+.receipt-vein {
+    padding: 2px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
+    background: #f2dfa0;
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+    .receipt-vein--spent {
+        color: var(--ink-muted);
+        background: #e7e0cf;
+    }
+
 .receipt-stat {
     display: inline-flex;
     align-items: center;

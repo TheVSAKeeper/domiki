@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ResourceDto, WorkerDto } from '../types/api';
-import { canAffordUpgrade, computeReceiptView, isWorkerFree, manufactureProgressPercent, progressPercent, residentsGain, resourceShortfall, resourceSourceMap, sortDomiks, tradeDeal, tradeRatio, workIntensity, zealApplies, zealMultiplier } from './game';
+import { canAffordUpgrade, computeReceiptView, goldVeinView, isWorkerFree, manufactureProgressPercent, progressPercent, residentsGain, resourceShortfall, resourceSourceMap, sortDomiks, tradeDeal, tradeRatio, workIntensity, zealApplies, zealMultiplier } from './game';
 import type { WorkIntensity } from './game';
 
 describe('resourceShortfall', () => {
@@ -344,5 +344,68 @@ describe('workIntensity', () => {
 
     it('normal when the level is missing from the reference data', () => {
         expect(workIntensity({ ...domik(2), level: 4 }, domikType(2))).toBe('normal');
+    });
+});
+
+describe('goldVeinView', () => {
+    const goldReceipt: ReceiptDto = {
+        id: 3, name: 'Надоблить золотишка', logicName: 'gold_dig', inputResources: [], optionalInputResources: [],
+        durationSeconds: 3600, outputBonusPercent: 0, plodderCount: 1,
+        outputResources: [{ typeId: 5, value: 1 }],
+    };
+    const oreReceipt: ReceiptDto = {
+        ...goldReceipt, id: 59, name: 'Подобрать руду', logicName: 'ore_pick',
+        outputResources: [{ typeId: 20, value: 2 }],
+    };
+    const mine = (manufactures: ManufactureDto[] = [], level = 3): DomikDto =>
+        ({ id: 15, typeId: 4, level, finishDate: null, upgradeSeconds: null, manufactures });
+    const shift = (receiptId: number, finishMs: number): ManufactureDto =>
+        ({ id: 1, finishDate: new Date(finishMs).toISOString(), durationSeconds: 3600, plodderCount: 1, receiptId, autoRepeat: true, measureResourceTypeId: null, measureValue: null });
+    const now = Date.UTC(2026, 7, 24, 18, 0, 0);
+    const midnight = Date.UTC(2026, 7, 25, 0, 0, 0);
+
+    const context = (goldMinedToday: number, domiks: DomikDto[] = [mine()], nowMs: number = now) =>
+        ({ domiks, receipts: [goldReceipt, oreReceipt], goldMinedToday, now: nowMs });
+
+    it('returns null for a receipt without gold output', () => {
+        expect(goldVeinView(oreReceipt, mine(), context(3))).toBeNull();
+    });
+
+    it('shows mined progress without blocking while the vein has remainder', () => {
+        expect(goldVeinView(goldReceipt, mine(), context(2)))
+            .toEqual({ mined: 2, cap: 3, exhausted: false, hoursToFresh: 6, blockReason: null });
+    });
+
+    it('blocks with hours to fresh vein when the daily cap is mined out', () => {
+        expect(goldVeinView(goldReceipt, mine(), context(3)))
+            .toEqual({ mined: 3, cap: 3, exhausted: true, hoursToFresh: 6, blockReason: 'Жила на сегодня выбрана: 3 из 3 – новая через 6 ч' });
+    });
+
+    it('does not block a shift that finishes after UTC midnight', () => {
+        const lateNow = midnight - 30 * 60 * 1000;
+        expect(goldVeinView(goldReceipt, mine(), context(3, [mine()], lateNow))?.blockReason).toBeNull();
+    });
+
+    it('blocks when the remainder is already taken by a running gold shift finishing today', () => {
+        const running = shift(goldReceipt.id, now + 30 * 60 * 1000);
+        expect(goldVeinView(goldReceipt, mine([running]), context(2, [mine([running])]))?.blockReason)
+            .toBe('Остаток жилы уже на вороте – его заберёт смена, что сейчас идёт');
+    });
+
+    it('ignores running shifts that finish after UTC midnight when counting the remainder', () => {
+        const overnight = shift(goldReceipt.id, midnight + 30 * 60 * 1000);
+        expect(goldVeinView(goldReceipt, mine([overnight]), context(2, [mine([overnight])]))?.blockReason).toBeNull();
+    });
+
+    it('counts a gold shift running in another mine of the same yard', () => {
+        const other = { ...mine([shift(goldReceipt.id, now + 30 * 60 * 1000)]), id: 16 };
+        expect(goldVeinView(goldReceipt, mine(), context(2, [mine(), other]))?.blockReason)
+            .toBe('Остаток жилы уже на вороте – его заберёт смена, что сейчас идёт');
+    });
+
+    it('counts an overdue gold shift the planner has not finished yet', () => {
+        const overdue = shift(goldReceipt.id, now - 30 * 60 * 1000);
+        expect(goldVeinView(goldReceipt, mine([overdue]), context(2, [mine([overdue])]))?.blockReason)
+            .toBe('Остаток жилы уже на вороте – его заберёт смена, что сейчас идёт');
     });
 });

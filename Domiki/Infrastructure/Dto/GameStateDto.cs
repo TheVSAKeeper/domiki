@@ -96,6 +96,15 @@ public sealed record GameStateDto
     public required VillageLevelDto VillageLevel { get; init; }
 
     /// <summary>
+    /// Сколько золота добыто рудником за текущие сутки UTC.
+    /// </summary>
+    /// <remarks>
+    /// Суточный кап добычи равен уровню рудника – клиент показывает остаток дневной жилы на карточке рудника
+    /// (см. <see cref="Core.DomikManager.GetGoldMinedToday"/>).
+    /// </remarks>
+    public required int GoldMinedToday { get; init; }
+
+    /// <summary>
     /// Трудяги игрока.
     /// </summary>
     public required WorkerDto[] Workers { get; init; }

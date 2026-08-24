@@ -167,6 +167,96 @@ public class DomikManager
         };
     }
 
+    /// <summary>
+    /// Возвращает, сколько золота игрок уже добыл рудником за текущие сутки UTC.
+    /// </summary>
+    /// <remarks>
+    /// Суточный кап добычи равен уровню рудника (см. <see cref="FinishManufacture"/>); счётчик живёт в
+    /// <see cref="Data.Entities.Player.GoldMinedToday"/> и здесь нормализуется по дате – за прошлые сутки отдаётся ноль.
+    /// </remarks>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <returns>Число единиц золота, добытых за сегодня.</returns>
+    public int GetGoldMinedToday(int playerId)
+    {
+        var dbPlayer = _context.Players.Single(x => x.Id == playerId);
+        return dbPlayer.GoldMinedDate == DateTimeHelper.GetNowDate().Date ? dbPlayer.GoldMinedToday : 0;
+    }
+
+    /// <summary>
+    /// Возвращает остаток суточной жилы рудника, если он вообще ограничивает стартующую смену.
+    /// </summary>
+    /// <remarks>
+    /// Смена, завершающаяся после полуночи UTC, берёт из жилы новых суток и жилой сегодняшних не ограничена.
+    /// </remarks>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <param name="dbDomik">Рудник, в котором стартует смена.</param>
+    /// <param name="receipt">Рецепт стартующей смены.</param>
+    /// <param name="date">Момент старта в UTC.</param>
+    /// <param name="finishDate">Ожидаемый момент завершения смены в UTC.</param>
+    /// <returns>Остаток жилы на сегодня; <see langword="null"/> – жила смену не ограничивает.</returns>
+    private int? GetGoldVeinRemaining(int playerId, Data.Entities.Domik dbDomik, Reference.Models.Receipt receipt, DateTime date, DateTime finishDate)
+    {
+        if (receipt.OutputResources.All(x => x.Type.Id != GoldResourceTypeId) || finishDate.Date > date.Date)
+        {
+            return null;
+        }
+
+        var dbPlayer = _context.Players.First(x => x.Id == playerId);
+        var minedToday = dbPlayer.GoldMinedDate == date.Date ? dbPlayer.GoldMinedToday : 0;
+        return dbDomik.Level - minedToday;
+    }
+
+    /// <summary>
+    /// Проверяет, хватит ли суточной жилы рудника на ещё одну золотую смену.
+    /// </summary>
+    /// <remarks>
+    /// Счётчик добытого – общий на игрока (см. <see cref="Data.Entities.Player.GoldMinedToday"/>), поэтому занятым
+    /// считается остаток, который заберут идущие золотые смены **всех** рудников двора, а не только этого.
+    /// Просроченная смена (планировщик ещё не довёл её до конца) тоже держит свою долю: она заберёт золото сегодня.
+    /// </remarks>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <param name="dbDomik">Рудник, в котором стартует смена.</param>
+    /// <param name="receipt">Рецепт стартующей смены.</param>
+    /// <param name="date">Момент старта в UTC.</param>
+    /// <param name="finishDate">Ожидаемый момент завершения смены в UTC.</param>
+    /// <param name="excludeManufactureId">Смена, которую не считать занявшей остаток – та, что сама сейчас завершается.</param>
+    /// <returns>Текст причины блокировки для игрока; <see langword="null"/> – смену можно запускать.</returns>
+    private string? GetGoldVeinBlockReason(int playerId, Data.Entities.Domik dbDomik, Reference.Models.Receipt receipt, DateTime date, DateTime finishDate, int? excludeManufactureId = null)
+    {
+        if (GetGoldVeinRemaining(playerId, dbDomik, receipt, date, finishDate) is not int remaining)
+        {
+            return null;
+        }
+
+        if (remaining <= 0)
+        {
+            return $"Жила на сегодня выбрана – новая через {GetHoursToFreshVein(date)} ч";
+        }
+
+        var receipts = _resourceManager.GetReceipts().ToDictionary(x => x.Id);
+        var tomorrow = date.Date.AddDays(1);
+        var reserved = _context.Manufactures
+            .Where(x => x.DomikPlayerId == playerId && x.FinishDate < tomorrow && x.Id != excludeManufactureId)
+            .AsEnumerable()
+            .Sum(x => receipts.TryGetValue(x.ReceiptId, out var running)
+                ? running.OutputResources.Where(r => r.Type.Id == GoldResourceTypeId).Sum(r => r.Value)
+                : 0);
+
+        return remaining <= reserved
+            ? "Остаток жилы уже на вороте – его заберёт смена, что сейчас идёт"
+            : null;
+    }
+
+    /// <summary>
+    /// Считает, через сколько часов рудник получит свежую жилу – до ближайшей полуночи UTC, но не меньше часа.
+    /// </summary>
+    /// <param name="date">Момент в UTC, от которого считается ожидание.</param>
+    /// <returns>Число часов до новой жилы.</returns>
+    private static int GetHoursToFreshVein(DateTime date)
+    {
+        return Math.Max(1, (int)Math.Ceiling((date.Date.AddDays(1) - date).TotalHours));
+    }
+
     public void SetVillageIdentity(int playerId, string? name, int crestIcon, int crestColor)
     {
         _playerResourceManager.LockDbPlayerRow(playerId);
@@ -607,6 +697,11 @@ public class DomikManager
             cloakCount = Math.Min(eligibleWorkerCount, Math.Max(0, cloakStock - cloaksOut));
         }
 
+        if (GetGoldVeinBlockReason(playerId, dbDomik, receipt, date, date.AddSeconds(duration)) is string goldVeinBlockReason)
+        {
+            throw new BusinessException(goldVeinBlockReason);
+        }
+
         _playerResourceManager.WriteOffResources(playerId, writeOffResources);
 
         if (zealChargeOwed)
@@ -832,6 +927,11 @@ public class DomikManager
                     calcInfo.PushBody = $"На складе прибыло: {producedList}. Заглянешь запустить ещё?";
                 }
             }
+            else if (recept.OutputResources.Any(x => x.Type.Id == GoldResourceTypeId))
+            {
+                calcInfo.PushTitle = "Жила на сегодня выбрана";
+                calcInfo.PushBody = $"Намыли {dbPlayer.GoldMinedToday} из {dbDomik.Level} – столько рудник за сутки и отдаёт. Свежая порода подойдёт завтра.";
+            }
             else if (pushWorker != null)
             {
                 (calcInfo.PushTitle, calcInfo.PushBody) = (dbManufacture.Id % 3) switch
@@ -863,6 +963,12 @@ public class DomikManager
                 if (_elderHouseManager.GetHeldResourceTypeId(playerId, manufactureInputs) is int heldResourceTypeId)
                 {
                     _playerEventManager.Record(playerId, PlayerEventType.ManufactureReserveHeld, new { domikId, domikTypeId = dbDomik.TypeId, receiptId, resourceTypeId = heldResourceTypeId });
+                    return true;
+                }
+
+                if (GetGoldVeinRemaining(playerId, dbDomik, recept, date, date.AddSeconds(dbManufacture.DurationSeconds)) <= 0)
+                {
+                    _playerEventManager.Record(playerId, PlayerEventType.ManufactureGoldCapReached, new { domikId, domikTypeId = dbDomik.TypeId, receiptId, mined = dbPlayer.GoldMinedToday, cap = dbDomik.Level });
                     return true;
                 }
 
@@ -901,6 +1007,13 @@ public class DomikManager
         if (cost <= 0)
         {
             return;
+        }
+
+        var dbHurriedDomik = _context.Domiks.Single(x => x.PlayerId == playerId && x.Id == dbManufacture.DomikId);
+        var hurriedReceipt = _resourceManager.GetReceipts().First(x => x.Id == dbManufacture.ReceiptId);
+        if (GetGoldVeinBlockReason(playerId, dbHurriedDomik, hurriedReceipt, date, date, dbManufacture.Id) is string hurryBlockReason)
+        {
+            throw new BusinessException(hurryBlockReason);
         }
 
         WriteOffGold(playerId, cost);

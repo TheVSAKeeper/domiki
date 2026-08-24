@@ -144,6 +144,20 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
         };
     }
 
+    if (event.type === 'ManufactureGoldCapReached' && isNumber(data.domikTypeId) && isNumber(data.mined) && isNumber(data.cap)) {
+        const domikType = domikTypes.find(x => x.id === data.domikTypeId);
+        return {
+            tone: 'prod',
+            Icon: abstractIcon('production_recipe'),
+            body: (
+                <>
+                    {domikType != null && <DomikSprite logicName={domikType.logicName} aria-hidden="true" />}
+                    <span className="journal-text">Жила на сегодня выбрана: намыто {data.mined} из {data.cap} – наряд снят.</span>
+                </>
+            ),
+        };
+    }
+
     if (event.type === 'DomikUpgraded' && isNumber(data.domikTypeId) && isNumber(data.level)) {
         const domikType = domikTypes.find(x => x.id === data.domikTypeId);
         return {

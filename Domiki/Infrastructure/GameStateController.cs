@@ -97,6 +97,7 @@ public class GameStateController : GameControllerBase
             Blueprints = _blueprintManager.GetBlueprints(playerId).Select(x => x.ToDto()).ToArray(),
             Village = _domikManager.GetVillage(playerId).ToDto(),
             VillageLevel = villageLevel.ToDto(),
+            GoldMinedToday = _domikManager.GetGoldMinedToday(playerId),
             Workers = _workerManager.GetWorkers(playerId).Select(x => x.ToDto()).ToArray(),
             Cloaks = _workerManager.GetCloakState(playerId).ToDto(),
             Larder = _tavernManager.GetRules(playerId).ToDto(),

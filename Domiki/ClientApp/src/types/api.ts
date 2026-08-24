@@ -703,6 +703,7 @@ export const gameStateSchema = z.object({
     blueprints: blueprintSchema.array(),
     village: villageSchema,
     villageLevel: villageLevelSchema,
+    goldMinedToday: z.number().optional().default(0),
     workers: workerSchema.array(),
     cloaks: cloakStateSchema,
     larder: larderSchema,

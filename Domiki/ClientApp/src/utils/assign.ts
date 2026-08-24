@@ -1,5 +1,5 @@
 import type { DomikDto, DomikTypeDto, ReceiptDto, ResourceDto, WorkerDto } from '../types/api';
-import { resourceShortfall, workerFitness } from './game';
+import { goldVeinView, resourceShortfall, workerFitness, type GoldVeinContext } from './game';
 
 export interface AssignReceiptOption {
     receipt: ReceiptDto;
@@ -17,6 +17,8 @@ export interface AssignTarget {
 }
 
 const BLOCKED_TARGET: AssignTarget = { eligible: false, reason: 'нечего делать', options: [] };
+
+const VEIN_SPENT_REASON = 'жила выбрана';
 
 export function workerSkillPercent(worker: WorkerDto, domikTypeId: number): number {
     return worker.skills.find(skill => skill.domikTypeId === domikTypeId)?.bonusPercent ?? 0;
@@ -47,6 +49,7 @@ export function buildAssignTarget(
     resources: ResourceDto[],
     freeWorkers: WorkerDto[],
     held: WorkerDto,
+    goldVein: GoldVeinContext,
 ): AssignTarget {
     if (domik.level === 0 || domik.finishDate != null) {
         return { eligible: false, reason: 'идёт стройка', options: [] };
@@ -75,15 +78,16 @@ export function buildAssignTarget(
             const crew = pickCrew(held, freeWorkers, domikType.id, receipt.plodderCount);
             const shortfall = resourceShortfall(receipt.inputResources, resources);
             const enoughCrew = crew.length === receipt.plodderCount;
+            const veinBlocked = goldVeinView(receipt, domik, goldVein)?.blockReason != null;
             return {
                 receipt,
                 crew,
                 autoCrew: crew.slice(1),
                 shortfall,
-                canRun: shortfall.length === 0 && enoughCrew,
+                canRun: shortfall.length === 0 && enoughCrew && !veinBlocked,
                 reason: shortfall.length > 0
                     ? 'нет припасов'
-                    : enoughCrew ? null : `нужно трудяг: ${receipt.plodderCount}`,
+                    : enoughCrew ? veinBlocked ? VEIN_SPENT_REASON : null : `нужно трудяг: ${receipt.plodderCount}`,
             };
         });
 
@@ -93,6 +97,10 @@ export function buildAssignTarget(
 
     if (options.some(option => option.canRun)) {
         return { eligible: true, reason: null, options };
+    }
+
+    if (options.every(option => option.reason === VEIN_SPENT_REASON)) {
+        return { eligible: false, reason: VEIN_SPENT_REASON, options };
     }
 
     return {
@@ -109,11 +117,12 @@ export function buildAssignTargets(
     resources: ResourceDto[],
     freeWorkers: WorkerDto[],
     held: WorkerDto,
+    goldVein: GoldVeinContext,
 ): Map<number, AssignTarget> {
     return new Map(domiks.flatMap(domik => {
         const domikType = domikTypes.find(type => type.id === domik.typeId);
         return domikType == null
             ? []
-            : [[domik.id, buildAssignTarget(domik, domikType, receipts, resources, freeWorkers, held)] as const];
+            : [[domik.id, buildAssignTarget(domik, domikType, receipts, resources, freeWorkers, held, goldVein)] as const];
     }));
 }

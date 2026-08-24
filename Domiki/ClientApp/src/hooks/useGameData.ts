@@ -55,6 +55,7 @@ export interface GameData {
     loading: boolean;
     village: VillageDto | null;
     villageLevel: VillageLevelDto | null;
+    goldMinedToday: number;
     villageProfiles: VillageProfileDto[];
     relocation: RelocationDto | null;
     weather: WeatherStateDto | null;
@@ -127,6 +128,7 @@ export function useGameData(): GameData {
     const [blueprints, setBlueprints] = useState<BlueprintDto[]>([]);
     const [village, setVillageState] = useState<VillageDto | null>(null);
     const [villageLevel, setVillageLevel] = useState<VillageLevelDto | null>(null);
+    const [goldMinedToday, setGoldMinedToday] = useState(0);
     const [villageProfiles, setVillageProfiles] = useState<VillageProfileDto[]>([]);
     const [relocation, setRelocation] = useState<RelocationDto | null>(null);
     const [weather, setWeather] = useState<WeatherStateDto | null>(null);
@@ -255,6 +257,7 @@ export function useGameData(): GameData {
         setBlueprints(state.blueprints);
         setVillageState(state.village);
         setVillageLevel(state.villageLevel);
+        setGoldMinedToday(state.goldMinedToday);
         setVillageProfiles(state.villageProfiles);
         setRelocation(state.relocation);
         setWorkers(state.workers);
@@ -443,6 +446,7 @@ export function useGameData(): GameData {
                 setBlueprints(state.blueprints);
                 setVillageState(state.village);
                 setVillageLevel(state.villageLevel);
+                setGoldMinedToday(state.goldMinedToday);
                 setVillageProfiles(state.villageProfiles);
                 setRelocation(state.relocation);
                 setWorkers(state.workers);
@@ -642,6 +646,7 @@ export function useGameData(): GameData {
         blueprints,
         village,
         villageLevel,
+        goldMinedToday,
         villageProfiles,
         relocation,
         weather,

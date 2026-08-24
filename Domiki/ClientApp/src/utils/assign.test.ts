@@ -55,9 +55,10 @@ describe('buildAssignTarget', () => {
     const held = worker(1, 0);
     const free = [held, worker(2, 0), worker(3, 0)];
     const receipts = [receipt(1, 1), receipt(2, 2, [{ typeId: 4, value: 5 }])];
+    const noVein = { domiks: [], receipts, goldMinedToday: 0, now: Date.UTC(2026, 6, 25, 12, 0, 0) };
 
     it('признаёт постройку годной целью, когда хотя бы один рецепт запускается', () => {
-        const target = buildAssignTarget(domik(), domikType([1, 2]), receipts, [], free, held);
+        const target = buildAssignTarget(domik(), domikType([1, 2]), receipts, [], free, held, noVein);
 
         expect(target.eligible).toBe(true);
         expect(target.reason).toBeNull();
@@ -65,7 +66,7 @@ describe('buildAssignTarget', () => {
     });
 
     it('называет нехватку припасов, когда рецепты упираются только в склад', () => {
-        const target = buildAssignTarget(domik(), domikType([2]), receipts, [], free, held);
+        const target = buildAssignTarget(domik(), domikType([2]), receipts, [], free, held, noVein);
 
         expect(target.eligible).toBe(false);
         expect(target.reason).toBe('нет припасов');
@@ -73,7 +74,7 @@ describe('buildAssignTarget', () => {
     });
 
     it('называет нехватку трудяг, когда припасов хватает, а свободных нет', () => {
-        const target = buildAssignTarget(domik(), domikType([2]), receipts, [{ typeId: 4, value: 5 }], [held], held);
+        const target = buildAssignTarget(domik(), domikType([2]), receipts, [{ typeId: 4, value: 5 }], [held], held, noVein);
 
         expect(target.reason).toBe('нет трудяг');
         expect(target.options[0]?.reason).toBe('нужно трудяг: 2');
@@ -85,14 +86,25 @@ describe('buildAssignTarget', () => {
         ['идёт стройка', domik({ finishDate: '2026-07-25T10:00:00Z' }), domikType([1])],
         ['нечего делать', domik(), domikType([])],
     ])('отказывает в приставлении с причиной «%s»', (reason, target, type) => {
-        const result = buildAssignTarget(target, type, receipts, [], free, held);
+        const result = buildAssignTarget(target, type, receipts, [], free, held, noVein);
 
         expect(result.eligible).toBe(false);
         expect(result.reason).toBe(reason);
     });
 
+    it('отказывает в приставлении к руднику с выбранной жилой', () => {
+        const goldReceipt = { ...receipt(9, 1), outputResources: [{ typeId: 5, value: 1 }] };
+        const mine = domik({ id: 15, typeId: 4, level: 1 });
+        const vein = { domiks: [mine], receipts: [goldReceipt], goldMinedToday: 1, now: Date.UTC(2026, 6, 25, 12, 0, 0) };
+        const target = buildAssignTarget(mine, { ...domikType([9]), id: 4 }, [goldReceipt], [], free, held, vein);
+
+        expect(target.eligible).toBe(false);
+        expect(target.reason).toBe('жила выбрана');
+        expect(target.options[0]?.canRun).toBe(false);
+    });
+
     it('не предлагает рецепты, которым трудяги не нужны', () => {
-        const target = buildAssignTarget(domik(), domikType([3]), [receipt(3, 0)], [], free, held);
+        const target = buildAssignTarget(domik(), domikType([3]), [receipt(3, 0)], [], free, held, noVein);
 
         expect(target.options).toHaveLength(0);
         expect(target.reason).toBe('нечего делать');

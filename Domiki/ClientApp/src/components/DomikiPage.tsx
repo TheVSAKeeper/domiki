@@ -9,7 +9,7 @@ import { useGameData } from '../hooks/useGameData';
 import { GOLD_RESOURCE_TYPE_ID, computeSelectedDomikView, isWorkerFree } from '../utils/game';
 import { buildAssignTarget, buildAssignTargets } from '../utils/assign';
 import { computeHudDigest } from '../utils/hud';
-import type { DomikSortMode } from '../utils/game';
+import type { DomikSortMode, GoldVeinContext } from '../utils/game';
 import { useWorkerAssign } from '../hooks/useWorkerAssign';
 import type { AssignPoint } from '../hooks/useWorkerAssign';
 import { WorkerRail } from './WorkerRail';
@@ -69,7 +69,7 @@ export const DomikiPage = () => {
     useEffect(() => { perfCommitProbe(); });
 
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, incident, domikIncident, reputation, blueprints, village, villageLevel, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
         useGameData();
 
     const [shopVisible, setShopVisible] = useState(false);
@@ -109,6 +109,7 @@ export const DomikiPage = () => {
     const currentWeather = weather?.current ?? null;
     const goldValue = resources.find(x => x.typeId === GOLD_RESOURCE_TYPE_ID)?.value ?? 0;
     const goldType = resourceTypes.find(x => x.id === GOLD_RESOURCE_TYPE_ID);
+    const goldVeinContext = useMemo<GoldVeinContext>(() => ({ domiks, receipts, goldMinedToday, now }), [domiks, receipts, goldMinedToday, now]);
     const recapView = useMemo(() => buildRecapView(recap?.events ?? []), [recap]);
     const recapPending = recap != null && (recap.events.length > 0 || toloka?.progress != null);
     const recapVisible = recapPending && (recap.awaySeconds >= 1800 || recapOpen);
@@ -198,7 +199,7 @@ export const DomikiPage = () => {
         }
 
         const freeWorkers = workers.filter(item => isWorkerFree(item, now));
-        const target = buildAssignTarget(domik, domikType, receipts, resources, freeWorkers, worker);
+        const target = buildAssignTarget(domik, domikType, receipts, resources, freeWorkers, worker, goldVeinContext);
         const name = domikDisplayName(domik.typeId, domik.id, domikType.name, domikType.logicName);
         if (!target.eligible) {
             toast.error(`«${name}»: ${target.reason ?? 'нечего делать'}`);
@@ -220,8 +221,8 @@ export const DomikiPage = () => {
     const assignTargets = useMemo(
         () => heldWorker == null
             ? new Map<number, ReturnType<typeof buildAssignTarget>>()
-            : buildAssignTargets(domiks, domikTypes, receipts, resources, workers.filter(item => isWorkerFree(item, now)), heldWorker),
-        [heldWorker, domiks, domikTypes, receipts, resources, workers, now],
+            : buildAssignTargets(domiks, domikTypes, receipts, resources, workers.filter(item => isWorkerFree(item, now)), heldWorker, goldVeinContext),
+        [heldWorker, domiks, domikTypes, receipts, resources, workers, now, goldVeinContext],
     );
     const assignMenuView = useMemo(() => {
         if (assignMenu == null) {
@@ -239,9 +240,9 @@ export const DomikiPage = () => {
             worker,
             domikType,
             name: domikDisplayName(domik.typeId, domik.id, domikType.name, domikType.logicName),
-            target: buildAssignTarget(domik, domikType, receipts, resources, workers.filter(item => isWorkerFree(item, now)), worker),
+            target: buildAssignTarget(domik, domikType, receipts, resources, workers.filter(item => isWorkerFree(item, now)), worker, goldVeinContext),
         };
-    }, [assignMenu, workers, domiks, domikTypes, receipts, resources, now, domikDisplayName]);
+    }, [assignMenu, workers, domiks, domikTypes, receipts, resources, now, domikDisplayName, goldVeinContext]);
     const railSkillDomikTypeId = useMemo(() => {
         const domikId = assign.hoverDomikId ?? selectedDomikId;
         return domiks.find(item => item.id === domikId)?.typeId ?? null;
@@ -562,7 +563,7 @@ export const DomikiPage = () => {
                 <PerfZone id="карточка">
                     <SelectedDomikPanel ref={selectedDomikPanelRef} selected={selected} resources={resources} resourceTypes={resourceTypes} receipts={receipts}
                         workers={workers} goals={goals} villageLevel={villageLevel} currentWeather={currentWeather} sickTypes={sickTypes} now={now}
-                        goldValue={goldValue} goldType={goldType} plodderFree={plodder.free} displayName={domikDisplayName}
+                        goldValue={goldValue} goldType={goldType} goldVein={goldVeinContext} plodderFree={plodder.free} displayName={domikDisplayName}
                         onClose={() => setSelectedDomikId(null)} onUpgrade={upgrade} onHurryDomik={hurryDomikAction}
                         onStartManufacture={startManufacture} onHurryManufacture={hurryManufactureAction}
                         elderHouseLevel={ledger?.level ?? 0}

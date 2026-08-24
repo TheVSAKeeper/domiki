@@ -625,7 +625,9 @@ internal sealed class SimulationRun
     {
         var candidates = GetReceipts(domik)
             .Select(receipt => (Receipt: receipt, UseOptional: ShouldUseOptional(domik.Type.Id, receipt)))
-            .Where(x => CanAffordResources(GetInputs(x.Receipt, x.UseOptional)) && GetFreeWorkers().Count >= x.Receipt.PlodderCount)
+            .Where(x => CanAffordResources(GetInputs(x.Receipt, x.UseOptional))
+                && GetFreeWorkers().Count >= x.Receipt.PlodderCount
+                && !IsGoldVeinBlocked(domik, x.Receipt, _now + x.Receipt.DurationSeconds))
             .ToArray();
         if (candidates.Length == 0)
         {
@@ -718,6 +720,11 @@ internal sealed class SimulationRun
             return false;
         }
 
+        if (IsGoldVeinBlocked(domik, receipt, _now + receipt.DurationSeconds))
+        {
+            return false;
+        }
+
         DeductResources(inputs);
         var duration = CalculateDuration(domik.Type.Id, receipt, useOptional, workers);
         if (receipt.DurationSeconds <= DomikManager.ZealMaxRecipeSeconds && domik.Type.LogicName != "market" && _state.ZealCharges > 0)
@@ -791,6 +798,26 @@ internal sealed class SimulationRun
         }
 
         return Math.Max(duration, flooredDuration);
+    }
+
+    private bool IsGoldVeinBlocked(SimDomik domik, Receipt receipt, long finishAt)
+    {
+        if (receipt.OutputResources.All(x => x.Type.Id != 5) || finishAt / 86400 > _now / 86400)
+        {
+            return false;
+        }
+
+        var minedToday = _state.GoldMinedDay == _now / 86400 ? _state.GoldMinedToday : 0;
+        var remaining = domik.Level - minedToday;
+        if (remaining <= 0)
+        {
+            return true;
+        }
+
+        var reserved = domik.Manufactures
+            .Where(x => x.FinishAt / 86400 == _now / 86400)
+            .Sum(x => x.Receipt.OutputResources.Where(r => r.Type.Id == 5).Sum(r => r.Value));
+        return remaining <= reserved;
     }
 
     private void FinishManufacture(SimManufacture manufacture)
