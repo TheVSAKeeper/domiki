@@ -244,18 +244,10 @@ try
         ContentTypeProvider = staticContentTypes,
         OnPrepareResponse = context =>
         {
-            var path = context.Context.Request.Path.Value;
-            if (path != null && path.StartsWith("/assets/", StringComparison.Ordinal))
+            var cacheControl = StaticCacheHeaders.ResolveCacheControl(context.Context.Request.Path.Value);
+            if (cacheControl != null)
             {
-                context.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
-            }
-            else if (path != null && path.StartsWith("/fonts/", StringComparison.Ordinal))
-            {
-                context.Context.Response.Headers.CacheControl = "public, max-age=2592000";
-            }
-            else if (path == "/sw.js")
-            {
-                context.Context.Response.Headers.CacheControl = "no-cache";
+                context.Context.Response.Headers.CacheControl = cacheControl;
             }
         },
     });
