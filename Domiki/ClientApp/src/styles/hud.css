@@ -284,6 +284,7 @@
     z-index: 120;
     width: 260px;
     max-width: calc(100vw - 16px);
+    right: clamp(8px, var(--flyout-right, 8px), max(8px, 100vw - 268px));
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -384,6 +385,7 @@
     z-index: 120;
     width: 252px;
     max-width: calc(100vw - 16px);
+    right: clamp(8px, var(--flyout-right, 8px), max(8px, 100vw - 260px));
     display: flex;
     flex-direction: column;
     align-items: stretch;

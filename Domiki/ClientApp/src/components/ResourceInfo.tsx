@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import type { DomikTypeDto, ReceiptDto, ResourceTypeDto } from '../types/api';
 import { resourceSourceMap } from '../utils/game';
 import { resourceLore } from '../utils/resourceLore';
+import { flyoutLeft, flyoutWidth, useFlyoutTop } from '../utils/flyout';
 import { ResourceInfoContext } from './resourceInfoContext';
 import { ResourceSprite } from './sprites';
 
@@ -18,12 +19,11 @@ interface ResourceInfoProviderProps {
 export const ResourceInfoProvider = ({ resourceTypes, domikTypes, receipts, children }: ResourceInfoProviderProps) => {
     const sources = useMemo(() => resourceSourceMap(domikTypes, receipts), [domikTypes, receipts]);
     const typeById = useMemo(() => new Map(resourceTypes.map(type => [type.id, type])), [resourceTypes]);
-    const [flyout, setFlyout] = useState<{ typeId: number; top: number; left: number } | null>(null);
+    const [flyout, setFlyout] = useState<{ typeId: number; rect: DOMRect } | null>(null);
+    const [popRef, popTop, popHidden] = useFlyoutTop<HTMLDivElement>(flyout?.rect ?? null);
 
     const open = useCallback((typeId: number, el: HTMLElement) => {
-        const rect = el.getBoundingClientRect();
-        const left = Math.max(12, Math.min(rect.left, window.innerWidth - FLYOUT_WIDTH - 12));
-        setFlyout({ typeId, top: rect.bottom + 6, left });
+        setFlyout({ typeId, rect: el.getBoundingClientRect() });
     }, []);
     const close = useCallback(() => { setFlyout(null); }, []);
     const value = useMemo(() => ({ open, close }), [open, close]);
@@ -36,7 +36,13 @@ export const ResourceInfoProvider = ({ resourceTypes, domikTypes, receipts, chil
         <ResourceInfoContext.Provider value={value}>
             {children}
             {flyout != null && type != null && createPortal(
-                <div className="res-info-pop pixel-panel" role="tooltip" style={{ top: flyout.top, left: flyout.left, width: FLYOUT_WIDTH }}>
+                <div ref={popRef} className="res-info-pop pixel-panel" role="tooltip"
+                    style={{
+                        top: popTop,
+                        left: flyoutLeft(flyout.rect.left, flyoutWidth(FLYOUT_WIDTH)),
+                        width: flyoutWidth(FLYOUT_WIDTH),
+                        visibility: popHidden ? 'hidden' : undefined,
+                    }}>
                     <div className="res-info-head">
                         <ResourceSprite logicName={type.logicName} size={40} aria-hidden="true" />
                         <span className="res-info-name">{type.name}</span>

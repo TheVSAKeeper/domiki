@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
@@ -10,6 +10,7 @@ import { COIN_RESOURCE_TYPE_ID, GOLD_RESOURCE_TYPE_ID, strongestWeatherEffect } 
 import type { HudDigest } from '../utils/hud';
 import { pluralRu } from '../utils/plural';
 import { remainingSeconds } from '../utils/time';
+import { useFlyoutTop } from '../utils/flyout';
 import { AbstractSprite, DomikSprite, MechanicSprite, NeighborSprite, WeatherSprite } from './sprites';
 import { HudResource } from './HudResource';
 import { HudRibbon } from './HudRibbon';
@@ -31,31 +32,32 @@ interface VillageHudProps {
     onOpenHousehold: () => void;
 }
 
+const flyoutStyle = (anchor: DOMRect, top: number, hidden: boolean) =>
+    ({
+        top,
+        '--flyout-right': `${window.innerWidth - anchor.right}px`,
+        visibility: hidden ? 'hidden' : undefined,
+    }) as CSSProperties;
+
 const hoursLeft = (finishDate: string, now: number) => Math.max(1, Math.ceil(remainingSeconds(finishDate, now) / 3600));
 
 export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, digest, villageLevel, weather, now, onStickyOffsetChange, villageProfile, nav, onOpenHousehold }: VillageHudProps) => {
     const hudRef = useRef<HTMLElement>(null);
-    const [levelFlyout, setLevelFlyout] = useState<{ top: number; right: number } | null>(null);
-    const [weatherFlyout, setWeatherFlyout] = useState<{ top: number; right: number } | null>(null);
+    const [levelFlyout, setLevelFlyout] = useState<DOMRect | null>(null);
+    const [weatherFlyout, setWeatherFlyout] = useState<DOMRect | null>(null);
     const villageLevelRef = useRef<HTMLDivElement>(null);
     const weatherCapsuleRef = useRef<HTMLButtonElement>(null);
-    const flyoutPosition = (rect: DOMRect) => ({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
+    const [levelFlyoutRef, levelFlyoutTop, levelFlyoutHidden] = useFlyoutTop<HTMLDivElement>(levelFlyout);
+    const [weatherFlyoutRef, weatherFlyoutTop, weatherFlyoutHidden] = useFlyoutTop<HTMLDivElement>(weatherFlyout);
     const openLevelFlyout = () => {
         const rect = villageLevelRef.current?.getBoundingClientRect();
         if (rect != null) {
-            setLevelFlyout(flyoutPosition(rect));
+            setLevelFlyout(rect);
         }
     };
     const closeLevelFlyout = () => setLevelFlyout(null);
     const toggleWeatherFlyout = () => {
-        setWeatherFlyout(open => {
-            if (open != null) {
-                return null;
-            }
-
-            const rect = weatherCapsuleRef.current?.getBoundingClientRect();
-            return rect == null ? null : flyoutPosition(rect);
-        });
+        setWeatherFlyout(open => open != null ? null : weatherCapsuleRef.current?.getBoundingClientRect() ?? null);
     };
 
     useEffect(() => {
@@ -175,7 +177,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                 </div>
 
                 {weatherFlyout != null && currentWeather != null && createPortal(
-                    <div className="weather-flyout" style={{ top: weatherFlyout.top, right: weatherFlyout.right }}>
+                    <div ref={weatherFlyoutRef} className="weather-flyout" style={flyoutStyle(weatherFlyout, weatherFlyoutTop, weatherFlyoutHidden)}>
                         <div className="wf-head">
                             <WeatherSprite logicName={currentWeather.logicName} className="weather-ico" aria-hidden="true" />
                             <span className="weather-name">{currentWeather.weatherName}</span>
@@ -224,7 +226,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                     document.body)}
 
                 {levelFlyout != null && createPortal(
-                    <div className="village-level-flyout" style={{ top: levelFlyout.top, right: levelFlyout.right }}>
+                    <div ref={levelFlyoutRef} className="village-level-flyout" style={flyoutStyle(levelFlyout, levelFlyoutTop, levelFlyoutHidden)}>
                         <div className="vlf-stats">
                             <span className="vlf-stat"><span className="vlf-stat-label">Постройки</span><span className="vlf-stat-value">{villageLevel?.buildings}</span></span>
                             <span className="vlf-stat"><span className="vlf-stat-label">Жители</span><span className="vlf-stat-value">{villageLevel?.residents}</span></span>

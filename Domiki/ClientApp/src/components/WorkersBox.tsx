@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CSSProperties, FocusEvent } from 'react';
+import type { CSSProperties, FocusEvent, Ref } from 'react';
 import { createPortal } from 'react-dom';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
@@ -10,6 +10,7 @@ import { describeWorker, describeWorkerParts, isSkilledWorker, rankedSkills } fr
 import { AbstractSprite, DomikSprite, MechanicSprite, ResourceSprite, TraitSprite, WorkerSprite } from './sprites';
 import { genderForm, traitLabel } from '../utils/gender';
 import { pluralRu } from '../utils/plural';
+import { flyoutLeft, flyoutWidth, useFlyoutTop } from '../utils/flyout';
 
 type WorkerState = 'expedition' | 'errand' | 'incidentMissing' | 'incidentSearch' | 'domikIncidentSearch' | 'busy' | 'resting' | 'away' | 'free';
 
@@ -70,7 +71,7 @@ const useShownPortraits = () => {
     return { shownPortraits: observer == null ? null : shown, observePortrait };
 };
 
-const WorkerDetails = ({ worker, domikTypes, domiks, namer, style }: { worker: WorkerDto; domikTypes: DomikTypeDto[]; domiks: DomikDto[]; namer: DomikNamer; style: CSSProperties }) => {
+const WorkerDetails = ({ worker, domikTypes, domiks, namer, style, ref }: { worker: WorkerDto; domikTypes: DomikTypeDto[]; domiks: DomikDto[]; namer: DomikNamer; style: CSSProperties; ref?: Ref<HTMLDivElement> }) => {
     const effect = worker.traitDurationPercent === 0 ? '' : ` ${worker.traitDurationPercent} %`;
     const visibleSkills = worker.skills.filter(skill => skill.bonusPercent > 0);
     const workplaceDomik = worker.manufactureId == null
@@ -78,7 +79,7 @@ const WorkerDetails = ({ worker, domikTypes, domiks, namer, style }: { worker: W
         : domiks.find(d => (d.manufactures ?? []).some(m => m.id === worker.manufactureId));
     const workplaceType = workplaceDomik == null ? null : domikTypes.find(t => t.id === workplaceDomik.typeId) ?? null;
     return (
-        <div className="worker-details" style={style}>
+        <div ref={ref} className="worker-details" style={style}>
             {workplaceDomik != null && workplaceType != null &&
                 <span className="worker-workplace worker-detail-workplace">
                     <DomikSprite logicName={workplaceType.logicName} className="worker-workplace-ico" aria-hidden="true" />
@@ -189,6 +190,7 @@ const LarderRuleRow = ({ resourceType, stock, rule, onSetFoodRule }: LarderRuleR
 
 export const WorkersBox = ({ workers, domikTypes, domiks, receipts, expeditions, errand, incident, domikIncident, cloaks, sickTypes, resourceTypes, resources, villageLevel, tavernLevel, larder, onSetFoodRule, now }: WorkersBoxProps) => {
     const [hover, setHover] = useState<{ worker: WorkerDto; rect: DOMRect } | null>(null);
+    const [detailsRef, detailsTop, detailsHidden] = useFlyoutTop<HTMLDivElement>(hover?.rect ?? null);
     const [larderOpen, setLarderOpen] = useState(false);
     const { shownPortraits, observePortrait } = useShownPortraits();
     const clearHover = (id: number) => setHover(prev => (prev?.worker.id === id ? null : prev));
@@ -480,7 +482,14 @@ export const WorkersBox = ({ workers, domikTypes, domiks, receipts, expeditions,
             </div>
             {hover != null && createPortal(
                 <WorkerDetails worker={hover.worker} domikTypes={domikTypes} domiks={domiks} namer={namer}
-                    style={{ position: 'fixed', top: hover.rect.bottom + 4, left: hover.rect.left, width: Math.max(hover.rect.width, 240) }} />,
+                    ref={detailsRef}
+                    style={{
+                        position: 'fixed',
+                        top: detailsTop,
+                        left: flyoutLeft(hover.rect.left, flyoutWidth(Math.max(hover.rect.width, 240))),
+                        width: flyoutWidth(Math.max(hover.rect.width, 240)),
+                        visibility: detailsHidden ? 'hidden' : undefined,
+                    }} />,
                 document.body)}
         </section>
     );

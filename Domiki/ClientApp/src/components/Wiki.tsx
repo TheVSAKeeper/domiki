@@ -6,6 +6,7 @@ import { formatDuration } from '../utils/time';
 import { domikLore } from '../utils/domikLore';
 import { unlockLore } from '../utils/unlockLore';
 import { resourceLore } from '../utils/resourceLore';
+import { flyoutLeft, flyoutWidth, useFlyoutTop } from '../utils/flyout';
 import { strongestWeatherEffect } from '../utils/game';
 import { profileGenitiveName, profileLore } from '../utils/profileLore';
 import type { ConvoyDto, DecorStateDto, DomikTypeDto, NeighborReputationDto, ReceiptDto, ResourceDto, ResourceTypeDto, VillageDto, VillageLevelDto, VillageProfileDto, WeatherStateDto } from '../types/api';
@@ -233,14 +234,13 @@ interface WikiResourcesSectionProps {
 }
 
 const WikiResourcesSection = ({ resourceTypes }: WikiResourcesSectionProps) => {
-    const [resFlyout, setResFlyout] = useState<{ type: ResourceTypeDto; top: number; left: number } | null>(null);
+    const [resFlyout, setResFlyout] = useState<{ type: ResourceTypeDto; rect: DOMRect } | null>(null);
+    const [popRef, popTop, popHidden] = useFlyoutTop<HTMLDivElement>(resFlyout?.rect ?? null);
     const openResFlyout = (type: ResourceTypeDto, el: HTMLElement) => {
         if (resourceLore[type.logicName] == null) {
             return;
         }
-        const rect = el.getBoundingClientRect();
-        const left = Math.max(12, Math.min(rect.left, window.innerWidth - RES_POP_WIDTH - 12));
-        setResFlyout({ type, top: rect.bottom + 6, left });
+        setResFlyout({ type, rect: el.getBoundingClientRect() });
     };
     const closeResFlyout = () => setResFlyout(null);
 
@@ -270,7 +270,13 @@ const WikiResourcesSection = ({ resourceTypes }: WikiResourcesSectionProps) => {
                     return null;
                 }
                 return createPortal(
-                    <div className="wiki-res-pop pixel-panel" role="tooltip" style={{ top: resFlyout.top, left: resFlyout.left, width: RES_POP_WIDTH }}>
+                    <div ref={popRef} className="wiki-res-pop pixel-panel" role="tooltip"
+                        style={{
+                            top: popTop,
+                            left: flyoutLeft(resFlyout.rect.left, flyoutWidth(RES_POP_WIDTH)),
+                            width: flyoutWidth(RES_POP_WIDTH),
+                            visibility: popHidden ? 'hidden' : undefined,
+                        }}>
                         <div className="wiki-res-pop-head">
                             <ResourceSprite logicName={resFlyout.type.logicName} size={40} aria-hidden="true" />
                             <span className="wiki-res-pop-name">{resFlyout.type.name}</span>
