@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { reportServerVersion } from './appVersion';
 import { authService } from './auth';
+import { clearSnapshot } from './offlineSnapshot';
 import {
     decorStateSchema,
     tolokaStateSchema,
@@ -34,7 +35,24 @@ export class ApiError extends Error {
     }
 }
 
+export class OfflineError extends ApiError {
+    constructor(message = 'Сеть недоступна. Попробуйте позже.') {
+        super(message);
+        this.name = 'OfflineError';
+    }
+}
+
+let readOnly = false;
+
+export function setReadOnlyMode(value: boolean): void {
+    readOnly = value;
+}
+
 async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType<T> | null, signal?: AbortSignal, body?: unknown): Promise<T> {
+    if (readOnly && method === 'POST') {
+        throw new OfflineError('Без связи деревню можно только смотреть');
+    }
+
     let res: Response;
     try {
         const init: RequestInit = {
@@ -51,12 +69,13 @@ async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType
         if (signal?.aborted) {
             throw err;
         }
-        throw new ApiError('Сеть недоступна. Попробуйте позже.');
+        throw new OfflineError();
     }
 
     reportServerVersion(res.headers.get('X-App-Version'));
 
     if (res.status === 401) {
+        void clearSnapshot();
         authService.signIn();
         return new Promise<T>(() => {});
     }

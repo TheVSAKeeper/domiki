@@ -1,3 +1,5 @@
+import { clearSnapshot } from './offlineSnapshot';
+
 interface AuthUser {
     name: string;
 }
@@ -37,7 +39,9 @@ class AuthorizeService {
     }
 
     signOut(): void {
-        window.location.assign('/authentication/logout');
+        void clearSnapshot().finally(() => {
+            window.location.assign('/authentication/logout');
+        });
     }
 
     async loginDemo(): Promise<boolean> {

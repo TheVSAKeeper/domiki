@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, buyFromConvoy as buyFromConvoyApi, buyPerk as buyPerkApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, relocate as relocateApi, setFoodRule as setFoodRuleApi, setManufactureAutoRepeat as setManufactureAutoRepeatApi, setManufactureMeasure as setManufactureMeasureApi, setResourceReserve as setResourceReserveApi, setVillage as setVillageApi, startExpedition as startExpeditionApi, voteToloka as voteTolokaApi } from '../services/api';
+import { OfflineError, setReadOnlyMode } from '../services/api';
 import { useToast } from '../services/toastContext';
 import {
     domikTypeSchema,
@@ -121,12 +122,12 @@ async function loadInitialState(signal: AbortSignal, markStale: (savedAt: number
         void saveSnapshot(state);
         return state;
     } catch (err) {
-        if (!(err instanceof ApiError)) {
+        if (!(err instanceof OfflineError)) {
             throw err;
         }
 
         const snapshot = await loadSnapshot();
-        if (snapshot == null) {
+        if (snapshot == null || signal.aborted) {
             throw err;
         }
 
@@ -174,6 +175,8 @@ export function useGameData(): GameData {
     const [now, setNow] = useState(() => Date.now());
     const [loading, setLoading] = useState(true);
 
+    const staleRef = useRef<number | null>(null);
+    const lastLoadedAt = useRef<number | null>(null);
     const refetching = useRef(false);
     const pendingReload = useRef(false);
     const workersRef = useRef(workers);
@@ -239,6 +242,7 @@ export function useGameData(): GameData {
         const state = await getGameState();
         setStaleSince(null);
         void saveSnapshot(state);
+        lastLoadedAt.current = Date.now();
         const prevActive = expeditionsRef.current?.active ?? [];
         const nextActive = state.expeditions?.active ?? [];
         for (const finished of prevActive) {
@@ -317,7 +321,10 @@ export function useGameData(): GameData {
             try {
                 await reload();
             } catch (err) {
-                if (err instanceof ApiError) {
+                if (err instanceof OfflineError) {
+                    setStaleSince(lastLoadedAt.current ?? Date.now());
+                    toast.error(err.message);
+                } else if (err instanceof ApiError) {
                     toast.error(err.message);
                 } else {
                     throw err;
@@ -448,6 +455,11 @@ export function useGameData(): GameData {
     }, [scheduleReload]);
 
     useEffect(() => {
+        staleRef.current = staleSince;
+        setReadOnlyMode(staleSince != null);
+    }, [staleSince]);
+
+    useEffect(() => {
         const id = setInterval(() => setNow(Date.now()), 1000);
         return () => clearInterval(id);
     }, []);
@@ -545,7 +557,7 @@ export function useGameData(): GameData {
         };
 
         source.onopen = () => {
-            if (opened) {
+            if (opened || staleRef.current != null) {
                 scheduleReload();
             }
             opened = true;
@@ -553,6 +565,15 @@ export function useGameData(): GameData {
 
         return () => source.close();
     }, [scheduleReload, toast]);
+
+    useEffect(() => {
+        const handleOnline = () => {
+            scheduleReload();
+        };
+
+        window.addEventListener('online', handleOnline);
+        return () => window.removeEventListener('online', handleOnline);
+    }, [scheduleReload]);
 
     useEffect(() => {
         const handleVisibilityChange = () => {

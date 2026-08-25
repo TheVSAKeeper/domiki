@@ -16,7 +16,14 @@ function openDatabase(): Promise<IDBDatabase | null> {
     }
 
     return new Promise(resolve => {
-        const request = indexedDB.open(DB_NAME, 1);
+        let request: IDBOpenDBRequest;
+        try {
+            request = indexedDB.open(DB_NAME, 1);
+        } catch {
+            resolve(null);
+            return;
+        }
+
         request.onupgradeneeded = () => {
             if (!request.result.objectStoreNames.contains(STORE_NAME)) {
                 request.result.createObjectStore(STORE_NAME);
@@ -39,7 +46,14 @@ async function withStore<T>(mode: IDBTransactionMode, action: (store: IDBObjectS
 
     try {
         return await new Promise<T | null>(resolve => {
-            const request = action(database.transaction(STORE_NAME, mode).objectStore(STORE_NAME));
+            let request: IDBRequest<T>;
+            try {
+                request = action(database.transaction(STORE_NAME, mode).objectStore(STORE_NAME));
+            } catch {
+                resolve(null);
+                return;
+            }
+
             request.onsuccess = () => {
                 resolve(request.result);
             };
@@ -53,7 +67,8 @@ async function withStore<T>(mode: IDBTransactionMode, action: (store: IDBObjectS
 }
 
 export async function saveSnapshot(state: GameStateDto): Promise<void> {
-    const snapshot: OfflineSnapshot = { playerId: state.playerId, savedAt: Date.now(), state };
+    const stored: GameStateDto = { ...state, recap: state.recap == null ? state.recap : { awaySeconds: state.recap.awaySeconds, events: [] } };
+    const snapshot: OfflineSnapshot = { playerId: stored.playerId, savedAt: Date.now(), state: stored };
     await withStore('readwrite', store => store.put(snapshot, RECORD_KEY));
 }
 

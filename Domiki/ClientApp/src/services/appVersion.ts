@@ -3,6 +3,7 @@ import { useSyncExternalStore } from 'react';
 let loadedId: string | null | undefined;
 let updateAvailable = false;
 let waitingWorker: ServiceWorker | null = null;
+let registration: ServiceWorkerRegistration | null = null;
 let reloading = false;
 const listeners = new Set<() => void>();
 
@@ -41,12 +42,17 @@ function reloadWhenHidden(): void {
 }
 
 export function reportServerVersion(serverVersion: string | null): void {
-    if (updateAvailable || serverVersion == null || ('serviceWorker' in navigator && navigator.serviceWorker.controller != null)) {
+    if (updateAvailable || serverVersion == null) {
         return;
     }
 
     const own = loadedBuildId();
     if (own == null || serverVersion === own) {
+        return;
+    }
+
+    if (registration != null) {
+        void registration.update();
         return;
     }
 
@@ -77,14 +83,27 @@ export async function registerServiceWorker(): Promise<void> {
         location.reload();
     });
 
-    const registration = await navigator.serviceWorker.register('/sw.js');
-
-    if (registration.waiting != null && navigator.serviceWorker.controller != null) {
-        announceUpdate(registration.waiting);
+    let active: ServiceWorkerRegistration;
+    try {
+        active = await navigator.serviceWorker.register('/sw.js');
+    } catch {
+        return;
     }
 
-    registration.addEventListener('updatefound', () => {
-        const installing = registration.installing;
+    registration = active;
+
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && !updateAvailable) {
+            void active.update();
+        }
+    });
+
+    if (active.waiting != null && navigator.serviceWorker.controller != null) {
+        announceUpdate(active.waiting);
+    }
+
+    active.addEventListener('updatefound', () => {
+        const installing = active.installing;
         if (installing == null) {
             return;
         }

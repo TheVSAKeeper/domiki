@@ -1,9 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { apiGet, ApiError, apiPost } from './api';
+import { apiGet, ApiError, apiPost, OfflineError, setReadOnlyMode } from './api';
 
 vi.mock('./auth', () => ({
     authService: { signIn: vi.fn() },
+}));
+
+vi.mock('./offlineSnapshot', () => ({
+    clearSnapshot: vi.fn().mockResolvedValue(undefined),
 }));
 
 function mockFetch(body: unknown, init: { ok?: boolean; status?: number } = {}) {
@@ -74,5 +78,36 @@ describe('api', () => {
         });
         const schema = z.array(z.object({ typeId: z.number(), value: z.number() }));
         await expect(apiGet('Domiki/GetResources', schema)).rejects.toBeInstanceOf(ApiError);
+    });
+
+    it('сорванный запрос бросает OfflineError, а не общий ApiError', async () => {
+        globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+        await expect(apiGet('Domiki/GetGameState', z.object({}))).rejects.toBeInstanceOf(OfflineError);
+    });
+
+    it('ошибка сервера остаётся ApiError и не выдаёт себя за офлайн', async () => {
+        mockFetch({ title: 'Server error' }, { ok: false, status: 500 });
+        await expect(apiGet('Domiki/GetGameState', z.object({}))).rejects.not.toBeInstanceOf(OfflineError);
+    });
+
+    it('в режиме чтения мутация отбивается на клиенте и до сети не доходит', async () => {
+        mockFetch(null);
+        setReadOnlyMode(true);
+        try {
+            await expect(apiPost('Domiki/BuyDomik/1')).rejects.toThrow('Без связи деревню можно только смотреть');
+            expect(globalThis.fetch).not.toHaveBeenCalled();
+        } finally {
+            setReadOnlyMode(false);
+        }
+    });
+
+    it('в режиме чтения чтение состояния продолжает работать', async () => {
+        mockFetch([]);
+        setReadOnlyMode(true);
+        try {
+            await expect(apiGet('Domiki/GetResources', z.array(z.unknown()))).resolves.toEqual([]);
+        } finally {
+            setReadOnlyMode(false);
+        }
     });
 });

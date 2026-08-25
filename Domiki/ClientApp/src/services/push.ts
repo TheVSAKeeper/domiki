@@ -50,7 +50,10 @@ export async function enablePush(): Promise<void> {
         throw new Error('Уведомления не настроены на сервере');
     }
 
-    const registration = await navigator.serviceWorker.ready;
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (registration == null) {
+        throw new Error('Уведомления доступны только в установленном приложении');
+    }
 
     const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,

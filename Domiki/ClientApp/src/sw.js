@@ -1,24 +1,17 @@
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing';
 
-const serverRoutes = [
-    /^\/Domiki\//,
-    /^\/Push\//,
-    /^\/authentication\//,
-    /^\/Identity\//,
-    /^\/connect\//,
-    /^\/\.well-known\//,
-    /^\/_framework\//,
-    /^\/ApplyDatabaseMigrations/,
-    /^\/signin-oidc/,
-    /^\/signout-callback-oidc/,
-    /^\/healthz/,
+const spaRoutes = [
+    /^\/$/,
+    /^\/domiki-page$/,
+    /^\/wiki$/,
+    /^\/world$/,
 ];
 
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html'), { denylist: serverRoutes }));
+registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html'), { allowlist: spaRoutes }));
 
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
