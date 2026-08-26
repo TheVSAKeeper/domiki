@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
 
 namespace Domiki.Web.Infrastructure;
@@ -11,6 +12,11 @@ namespace Domiki.Web.Infrastructure;
 [ApiController]
 public class AuthenticationController : ControllerBase
 {
+    /// <summary>
+    /// Имя политики ограничения частоты для демо-входа.
+    /// </summary>
+    public const string DemoLoginRateLimitPolicy = "demo-login";
+
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IConfiguration _configuration;
 
@@ -56,6 +62,7 @@ public class AuthenticationController : ControllerBase
     }
 
     [HttpPost("/authentication/demo")]
+    [EnableRateLimiting(DemoLoginRateLimitPolicy)]
     public async Task<IActionResult> Demo()
     {
         if (User.Identity?.IsAuthenticated == true)

@@ -16,8 +16,10 @@ using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.AspNetCore.RateLimiting;
 using Serilog;
 using System.IO.Compression;
+using System.Threading.RateLimiting;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -113,6 +115,21 @@ try
     }
 
     builder.Services.AddAuthorization();
+
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        // TODO: раздел вычисляется по X-Forwarded-For, поэтому подделка заголовка обходит лимит; переводить на счётчик по учётной записи или на защиту уровня Angie, когда демо-вход начнут ломать целенаправленно
+        options.AddPolicy(AuthenticationController.DemoLoginRateLimitPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
+            context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0].Trim()
+                ?? context.Connection.RemoteIpAddress?.ToString()
+                ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(5),
+            }));
+    });
 
     if (!builder.Environment.IsDevelopment() && !builder.Environment.IsEnvironment("Testing"))
     {
@@ -255,6 +272,8 @@ try
     });
 
     app.UseRouting();
+
+    app.UseRateLimiter();
 
     app.UseAuthentication();
     app.UseAuthorization();
