@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { authService } from '../../services/auth';
+import type { AuthStatus } from '../../services/auth';
 
 interface AuthorizeRouteProps {
     path?: string;
@@ -7,24 +8,22 @@ interface AuthorizeRouteProps {
 }
 
 export const AuthorizeRoute = ({ path, element }: AuthorizeRouteProps) => {
-    const [ready, setReady] = useState(false);
-    const [authenticated, setAuthenticated] = useState(false);
+    const [status, setStatus] = useState<AuthStatus>('unknown');
 
     useEffect(() => {
         let active = true;
 
         const populateAuthenticationState = async () => {
-            const isAuthenticated = await authService.isAuthenticated();
+            await authService.isAuthenticated();
             if (active) {
-                setReady(true);
-                setAuthenticated(isAuthenticated);
+                setStatus(authService.getStatus().status);
             }
         };
 
         const unsubscribe = authService.subscribe(() => {
-            setReady(false);
-            setAuthenticated(false);
-            void populateAuthenticationState();
+            if (active) {
+                setStatus(authService.getStatus().status);
+            }
         });
 
         void populateAuthenticationState();
@@ -36,12 +35,12 @@ export const AuthorizeRoute = ({ path, element }: AuthorizeRouteProps) => {
     }, []);
 
     useEffect(() => {
-        if (ready && !authenticated) {
+        if (status === 'anonymous') {
             authService.signIn(path);
         }
-    }, [ready, authenticated, path]);
+    }, [status, path]);
 
-    if (!ready || !authenticated) {
+    if (status === 'unknown' || status === 'anonymous') {
         return <div></div>;
     }
 

@@ -165,6 +165,35 @@ code {
     flex-shrink: 0;
 }
 
+.skeleton-block {
+    display: inline-block;
+    background: var(--plank-dark);
+    border: 3px solid var(--ink);
+    clip-path: var(--cut);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .skeleton-block {
+        animation: skeleton-pulse 1s steps(2, end) infinite;
+    }
+}
+
+.nav-skeleton-cta {
+    width: 118px;
+    height: 30px;
+}
+
+.nav-skeleton-link {
+    width: 64px;
+    height: 30px;
+}
+
+@keyframes skeleton-pulse {
+    50% {
+        opacity: .4;
+    }
+}
+
 .btn-game:not(.btn-ghost):not(.icon-chip-btn) .px-sprite {
     box-sizing: content-box;
     padding: 2px;

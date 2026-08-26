@@ -4,6 +4,7 @@ import PlayIcon from 'pixelarticons/svg/play.svg?react';
 import LoginIcon from 'pixelarticons/svg/login.svg?react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import { authService } from '../services/auth';
+import type { AuthStatus } from '../services/auth';
 import {
     AbstractSprite,
     DomikSprite,
@@ -301,23 +302,25 @@ const loginDemo = async () => {
 };
 
 export const Home = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [status, setStatus] = useState<AuthStatus>('unknown');
 
     useEffect(() => {
         const update = () => {
-            void authService.isAuthenticated().then(setIsAuthenticated);
+            void authService.isAuthenticated().then(() => setStatus(authService.getStatus().status));
         };
         const unsubscribe = authService.subscribe(update);
         update();
         return unsubscribe;
     }, []);
 
-    const cta = isAuthenticated
-        ? <Link className="btn-game" to="/domiki-page"><BuildingIcon className="btn-ico" aria-hidden="true" />В деревню</Link>
-        : <>
-            <button type="button" className="btn-game" onClick={() => void loginDemo()}><PlayIcon className="btn-ico" aria-hidden="true" />Играть демо</button>
-            <a className="btn-ghost" href="/authentication/login"><LoginIcon className="btn-ico" aria-hidden="true" />Войти</a>
-        </>;
+    const cta = status === 'unknown' || status === 'error'
+        ? <span className="skeleton-block hero-cta-skeleton" aria-hidden="true"></span>
+        : status === 'authenticated'
+            ? <Link className="btn-game" to="/domiki-page"><BuildingIcon className="btn-ico" aria-hidden="true" />В деревню</Link>
+            : <>
+                <button type="button" className="btn-game" onClick={() => void loginDemo()}><PlayIcon className="btn-ico" aria-hidden="true" />Играть демо</button>
+                <a className="btn-ghost" href="/authentication/login"><LoginIcon className="btn-ico" aria-hidden="true" />Войти</a>
+            </>;
 
     return (
         <div className="home">

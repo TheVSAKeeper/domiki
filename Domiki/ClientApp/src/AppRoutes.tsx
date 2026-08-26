@@ -25,6 +25,7 @@ const AppRoutes: AppRouteConfig[] = [
     {
         path: '/domiki-page',
         element: lazyPage(<PerfZone id="страница"><DomikiPage /></PerfZone>),
+        requireAuth: true,
     },
     {
         path: '/wiki',
@@ -33,6 +34,7 @@ const AppRoutes: AppRouteConfig[] = [
     {
         path: '/world',
         element: lazyPage(<WorldPage />),
+        requireAuth: true,
     },
 ];
 

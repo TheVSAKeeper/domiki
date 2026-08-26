@@ -48,6 +48,8 @@ try
 
     builder.Services.ConfigureApplicationCookie(options =>
     {
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+        options.SlidingExpiration = true;
         options.Events.OnRedirectToLogin = context =>
         {
             if (context.Request.Path.StartsWithSegments("/Domiki"))

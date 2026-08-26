@@ -33,7 +33,10 @@ public class AuthenticationController : ControllerBase
     [HttpGet("/authentication/logout")]
     public IActionResult Logout()
     {
-        return SignOut(new AuthenticationProperties { RedirectUri = "/" }, IdentityConstants.ApplicationScheme);
+        return SignOut(
+            new AuthenticationProperties { RedirectUri = "/" },
+            IdentityConstants.ApplicationScheme,
+            IdentityConstants.ExternalScheme);
     }
 
     [HttpGet("/authentication/user")]

@@ -75,7 +75,7 @@ public class ExternalLoginModel : PageModel
             return RedirectToPage("./Login", new { ReturnUrl = returnUrl });
         }
 
-        var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
+        var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, true, true);
         if (result.Succeeded)
         {
             _logger.LogInformation("{Name} logged in with {LoginProvider} provider.", info.Principal.Identity?.Name, info.LoginProvider);
@@ -150,7 +150,7 @@ public class ExternalLoginModel : PageModel
                         });
                     }
 
-                    await _signInManager.SignInAsync(user, false, info.LoginProvider);
+                    await _signInManager.SignInAsync(user, true, info.LoginProvider);
                     return LocalRedirect(returnUrl);
                 }
             }

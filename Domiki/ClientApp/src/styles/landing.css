@@ -53,6 +53,11 @@
         text-decoration: none;
     }
 
+.hero-cta-skeleton {
+    width: 172px;
+    height: 47px;
+}
+
 .btn-ghost {
     display: inline-flex;
     align-items: center;

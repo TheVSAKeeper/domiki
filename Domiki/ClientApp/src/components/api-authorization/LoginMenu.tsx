@@ -4,6 +4,7 @@ import LoginIcon from 'pixelarticons/svg/login.svg?react';
 import LogoutIcon from 'pixelarticons/svg/logout.svg?react';
 import UserIcon from 'pixelarticons/svg/user.svg?react';
 import { authService } from '../../services/auth';
+import type { AuthStatus } from '../../services/auth';
 
 const loginDemo = async (e: MouseEvent) => {
     e.preventDefault();
@@ -14,14 +15,15 @@ const loginDemo = async (e: MouseEvent) => {
 };
 
 export const LoginMenu = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [status, setStatus] = useState<AuthStatus>('unknown');
     const [userName, setUserName] = useState<string | null>(null);
 
     useEffect(() => {
         const populateState = async () => {
-            const [authenticated, user] = await Promise.all([authService.isAuthenticated(), authService.getUser()]);
-            setIsAuthenticated(authenticated);
-            setUserName(user ? user.name : null);
+            await authService.isAuthenticated();
+            const state = authService.getStatus();
+            setStatus(state.status);
+            setUserName(state.user ? state.user.name : null);
         };
 
         const unsubscribe = authService.subscribe(() => { void populateState(); });
@@ -30,7 +32,16 @@ export const LoginMenu = () => {
         return unsubscribe;
     }, []);
 
-    if (!isAuthenticated) {
+    if (status === 'unknown' || status === 'error') {
+        return (
+            <>
+                <li aria-hidden="true"><span className="skeleton-block nav-skeleton-cta"></span></li>
+                <li aria-hidden="true"><span className="skeleton-block nav-skeleton-link"></span></li>
+            </>
+        );
+    }
+
+    if (status !== 'authenticated') {
         return (
             <>
                 <li>
