@@ -119,7 +119,10 @@ public class GuestbookManager
             throw new BusinessException($"Книга гостей откроется на обжитости {GuestbookUnlockLevel}");
         }
 
-        _playerResourceManager.LockDbPlayerRow(guestPlayerId);
+        foreach (var lockPlayerId in new[] { guestPlayerId, hostPlayerId }.OrderBy(x => x))
+        {
+            _playerResourceManager.LockDbPlayerRow(lockPlayerId);
+        }
 
         var day = DateOnly.FromDateTime(date);
         var entry = _context.GuestbookEntries.FirstOrDefault(x => x.HostPlayerId == hostPlayerId && x.GuestPlayerId == guestPlayerId && x.Day == day);

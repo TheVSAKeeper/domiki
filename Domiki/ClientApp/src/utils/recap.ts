@@ -27,7 +27,7 @@ export interface RecapView {
     villageHelped: { guestVillageName: string; guestCrestIcon: number; guestCrestColor: number; domikTypeName: string; reducedSeconds: number; date: string }[];
     incidents: { kind: 'missing' | 'resolved'; autoReturned?: boolean; workerName: string; workerGender: number; templateId: number; clueId?: number; resourceTypeId?: number; value?: number; traitUpgraded?: boolean; newTrait?: string; newTraitLogicName?: string }[];
     domikIncidents: { kind: 'started' | 'resolved'; autoResolved?: boolean; domikTypeId: number; templateId: number; clueId?: number; resourceTypeId?: number; value?: number; traitUpgraded?: boolean; newTrait?: string; newTraitLogicName?: string; heroWorkerName?: string; heroWorkerGender?: number; upgradedWorkerName?: string }[];
-    manufactureRepeatFailures: { domikTypeId: number; reason: string }[];
+    manufactureRepeatFailures: { domikTypeId: number; reason: string; count: number }[];
     manufactureStops: { kind: 'measure' | 'reserve' | 'goldCap'; domikTypeId: number; resourceTypeId?: number; value?: number; mined?: number; cap?: number }[];
 }
 
@@ -119,11 +119,11 @@ export function buildRecapView(events: RecapEventDto[]): RecapView {
         }
 
         if (event.type === 'ManufactureRepeatFailed') {
-            const { domikTypeId, reason } = event.data;
+            const { domikTypeId, reason, count } = event.data;
             if (!isNumber(domikTypeId) || typeof reason !== 'string') {
                 continue;
             }
-            manufactureRepeatFailures.push({ domikTypeId, reason });
+            manufactureRepeatFailures.push({ domikTypeId, reason, count: isNumber(count) && count > 1 ? count : 1 });
         }
 
         if (event.type === 'ManufactureMeasureMet') {

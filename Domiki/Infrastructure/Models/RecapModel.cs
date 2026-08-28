@@ -36,6 +36,11 @@ public class RecapModel
 public class RecapEventModel
 {
     /// <summary>
+    /// Идентификатор записи – курсор постраничной выдачи журнала.
+    /// </summary>
+    public long Id { get; set; }
+
+    /// <summary>
     /// Вид события.
     /// </summary>
     /// <remarks>

@@ -7,10 +7,15 @@ namespace Domiki.Web.Data.Entities;
 /// Запись журнала событий игрока – источник витрины «Пока вас не было» и последней активности.
 /// </summary>
 /// <remarks>
-/// Непрочитанные события отдаются один раз и помечаются прочитанными, старые прочитанные строки удаляются сверх последних <c>50</c>
-/// (см. <see cref="Infrastructure.PlayerEventManager.TakeRecap"/>).
+/// Недоставленным считается всё, что больше курсора <see cref="Player.LastDeliveredEventId"/>; такие события отдаются один раз,
+/// после чего курсор сдвигается (см. <see cref="Infrastructure.PlayerEventManager.TakeRecap"/>). Хранятся записи в течение
+/// <see cref="Infrastructure.PlayerEventManager.Retention"/>, дальше их удаляет
+/// <see cref="Infrastructure.PlayerEventCleanupService"/>. Индексы: <c>(PlayerId, Id)</c> – курсор и страницы,
+/// <c>(PlayerId, Type, Date)</c> – окно слияния, <c>(Date)</c> – чистка по сроку.
 /// </remarks>
-[Index(nameof(PlayerId), nameof(Date))]
+[Index(nameof(PlayerId), nameof(Id))]
+[Index(nameof(PlayerId), nameof(Type), nameof(Date))]
+[Index(nameof(Date))]
 public class PlayerEvent
 {
     /// <summary>
@@ -36,7 +41,8 @@ public class PlayerEvent
     /// Момент события.
     /// </summary>
     /// <remarks>
-    /// Для <see cref="PlayerEventType.ManufactureFinished"/> обновляется при слиянии повторных завершений в одну запись.
+    /// При слиянии однотипных событий не обновляется: запись описывает начало своего часового окна, а не последний вошедший в него
+    /// цикл, и сдвиг даты переставлял бы её в ленте.
     /// </remarks>
     public DateTime Date { get; set; }
 
@@ -48,12 +54,4 @@ public class PlayerEvent
     /// </remarks>
     [Required(AllowEmptyStrings = false)]
     public required string Data { get; set; }
-
-    /// <summary>
-    /// Событие уже было отдано игроку через <see cref="Infrastructure.PlayerEventManager.TakeRecap"/>.
-    /// </summary>
-    /// <remarks>
-    /// Непрочитанные события попадают в очередную витрину «Пока вас не было».
-    /// </remarks>
-    public bool Read { get; set; }
 }

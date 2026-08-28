@@ -978,7 +978,7 @@ public class DomikManager
                 }
                 catch (BusinessException ex)
                 {
-                    _playerEventManager.Record(playerId, PlayerEventType.ManufactureRepeatFailed, new { domikId, domikTypeId = dbDomik.TypeId, receiptId, reason = ex.Message });
+                    _playerEventManager.RecordManufactureRepeatFailed(playerId, domikId, dbDomik.TypeId, receiptId, ex.Message);
                 }
                 catch (Exception ex)
                 {

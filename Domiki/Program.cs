@@ -184,6 +184,7 @@ try
     builder.Services.AddSingleton<ICalculator, Calculator>();
     builder.Services.AddScoped<CalculatorTick>();
     builder.Services.AddHostedService<CalculatorBackgroundService>();
+    builder.Services.AddHostedService<PlayerEventCleanupService>();
 
     builder.Services.AddResponseCompression(options =>
     {

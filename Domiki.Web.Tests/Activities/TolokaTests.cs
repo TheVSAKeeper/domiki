@@ -65,6 +65,40 @@ public sealed class TolokaTests
     }
 
     /// <summary>
+    /// Завершение толоки блокирует строки всех вкладчиков и пишет каждому событие, не встречая взаимной блокировки со
+    /// встречным взносом: порядок блокировок – сначала толока, потом строки игроков по возрастанию идентификатора.
+    /// </summary>
+    [Test]
+    public async Task CompletionLocksContributorRowsWithoutDeadlockTest()
+    {
+        const int collectedBeforeContribution = 1900;
+        const int contribution = 50;
+
+        var firstPlayer = TestPlayer.Create()
+            .WithTolokaUnlocked()
+            .WithResource(ResourceIds.Stone, 1000);
+
+        var secondPlayer = TestPlayer.Create()
+            .WithTolokaUnlocked()
+            .WithResource(ResourceIds.Stone, 1000);
+
+        firstPlayer.Contribute(contribution);
+        secondPlayer.Contribute(contribution);
+        SetActiveTolokaCollected(collectedBeforeContribution);
+
+        await Task.WhenAll(Task.Run(() => firstPlayer.Contribute(contribution)),
+            Task.Run(() => secondPlayer.Contribute(contribution)));
+
+        var completedEvents = App.Read(context => context.PlayerEvents
+            .Where(x => x.Type == Domiki.Web.Data.Entities.PlayerEventType.TolokaCompleted && (x.PlayerId == firstPlayer.Id || x.PlayerId == secondPlayer.Id))
+            .Select(x => x.PlayerId)
+            .Distinct()
+            .ToList());
+
+        Assert.That(completedEvents, Is.EquivalentTo(new[] { firstPlayer.Id, secondPlayer.Id }));
+    }
+
+    /// <summary>
     /// Достижение цели завершает текущую толоку и сразу заводит новую активную взамен.
     /// </summary>
     [Test]

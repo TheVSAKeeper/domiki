@@ -1,6 +1,8 @@
+import { useEffect, useMemo, useState } from 'react';
 import type { FC, ReactNode, SVGProps } from 'react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
-import type { DecorTypeDto, DomikTypeDto, RecapEventDto, ResourceTypeDto } from '../types/api';
+import type { DecorTypeDto, DomikTypeDto, JournalDigestEntryDto, NeighborReputationDto, RecapEventDto, ResourceTypeDto, VillageRunDto } from '../types/api';
+import { getJournalPage } from '../services/api';
 import { isNumber, isRecord, lootEntryKey, readLootEntry, readResource } from '../utils/recap';
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE } from '../utils/game';
 import { getErrandTemplate, getErrandThanks } from '../utils/errandTexts';
@@ -8,6 +10,7 @@ import { getIncidentTemplate, incidentText } from '../utils/incidentTexts';
 import { domikIncidentText, getDomikIncidentTemplate } from '../utils/domikIncidentTexts';
 import { getWorkerMilestoneTemplate, workerMilestoneText } from '../utils/workerMilestoneTexts';
 import { getWorkerMealText } from '../utils/tavernMealTexts';
+import { pickGiftText } from '../utils/giftTexts';
 import { withStableKeys } from '../utils/keys';
 import { formatDuration, formatRelativeTime } from '../utils/time';
 import { genderForm, traitLabel } from '../utils/gender';
@@ -17,11 +20,35 @@ import { ResourceChip } from './ResourceChip';
 import { Crest } from './Crest';
 import '../styles/journal.css';
 
+const JOURNAL_GROUPS = [
+    { key: 'None', label: 'Всё' },
+    { key: 'Household', label: 'Хозяйство' },
+    { key: 'Workers', label: 'Трудяги' },
+    { key: 'Village', label: 'Деревня' },
+    { key: 'Guests', label: 'Гости' },
+    { key: 'Market', label: 'Ярмарка' },
+] as const;
+
+const PAGE_SIZE = 30;
+
+const groupLabel = (key: string) => JOURNAL_GROUPS.find(x => x.key === key)?.label ?? key;
+
+const villageOf = (runs: VillageRunDto[], date: string): string | null => {
+    const at = Date.parse(date);
+    const run = runs.find(x => at >= Date.parse(x.startDate) && (x.endDate == null || at < Date.parse(x.endDate)));
+    if (run == null) {
+        return null;
+    }
+
+    return run.villageName ?? 'Деревня без имени';
+};
+
 interface JournalBoxProps {
     events: RecapEventDto[];
     resourceTypes: ResourceTypeDto[];
     domikTypes: DomikTypeDto[];
     decorTypes: DecorTypeDto[];
+    neighbors: NeighborReputationDto[];
     now: number;
 }
 
@@ -35,7 +62,15 @@ interface EntryContent {
     tone: string;
     Icon: SvgIcon;
     body: ReactNode;
+    fallback?: boolean;
 }
+
+const unrecognized: EntryContent = {
+    tone: 'neutral',
+    Icon: abstractIcon('journal'),
+    fallback: true,
+    body: <span className="journal-text">Запись не распознана этой версией игры</span>,
+};
 
 const findResourceType = (resourceTypes: ResourceTypeDto[], id: number) => resourceTypes.find(x => x.id === id);
 
@@ -68,10 +103,10 @@ const dayLabel = (dateIso: string, now: number) => {
     return new Date(dateIso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
 };
 
-const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], domikTypes: DomikTypeDto[], decorTypes: DecorTypeDto[]): EntryContent | null => {
+const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], domikTypes: DomikTypeDto[], decorTypes: DecorTypeDto[], neighbors: NeighborReputationDto[]): EntryContent => {
     const data = event.data;
     if (!isRecord(data)) {
-        return null;
+        return unrecognized;
     }
 
     if (event.type === 'ManufactureFinished' && Array.isArray(data.resources)) {
@@ -106,7 +141,10 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
             body: (
                 <>
                     {domikType != null && <DomikSprite logicName={domikType.logicName} aria-hidden="true" />}
-                    <span className="journal-text">Наряд заглох: {data.reason}</span>
+                    <span className="journal-text">
+                        {isNumber(data.count) && data.count > 1 ? `Наряд заглох ×${data.count}: ` : 'Наряд заглох: '}
+                        {data.reason}
+                    </span>
                 </>
             ),
         };
@@ -333,7 +371,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
             return { tone: 'errand', Icon: abstractIcon('incident'), body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{incidentText('{имя} вернул{ся|ась} сам{|а} – дорогу на{шёл|шла} без подмоги.', data.workerName, data.workerGender)}</span></> };
         }
         if (!isNumber(data.clueId)) {
-            return null;
+            return unrecognized;
         }
         const resourceType = isNumber(data.resourceTypeId) ? findResourceType(resourceTypes, data.resourceTypeId) : undefined;
         return { tone: 'errand', Icon: abstractIcon('incident'), body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">{incidentText(template.resolutions[data.clueId] ?? '', data.workerName, data.workerGender)}<span className="journal-errand-thanks"><i>{incidentText(template.epilogue, data.workerName, data.workerGender)}</i></span></span><span className="journal-chips">{resourceType != null && isNumber(data.value) && <ResourceChip resourceType={resourceType} value={data.value} />}{data.traitUpgraded === true && typeof data.newTrait === 'string' && <span className="journal-loot-rare">Черта: {traitLabel(typeof data.newTraitLogicName === 'string' ? data.newTraitLogicName : '', data.newTrait, data.workerGender)}</span>}</span></> };
@@ -350,7 +388,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
             return { tone: 'errand', Icon: abstractIcon('incident'), body: <><MechanicSprite logicName="orders" aria-hidden="true" /><span className="journal-text">Загадка в {domikName} разгадалась сама</span></> };
         }
         if (!isNumber(data.clueId) || typeof data.heroWorkerName !== 'string') {
-            return null;
+            return unrecognized;
         }
         const template = getDomikIncidentTemplate(data.templateId);
         const heroGender = isNumber(data.heroWorkerGender) ? data.heroWorkerGender : undefined;
@@ -397,6 +435,40 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
         };
     }
 
+    if (event.type === 'NeighborGift' && isNumber(data.neighborId) && Array.isArray(data.resources) && isNumber(data.visitIndex) && typeof data.big === 'boolean') {
+        const neighbor = neighbors.find(x => x.neighborId === data.neighborId);
+        const neighborName = neighbor?.neighborName ?? `Сосед #${data.neighborId}`;
+        const resources = data.resources.flatMap(entry => {
+            const parsed = readResource(entry);
+            return parsed == null ? [] : [parsed];
+        });
+        const decorTypeId = data.decorTypeId;
+        const decorName = isNumber(decorTypeId) ? decorTypes.find(x => x.id === decorTypeId)?.name ?? `Декор #${decorTypeId}` : 'Декор не указан';
+        return {
+            tone: 'gift',
+            Icon: mechanicIcon('gifts'),
+            body: (
+                <>
+                    <span className="journal-text">
+                        {neighborName}
+                        <span className="journal-errand-thanks">{pickGiftText(data.neighborId, data.big, event.date)}</span>
+                    </span>
+                    {data.big
+                        ? <span className="journal-loot-rare">Нашли {decorName}</span>
+                        : (
+                            <span className="journal-chips">
+                                {resources.map(resource => {
+                                    const resourceType = findResourceType(resourceTypes, resource.typeId);
+                                    return resourceType == null ? null : <ResourceChip key={resource.typeId} resourceType={resourceType} value={resource.value} />;
+                                })}
+                            </span>
+                        )
+                    }
+                </>
+            ),
+        };
+    }
+
     if (event.type === 'GoalCompleted' && typeof data.name === 'string' && isNumber(data.rewardCoins)) {
         const coinType = findResourceType(resourceTypes, 1);
         return {
@@ -411,30 +483,103 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
         };
     }
 
-    return null;
+    return unrecognized;
 };
 
-export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, now }: JournalBoxProps) => {
-    const entries = withStableKeys(
-        [...events]
-            .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
-            .flatMap(event => {
-                const content = renderContent(event, resourceTypes, domikTypes, decorTypes);
-                return content == null ? [] : [{ event, content }];
-            }),
-        entry => `${entry.event.type}-${entry.event.date}`,
+export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, neighbors, now }: JournalBoxProps) => {
+    const [group, setGroup] = useState<string>('None');
+    const [loaded, setLoaded] = useState<RecapEventDto[] | null>(null);
+    const [villageRuns, setVillageRuns] = useState<VillageRunDto[]>([]);
+    const [totalCount, setTotalCount] = useState<number | null>(null);
+    const [digest, setDigest] = useState<JournalDigestEntryDto[]>([]);
+    const [exhausted, setExhausted] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [failed, setFailed] = useState(false);
+
+    // Фильтр «Всё» показывает первую страницу из снимка состояния, чтобы не ходить на сервер за уже полученным.
+    const shown = useMemo(
+        () => (group === 'None' ? [...events, ...(loaded ?? [])] : (loaded ?? [])),
+        [group, events, loaded],
     );
 
-    const groups: { key: string; label: string; items: typeof entries }[] = [];
+    useEffect(() => {
+        const controller = new AbortController();
+        const wantsEvents = group !== 'None';
+        getJournalPage(0, group, wantsEvents ? PAGE_SIZE : 1, controller.signal)
+            .then(page => {
+                setVillageRuns(page.villageRuns);
+                setTotalCount(page.totalCount);
+                setDigest(page.digest);
+                if (wantsEvents) {
+                    setLoaded(page.events);
+                    setExhausted(page.events.length < PAGE_SIZE);
+                }
+            })
+            .catch(() => {
+                if (!controller.signal.aborted) {
+                    setFailed(true);
+                }
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) {
+                    setLoading(false);
+                }
+            });
+        return () => controller.abort();
+    }, [group]);
+
+    const selectGroup = (key: string) => {
+        if (key === group) {
+            return;
+        }
+
+        setGroup(key);
+        setLoaded(null);
+        setExhausted(false);
+        setFailed(false);
+        setLoading(true);
+    };
+
+    const loadMore = () => {
+        const oldest = shown[shown.length - 1];
+        if (oldest == null || loading) {
+            return;
+        }
+
+        setLoading(true);
+        setFailed(false);
+        getJournalPage(oldest.id, group, PAGE_SIZE)
+            .then(page => {
+                setLoaded(previous => [...(previous ?? []), ...page.events]);
+                setTotalCount(page.totalCount);
+                setExhausted(page.events.length < PAGE_SIZE);
+            })
+            .catch(() => setFailed(true))
+            .finally(() => setLoading(false));
+    };
+
+    const entries = withStableKeys(
+        [...shown]
+            .sort((a, b) => Date.parse(b.date) - Date.parse(a.date))
+            .map(event => ({ event, content: renderContent(event, resourceTypes, domikTypes, decorTypes, neighbors) })),
+        entry => `${entry.event.type}-${entry.event.date}-${entry.event.id}`,
+    );
+
+    const groups: { key: string; label: string; village: string | null; items: typeof entries }[] = [];
     entries.forEach(entry => {
         const label = dayLabel(entry.item.event.date, now);
+        const village = villageOf(villageRuns, entry.item.event.date);
         const last = groups[groups.length - 1];
-        if (last != null && last.label === label) {
+        if (last != null && last.label === label && last.village === village) {
             last.items.push(entry);
         } else {
-            groups.push({ key: entry.key, label, items: [entry] });
+            groups.push({ key: entry.key, label, village, items: [entry] });
         }
     });
+
+    // Курсор берётся из последней показанной записи, поэтому у старого снимка без идентификаторов листать нечего.
+    const oldestShown = shown[shown.length - 1];
+    const canLoadMore = !exhausted && oldestShown != null && oldestShown.id > 0;
 
     return (
         <section className="journal-panel pixel-panel">
@@ -444,13 +589,39 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, now 
                     <h3 className="journal-hero-title panel-title">Журнал</h3>
                     <p className="journal-hero-sub">Летопись двора: что ни день – то новое дело.</p>
                 </div>
-                {entries.length > 0 &&
+                {(totalCount ?? entries.length) > 0 &&
                     <span className="journal-hero-stat">
-                        <b>{entries.length}</b>
-                        <small>{pluralRu(entries.length, 'запись', 'записи', 'записей')}</small>
+                        <b>{totalCount ?? entries.length}</b>
+                        <small>{pluralRu(totalCount ?? entries.length, 'запись', 'записи', 'записей')}</small>
                     </span>
                 }
             </header>
+
+            {digest.length > 0 &&
+                <div className="journal-digest">
+                    <span className="journal-digest-title">За неделю</span>
+                    {digest.map(item => (
+                        <span key={item.group} className="journal-digest-item">
+                            {groupLabel(item.group)}
+                            <b>{item.count}</b>
+                        </span>
+                    ))}
+                </div>
+            }
+
+            <div className="journal-filters" role="group" aria-label="Отбор записей журнала">
+                {JOURNAL_GROUPS.map(item => (
+                    <button
+                        key={item.key}
+                        type="button"
+                        className="journal-filter"
+                        aria-pressed={group === item.key}
+                        onClick={() => selectGroup(item.key)}
+                    >
+                        {item.label}
+                    </button>
+                ))}
+            </div>
 
             {entries.length === 0
                 ? (
@@ -462,13 +633,16 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, now 
                 )
                 : (
                     <div className="journal-timeline">
-                        {groups.map(group => (
+                        {groups.map((group, index) => (
                             <div key={group.key} className="journal-group">
+                                {group.village !== groups[index - 1]?.village &&
+                                    <div className="journal-village"><span className="journal-village-label">{group.village ?? 'Прежняя деревня'}</span></div>
+                                }
                                 <div className="journal-day"><span className="journal-day-label">{group.label}</span></div>
                                 {group.items.map(entry => {
-                                    const { tone, Icon, body } = entry.item.content;
+                                    const { tone, Icon, body, fallback } = entry.item.content;
                                     return (
-                                        <article key={entry.key} className="journal-entry" data-tone={tone}>
+                                        <article key={entry.key} className="journal-entry" data-tone={tone} data-fallback={fallback === true ? '' : undefined}>
                                             <span className="journal-node" aria-hidden="true"><Icon /></span>
                                             <div className="journal-card">
                                                 {body}
@@ -481,6 +655,20 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, now 
                         ))}
                     </div>
                 )
+            }
+
+            {failed &&
+                <p className="journal-more-note">Не удалось получить летопись. Проверьте связь.</p>
+            }
+
+            {canLoadMore &&
+                <button type="button" className="btn-game journal-more" onClick={loadMore} disabled={loading}>
+                    {loading ? 'Читаем летопись…' : 'Показать раньше'}
+                </button>
+            }
+
+            {exhausted && entries.length > 0 &&
+                <p className="journal-more-note">Летопись хранит записи за последние 30 дней – это всё.</p>
             }
         </section>
     );

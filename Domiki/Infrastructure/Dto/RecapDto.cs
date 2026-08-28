@@ -33,6 +33,15 @@ public sealed record RecapDto
 public sealed record RecapEventDto
 {
     /// <summary>
+    /// Идентификатор записи.
+    /// </summary>
+    /// <remarks>
+    /// Курсор постраничной выдачи: следующая страница запрашивается по наименьшему <see cref="Id"/> текущей
+    /// (см. <see cref="Infrastructure.PlayerEventManager.GetEventsBefore"/>). Монотонен, слиянием не меняется.
+    /// </remarks>
+    public required long Id { get; init; }
+
+    /// <summary>
     /// Вид события.
     /// </summary>
     /// <remarks>

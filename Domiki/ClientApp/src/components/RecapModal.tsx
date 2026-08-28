@@ -242,14 +242,14 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
                     <div className="recap-section-head">
                         <span className="recap-section-badge"><AbstractSprite logicName="production_recipe" size={24} aria-hidden="true" /></span>
                         <h3 className="recap-section-title">Наряды заглохли</h3>
-                        <span className="recap-section-count">{manufactureRepeatFailures.length}</span>
+                        <span className="recap-section-count">{manufactureRepeatFailures.reduce((total, { item }) => total + item.count, 0)}</span>
                     </div>
                     {manufactureRepeatFailures.map(({ key, item: failure }) => {
                         const domikType = domikTypes.find(type => type.id === failure.domikTypeId);
                         return (
                             <div key={key} className="recap-row">
                                 {domikType != null && <DomikSprite className="recap-domik-sprite" logicName={domikType.logicName} />}
-                                <span className="recap-line">{failure.reason}</span>
+                                <span className="recap-line">{failure.count > 1 ? `${failure.reason} ×${failure.count}` : failure.reason}</span>
                             </div>
                         );
                     })}

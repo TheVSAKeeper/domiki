@@ -115,6 +115,42 @@ public class RelocationManager
     }
 
     /// <summary>
+    /// Возвращает прогоны деревень игрока – отрезки времени, каждый со своим именем, от старейшего к текущему.
+    /// </summary>
+    /// <remarks>
+    /// Принадлежность события деревне выводится из его времени по этим отрезкам, а не из ключа в самой записи: столб
+    /// уже хранит <see cref="Data.Entities.VillageChronicle.StartDate"/> и <see cref="Data.Entities.VillageChronicle.EndDate"/>
+    /// каждой покинутой деревни, а начало текущей лежит в <see cref="Data.Entities.Player.VillageStartedDate"/>. Поэтому
+    /// разделитель переезда в журнале работает и для событий, накопленных до появления этой выдачи.
+    /// </remarks>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    public VillageRun[] GetVillageRuns(int playerId)
+    {
+        var dbPlayer = _context.Players.Single(x => x.Id == playerId);
+        var runs = _context.VillageChronicles
+            .Where(x => x.PlayerId == playerId)
+            .ToArray()
+            .OrderBy(x => x.StartDate)
+            .ThenBy(x => x.Id)
+            .Select(x => new VillageRun
+            {
+                VillageName = x.VillageName,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+            })
+            .ToList();
+
+        runs.Add(new()
+        {
+            VillageName = dbPlayer.VillageName,
+            StartDate = dbPlayer.VillageStartedDate ?? DateTime.MinValue,
+            EndDate = null,
+        });
+
+        return runs.ToArray();
+    }
+
+    /// <summary>
     /// Возвращает памятный столб игрока – прожитые деревни и их итог.
     /// </summary>
     /// <param name="playerId">Идентификатор игрока.</param>

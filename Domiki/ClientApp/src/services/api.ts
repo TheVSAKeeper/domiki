@@ -7,6 +7,7 @@ import {
     tolokaStateSchema,
     marketStateSchema,
     gameStateSchema,
+    journalPageSchema,
     guestbookSchema,
     helpResultSchema,
     memorialPostSchema,
@@ -17,6 +18,7 @@ import {
     villageVisitSchema,
     type DecorStateDto,
     type GameStateDto,
+    type JournalPageDto,
     type GuestbookDto,
     type HelpResultDto,
     type MemorialPostDto,
@@ -148,6 +150,9 @@ export const setResourceReserve = (resourceTypeId: number, reserve: number, sign
 
 export const hurryDomik = (domikId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/HurryDomik/${domikId}`, signal);
+
+export const getJournalPage = (beforeId: number, group: string, count = 30, signal?: AbortSignal): Promise<JournalPageDto> =>
+    apiGet(`Domiki/GetJournalPage?beforeId=${beforeId}&count=${count}&group=${group}`, journalPageSchema, signal);
 
 export const getVillage = (signal?: AbortSignal): Promise<VillageDto> =>
     apiGet('Domiki/GetVillage', villageSchema, signal);

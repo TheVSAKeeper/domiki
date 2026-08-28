@@ -437,7 +437,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'journal', label: 'Журнал', icon: <AbstractSprite logicName="journal" size={32} className="game-tab-ico" aria-hidden="true" />, visible: true,
-            node: () => <JournalBox events={events} resourceTypes={resourceTypes} domikTypes={domikTypes} decorTypes={decor?.types ?? []} now={now} />,
+            node: () => <JournalBox events={events} resourceTypes={resourceTypes} domikTypes={domikTypes} decorTypes={decor?.types ?? []} neighbors={reputation} now={now} />,
         },
         {
             key: 'guestbook', label: 'Гости', icon: <MechanicSprite logicName="guestbook" size={32} className="game-tab-ico" aria-hidden="true" />, visible: true,

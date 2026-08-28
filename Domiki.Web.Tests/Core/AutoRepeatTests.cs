@@ -26,7 +26,7 @@ public sealed class AutoRepeatTests
 
         player.StartManufacture(4, ReceiptIds.MakeDishes, autoRepeat: true);
 
-        var events = App.Read(context => context.PlayerEvents.Where(x => x.PlayerId == player.Id && !x.Read && x.Type == PlayerEventType.ManufactureFinished).ToList());
+        var events = App.Read(context => context.PlayerEvents.Where(x => x.PlayerId == player.Id && x.Type == PlayerEventType.ManufactureFinished).ToList());
         Assert.That(events, Has.Count.EqualTo(1));
 
         using var data = JsonDocument.Parse(events[0].Data);
@@ -146,7 +146,7 @@ public sealed class AutoRepeatTests
         player.RecordManufactureFinished(DomikIds.Forge);
         player.RecordManufactureFinished(DomikIds.Barrack);
 
-        var events = App.Read(context => context.PlayerEvents.Where(x => x.PlayerId == player.Id && !x.Read && x.Type == PlayerEventType.ManufactureFinished).ToList());
+        var events = App.Read(context => context.PlayerEvents.Where(x => x.PlayerId == player.Id && x.Type == PlayerEventType.ManufactureFinished).ToList());
         Assert.That(events, Has.Count.EqualTo(2));
     }
 

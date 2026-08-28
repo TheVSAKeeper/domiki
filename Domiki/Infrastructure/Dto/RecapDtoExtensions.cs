@@ -17,6 +17,7 @@ public static class RecapDtoExtensions
     {
         return new()
         {
+            Id = model.Id,
             Type = model.Type.ToString(),
             Date = DateTimeHelper.AsUtc(model.Date),
             Data = model.Data,

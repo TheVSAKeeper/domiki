@@ -579,11 +579,37 @@ export const marketStateSchema = z.object({
 export type MarketStateDto = z.infer<typeof marketStateSchema>;
 
 export const recapEventSchema = z.object({
+    // Снимок, сохранённый до появления курсора, идентификаторов не несёт: без запаса его журнал отсеялся бы целиком.
+    id: z.number().default(0),
     type: z.string(),
     date: z.string(),
     data: z.unknown(),
 });
 export type RecapEventDto = z.infer<typeof recapEventSchema>;
+
+export const villageRunSchema = z.object({
+    villageName: z.string().nullable(),
+    startDate: z.string(),
+    endDate: z.string().nullable(),
+});
+export type VillageRunDto = z.infer<typeof villageRunSchema>;
+
+export const journalDigestEntrySchema = z.object({
+    group: z.string(),
+    count: z.number(),
+});
+export type JournalDigestEntryDto = z.infer<typeof journalDigestEntrySchema>;
+
+export const journalPageSchema = z.object({
+    events: z.array(z.unknown()).transform(items => items.flatMap(item => {
+        const parsed = recapEventSchema.safeParse(item);
+        return parsed.success ? [parsed.data] : [];
+    })),
+    totalCount: z.number(),
+    villageRuns: z.array(villageRunSchema),
+    digest: z.array(journalDigestEntrySchema),
+});
+export type JournalPageDto = z.infer<typeof journalPageSchema>;
 
 export const recapSchema = z.object({
     awaySeconds: z.number(),

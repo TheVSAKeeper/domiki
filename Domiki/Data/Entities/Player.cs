@@ -97,6 +97,22 @@ public class Player
     public DateTime? LastSeen { get; set; }
 
     /// <summary>
+    /// Наибольший <see cref="PlayerEvent.Id"/>, уже отданный игроку витриной «Пока вас не было».
+    /// </summary>
+    /// <remarks>
+    /// Курсор доставки вместо флага на самой записи: строки журнала не мутируются на каждом
+    /// <see cref="Infrastructure.PlayerEventManager.TakeRecap"/>, а недоставленным считается всё, что больше курсора.
+    /// <see langword="null"/> – игроку ещё ничего не отдавали.
+    /// <para>
+    /// Инвариант: событие игроку пишется только при удерживаемой блокировке его строки
+    /// (<see cref="Infrastructure.PlayerResourceManager.LockDbPlayerRow"/>). Иначе транзакция с меньшим <see cref="PlayerEvent.Id"/> может
+    /// закоммититься после того, как витрина сдвинула курсор за него, и событие в витрину не попадёт. Кросс-игроковые записи
+    /// блокируют строки по возрастанию идентификатора.
+    /// </para>
+    /// </remarks>
+    public long? LastDeliveredEventId { get; set; }
+
+    /// <summary>
     /// Инстанция толоки, чей прогресс запомнен для витрины «Пока вас не было».
     /// </summary>
     /// <remarks>

@@ -154,6 +154,21 @@ public class TolokaManager
         };
     }
 
+    /// <summary>
+    /// Вносит ресурс игрока в текущую толоку и, если взнос добирает все позиции, завершает её.
+    /// </summary>
+    /// <remarks>
+    /// Порядок блокировок – строка толоки (<see cref="LockActiveToloka"/>), затем строки игроков по возрастанию
+    /// идентификатора. Завершающий взнос блокирует строки всех вкладчиков, потому что каждому пишется событие, а событие
+    /// игроку пишется только под его блокировкой (см. <see cref="Data.Entities.Player.LastDeliveredEventId"/>). Набор
+    /// блокируемых строк вычисляется до первой из них: взять строку вносящего раньше остальных значило бы нарушить
+    /// возрастающий порядок и встретить взаимную блокировку со встречным <see cref="Village.HelpManager.Help"/> между теми
+    /// же игроками.
+    /// </remarks>
+    /// <param name="playerId">Игрок, делающий взнос.</param>
+    /// <param name="resourceTypeId">Тип вносимого ресурса.</param>
+    /// <param name="amount">Желаемое количество; сверх остатка позиции не принимается.</param>
+    /// <param name="date">Момент действия в UTC.</param>
     public void Contribute(int playerId, int resourceTypeId, int amount, DateTime date)
     {
         if (amount <= 0)
@@ -161,14 +176,8 @@ public class TolokaManager
             throw new BusinessException("Неверное количество");
         }
 
-        _playerResourceManager.LockDbPlayerRow(playerId);
-
-        if (!HasBuilding(playerId, "gathering"))
-        {
-            throw new BusinessException("Нужна Сходня");
-        }
-
         var dbToloka = LockActiveToloka();
+
         var tolokaTypes = _resourceManager.GetTolokaTypes();
         var tolokaType = tolokaTypes.First(x => x.Id == dbToloka.TolokaTypeId);
 
@@ -185,6 +194,24 @@ public class TolokaManager
         }
 
         var accepted = Math.Min(amount, remaining);
+
+        var positions = _context.TolokaPositions.Where(x => x.TolokaId == dbToloka.Id).ToArray();
+        var completesToloka = positions.All(x => x.Collected + (x.ResourceTypeId == resourceTypeId ? accepted : 0) >= x.Goal);
+        var lockedPlayerIds = new[] { playerId }.AsEnumerable();
+        if (completesToloka)
+        {
+            lockedPlayerIds = lockedPlayerIds.Concat(_context.TolokaContributions.Where(x => x.TolokaId == dbToloka.Id).Select(x => x.PlayerId));
+        }
+
+        foreach (var lockPlayerId in lockedPlayerIds.Distinct().OrderBy(x => x).ToArray())
+        {
+            _playerResourceManager.LockDbPlayerRow(lockPlayerId);
+        }
+
+        if (!HasBuilding(playerId, "gathering"))
+        {
+            throw new BusinessException("Нужна Сходня");
+        }
 
         _playerResourceManager.WriteOffResources(playerId, new[]
         {
@@ -214,8 +241,7 @@ public class TolokaManager
         int[]? notifyRecipients = null;
         var completedTolokaName = tolokaType.Name;
 
-        var allPositions = _context.TolokaPositions.Where(x => x.TolokaId == dbToloka.Id).ToArray();
-        if (allPositions.All(p => p.Collected >= p.Goal))
+        if (positions.All(p => p.Collected >= p.Goal))
         {
             dbToloka.CompletedDate = date;
             _context.SaveChanges();
@@ -273,8 +299,8 @@ public class TolokaManager
     /// Отдаёт голос игрока за тип следующей толоки в текущей активной инстанции.
     /// </summary>
     /// <remarks>
-    /// Тот же порядок блокировок, что и <see cref="Contribute"/> (<see cref="PlayerResourceManager.LockDbPlayerRow"/>,
-    /// затем <see cref="LockActiveToloka"/>), – голос не ляжет на завершающуюся толоку. Гейт постройкой «Сходня».
+    /// Тот же порядок блокировок, что и <see cref="Contribute"/> (<see cref="LockActiveToloka"/>, затем
+    /// <see cref="PlayerResourceManager.LockDbPlayerRow"/>), – голос не ляжет на завершающуюся толоку. Гейт постройкой «Сходня».
     /// Смена выбора – UPDATE строки голоса. Голос без вклада разрешён.
     /// </remarks>
     /// <param name="playerId">Игрок, отдающий голос.</param>
@@ -282,13 +308,6 @@ public class TolokaManager
     /// <param name="date">Момент действия в UTC.</param>
     public void Vote(int playerId, int candidateTolokaTypeId, DateTime date)
     {
-        _playerResourceManager.LockDbPlayerRow(playerId);
-
-        if (!HasBuilding(playerId, "gathering"))
-        {
-            throw new BusinessException("Нужна Сходня");
-        }
-
         var tolokaTypes = _resourceManager.GetTolokaTypes();
         if (tolokaTypes.All(x => x.Id != candidateTolokaTypeId))
         {
@@ -296,6 +315,12 @@ public class TolokaManager
         }
 
         var dbToloka = LockActiveToloka();
+        _playerResourceManager.LockDbPlayerRow(playerId);
+
+        if (!HasBuilding(playerId, "gathering"))
+        {
+            throw new BusinessException("Нужна Сходня");
+        }
 
         var vote = _context.TolokaVotes.FirstOrDefault(x => x.TolokaId == dbToloka.Id && x.PlayerId == playerId);
         if (vote == null)
