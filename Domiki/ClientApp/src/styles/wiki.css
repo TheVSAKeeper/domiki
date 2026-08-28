@@ -49,6 +49,45 @@
         image-rendering: pixelated;
     }
 
+.wiki-decor-cell {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.wiki-decor-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+    .wiki-decor-head span {
+        overflow-wrap: anywhere;
+    }
+
+.wiki-decor-meta,
+.wiki-decor-cost {
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+.wiki-decor-meta {
+    color: rgba(51, 41, 26, .72);
+}
+
+.wiki-decor-cost {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+    .wiki-decor-cost .wiki-chips {
+        gap: 4px;
+    }
+
 .wiki .section-head {
     width: max-content;
     max-width: 100%;
@@ -406,9 +445,46 @@ button.wiki-res-cell {
     padding: 0 20px 18px;
 }
 
-    .wiki-mechanic-body > p {
-        margin: 0 0 12px;
-        line-height: 1.55;
+.wiki-article {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.wiki-article-lead {
+    margin: 0;
+    padding: 10px 12px;
+    border-left: 4px solid var(--roof);
+    background: color-mix(in srgb, var(--plank) 35%, transparent);
+    line-height: 1.55;
+}
+
+.wiki-article-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.wiki-article-card {
+    padding: 10px 12px;
+    border: 2px solid color-mix(in srgb, var(--pine-dark) 28%, transparent);
+    background: color-mix(in srgb, var(--plank) 28%, transparent);
+    clip-path: var(--cut);
+}
+
+    .wiki-article-card h3 {
+        margin: 0 0 7px;
+        color: var(--pine-dark);
+        font-family: var(--pixel);
+        font-size: 10px;
+        letter-spacing: .05em;
+        line-height: 1.35;
+        text-transform: uppercase;
+    }
+
+    .wiki-article-card p {
+        margin: 0;
+        line-height: 1.5;
     }
 
 .wiki-mechanic-live {
@@ -416,6 +492,12 @@ button.wiki-res-cell {
     flex-direction: column;
     gap: 8px;
 }
+
+    .wiki-mechanic-body > .wiki-mechanic-live {
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 2px dashed color-mix(in srgb, var(--roof) 45%, transparent);
+    }
 
     .wiki-mechanic-live-label {
         font-family: var(--pixel);
@@ -433,6 +515,80 @@ button.wiki-res-cell {
     .wiki-mechanic-live .wiki-res-grid {
         margin-top: 4px;
     }
+
+.wiki-toloka-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.wiki-toloka-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 7px 9px;
+    border: 2px solid color-mix(in srgb, var(--pine-dark) 28%, transparent);
+    background: color-mix(in srgb, var(--plank) 38%, transparent);
+}
+
+.wiki-toloka-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.wiki-toloka-resource {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 700;
+}
+
+    .wiki-toloka-resource svg {
+        width: 22px;
+        height: 22px;
+        image-rendering: pixelated;
+    }
+
+.wiki-toloka-progress {
+    height: 8px;
+    overflow: hidden;
+    border: 2px solid var(--pine-dark);
+    background: color-mix(in srgb, var(--paper) 55%, transparent);
+}
+
+    .wiki-toloka-progress > span {
+        display: block;
+        height: 100%;
+        background: var(--roof);
+    }
+
+.wiki-toloka-vote {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.wiki-toloka-votes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.wiki-toloka-vote-chip {
+    padding: 5px 8px;
+    border: 2px solid color-mix(in srgb, var(--pine-dark) 28%, transparent);
+    background: color-mix(in srgb, var(--plank) 38%, transparent);
+    font-size: 12px;
+}
+
+.wiki-toloka-vote-chip-mine {
+    border-color: var(--roof);
+    color: var(--ink);
+    font-weight: 700;
+}
 
 .wiki-convoy-list {
     display: flex;
@@ -603,6 +759,12 @@ button.wiki-res-cell {
     width: 32px;
     height: 32px;
     flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+    .wiki-article-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (max-width: 575px) {
