@@ -39,6 +39,123 @@ public sealed class AutoRepeatTests
     }
 
     /// <summary>
+    /// Успешный автоповтор оставляет следующий цикл в работе, но завершивший его тик не содержит push-текста.
+    /// </summary>
+    [Test]
+    public void SuccessfulAutoRepeatIsSilentTest()
+    {
+        const int domikId = 4;
+
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .WithDomik(DomikIds.Pottery, 3)
+            .WithResource(ResourceIds.Clay, 4);
+
+        CalculateInfo calcInfo;
+        bool result;
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(domikId, ReceiptIds.MakeDishes, autoRepeat: true);
+            var manufacture = player.Manufacture(domikId);
+            calcInfo = new CalculateInfo
+            {
+                PlayerId = player.Id,
+                ObjectId = manufacture.Id,
+                Date = manufacture.FinishDate.AddSeconds(1),
+                Type = CalculateTypes.Manufacture,
+            };
+            result = App.Act<DomikManager, bool>(m => m.FinishManufacture(calcInfo.Date, calcInfo));
+        }
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.True);
+            Assert.That(calcInfo.PushTitle, Is.Null);
+            Assert.That(calcInfo.PushBody, Is.Null);
+            Assert.That(player.ManufactureCount(domikId), Is.EqualTo(1));
+        }
+    }
+
+    /// <summary>
+    /// Если автоповтор не запускается из-за сырья, тик сообщает остановку наряда с причиной.
+    /// </summary>
+    [Test]
+    public void AutoRepeatStopContainsReasonPushTest()
+    {
+        const int domikId = 4;
+
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .WithDomik(DomikIds.Pottery, 3)
+            .WithResource(ResourceIds.Clay, 2);
+
+        CalculateInfo calcInfo;
+        bool result;
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(domikId, ReceiptIds.MakeDishes, autoRepeat: true);
+            var manufacture = player.Manufacture(domikId);
+            calcInfo = new CalculateInfo
+            {
+                PlayerId = player.Id,
+                ObjectId = manufacture.Id,
+                Date = manufacture.FinishDate.AddSeconds(1),
+                Type = CalculateTypes.Manufacture,
+            };
+            result = App.Act<DomikManager, bool>(m => m.FinishManufacture(calcInfo.Date, calcInfo));
+        }
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.True);
+            Assert.That(calcInfo.PushTitle, Is.EqualTo("Наряд остановлен"));
+            Assert.That(calcInfo.PushBody, Is.Not.Null.And.Not.Empty);
+            Assert.That(calcInfo.PushTag, Is.EqualTo(PushSender.ProductionTag));
+            Assert.That(player.ManufactureCount(domikId), Is.Zero);
+        }
+    }
+
+    /// <summary>
+    /// Разовое производство сообщает прибывшие ресурсы, не называя освободившегося трудягу.
+    /// </summary>
+    [Test]
+    public void OneOffManufacturePushDoesNotMentionWorkerTest()
+    {
+        const int domikId = 4;
+
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .WithDomik(DomikIds.Pottery, 3)
+            .WithResource(ResourceIds.Clay, 2);
+        var workerNames = player.Workers().Select(x => x.Name).ToArray();
+
+        CalculateInfo calcInfo;
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(domikId, ReceiptIds.MakeDishes);
+            var manufacture = player.Manufacture(domikId);
+            calcInfo = new CalculateInfo
+            {
+                PlayerId = player.Id,
+                ObjectId = manufacture.Id,
+                Date = manufacture.FinishDate.AddSeconds(1),
+                Type = CalculateTypes.Manufacture,
+            };
+            Assert.That(App.Act<DomikManager, bool>(m => m.FinishManufacture(calcInfo.Date, calcInfo)), Is.True);
+        }
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(calcInfo.PushTitle, Is.Not.Null);
+            Assert.That(workerNames, Has.None.Matches<string>(name => calcInfo.PushTitle!.Contains(name, StringComparison.Ordinal)));
+            Assert.That(calcInfo.PushBody, Is.Not.Null);
+            Assert.That(calcInfo.PushBody, Does.Contain("На складе прибыло"));
+            Assert.That(workerNames, Has.None.Matches<string>(name => calcInfo.PushBody!.Contains(name, StringComparison.Ordinal)));
+            Assert.That(calcInfo.PushTag, Is.EqualTo(PushSender.ProductionTag));
+        }
+    }
+
+    /// <summary>
     /// Автоповтор перезапускает производство циклами, пока хватает сырья, и останавливается, когда сырьё заканчивается.
     /// </summary>
     [Test]

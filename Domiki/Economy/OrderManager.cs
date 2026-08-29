@@ -111,8 +111,30 @@ public class OrderManager
         return Math.Min(quantity, capacityLimit);
     }
 
+    /// <summary>
+    /// Обеспечивает доску заказов свободными ячейками с учётом отложенного пополнения.
+    /// </summary>
+    /// <remarks>
+    /// Первичное и запросное пополнение не создают push; уведомление отправляется только событием
+    /// <see cref="FinishOrderRefill"/>, обработанным планировщиком.
+    /// </remarks>
+    /// <param name="playerId">Идентификатор игрока.</param>
     public void EnsureOrderBoard(int playerId)
     {
+        var ordersCreated = EnsureOrderBoardCore(playerId, out var refillCleared);
+        if (refillCleared)
+        {
+            RemoveOrderRefillAfterCommit(playerId);
+        }
+        else if (ordersCreated == 0)
+        {
+            ScheduleOrderRefillIfPending(playerId);
+        }
+    }
+
+    private int EnsureOrderBoardCore(int playerId, out bool refillCleared)
+    {
+        refillCleared = false;
         var count = _context.Orders.Count(x => x.PlayerId == playerId);
         var player = _context.Players.First(x => x.Id == playerId);
         if (count >= BoardSize)
@@ -121,18 +143,20 @@ public class OrderManager
             {
                 player.NextOrderRefillAt = null;
                 _context.SaveChanges();
+                refillCleared = true;
             }
 
-            return;
+            return 0;
         }
 
         if (player.NextOrderRefillAt != null && DateTimeHelper.GetNowDate() < player.NextOrderRefillAt)
         {
-            return;
+            return 0;
         }
 
         var villageLevel = _villageLevelCalculator.GetLevel(playerId).Level;
         var created = new List<CalculateInfo>();
+        var ordersCreated = 0;
         var boardOrders = _context.OrderResources
             .Where(x => x.Order.PlayerId == playerId)
             .Select(x => new { x.Order.NeighborId, x.ResourceTypeId })
@@ -145,6 +169,7 @@ public class OrderManager
             var calcInfo = CreateOrder(playerId, villageLevel, boardOrders, player.FriendNeighborId);
             created.Add(calcInfo);
             count++;
+            ordersCreated++;
         }
 
         if (created.Count > 0)
@@ -156,6 +181,7 @@ public class OrderManager
             }
         }
 
+        refillCleared = player.NextOrderRefillAt != null;
         player.NextOrderRefillAt = null;
         _context.SaveChanges();
 
@@ -167,6 +193,44 @@ public class OrderManager
             {
                 _calculator.Insert(calcInfo);
             }
+        };
+
+        return ordersCreated;
+    }
+
+    private void ScheduleOrderRefillIfPending(int playerId)
+    {
+        var refillAt = _context.Players
+            .Where(x => x.Id == playerId)
+            .Select(x => x.NextOrderRefillAt)
+            .SingleOrDefault();
+        if (refillAt == null)
+        {
+            return;
+        }
+
+        var afterEventAction = _uow.AfterEventAction;
+        _uow.AfterEventAction = () =>
+        {
+            afterEventAction?.Invoke();
+            _calculator.Remove(playerId, playerId, CalculateTypes.OrderRefill);
+            _calculator.Insert(new()
+            {
+                PlayerId = playerId,
+                ObjectId = playerId,
+                Date = refillAt.Value,
+                Type = CalculateTypes.OrderRefill,
+            });
+        };
+    }
+
+    private void RemoveOrderRefillAfterCommit(int playerId)
+    {
+        var afterEventAction = _uow.AfterEventAction;
+        _uow.AfterEventAction = () =>
+        {
+            afterEventAction?.Invoke();
+            _calculator.Remove(playerId, playerId, CalculateTypes.OrderRefill);
         };
     }
 
@@ -252,6 +316,38 @@ public class OrderManager
         _context.SaveChanges();
 
         EnsureOrderBoard(playerId);
+    }
+
+    /// <summary>
+    /// Обрабатывает отложенное пополнение освободившихся ячеек доски заказов.
+    /// </summary>
+    /// <param name="date">Момент обработки события планировщика.</param>
+    /// <param name="calcInfo">Событие пополнения доски.</param>
+    /// <returns><see langword="true"/>, если событие можно снять; <see langword="false"/>, если задержка ещё не закончилась.</returns>
+    public bool FinishOrderRefill(DateTime date, CalculateInfo calcInfo)
+    {
+        _playerResourceManager.LockDbPlayerRow(calcInfo.PlayerId);
+
+        var player = _context.Players.First(x => x.Id == calcInfo.PlayerId);
+        if (player.NextOrderRefillAt == null)
+        {
+            return true;
+        }
+
+        if (date < player.NextOrderRefillAt.Value)
+        {
+            return false;
+        }
+
+        var ordersCreated = EnsureOrderBoardCore(calcInfo.PlayerId, out _);
+        if (ordersCreated > 0)
+        {
+            calcInfo.PushTitle = ordersCreated == 1 ? "Новый заказ на доске" : "Новые заказы на доске";
+            calcInfo.PushBody = "Соседи ждут поставки – загляни выбрать заказ.";
+            calcInfo.PushTag = PushSender.OrderTag;
+        }
+
+        return true;
     }
 
     public bool FinishOrder(DateTime date, CalculateInfo calcInfo)

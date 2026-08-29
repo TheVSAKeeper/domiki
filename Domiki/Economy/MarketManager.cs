@@ -223,9 +223,9 @@ public class MarketManager
             _calculator.Remove(sellerId.Value, lotId, CalculateTypes.TradeLotExpire);
             _broker.Broadcast(GameStateScopes.Market);
             _broker.Publish(sellerId.Value, GameStateScopes.State);
-            _pushSender.Notify(sellerId.Value, "Домики", isBuy
+            _pushSender.Notify(sellerId.Value, "Ярмарка: сделка завершена", isBuy
                 ? $"Заявку на ярмарке исполнили: {wantName} ×{wantValue} за {giveName} ×{giveValue}"
-                : $"Ваш лот на ярмарке купили: {giveName} ×{giveValue} за {wantName} ×{wantValue}", "/domiki-page");
+                : $"Ваш лот на ярмарке купили: {giveName} ×{giveValue} за {wantName} ×{wantValue}", "/domiki-page", PushSender.MarketTag);
         };
     }
 

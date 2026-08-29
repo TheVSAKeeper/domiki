@@ -1,5 +1,7 @@
 ﻿using Domiki.Web.Economy.Models;
 using Domiki.Web.Infrastructure;
+using Domiki.Web.Economy;
+using Domiki.Web.Core.Scheduling;
 using Domiki.Web.Reference.Models;
 using Domiki.Web.Village;
 using Order = Domiki.Web.Data.Entities.Order;
@@ -272,6 +274,38 @@ public sealed class OrdersTests
 
         var orders = player.Orders();
         Assert.That(orders.Count, Is.EqualTo(expectedOrderCount));
+    }
+
+    /// <summary>
+    /// Отложенное пополнение возвращает освободившийся слот и выставляет категорию order для одного push.
+    /// </summary>
+    [Test]
+    public void FinishOrderRefillCreatesBatchNotificationTest()
+    {
+        var player = TestPlayer.Create();
+        var order = player.Orders().First();
+
+        player.CancelOrder(order.Id);
+        SetOrderRefillAt(player.Id, DateTimeHelper.GetNowDate().AddSeconds(-1));
+        var calcInfo = new CalculateInfo
+        {
+            PlayerId = player.Id,
+            ObjectId = player.Id,
+            Date = DateTimeHelper.GetNowDate(),
+            Type = CalculateTypes.OrderRefill,
+        };
+
+        var result = App.Act<OrderManager, bool>(m => m.FinishOrderRefill(calcInfo.Date, calcInfo));
+        var orders = player.Orders();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.True);
+            Assert.That(orders, Has.Count.EqualTo(OrderManager.BoardSize));
+            Assert.That(calcInfo.PushTitle, Is.EqualTo("Новый заказ на доске"));
+            Assert.That(calcInfo.PushBody, Is.Not.Null.And.Not.Empty);
+            Assert.That(calcInfo.PushTag, Is.EqualTo(PushSender.OrderTag));
+        }
     }
 
     /// <summary>

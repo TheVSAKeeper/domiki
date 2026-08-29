@@ -7,6 +7,56 @@ namespace Domiki.Web.Infrastructure;
 
 public class PushSender
 {
+    /// <summary>
+    /// Категория push для завершения строительства или улучшения.
+    /// </summary>
+    public const string ConstructionTag = "construction";
+
+    /// <summary>
+    /// Категория push для производства и остановки наряда.
+    /// </summary>
+    public const string ProductionTag = "production";
+
+    /// <summary>
+    /// Категория push для появления нового заказа.
+    /// </summary>
+    public const string OrderTag = "order";
+
+    /// <summary>
+    /// Категория push для начала и развязки происшествия.
+    /// </summary>
+    public const string IncidentTag = "incident";
+
+    /// <summary>
+    /// Категория push для возвращения похода без происшествия.
+    /// </summary>
+    public const string ExpeditionTag = "expedition";
+
+    /// <summary>
+    /// Категория push для завершения поручения.
+    /// </summary>
+    public const string ErrandTag = "errand";
+
+    /// <summary>
+    /// Категория push для операций ярмарки.
+    /// </summary>
+    public const string MarketTag = "market";
+
+    /// <summary>
+    /// Категория push для завершения толоки.
+    /// </summary>
+    public const string TolokaTag = "toloka";
+
+    /// <summary>
+    /// Категория push для новых записей в книге гостей.
+    /// </summary>
+    public const string GuestbookTag = "guestbook";
+
+    /// <summary>
+    /// Категория push для помощи деревне.
+    /// </summary>
+    public const string HelpTag = "help";
+
     private readonly string? _vapidPublicKey;
     private readonly string? _vapidPrivateKey;
     private readonly string? _subject;
@@ -27,7 +77,15 @@ public class PushSender
 
     public bool Enabled => !string.IsNullOrWhiteSpace(_vapidPublicKey) && !string.IsNullOrWhiteSpace(_vapidPrivateKey);
 
-    public void Notify(int playerId, string title, string body, string url)
+    /// <summary>
+    /// Отправляет игроку Web Push с категорией, используемой для группировки уведомлений в service worker.
+    /// </summary>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <param name="title">Заголовок уведомления.</param>
+    /// <param name="body">Текст уведомления.</param>
+    /// <param name="url">Маршрут, открываемый по клику.</param>
+    /// <param name="tag">Категория уведомления.</param>
+    public void Notify(int playerId, string title, string body, string url, string tag)
     {
         if (!Enabled)
         {
@@ -38,7 +96,7 @@ public class PushSender
         {
             try
             {
-                await SendAsync(playerId, title, body, url);
+                await SendAsync(playerId, title, body, url, tag);
             }
             catch (Exception ex)
             {
@@ -47,7 +105,7 @@ public class PushSender
         });
     }
 
-    private async Task SendAsync(int playerId, string title, string body, string url)
+    private async Task SendAsync(int playerId, string title, string body, string url, string tag)
     {
         using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -57,7 +115,7 @@ public class PushSender
             return;
         }
 
-        var payload = JsonSerializer.Serialize(new { title, body, url });
+        var payload = SerializePayload(title, body, url, tag);
         var vapidDetails = new VapidDetails(_subject, _vapidPublicKey, _vapidPrivateKey);
 
         foreach (var subscription in subscriptions)
@@ -84,5 +142,13 @@ public class PushSender
         }
 
         context.SaveChanges();
+    }
+
+    /// <summary>
+    /// Сериализует контракт payload для браузерного service worker.
+    /// </summary>
+    internal static string SerializePayload(string title, string body, string url, string tag)
+    {
+        return JsonSerializer.Serialize(new { title, body, url, tag });
     }
 }

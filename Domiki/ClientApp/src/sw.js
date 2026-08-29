@@ -27,7 +27,8 @@ self.addEventListener('push', (event) => {
     try {
         const data = event.data.json();
         title = data.title ?? title;
-        options = { body: data.body, icon: '/icon-192.png', tag: 'domiki', renotify: true, data: { url: data.url } };
+        const notificationTag = typeof data.tag === 'string' && data.tag.length > 0 ? `domiki-${data.tag}` : 'domiki';
+        options = { body: data.body, icon: '/icon-192.png', tag: notificationTag, renotify: true, data: { url: data.url } };
     } catch {
         options = { icon: '/icon-192.png', tag: 'domiki', renotify: true };
     }

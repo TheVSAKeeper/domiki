@@ -289,7 +289,7 @@ public class TolokaManager
             {
                 foreach (var recipientId in notifyRecipients)
                 {
-                    _pushSender.Notify(recipientId, "Домики", $"Толока «{completedTolokaName}» завершена – бафф получен", "/domiki-page");
+                    _pushSender.Notify(recipientId, "Толока завершена", $"Толока «{completedTolokaName}» завершена – бафф получен", "/domiki-page", PushSender.TolokaTag);
                 }
             }
         };

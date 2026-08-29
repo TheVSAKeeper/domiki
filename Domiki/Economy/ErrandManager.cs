@@ -310,7 +310,9 @@ public class ErrandManager
                 ObjectId = errandId,
                 Date = finishDate,
                 Type = CalculateTypes.Errand,
+                PushTitle = "Поручение завершено",
                 PushBody = ErrandResolvedPushBody,
+                PushTag = PushSender.ErrandTag,
             });
         };
     }

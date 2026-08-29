@@ -624,6 +624,8 @@ public sealed class RelocationTests
         var recorder = new RecordingCalculator();
         using (var scope = App.Scope())
         {
+            scope.Context.Players.Single(x => x.Id == player.Id).NextOrderRefillAt = DateTimeHelper.GetNowDate().AddMinutes(30);
+            scope.Context.SaveChanges();
             var manager = new RelocationManager(scope.Get<UnitOfWork>(), scope.Context, recorder, scope.Get<ResourceManager>(),
                 scope.Get<PlayerResourceManager>(), scope.Get<VillageLevelCalculator>(), scope.Get<PerkManager>(),
                 scope.Get<PlayerEventManager>(), scope.Get<DomikManager>());
@@ -634,6 +636,7 @@ public sealed class RelocationTests
         }
 
         Assert.That(recorder.Removed, Does.Contain((player.Id, manufactureId, CalculateTypes.Manufacture)));
+        Assert.That(recorder.Removed, Does.Contain((player.Id, player.Id, CalculateTypes.OrderRefill)));
     }
 
     private static int Reputation(int playerId, int neighborId)

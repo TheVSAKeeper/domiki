@@ -171,7 +171,7 @@ public class HelpManager
             afterEventAction?.Invoke();
             _calculator.Reschedule(hostPlayerId, objectId, calculateType, newFinishDate);
             _broker.Publish(hostPlayerId, GameStateScopes.State);
-            _pushSender.Notify(hostPlayerId, "Домики", $"{guestVillageName} подсобила: {domikTypeName} освободится раньше", "/domiki-page");
+            _pushSender.Notify(hostPlayerId, "Помощь в деревне", $"{guestVillageName} подсобила: {domikTypeName} освободится раньше", "/domiki-page", PushSender.HelpTag);
             _broker.Publish(guestPlayerId, GameStateScopes.State);
         };
 

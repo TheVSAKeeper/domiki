@@ -158,7 +158,7 @@ public class GuestbookManager
         {
             afterEventAction?.Invoke();
             _broker.Publish(hostPlayerId, GameStateScopes.State);
-            _pushSender.Notify(hostPlayerId, "Домики", $"В вашей книге гостей расписались: {guestVillageName}", "/domiki-page");
+            _pushSender.Notify(hostPlayerId, "Новая запись в книге гостей", $"В вашей книге гостей расписались: {guestVillageName}", "/domiki-page", PushSender.GuestbookTag);
         };
     }
 

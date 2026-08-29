@@ -217,6 +217,7 @@ public class IncidentManager
             ObjectId = incident.Id,
             Date = date.AddHours(IncidentAutoReturnHours),
             Type = CalculateTypes.Incident,
+            PushTag = PushSender.IncidentTag,
         };
         (calculateInfo.PushTitle, calculateInfo.PushBody) = GetStartPush(missingWorker.Name);
         return calculateInfo;
@@ -311,6 +312,7 @@ public class IncidentManager
             ObjectId = incident.Id,
             Date = date.AddHours(DomikIncidentAutoResolveHours),
             Type = CalculateTypes.Incident,
+            PushTag = PushSender.IncidentTag,
         };
         (calculateInfo.PushTitle, calculateInfo.PushBody) = GetDomikStartPush(domikType.Name);
         return calculateInfo;
@@ -476,12 +478,18 @@ public class IncidentManager
             return true;
         }
 
-        return dbIncident.SourceType switch
+        var result = dbIncident.SourceType switch
         {
             IncidentSourceType.Expedition => FinishExpeditionIncident(date, calcInfo, dbIncident),
             IncidentSourceType.Domik => FinishDomikIncident(date, calcInfo, dbIncident),
             _ => throw new InvalidOperationException("Неизвестный источник происшествия"),
         };
+        if (result && calcInfo.PushBody != null)
+        {
+            calcInfo.PushTag = PushSender.IncidentTag;
+        }
+
+        return result;
     }
 
     private bool FinishExpeditionIncident(DateTime date, CalculateInfo calcInfo, Data.Entities.Incident dbIncident)

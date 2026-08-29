@@ -58,4 +58,12 @@ public enum CalculateTypes
     /// Обрабатывается <see cref="Activities.IncidentManager.FinishIncident"/>.
     /// </remarks>
     Incident = 8,
+
+    /// <summary>
+    /// Пополнение освободившегося слота доски заказов.
+    /// </summary>
+    /// <remarks>
+    /// Обрабатывается <see cref="Economy.OrderManager.FinishOrderRefill"/> после задержки пополнения.
+    /// </remarks>
+    OrderRefill = 9,
 }

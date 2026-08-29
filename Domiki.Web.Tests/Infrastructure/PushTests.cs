@@ -28,6 +28,24 @@ public sealed class PushTests
             Assert.That(subscriptions[0].Auth, Is.EqualTo("auth-2"));
         }
     }
+
+    /// <summary>
+    /// Payload push содержит категорию, по которой service worker разводит уведомления.
+    /// </summary>
+    [Test]
+    public void PushPayloadContainsTagTest()
+    {
+        using var payload = System.Text.Json.JsonDocument.Parse(PushSender.SerializePayload("Заголовок", "Текст", "/domiki-page", PushSender.OrderTag));
+        var root = payload.RootElement;
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(root.GetProperty("title").GetString(), Is.EqualTo("Заголовок"));
+            Assert.That(root.GetProperty("body").GetString(), Is.EqualTo("Текст"));
+            Assert.That(root.GetProperty("url").GetString(), Is.EqualTo("/domiki-page"));
+            Assert.That(root.GetProperty("tag").GetString(), Is.EqualTo(PushSender.OrderTag));
+        }
+    }
 }
 
 file static class PushTestsActs

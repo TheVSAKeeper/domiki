@@ -286,7 +286,7 @@ public class ExpeditionManager
         var incidentCalcInfo = _incidentManager.TryRollIncident(dbPlayer, assignedWorkers, dbExpedition.ExpeditionTypeId, date);
         if (incidentCalcInfo != null)
         {
-            (calcInfo.PushTitle, calcInfo.PushBody) = (incidentCalcInfo.PushTitle, incidentCalcInfo.PushBody);
+            (calcInfo.PushTitle, calcInfo.PushBody, calcInfo.PushTag) = (incidentCalcInfo.PushTitle, incidentCalcInfo.PushBody, incidentCalcInfo.PushTag);
 
             var afterEventAction = _uow.AfterEventAction;
             _uow.AfterEventAction = () =>

@@ -498,7 +498,7 @@ public class DomikManager
 
                 if (incidentCalcInfo != null)
                 {
-                    (calcInfo.PushTitle, calcInfo.PushBody) = (incidentCalcInfo.PushTitle, incidentCalcInfo.PushBody);
+                    (calcInfo.PushTitle, calcInfo.PushBody, calcInfo.PushTag) = (incidentCalcInfo.PushTitle, incidentCalcInfo.PushBody, incidentCalcInfo.PushTag);
                     var afterEventAction = _uow.AfterEventAction;
                     _uow.AfterEventAction = () =>
                     {
@@ -825,14 +825,12 @@ public class DomikManager
             var currentlySick = _context.Workers.Count(x => x.PlayerId == playerId && x.SickUntil > date);
             var isTradeDomik = _resourceManager.GetDomikTypes().First(x => x.LogicName == "market").Id == dbDomik.TypeId;
             var freedWorkerIds = new List<int>();
-            var workerNames = new List<string>();
             var assignedWorkers = _context.Workers.Where(x => x.ManufactureId == dbManufacture.Id).OrderBy(x => x.Id).ToArray();
             var eligibleWorkerIndex = 0;
             for (var workerIndex = 0; workerIndex < assignedWorkers.Length; workerIndex++)
             {
                 var worker = assignedWorkers[workerIndex];
                 var trait = traits[worker.TraitId];
-                workerNames.Add(worker.Name);
                 IncrementWorkerSkill(worker.Id, dbDomik.TypeId);
                 if (!trait.NoFatigue && !isTradeDomik)
                 {
@@ -903,87 +901,71 @@ public class DomikManager
             _playerEventManager.RecordManufactureFinished(calcInfo.PlayerId, dbDomik.TypeId, produced);
 
             var manufactureDomikName = _resourceManager.GetDomikTypes().First(x => x.Id == dbDomik.TypeId).Name;
-            var pushWorker = workerNames.Count > 0 ? workerNames[dbManufacture.Id % workerNames.Count] : null;
-            if (produced.Count > 0)
+            calcInfo.PushTitle = null;
+            calcInfo.PushBody = null;
+            calcInfo.PushTag = PushSender.ProductionTag;
+
+            if (autoRepeat)
             {
-                var resourceNames = _resourceManager.GetResourceTypes().ToDictionary(x => x.Id, x => x.Name);
-                var producedList = string.Join(", ", produced.Select(x => x.Value + " × " + resourceNames[x.Key]));
-                if (pushWorker != null)
+                _context.SaveChanges();
+                string? repeatStopBody = null;
+                if (measureResourceTypeId is int measureType && measureValue is int measureTarget
+                    && _elderHouseManager.IsMeasureMet(playerId, measureType, measureTarget))
                 {
-                    var nameGen = NameGrammar.Genitive(pushWorker);
-                    (calcInfo.PushTitle, calcInfo.PushBody) = (dbManufacture.Id % 6) switch
-                    {
-                        0 => ($"{pushWorker} {NameGrammar.GenderForm(pushWorker, "потрудился", "потрудилась")} на совесть", $"«{manufactureDomikName}» шлёт гостинец: {producedList}. Заглянешь принять?"),
-                        1 => ($"«{manufactureDomikName}»: {pushWorker} {NameGrammar.GenderForm(pushWorker, "управился", "управилась")}", $"На склад легло {producedList} – ни крошки не потерялось."),
-                        2 => ("Умелые руки не скучают", $"{pushWorker} {NameGrammar.GenderForm(pushWorker, "наработал", "наработала")} добра: {producedList} – забирай, пока домовята не растащили!"),
-                        3 => ("Смена сдана – склад полнее", $"{pushWorker} {NameGrammar.GenderForm(pushWorker, "сложил", "сложила")} в закрома {producedList}. Что поручим теперь?"),
-                        4 => ($"{pushWorker} {NameGrammar.GenderForm(pushWorker, "принёс", "принесла")} добрые вести", $"На складе прибавилось: {producedList} – работа у {nameGen} спорится."),
-                        _ => ("Поспело в самый срок", $"{pushWorker} {NameGrammar.GenderForm(pushWorker, "довёл", "довела")} дело до конца – принимай {producedList} да задумай новое."),
-                    };
+                    _playerEventManager.Record(playerId, PlayerEventType.ManufactureMeasureMet, new { domikId, domikTypeId = dbDomik.TypeId, receiptId, resourceTypeId = measureType, value = measureTarget });
+                    repeatStopBody = $"«{manufactureDomikName}»: достигнута заданная мера запаса.";
                 }
                 else
                 {
-                    calcInfo.PushTitle = $"«{manufactureDomikName}» – новая партия";
-                    calcInfo.PushBody = $"На складе прибыло: {producedList}. Заглянешь запустить ещё?";
+                    var manufactureInputs = useOptional && recept.OptionalInputResources is { Length: > 0 }
+                        ? recept.InputResources.Concat(recept.OptionalInputResources).ToArray()
+                        : recept.InputResources;
+                    if (_elderHouseManager.GetHeldResourceTypeId(playerId, manufactureInputs) is int heldResourceTypeId)
+                    {
+                        _playerEventManager.Record(playerId, PlayerEventType.ManufactureReserveHeld, new { domikId, domikTypeId = dbDomik.TypeId, receiptId, resourceTypeId = heldResourceTypeId });
+                        repeatStopBody = $"«{manufactureDomikName}»: наряд остановлен, чтобы сохранить заповедный припас.";
+                    }
+                    else if (GetGoldVeinRemaining(playerId, dbDomik, recept, date, date.AddSeconds(dbManufacture.DurationSeconds)) <= 0)
+                    {
+                        _playerEventManager.Record(playerId, PlayerEventType.ManufactureGoldCapReached, new { domikId, domikTypeId = dbDomik.TypeId, receiptId, mined = dbPlayer.GoldMinedToday, cap = dbDomik.Level });
+                        repeatStopBody = $"«{manufactureDomikName}»: суточная жила исчерпана; продолжить можно завтра.";
+                    }
+                    else
+                    {
+                        try
+                        {
+                            StartManufacture(playerId, domikId, receiptId, useOptional, freedWorkerIds.ToArray(), true, measureResourceTypeId, measureValue);
+                        }
+                        catch (BusinessException ex)
+                        {
+                            _playerEventManager.RecordManufactureRepeatFailed(playerId, domikId, dbDomik.TypeId, receiptId, ex.Message);
+                            repeatStopBody = $"«{manufactureDomikName}»: {ex.Message}";
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "FinishManufacture: наряд {ManufactureId} игрока {PlayerId} не смог возобновиться", dbManufacture.Id, playerId);
+                            repeatStopBody = $"«{manufactureDomikName}»: автоповтор не запустился; проверь припасы и свободные руки.";
+                        }
+                    }
                 }
+
+                if (repeatStopBody != null)
+                {
+                    calcInfo.PushTitle = "Наряд остановлен";
+                    calcInfo.PushBody = repeatStopBody;
+                }
+            }
+            else if (produced.Count > 0)
+            {
+                var resourceNames = _resourceManager.GetResourceTypes().ToDictionary(x => x.Id, x => x.Name);
+                var producedList = string.Join(", ", produced.Select(x => x.Value + " × " + resourceNames[x.Key]));
+                calcInfo.PushTitle = $"«{manufactureDomikName}» – новая партия";
+                calcInfo.PushBody = $"На складе прибыло: {producedList}. Заглянешь запустить ещё?";
             }
             else if (recept.OutputResources.Any(x => x.Type.Id == GoldResourceTypeId))
             {
                 calcInfo.PushTitle = "Жила на сегодня выбрана";
                 calcInfo.PushBody = $"Намыли {dbPlayer.GoldMinedToday} из {dbDomik.Level} – столько рудник за сутки и отдаёт. Свежая порода подойдёт завтра.";
-            }
-            else if (pushWorker != null)
-            {
-                (calcInfo.PushTitle, calcInfo.PushBody) = (dbManufacture.Id % 3) switch
-                {
-                    0 => ($"{pushWorker} {NameGrammar.GenderForm(pushWorker, "заскучал", "заскучала")} без работы", "Смена прошла, а выдать нечего – подкинь припасов, и дело закипит."),
-                    1 => ($"«{manufactureDomikName}» простаивает", $"{pushWorker} ждёт поручений – без сырья даже золотые руки скучают. Заглянешь?"),
-                    _ => ("Смена вышла вхолостую", $"{pushWorker} {NameGrammar.GenderForm(pushWorker, "старался", "старалась")}, да выдать нечего – проверь, всего ли хватает в хозяйстве."),
-                };
-            }
-            else
-            {
-                calcInfo.PushTitle = $"«{manufactureDomikName}»: смена сдана";
-                calcInfo.PushBody = "Мастерская простаивает – загляни, пора запускать новое.";
-            }
-
-            if (autoRepeat)
-            {
-                _context.SaveChanges();
-                if (measureResourceTypeId is int measureType && measureValue is int measureTarget
-                    && _elderHouseManager.IsMeasureMet(playerId, measureType, measureTarget))
-                {
-                    _playerEventManager.Record(playerId, PlayerEventType.ManufactureMeasureMet, new { domikId, domikTypeId = dbDomik.TypeId, receiptId, resourceTypeId = measureType, value = measureTarget });
-                    return true;
-                }
-
-                var manufactureInputs = useOptional && recept.OptionalInputResources is { Length: > 0 }
-                    ? recept.InputResources.Concat(recept.OptionalInputResources).ToArray()
-                    : recept.InputResources;
-                if (_elderHouseManager.GetHeldResourceTypeId(playerId, manufactureInputs) is int heldResourceTypeId)
-                {
-                    _playerEventManager.Record(playerId, PlayerEventType.ManufactureReserveHeld, new { domikId, domikTypeId = dbDomik.TypeId, receiptId, resourceTypeId = heldResourceTypeId });
-                    return true;
-                }
-
-                if (GetGoldVeinRemaining(playerId, dbDomik, recept, date, date.AddSeconds(dbManufacture.DurationSeconds)) <= 0)
-                {
-                    _playerEventManager.Record(playerId, PlayerEventType.ManufactureGoldCapReached, new { domikId, domikTypeId = dbDomik.TypeId, receiptId, mined = dbPlayer.GoldMinedToday, cap = dbDomik.Level });
-                    return true;
-                }
-
-                try
-                {
-                    StartManufacture(playerId, domikId, receiptId, useOptional, freedWorkerIds.ToArray(), true, measureResourceTypeId, measureValue);
-                }
-                catch (BusinessException ex)
-                {
-                    _playerEventManager.RecordManufactureRepeatFailed(playerId, domikId, dbDomik.TypeId, receiptId, ex.Message);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "FinishManufacture: наряд {ManufactureId} игрока {PlayerId} не смог возобновиться", dbManufacture.Id, playerId);
-                }
             }
 
             return true;

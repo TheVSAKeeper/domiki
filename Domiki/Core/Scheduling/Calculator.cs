@@ -211,23 +211,27 @@ public class Calculator : ICalculator
                 switch (calcDate.Type)
                 {
                     case CalculateTypes.Domiks when calcDate.PushTitle != null:
-                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle, calcDate.PushBody ?? "Домик достроен – загляни в деревню", "/domiki-page");
+                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle, calcDate.PushBody ?? "Домик достроен – загляни в деревню", "/domiki-page", calcDate.PushTag ?? PushSender.ConstructionTag);
                         break;
 
                     case CalculateTypes.Manufacture when calcDate.PushTitle != null:
-                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle, calcDate.PushBody ?? "Производство завершено – товары готовы", "/domiki-page");
+                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle, calcDate.PushBody ?? "Производство завершено – товары готовы", "/domiki-page", calcDate.PushTag ?? PushSender.ProductionTag);
+                        break;
+
+                    case CalculateTypes.OrderRefill when calcDate.PushBody != null:
+                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Новый заказ на доске", calcDate.PushBody, "/domiki-page", calcDate.PushTag ?? PushSender.OrderTag);
                         break;
 
                     case CalculateTypes.Expedition when calcDate.PushBody != null:
-                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody, "/domiki-page");
+                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Поход завершён", calcDate.PushBody, "/domiki-page", calcDate.PushTag ?? PushSender.ExpeditionTag);
                         break;
 
                     case CalculateTypes.Errand when calcDate.PushBody != null:
-                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody, "/domiki-page");
+                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Поручение завершено", calcDate.PushBody, "/domiki-page", calcDate.PushTag ?? PushSender.ErrandTag);
                         break;
 
                     case CalculateTypes.Incident when calcDate.PushBody != null:
-                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Домики", calcDate.PushBody, "/domiki-page");
+                        pushSender.Notify(calcDate.PlayerId, calcDate.PushTitle ?? "Происшествие разрешено", calcDate.PushBody, "/domiki-page", calcDate.PushTag ?? PushSender.IncidentTag);
                         break;
                 }
 
@@ -236,6 +240,7 @@ public class Calculator : ICalculator
                     case CalculateTypes.Domiks:
                     case CalculateTypes.Manufacture:
                     case CalculateTypes.OrderExpire:
+                    case CalculateTypes.OrderRefill:
                     case CalculateTypes.Expedition:
                     case CalculateTypes.Errand:
                     case CalculateTypes.Incident:
@@ -315,6 +320,7 @@ public class Calculator : ICalculator
                     ObjectId = dbStorage.Id,
                     Date = compliteDate,
                     Type = CalculateTypes.Domiks,
+                    PushTag = PushSender.ConstructionTag,
                 });
             }
 
@@ -327,6 +333,7 @@ public class Calculator : ICalculator
                     ObjectId = dbManufacture.Id,
                     Date = dbManufacture.FinishDate,
                     Type = CalculateTypes.Manufacture,
+                    PushTag = PushSender.ProductionTag,
                 });
             }
 
@@ -342,6 +349,22 @@ public class Calculator : ICalculator
                 });
             }
 
+            var dbOrderRefills = uow.Context.Players
+                .Where(x => x.NextOrderRefillAt != null)
+                .Select(x => new { x.Id, x.NextOrderRefillAt })
+                .ToList();
+            foreach (var dbPlayer in dbOrderRefills)
+            {
+                dates.Add(new()
+                {
+                    PlayerId = dbPlayer.Id,
+                    ObjectId = dbPlayer.Id,
+                    Date = dbPlayer.NextOrderRefillAt!.Value,
+                    Type = CalculateTypes.OrderRefill,
+                    PushTag = PushSender.OrderTag,
+                });
+            }
+
             var dbExpeditions = uow.Context.Expeditions.ToList();
             foreach (var dbExpedition in dbExpeditions)
             {
@@ -351,6 +374,7 @@ public class Calculator : ICalculator
                     ObjectId = dbExpedition.Id,
                     Date = dbExpedition.FinishDate,
                     Type = CalculateTypes.Expedition,
+                    PushTag = PushSender.ExpeditionTag,
                 });
             }
 
@@ -377,6 +401,7 @@ public class Calculator : ICalculator
                         Date = dbErrand.ExpireDate,
                         Type = CalculateTypes.Errand,
                         PushBody = null,
+                        PushTag = PushSender.ErrandTag,
                     }
                     : new()
                     {
@@ -384,7 +409,9 @@ public class Calculator : ICalculator
                         ObjectId = dbErrand.Id,
                         Date = dbErrand.FinishDate!.Value,
                         Type = CalculateTypes.Errand,
+                        PushTitle = "Поручение завершено",
                         PushBody = ErrandManager.ErrandResolvedPushBody,
+                        PushTag = PushSender.ErrandTag,
                     });
             }
 
@@ -400,6 +427,7 @@ public class Calculator : ICalculator
                             ? IncidentManager.DomikIncidentAutoResolveHours
                             : IncidentManager.IncidentAutoReturnHours),
                     Type = CalculateTypes.Incident,
+                    PushTag = PushSender.IncidentTag,
                 });
             }
 

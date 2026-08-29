@@ -408,6 +408,21 @@ public class RelocationManager
             .ToArray()
             .Select(id => new CalculateInfo { PlayerId = playerId, ObjectId = id, Type = CalculateTypes.OrderExpire }));
 
+        var nextOrderRefillAt = _context.Players
+            .Where(x => x.Id == playerId)
+            .Select(x => x.NextOrderRefillAt)
+            .SingleOrDefault();
+        if (nextOrderRefillAt != null)
+        {
+            events.Add(new CalculateInfo
+            {
+                PlayerId = playerId,
+                ObjectId = playerId,
+                Date = nextOrderRefillAt.Value,
+                Type = CalculateTypes.OrderRefill,
+            });
+        }
+
         events.AddRange(_context.Expeditions
             .Where(x => x.PlayerId == playerId)
             .Select(x => x.Id)

@@ -38,6 +38,9 @@ public class CalculatorTick
             case CalculateTypes.OrderExpire:
                 return _orderManager.FinishOrder(date, calcInfo);
 
+            case CalculateTypes.OrderRefill:
+                return _orderManager.FinishOrderRefill(date, calcInfo);
+
             case CalculateTypes.WeatherRotation:
                 return _weatherManager.RotateWeather(date);
 
