@@ -38,6 +38,7 @@ public class JournalController : GameControllerBase
     /// <param name="beforeId">Идентификатор последней показанной записи; отдаются строго старшие. <c>0</c> – с начала.</param>
     /// <param name="count">Размер страницы; больше <see cref="PlayerEventManager.MaxPageSize"/> не отдаётся.</param>
     /// <param name="group">Группа для фильтра; <see cref="PlayerEventGroup.None"/> – без фильтра.</param>
+    /// <returns>Страница журнала: события, общий счётчик, отрезки деревень и сводка за неделю.</returns>
     [HttpGet]
     [Route("/Domiki/GetJournalPage")]
     public JournalPageDto GetJournalPage(long beforeId = 0, int count = 30, PlayerEventGroup group = PlayerEventGroup.None)

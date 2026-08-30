@@ -295,15 +295,25 @@ public class PlayerEventManager
     /// Ничего не удаляет: хранение – окно <see cref="Retention"/>, за которое отвечает фоновая чистка
     /// (<see cref="PlayerEventCleanupService"/>), а не горячий путь запроса.
     /// <para>
-    /// За раз отдаётся не больше <see cref="RecapBatch"/> событий. Если порция вышла полной, недоставленное осталось,
-    /// и <see cref="Data.Entities.Player.LastSeen"/> не сдвигается – иначе следующая порция приехала бы с
-    /// <c>AwaySeconds = 0</c> и «Пока вас не было» соврала бы про длительность отсутствия.
+    /// За раз отдаётся не больше <see cref="RecapBatch"/> событий. <see cref="Data.Entities.Player.LastSeen"/> двигается
+    /// всегда – это общий гейт возвращения (по нему же выдаётся соседский подарок), замораживать его нельзя. Длительность
+    /// отсутствия для остатка берётся от самого старого недоставленного события, поэтому следующая порция не приезжает
+    /// с <c>AwaySeconds = 0</c>.
+    /// </para>
+    /// <para>
+    /// Строка игрока блокируется до чтения курсора, а не берётся у вызывающего: без блокировки два параллельных вызова
+    /// читают одно значение, и отставшая запись откатывает курсор назад, отдавая уже показанные события повторно.
+    /// Единственный вызывающий, <c>GetGameState</c>, эту блокировку и так держит с <see cref="Activities.GoalManager.GetGoalsState"/>,
+    /// но инвариант принадлежит витрине, а не порядку вызовов в контроллере.
     /// </para>
     /// </remarks>
     /// <param name="playerId">Идентификатор игрока.</param>
     /// <param name="now">Момент открытия витрины.</param>
+    /// <returns>Витрина возвращения: окно отсутствия и недоставленные события.</returns>
     public RecapModel TakeRecap(int playerId, DateTime now)
     {
+        _context.LockRowForUpdate<Data.Entities.Player>(playerId);
+
         var cursor = _context.Players.AsNoTracking()
             .Where(x => x.Id == playerId)
             .Select(x => new { x.LastSeen, x.LastDeliveredEventId })
@@ -317,16 +327,21 @@ public class PlayerEventManager
             .Take(RecapBatch)
             .ToList();
         var deliveredTo = events.Count > 0 ? events[^1].Id : lastDelivered;
-        var overflowed = events.Count == RecapBatch;
 
         _context.Players.Where(x => x.Id == playerId)
             .ExecuteUpdate(s => s
-                .SetProperty(x => x.LastSeen, p => overflowed ? p.LastSeen : now)
+                .SetProperty(x => x.LastSeen, now)
                 .SetProperty(x => x.LastDeliveredEventId, (long?)deliveredTo));
+
+        var awayFrom = lastSeen;
+        if (events.Count > 0 && (awayFrom == null || events[0].Date < awayFrom.Value))
+        {
+            awayFrom = events[0].Date;
+        }
 
         return new()
         {
-            AwaySeconds = lastSeen == null ? 0 : Math.Max(0, (int)(now - lastSeen.Value).TotalSeconds),
+            AwaySeconds = awayFrom == null ? 0 : Math.Max(0, (int)(now - awayFrom.Value).TotalSeconds),
             Events = events.Select(x => new RecapEventModel
                 {
                     Id = x.Id,
@@ -355,6 +370,7 @@ public class PlayerEventManager
     /// <param name="beforeId">Курсор: отдаются записи строго старше него. <see langword="null"/> – первая страница.</param>
     /// <param name="count">Размер страницы; больше <see cref="MaxPageSize"/> не отдаётся.</param>
     /// <param name="group">Группа для фильтра; <see cref="PlayerEventGroup.None"/> – без фильтра.</param>
+    /// <returns>Страница событий, новейшие первыми.</returns>
     public List<RecapEventModel> GetEventsBefore(int playerId, long? beforeId, int count, PlayerEventGroup group = PlayerEventGroup.None)
     {
         var query = _context.PlayerEvents.AsNoTracking().Where(x => x.PlayerId == playerId);
@@ -390,6 +406,7 @@ public class PlayerEventManager
     /// </remarks>
     /// <param name="playerId">Идентификатор игрока.</param>
     /// <param name="group">Группа для фильтра; <see cref="PlayerEventGroup.None"/> – без фильтра.</param>
+    /// <returns>Число хранимых событий игрока.</returns>
     public int CountEvents(int playerId, PlayerEventGroup group = PlayerEventGroup.None)
     {
         var query = _context.PlayerEvents.AsNoTracking().Where(x => x.PlayerId == playerId);
@@ -412,6 +429,7 @@ public class PlayerEventManager
     /// </remarks>
     /// <param name="playerId">Идентификатор игрока.</param>
     /// <param name="since">Начало окна.</param>
+    /// <returns>Число событий по группам; пустые группы не попадают.</returns>
     public Dictionary<PlayerEventGroup, int> CountByGroup(int playerId, DateTime since)
     {
         var countByType = _context.PlayerEvents.AsNoTracking()
@@ -434,6 +452,7 @@ public class PlayerEventManager
     /// </remarks>
     /// <param name="cutoff">Граница окна хранения; события строго старше неё удаляются.</param>
     /// <param name="batchSize">Потолок одной порции.</param>
+    /// <returns>Число удалённых строк.</returns>
     public int DeleteOlderThan(DateTime cutoff, int batchSize)
     {
         var doomedIds = _context.PlayerEvents.Where(x => x.Date < cutoff).OrderBy(x => x.Date).Take(batchSize).Select(x => x.Id);

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FC, ReactNode, SVGProps } from 'react';
 import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import type { DecorTypeDto, DomikTypeDto, JournalDigestEntryDto, NeighborReputationDto, RecapEventDto, ResourceTypeDto, VillageRunDto } from '../types/api';
@@ -489,6 +489,8 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
 export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, neighbors, now }: JournalBoxProps) => {
     const [group, setGroup] = useState<string>('None');
     const [loaded, setLoaded] = useState<RecapEventDto[] | null>(null);
+    const [pinned, setPinned] = useState<RecapEventDto[] | null>(null);
+    const groupRef = useRef('None');
     const [villageRuns, setVillageRuns] = useState<VillageRunDto[]>([]);
     const [totalCount, setTotalCount] = useState<number | null>(null);
     const [digest, setDigest] = useState<JournalDigestEntryDto[]>([]);
@@ -498,8 +500,27 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, neig
 
     // Фильтр «Всё» показывает первую страницу из снимка состояния, чтобы не ходить на сервер за уже полученным.
     const shown = useMemo(
-        () => (group === 'None' ? [...events, ...(loaded ?? [])] : (loaded ?? [])),
-        [group, events, loaded],
+        () => {
+            if (group !== 'None') {
+                return loaded ?? [];
+            }
+
+            const merged: RecapEventDto[] = [];
+            const seen = new Set<number>();
+            [...events, ...(pinned ?? []), ...(loaded ?? [])].forEach(event => {
+                if (event.id > 0 && seen.has(event.id)) {
+                    return;
+                }
+
+                if (event.id > 0) {
+                    seen.add(event.id);
+                }
+
+                merged.push(event);
+            });
+            return merged;
+        },
+        [group, events, pinned, loaded],
     );
 
     useEffect(() => {
@@ -534,7 +555,9 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, neig
         }
 
         setGroup(key);
+        groupRef.current = key;
         setLoaded(null);
+        setPinned(null);
         setExhausted(false);
         setFailed(false);
         setLoading(true);
@@ -546,16 +569,33 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, neig
             return;
         }
 
+        const requested = group;
+        if (requested === 'None' && pinned == null) {
+            setPinned(events);
+        }
+
         setLoading(true);
         setFailed(false);
-        getJournalPage(oldest.id, group, PAGE_SIZE)
+        getJournalPage(oldest.id, requested, PAGE_SIZE)
             .then(page => {
+                if (groupRef.current !== requested) {
+                    return;
+                }
+
                 setLoaded(previous => [...(previous ?? []), ...page.events]);
                 setTotalCount(page.totalCount);
                 setExhausted(page.events.length < PAGE_SIZE);
             })
-            .catch(() => setFailed(true))
-            .finally(() => setLoading(false));
+            .catch(() => {
+                if (groupRef.current === requested) {
+                    setFailed(true);
+                }
+            })
+            .finally(() => {
+                if (groupRef.current === requested) {
+                    setLoading(false);
+                }
+            });
     };
 
     const entries = withStableKeys(
@@ -635,7 +675,7 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, neig
                     <div className="journal-timeline">
                         {groups.map((group, index) => (
                             <div key={group.key} className="journal-group">
-                                {group.village !== groups[index - 1]?.village &&
+                                {villageRuns.length > 0 && group.village !== groups[index - 1]?.village &&
                                     <div className="journal-village"><span className="journal-village-label">{group.village ?? 'Прежняя деревня'}</span></div>
                                 }
                                 <div className="journal-day"><span className="journal-day-label">{group.label}</span></div>

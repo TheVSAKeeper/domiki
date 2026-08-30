@@ -124,6 +124,7 @@ public class RelocationManager
     /// разделитель переезда в журнале работает и для событий, накопленных до появления этой выдачи.
     /// </remarks>
     /// <param name="playerId">Идентификатор игрока.</param>
+    /// <returns>Отрезки жизни деревень игрока, от старых к новым.</returns>
     public VillageRun[] GetVillageRuns(int playerId)
     {
         var dbPlayer = _context.Players.Single(x => x.Id == playerId);

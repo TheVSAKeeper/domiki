@@ -46,6 +46,7 @@ public static class PlayerEventGroups
     /// Типы событий, входящие в группу.
     /// </summary>
     /// <param name="group">Группа журнала.</param>
+    /// <returns>Типы событий группы.</returns>
     public static PlayerEventType[] TypesOf(PlayerEventGroup group)
     {
         return GroupByType.Where(x => x.Value == group).Select(x => x.Key).ToArray();

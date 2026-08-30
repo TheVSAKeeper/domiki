@@ -1,4 +1,5 @@
 ﻿using Domiki.Web.Infrastructure;
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Domiki.Web.Infrastructure.Models;
 using PlayerEventGroup = Domiki.Web.Data.Entities.PlayerEventGroup;
@@ -22,6 +23,33 @@ public sealed class JournalTests
         App.Act<PlayerEventManager, RecapModel>(m => m.TakeRecap(player.Id, DateTimeHelper.GetNowDate()));
 
         Assert.That(player.EventCount(), Is.EqualTo(eventCount));
+    }
+
+    /// <summary>
+    /// Параллельные витрины одного игрока не отдают событие дважды: курсор доставки не откатывается назад.
+    /// </summary>
+    [Test]
+    public void ConcurrentRecapDeliversEachEventOnceTest()
+    {
+        const int eventCount = 20;
+
+        var player = TestPlayer.Create();
+        player.RecordGoldCap(eventCount);
+
+        var delivered = new ConcurrentBag<long>();
+        Parallel.ForEach(Enumerable.Range(0, 6), _ =>
+        {
+            using var scope = App.Scope();
+            scope.Get<UnitOfWork>();
+            var recap = scope.Get<PlayerEventManager>().TakeRecap(player.Id, DateTimeHelper.GetNowDate());
+            scope.Commit();
+            foreach (var playerEvent in recap.Events)
+            {
+                delivered.Add(playerEvent.Id);
+            }
+        });
+
+        Assert.That(delivered, Is.Unique);
     }
 
     /// <summary>
@@ -67,18 +95,19 @@ public sealed class JournalTests
     }
 
     /// <summary>
-    /// Витрина, не вместившая всё за раз, не сдвигает отметку последнего захода: иначе вторая порция приехала бы с
-    /// нулевым временем отсутствия.
+    /// Витрина, не вместившая всё за раз, всё равно сдвигает отметку последнего захода – по ней выдаётся соседский
+    /// подарок, замороженная отметка раздавала бы его на каждом запросе. Время отсутствия для остатка берётся от
+    /// самого старого недоставленного события.
     /// </summary>
     [Test]
-    public void OverflowingRecapKeepsLastSeenTest()
+    public void OverflowingRecapMovesLastSeenTest()
     {
         const int awaySeconds = 600;
 
         var player = TestPlayer.Create();
         var now = DateTimeHelper.GetNowDate();
         player.SetLastSeen(now.AddSeconds(-awaySeconds));
-        player.AddEvents(PlayerEventManager.RecapBatch + 10, now);
+        player.AddEvents(PlayerEventManager.RecapBatch + 10, now.AddSeconds(-awaySeconds));
 
         var first = App.Act<PlayerEventManager, RecapModel>(m => m.TakeRecap(player.Id, now));
         var second = App.Act<PlayerEventManager, RecapModel>(m => m.TakeRecap(player.Id, now));
@@ -89,6 +118,7 @@ public sealed class JournalTests
             Assert.That(first.AwaySeconds, Is.EqualTo(awaySeconds));
             Assert.That(second.Events, Has.Count.EqualTo(10));
             Assert.That(second.AwaySeconds, Is.EqualTo(awaySeconds));
+            Assert.That(player.LastSeen(), Is.EqualTo(now));
         }
     }
 
@@ -230,6 +260,11 @@ file static class JournalTestsActs
         }
 
         return p;
+    }
+
+    public static DateTime? LastSeen(this TestPlayer p)
+    {
+        return App.Read(context => context.Players.Single(x => x.Id == p.Id).LastSeen);
     }
 
     public static TestPlayer SetLastSeen(this TestPlayer p, DateTime date)
