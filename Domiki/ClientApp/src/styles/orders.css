@@ -1086,11 +1086,30 @@ dialog.errand-modal::backdrop {
     place-items: center;
     width: 32px;
     height: 32px;
+    padding: 0;
     color: var(--ink);
     background: #fffaec;
     border: 2px solid var(--ink);
     clip-path: var(--cut);
     cursor: pointer;
+}
+
+.errand-modal > * {
+    flex: none;
+}
+
+.errand-modal .worker-picker {
+    max-height: none;
+    overflow: visible;
+}
+
+.errand-modal > .btn-game {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 0 -18px -18px;
+    padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+    border-width: 3px 0 0;
 }
 
 .errand-modal-offer {

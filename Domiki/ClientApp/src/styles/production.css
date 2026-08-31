@@ -378,6 +378,13 @@
     border: 2px solid var(--ink);
 }
 
+@media (max-width: 575px) {
+    .worker-picker {
+        max-height: none;
+        overflow: visible;
+    }
+}
+
 .worker-chip-pick {
     grid-template-columns: none;
     display: inline-flex;
