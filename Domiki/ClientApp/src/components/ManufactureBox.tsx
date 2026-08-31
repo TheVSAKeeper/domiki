@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import RepeatIcon from 'pixelarticons/svg/repeat.svg?react';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import type { ManufactureDto, ReceiptDto, ResourceTypeDto } from '../types/api';
@@ -72,13 +72,16 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
                         </p>
                         {keyInputs.length > 0 &&
                             <p className="manufacture-repeat-key">
-                                <span>Каждая смена забирает</span>
-                                {keyInputs.map(input => (
-                                    <span key={input.type.id} className="manufacture-repeat-key-item">
-                                        <ResourceNameChip resourceType={input.type} /> ×{input.value}
-                                    </span>
+                                Каждая смена забирает{' '}
+                                {keyInputs.map((input, index) => (
+                                    <Fragment key={input.type.id}>
+                                        {index > 0 && ', '}
+                                        <span className="manufacture-repeat-key-item">
+                                            <ResourceNameChip resourceType={input.type} /> ×{input.value}
+                                        </span>
+                                    </Fragment>
                                 ))}
-                                <span>: под нарядом ключи будут уходить один за другим.</span>
+                                {' '}– под нарядом ключи будут уходить один за другим.
                             </p>
                         }
                         <ActionButton className="btn-game btn-ghost manufacture-repeat-action"

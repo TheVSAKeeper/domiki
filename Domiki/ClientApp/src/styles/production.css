@@ -508,12 +508,9 @@
 }
 
 .manufacture-repeat p.manufacture-repeat-key {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 4px;
     padding: 6px 8px;
     font-size: 11px;
+    line-height: 1.6;
     color: var(--ink);
     background: var(--plank-dark);
     border-left: 4px solid var(--roof);
@@ -523,6 +520,7 @@
     display: inline-flex;
     align-items: center;
     gap: 2px;
+    vertical-align: middle;
     font-weight: bold;
 }
 
