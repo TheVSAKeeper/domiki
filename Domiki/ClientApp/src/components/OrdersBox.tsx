@@ -233,7 +233,7 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                 <div className="convoy-board">
                     <div className="convoy-board-head">
                         <h4 className="convoy-board-title"><MechanicSprite logicName="convoy" size={24} aria-hidden="true" />Обозы</h4>
-                        <p className="convoy-board-hint">Раз в день сосед пригоняет обоз со своим товаром. Уступит немного и не задёшево – зато сразу и без хлопот.</p>
+                        <p className="convoy-board-hint">Сосед пригоняет обоз со своим товаром. Уступит немного и не задёшево – зато сразу и без хлопот; новый обоз придёт через сутки после первой покупки.</p>
                     </div>
                     <div className="convoy-list">
                         {convoys.map(convoy => {

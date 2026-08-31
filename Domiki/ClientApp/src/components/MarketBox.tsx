@@ -338,7 +338,7 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                 </div>
                 <div className="market-column">
                     <div className="market-column-head"><span>Мои лоты</span></div>
-                    {market.myLots.length === 0 && <MarketEmpty>Вы пока ничего не выставили. Первый лот – слева, на своём прилавке.</MarketEmpty>}
+                    {market.myLots.length === 0 && <MarketEmpty>На твоём прилавке пока пусто. Первый лот – слева.</MarketEmpty>}
                     <div className="market-list">
                         {market.myLots.map(lot => (
                             <div key={lot.id} className="market-card market-stall">

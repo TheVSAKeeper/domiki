@@ -4,7 +4,7 @@ interface ConvoyTallyProps {
 }
 
 export const ConvoyTally = ({ remaining, limit }: ConvoyTallyProps) => {
-    const label = remaining > 0 ? `осталось ${remaining} из ${limit}` : 'обоз на сегодня распродан';
+    const label = remaining > 0 ? `осталось ${remaining} из ${limit}` : 'обоз распродан';
     const spent = limit - remaining;
     return (
         <span className={'convoy-tally' + (remaining <= 0 ? ' convoy-tally-empty' : '')} role="img" aria-label={label} title={label}>
