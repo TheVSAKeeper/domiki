@@ -30,6 +30,32 @@ public sealed class ToolKeysTests
     }
 
     /// <summary>
+    /// Артельная смена длится двадцать часов и укладывается в календарные сутки вместе с отдыхом: выход 160 на пять рук
+    /// даёт канонные 1,6 ресурса на трудяго-час, а монетный вход держит ставку в две монеты за трудяго-час.
+    /// </summary>
+    /// <param name="receiptId">Проверяемый артельный рецепт.</param>
+    [TestCase(ReceiptIds.ClayDigArtel)]
+    [TestCase(ReceiptIds.StoneDigArtel)]
+    [TestCase(ReceiptIds.OreDigArtel)]
+    public void ArtelShiftFitsIntoDayTest(int receiptId)
+    {
+        const int expectedHours = 20;
+        const double canonYieldPerHour = 1.6;
+        const double coinRatePerHour = 2.0;
+
+        var receipt = GetReceipt(receiptId);
+        var plodderHours = (double)receipt.PlodderCount * expectedHours;
+        var coins = receipt.InputResources.Single(x => x.Type.Id == ResourceIds.Coin);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(receipt.DurationSeconds, Is.EqualTo(expectedHours * 3600));
+            Assert.That(receipt.OutputResources.Single().Value / plodderHours, Is.EqualTo(canonYieldPerHour).Within(0.001));
+            Assert.That(coins.Value / plodderHours, Is.EqualTo(coinRatePerHour).Within(0.001));
+        }
+    }
+
+    /// <summary>
     /// Рецепты под ключ тратят ключ обязательным входом и отдают крупную партию за одну смену.
     /// </summary>
     /// <param name="receiptId">Проверяемый рецепт под ключ.</param>
@@ -39,9 +65,9 @@ public sealed class ToolKeysTests
     /// <param name="outputResourceTypeId">Тип выходного ресурса.</param>
     /// <param name="outputValue">Количество выходного ресурса.</param>
     /// <param name="plodderCount">Сколько трудяг занимает смена.</param>
-    [TestCase(ReceiptIds.ClayDigArtel, ResourceIds.Coin, 240, ResourceIds.Pick, ResourceIds.Clay, 160, 5)]
-    [TestCase(ReceiptIds.StoneDigArtel, ResourceIds.Coin, 240, ResourceIds.Pick, ResourceIds.Stone, 160, 5)]
-    [TestCase(ReceiptIds.OreDigArtel, ResourceIds.Coin, 240, ResourceIds.Pick, ResourceIds.Ore, 160, 5)]
+    [TestCase(ReceiptIds.ClayDigArtel, ResourceIds.Coin, 200, ResourceIds.Pick, ResourceIds.Clay, 160, 5)]
+    [TestCase(ReceiptIds.StoneDigArtel, ResourceIds.Coin, 200, ResourceIds.Pick, ResourceIds.Stone, 160, 5)]
+    [TestCase(ReceiptIds.OreDigArtel, ResourceIds.Coin, 200, ResourceIds.Pick, ResourceIds.Ore, 160, 5)]
     [TestCase(ReceiptIds.SplitBlock, ResourceIds.Stone, 48, ResourceIds.Pick, ResourceIds.Block, 30, 1)]
     [TestCase(ReceiptIds.BigKiln, ResourceIds.Clay, 48, ResourceIds.Tongs, ResourceIds.Brick, 28, 1)]
     [TestCase(ReceiptIds.BlastFurnace, ResourceIds.Ore, 48, ResourceIds.Tongs, ResourceIds.Iron, 28, 1)]
