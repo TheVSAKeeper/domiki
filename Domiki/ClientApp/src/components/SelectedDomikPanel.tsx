@@ -112,6 +112,9 @@ interface ReceiptRowProps {
 const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, workers, goals, villageLevel, weatherEffect, sickName, now, plodderFree, atManufactureCap, runningManufactures, maxManufactures, goldVein, ui, dispatch, onStart, formatShortfall }: ReceiptRowProps) => {
     const { expanded, useOptional, autoRepeat, isManual, selectedWorkerIds } = ui;
     const hasOptional = receipt.optionalInputResources.length > 0;
+    const optionalNames = receipt.optionalInputResources
+        .map(item => `${resourceTypes.find(type => type.id === item.typeId)?.name ?? `ресурс #${item.typeId}`} ×${item.value}`)
+        .join(', ');
     const view = computeReceiptView(receipt, resources, plodderFree, hasOptional && useOptional, goals?.zealCharges, domikType);
     const freeWorkersForType = workers
         .flatMap(worker => isWorkerFree(worker, now) ? [{ worker, fitness: workerFitness(worker, domikType.id) }] : [])
@@ -230,7 +233,7 @@ const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, wor
                             <label className="receipt-optional">
                                 <input type="checkbox" checked={useOptional}
                                     onChange={() => dispatch({ type: 'toggleOptional', id: receipt.id })} />
-                                с инструментом (+{receipt.outputBonusPercent}% выхода)
+                                с расходником: {optionalNames} (+{receipt.outputBonusPercent}% выхода)
                             </label>
                         }
                         <label className="receipt-optional">

@@ -133,13 +133,14 @@ public sealed class MetalReferenceTests
     }
 
     /// <summary>
-    /// Долгие смены добычи руды дают опциональный вход инструмента с бонусом +40% к выходу.
+    /// Долгие смены добычи руды дают опциональный вход инструмента: восьмичасовая – с бонусом +100% к выходу, суточная – с +40%.
     /// </summary>
     /// <param name="receiptId">Проверяемый рецепт долгой смены добычи руды.</param>
     /// <param name="outputValue">Количество монет на входе и руды на выходе.</param>
-    [TestCase(ReceiptIds.OreDig8h, 8)]
-    [TestCase(ReceiptIds.OreDig24h, 24)]
-    public void OreShiftsHaveOptionalToolTest(int receiptId, int outputValue)
+    /// <param name="expectedBonusPercent">Ожидаемый бонус к выходу от инструмента.</param>
+    [TestCase(ReceiptIds.OreDig8h, 8, 100)]
+    [TestCase(ReceiptIds.OreDig24h, 24, 40)]
+    public void OreShiftsHaveOptionalToolTest(int receiptId, int outputValue, int expectedBonusPercent)
     {
         var receipt = App.Act<ResourceManager, Receipt[]>(m => m.GetReceipts()).Single(x => x.Id == receiptId);
 
@@ -148,7 +149,7 @@ public sealed class MetalReferenceTests
             Assert.That(receipt.OptionalInputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ResourceIds.Tool, 1)]));
             Assert.That(receipt.InputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ResourceIds.Coin, outputValue)]));
             Assert.That(receipt.OutputResources.Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo([(ResourceIds.Ore, outputValue)]));
-            Assert.That(receipt.OutputBonusPercent, Is.EqualTo(40));
+            Assert.That(receipt.OutputBonusPercent, Is.EqualTo(expectedBonusPercent));
         }
     }
 

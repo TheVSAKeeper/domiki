@@ -149,7 +149,7 @@ public class ResourceManager
         {
             5 => 100,
             6 or 7 or 10 or 14 or 17 => 35,
-            8 => 55,
+            8 => 80,
             9 => 95,
             11 => 150,
             12 => 45,

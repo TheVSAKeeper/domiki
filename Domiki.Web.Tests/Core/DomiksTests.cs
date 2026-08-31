@@ -471,7 +471,7 @@ public sealed class DomiksTests
     /// <param name="useOptional">Используется ли опциональный инструмент.</param>
     /// <param name="expectedClay">Ожидаемое количество добытой глины.</param>
     [TestCase(false, 8)]
-    [TestCase(true, 11)]
+    [TestCase(true, 16)]
     public void OptionalToolBoostsOutputTest(bool useOptional, int expectedClay)
     {
         var player = TestPlayer.Create();
