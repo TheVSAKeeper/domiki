@@ -72,13 +72,35 @@ public sealed class BalanceReport
         foreach (var resourceType in _data.ResourceTypes)
         {
             var value = MedianInt(runs.Select(x => x.FinalResources.GetValueOrDefault(resourceType.Id)));
-            var coins = value * ResourceManager.GetMarketValue(resourceType.Id);
+            var coins = _data.IsLiquid(resourceType.Id)
+                ? (value * ResourceManager.GetMarketValue(resourceType.Id)).ToString(RussianCulture)
+                : "неликвид";
             output.AppendLine($"  {resourceType.Name!.PadRight(26)}  {value,6}  {coins,20}");
         }
 
-        var total = MedianInt(runs.Select(x => x.FinalResources.Sum(resource => resource.Value * ResourceManager.GetMarketValue(resource.Key))));
+        var total = MedianInt(runs.Select(x => x.FinalResources.Where(resource => _data.IsLiquid(resource.Key)).Sum(resource => resource.Value * ResourceManager.GetMarketValue(resource.Key))));
         output.AppendLine($"  {"Итого".PadRight(26)}  {string.Empty,6}  {total,20}");
+        RenderKeyReceipts(output, runs);
         output.AppendLine($"Весь контент выкачан: {FormatTime(MedianTime(runs.Select(x => x.ContentCompleteTime ?? -1)))}.");
+    }
+
+    private void RenderKeyReceipts(StringBuilder output, IReadOnlyList<SimulationRunResult> runs)
+    {
+        var keyReceipts = _data.Receipts
+            .Where(x => x.InputResources.Any(input => !_data.IsLiquid(input.Type.Id)) || x.OutputResources.Any(o => !_data.IsLiquid(o.Type.Id)))
+            .ToArray();
+        if (keyReceipts.Length == 0)
+        {
+            return;
+        }
+
+        output.AppendLine("Смены под ключ");
+        output.AppendLine("  Рецепт                      Трудяг  Стартов");
+        foreach (var receipt in keyReceipts)
+        {
+            var starts = MedianInt(runs.Select(x => x.ReceiptStartCounts.GetValueOrDefault(receipt.Id)));
+            output.AppendLine($"  {receipt.Name!.PadRight(26)}  {receipt.PlodderCount,6}  {starts,7}");
+        }
     }
 
     private void RenderDiagnostics(StringBuilder output)

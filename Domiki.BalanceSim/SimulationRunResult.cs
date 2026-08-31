@@ -9,6 +9,11 @@ public sealed class SimulationRunResult
     public required Dictionary<int, int> NeighborOpenTimes { get; init; }
     public required Dictionary<int, int> BlueprintTimes { get; init; }
     public required Dictionary<int, int> FinalResources { get; init; }
+
+    /// <summary>
+    /// Сколько раз за прогон запускался каждый рецепт: ключ – идентификатор рецепта, значение – число стартов.
+    /// </summary>
+    public required Dictionary<int, int> ReceiptStartCounts { get; init; }
     public int? ContentCompleteTime { get; set; }
     public int MaxVillageLevel { get; set; }
     public double IdleShare { get; set; }

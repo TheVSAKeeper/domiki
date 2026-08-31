@@ -11,6 +11,16 @@ namespace Domiki.BalanceSim;
 
 public sealed class SimulationData
 {
+    /// <summary>
+    /// Монеты – валюта, в которой считается монетный эквивалент стока.
+    /// </summary>
+    public const int CoinResourceTypeId = 1;
+
+    /// <summary>
+    /// Золото – премиальная валюта, тоже считается ликвидной.
+    /// </summary>
+    public const int GoldResourceTypeId = 5;
+
     public required DomikType[] DomikTypes { get; init; }
     public required Receipt[] Receipts { get; init; }
     public required ResourceType[] ResourceTypes { get; init; }
@@ -32,6 +42,25 @@ public sealed class SimulationData
     public required Dictionary<(int DomikTypeId, int Ordinal), int> CountGateLevelByKey { get; init; }
     public required int PlodderModificatorId { get; init; }
 
+    /// <summary>
+    /// Типы ресурсов, которые обращаются в монеты: сами монеты и золото, спрос соседей и всё, что забирает рецепт продажи.
+    /// </summary>
+    /// <remarks>
+    /// Остальное – ремесленные ключи и подобное – в монетном эквиваленте не считается: рыночная цена у них справочная,
+    /// продать их некому, и без этой границы модель приняла бы неликвидный сток за доход.
+    /// </remarks>
+    public required HashSet<int> LiquidResourceTypeIds { get; init; }
+
+    /// <summary>
+    /// Обращается ли ресурс в монеты (см. <see cref="LiquidResourceTypeIds"/>).
+    /// </summary>
+    /// <param name="resourceTypeId">Проверяемый тип ресурса.</param>
+    /// <returns><see langword="true"/> для ликвидного ресурса.</returns>
+    public bool IsLiquid(int resourceTypeId)
+    {
+        return LiquidResourceTypeIds.Contains(resourceTypeId);
+    }
+
     public static SimulationData Load(ResourceManager resourceManager)
     {
         var domikTypes = resourceManager.GetDomikTypes().OrderBy(x => x.Id).ToArray();
@@ -47,6 +76,12 @@ public sealed class SimulationData
         var starterGoals = resourceManager.GetStarterGoals().OrderBy(x => x.Ordinal).ToArray();
         var countGates = resourceManager.GetDomikTypeCountGates().OrderBy(x => x.DomikTypeId).ThenBy(x => x.Ordinal).ToArray();
         var plodder = modificatorTypes.Single(x => x.LogicName == "plodder").Id;
+
+        var liquid = new HashSet<int> { CoinResourceTypeId, GoldResourceTypeId };
+        liquid.UnionWith(neighbors.SelectMany(x => new[] { x.PrimaryResourceTypeId, x.SecondaryResourceTypeId ?? 0 }).Where(x => x != 0));
+        liquid.UnionWith(receipts
+            .Where(x => x.OutputResources.All(output => output.Type.Id == CoinResourceTypeId))
+            .SelectMany(x => x.InputResources.Select(input => input.Type.Id)));
 
         return new SimulationData
         {
@@ -70,6 +105,7 @@ public sealed class SimulationData
             VillageProfileDurationPercentByKey = villageProfileEffects.ToDictionary(x => (x.NeighborId, x.DomikTypeId), x => x.DurationPercent),
             CountGateLevelByKey = countGates.ToDictionary(x => (x.DomikTypeId, x.Ordinal), x => x.UnlockLevel),
             PlodderModificatorId = plodder,
+            LiquidResourceTypeIds = liquid,
         };
     }
 }

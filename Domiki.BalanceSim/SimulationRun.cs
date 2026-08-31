@@ -62,6 +62,7 @@ internal sealed class SimulationRun
             NeighborOpenTimes = [],
             BlueprintTimes = [],
             FinalResources = [],
+            ReceiptStartCounts = [],
         };
     }
 
@@ -683,6 +684,11 @@ internal sealed class SimulationRun
 
     private int GetExpectedDemand(int resourceTypeId)
     {
+        if (!_data.IsLiquid(resourceTypeId))
+        {
+            return GetReceiptInputDemand(resourceTypeId);
+        }
+
         var orderDemand = _state.Orders
             .Where(order => order.ResourceTypeId == resourceTypeId)
             .Sum(order => order.Quantity);
@@ -691,6 +697,16 @@ internal sealed class SimulationRun
                 .Where(resource => resource.Type.Id == resourceTypeId)
                 .Sum(resource => resource.Value));
         return orderDemand + upgradeDemand;
+    }
+
+    private int GetReceiptInputDemand(int resourceTypeId)
+    {
+        return _state.Domiks
+            .Where(domik => domik.Level > 0)
+            .SelectMany(GetReceipts)
+            .SelectMany(receipt => receipt.InputResources.Concat(receipt.OptionalInputResources))
+            .Where(resource => resource.Type.Id == resourceTypeId)
+            .Sum(resource => resource.Value);
     }
 
     private bool ShouldUseOptional(int domikTypeId, Receipt receipt)
@@ -792,6 +808,7 @@ internal sealed class SimulationRun
 
         var flooredDuration = (int)Math.Ceiling(receipt.DurationSeconds * 0.6);
         _result.ManufactureStartCount++;
+        _result.ReceiptStartCounts[receipt.Id] = _result.ReceiptStartCounts.GetValueOrDefault(receipt.Id) + 1;
         if (duration < flooredDuration)
         {
             _result.ClampFireCount++;

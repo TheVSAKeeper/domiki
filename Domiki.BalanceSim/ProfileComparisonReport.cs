@@ -57,7 +57,9 @@ public sealed class ProfileComparisonReport
             return 0;
         }
 
-        var totalCoinValue = _data.ResourceTypes.Sum(type => result.FinalResources.GetValueOrDefault(type.Id) * ResourceManager.GetMarketValue(type.Id));
+        var totalCoinValue = _data.ResourceTypes
+            .Where(type => _data.IsLiquid(type.Id))
+            .Sum(type => result.FinalResources.GetValueOrDefault(type.Id) * ResourceManager.GetMarketValue(type.Id));
         return totalCoinValue / (result.TotalWorkerSeconds / 3600.0);
     }
 
