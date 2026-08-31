@@ -74,6 +74,10 @@ code {
     text-decoration: none;
 }
 
+.topnav-inner:has(.nav-village:not(:empty)) .brand {
+    display: none;
+}
+
 .nav-village {
     display: inline-flex;
     align-items: center;
