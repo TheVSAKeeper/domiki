@@ -3,6 +3,7 @@ using Domiki.Web.Activities.Models;
 using Domiki.Web.Data.Entities;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Reference;
+using Domiki.Web.Workers;
 
 namespace Domiki.Web.Tests;
 
@@ -629,8 +630,9 @@ public sealed class ExpeditionTests
     /// другом походе.
     /// </summary>
     /// <param name="occupy">Сценарий, занимающий трудяг перед попыткой отправить экспедицию.</param>
+    /// <param name="expectedMessage">Текст отказа, называющий причину занятости.</param>
     [TestCaseSource(nameof(InsufficientWorkerCases))]
-    public void StartExpeditionWithoutEnoughFreeWorkersThrowsTest(Action<TestPlayer, int[]> occupy)
+    public void StartExpeditionWithoutEnoughFreeWorkersThrowsTest(Action<TestPlayer, int[]> occupy, string expectedMessage)
     {
         var player = TestPlayer.Create()
             .WithDomiks(DomikIds.Barrack, 2)
@@ -643,7 +645,7 @@ public sealed class ExpeditionTests
         occupy(player, workerIds);
 
         var ex = Throws.Business(() => StartExpedition(player, ShortScoutId));
-        Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
+        Assert.That(ex.Message, Is.EqualTo(expectedMessage));
     }
 
     /// <summary>
@@ -686,19 +688,29 @@ public sealed class ExpeditionTests
                 player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, [workerIds[0]]);
                 player.StartManufacture(5, ReceiptIds.ClayDig, [workerIds[1]]);
             }
-        })).SetName("BusyWithManufacture");
+        }), "Недостаточно трудяг").SetName("BusyWithManufacture");
 
         yield return new TestCaseData(new Action<TestPlayer, int[]>((player, workerIds) =>
         {
             player.SetWorkerRest(workerIds[0], DateTimeHelper.GetNowDate().AddHours(1));
             player.SetWorkerRest(workerIds[1], DateTimeHelper.GetNowDate().AddHours(1));
-        })).SetName("Resting");
+        }), WorkerManager.RestingWorkersMessage).SetName("Resting");
+
+        yield return new TestCaseData(new Action<TestPlayer, int[]>((player, workerIds) =>
+        {
+            using (App.PendingEvents())
+            {
+                player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, [workerIds[0]]);
+            }
+
+            player.SetWorkerRest(workerIds[1], DateTimeHelper.GetNowDate().AddHours(1));
+        }), "Недостаточно трудяг").SetName("RestingAndBusy");
 
         yield return new TestCaseData(new Action<TestPlayer, int[]>((player, _) =>
         {
             SetScoutHutLevel(player.Id, 2);
             StartExpedition(player, ShortScoutId);
-        })).SetName("BusyWithOtherExpedition");
+        }), "Недостаточно трудяг").SetName("BusyWithOtherExpedition");
     }
 
     private static TestPlayer StartExpedition(TestPlayer player, int expeditionTypeId, int[]? workerIds = null)

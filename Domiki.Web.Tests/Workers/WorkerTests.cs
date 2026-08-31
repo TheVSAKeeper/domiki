@@ -552,7 +552,7 @@ public sealed class WorkerTests
     }
 
     /// <summary>
-    /// Отдыхающий трудяга недоступен для нового производства, запуск падает ошибкой «Недостаточно трудяг».
+    /// Отдыхающий трудяга недоступен для нового производства, запуск падает ошибкой «Трудяги отдыхают».
     /// </summary>
     /// <param name="receiptId">Рецепт запускаемого производства.</param>
     [TestCase(ReceiptIds.ClayDig8h)]
@@ -563,7 +563,7 @@ public sealed class WorkerTests
         player.SetWorkerRest(worker.Id, DateTimeHelper.GetNowDate().AddHours(1));
 
         var ex = Throws.Business(() => player.StartManufacture(StartingDomikIds.ClayMine, receiptId));
-        Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
+        Assert.That(ex.Message, Is.EqualTo(WorkerManager.RestingWorkersMessage));
     }
 
     /// <summary>

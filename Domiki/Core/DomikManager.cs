@@ -839,7 +839,6 @@ public class DomikManager
             var sickChance = dbManufacture.SickChance;
             var currentlySick = _context.Workers.Count(x => x.PlayerId == playerId && x.SickUntil > date);
             var isTradeDomik = _resourceManager.GetDomikTypes().First(x => x.LogicName == "market").Id == dbDomik.TypeId;
-            var freedWorkerIds = new List<int>();
             var assignedWorkers = _context.Workers.Where(x => x.ManufactureId == dbManufacture.Id).OrderBy(x => x.Id).ToArray();
             var eligibleWorkerIndex = 0;
             for (var workerIndex = 0; workerIndex < assignedWorkers.Length; workerIndex++)
@@ -893,7 +892,6 @@ public class DomikManager
                 }
 
                 worker.ManufactureId = null;
-                freedWorkerIds.Add(worker.Id);
             }
 
             dbPlayer.CloakWearPoints += dbManufacture.CloakCount;
@@ -949,12 +947,14 @@ public class DomikManager
                     {
                         try
                         {
-                            StartManufacture(playerId, domikId, receiptId, useOptional, freedWorkerIds.ToArray(), true, measureResourceTypeId, measureValue);
+                            StartManufacture(playerId, domikId, receiptId, useOptional, null, true, measureResourceTypeId, measureValue);
                         }
                         catch (BusinessException ex)
                         {
                             _playerEventManager.RecordManufactureRepeatFailed(playerId, domikId, dbDomik.TypeId, receiptId, ex.Message);
-                            repeatStopBody = $"«{manufactureDomikName}»: {ex.Message}";
+                            repeatStopBody = ex.Message == WorkerManager.RestingWorkersMessage
+                                ? $"«{manufactureDomikName}»: свободных рук нет – трудяги отдыхают."
+                                : $"«{manufactureDomikName}»: {ex.Message}";
                         }
                         catch (Exception ex)
                         {

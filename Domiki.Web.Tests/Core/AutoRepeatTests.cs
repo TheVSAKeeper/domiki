@@ -3,6 +3,7 @@ using Domiki.Web.Core.Scheduling;
 using Domiki.Web.Data.Entities;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Infrastructure.Models;
+using Domiki.Web.Workers;
 using System.Text.Json;
 using PlayerEventType = Domiki.Web.Data.Entities.PlayerEventType;
 
@@ -10,6 +11,8 @@ namespace Domiki.Web.Tests;
 
 public sealed class AutoRepeatTests
 {
+    private const int OrdinaryTraitId = 1;
+
     /// <summary>
     /// Несколько циклов автоповтора одного производства схлопываются в одно событие завершения с суммарным выходом.
     /// </summary>
@@ -289,6 +292,49 @@ public sealed class AutoRepeatTests
             Assert.That(player.Resource(ResourceIds.Board), Is.Zero);
             Assert.That(player.Resource(ResourceIds.Tool), Is.EqualTo(1));
         }
+    }
+
+    /// <summary>
+    /// Наряд помнит рецепт, а не состав: когда смена длиной в порог усталости уводит трудягу на отдых, следующий цикл
+    /// берут свободные руки, и наряд не глохнет после первой же смены.
+    /// </summary>
+    [Test]
+    public void AutoRepeatTakesFreeWorkersWhenCrewRestsTest()
+    {
+        const int expectedWorkers = 2;
+
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.Barrack)
+            .WithWorkerTraits(OrdinaryTraitId);
+
+        Assert.That(player.Workers(), Has.Count.EqualTo(expectedWorkers));
+
+        player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h, autoRepeat: true);
+
+        var workers = player.Workers();
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(workers.All(x => x.RestUntil != null), Is.True);
+            Assert.That(player.Resource(ResourceIds.Clay), Is.GreaterThan(0));
+        }
+    }
+
+    /// <summary>
+    /// Когда все руки ушли на отдых, наряд останавливается событием, называющим причиной отдых, а не глухую нехватку.
+    /// </summary>
+    [Test]
+    public void AutoRepeatStopsWithRestReasonTest()
+    {
+        var player = TestPlayer.Create()
+            .WithWorkerTraits(OrdinaryTraitId);
+
+        player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h, autoRepeat: true);
+
+        var events = App.Read(context => context.PlayerEvents.Where(x => x.PlayerId == player.Id && x.Type == PlayerEventType.ManufactureRepeatFailed).ToList());
+        Assert.That(events, Has.Count.EqualTo(1));
+
+        using var data = JsonDocument.Parse(events[0].Data);
+        Assert.That(data.RootElement.GetProperty("reason").GetString(), Is.EqualTo(WorkerManager.RestingWorkersMessage));
     }
 
     private static void GrantDomik(int playerId, int id, int typeId, int level)

@@ -24,6 +24,11 @@ public class WorkerManager
     /// </summary>
     public const string AwayWorkersMessage = "Не хватает коек – трудяги в отходе";
 
+    /// <summary>
+    /// Отказ занять трудягу, который отдыхает после смены или хворает.
+    /// </summary>
+    public const string RestingWorkersMessage = "Трудяги отдыхают";
+
     private const int PlodderModificatorId = 1;
 
     private readonly ApplicationDbContext _context;
@@ -173,11 +178,20 @@ public class WorkerManager
     /// <param name="workers">Все трудяги игрока.</param>
     /// <param name="availableWorkers">Отобранные <see cref="GetAvailableWorkers"/> трудяги.</param>
     /// <param name="now">Момент отбора.</param>
-    /// <returns>Текст для <see cref="BusinessException"/>: про отход, если руки есть, но им не хватило коек.</returns>
+    /// <returns>
+    /// Текст для <see cref="BusinessException"/>: про отход, если руки есть, но им не хватило коек; про отдых, если руки
+    /// заняты усталостью или хворью.
+    /// </returns>
     public static string GetNotEnoughWorkersMessage(Worker[] workers, Worker[] availableWorkers, DateTime now)
     {
-        return workers.Count(x => IsFree(x, now)) > availableWorkers.Length
-            ? AwayWorkersMessage
+        if (workers.Count(x => IsFree(x, now)) > availableWorkers.Length)
+        {
+            return AwayWorkersMessage;
+        }
+
+        var occupied = workers.Where(x => !IsFree(x, now)).ToArray();
+        return occupied.Length > 0 && occupied.All(x => x.RestUntil > now)
+            ? RestingWorkersMessage
             : "Недостаточно трудяг";
     }
 
