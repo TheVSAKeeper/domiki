@@ -42,11 +42,11 @@ export const yardRowCount = (count: number) => Math.max(1, Math.ceil(count / PER
 
 export const yardHeight = (rows: number) => YARD_BASE_H + (rows - 1) * YARD_ROW_H;
 
-const rowBaseY = (row: number) => FIRST_ROW_Y + row * YARD_ROW_H;
+export const yardRowBaseY = (row: number) => FIRST_ROW_Y + row * YARD_ROW_H;
 
 const buildRowPath = (row: number, width: number): PathPoint[] => {
     const rng = mulberry32(PATH_SEED + row * 7919);
-    const base = rowBaseY(row);
+    const base = yardRowBaseY(row);
     const points: PathPoint[] = [];
     let y = base;
     for (let x = -PATH_STEP; x <= width + PATH_STEP; x += PATH_STEP) {
@@ -140,15 +140,28 @@ const clearance = (x: number, y: number, spots: YardSpot[], decors: YardDecor[])
     return worst;
 };
 
+const gridSpot = (rows: PathPoint[][], width: number, height: number, spots: YardSpot[], decors: YardDecor[]) => {
+    for (const points of rows) {
+        for (let x = snap(MARGIN * 0.5); x <= width - MARGIN * 0.5; x += DECOR_GUARD) {
+            const base = pathYAt(points, x);
+            for (let dy = 30; dy <= 90; dy += DECOR_GUARD) {
+                const y = snap(Math.min(height - 32, Math.max(48, base + dy)));
+                if (clearance(snap(x), y, spots, decors) >= 0) {
+                    return { x: snap(x), y };
+                }
+            }
+        }
+    }
+    return null;
+};
+
 const buildDecors = (owned: PlayerDecorDto[], rows: PathPoint[][], width: number, height: number, spots: YardSpot[]): YardDecor[] => {
     const decors: YardDecor[] = [];
     for (const instance of buildDecorInstances(owned, rows.length * DECOR_PER_ROW)) {
         const rng = mulberry32(hashString('d' + String(instance.decorTypeId) + ':' + String(instance.i)));
         const key = `${instance.decorTypeId}:${instance.i}`;
-        let bestX = 0;
-        let bestY = 0;
-        let bestClearance = -Infinity;
-        for (let attempt = 0; attempt < DECOR_ATTEMPTS; attempt++) {
+        let placed: { x: number; y: number } | null = null;
+        for (let attempt = 0; attempt < DECOR_ATTEMPTS && placed == null; attempt++) {
             const row = Math.min(rows.length - 1, Math.floor(rng() * rows.length));
             const points = rows[row];
             if (points == null) {
@@ -156,21 +169,13 @@ const buildDecors = (owned: PlayerDecorDto[], rows: PathPoint[][], width: number
             }
             const x = snap(MARGIN * 0.5 + rng() * (width - MARGIN));
             const y = snap(Math.min(height - 32, Math.max(48, pathYAt(points, x) + 30 + rng() * 60)));
-            const room = clearance(x, y, spots, decors);
-            if (room >= 0) {
-                bestX = x;
-                bestY = y;
-                bestClearance = room;
-                break;
-            }
-            if (room > bestClearance) {
-                bestX = x;
-                bestY = y;
-                bestClearance = room;
+            if (clearance(x, y, spots, decors) >= 0) {
+                placed = { x, y };
             }
         }
-        if (bestClearance > -Infinity) {
-            decors.push({ key, decorTypeId: instance.decorTypeId, x: bestX, y: bestY });
+        placed ??= gridSpot(rows, width, height, spots, decors);
+        if (placed != null) {
+            decors.push({ key, decorTypeId: instance.decorTypeId, x: placed.x, y: placed.y });
         }
     }
     return decors;

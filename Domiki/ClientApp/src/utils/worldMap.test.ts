@@ -100,6 +100,17 @@ describe('worldMap подписи и стабильность', () => {
         }
     });
 
+    it('переход через порог тира не двигает деревню', () => {
+        const low = Array.from({ length: 22 }, (_, i) => village(`Деревня ${i}`, 9, { playerId: i + 1 }));
+        const before = layoutVillages(low, river);
+        const after = layoutVillages(low.map(item => ({ ...item, level: 80 })), river);
+        for (const spot of before) {
+            const moved = after.find(item => item.key === spot.key);
+            expect(moved?.x).toBe(spot.x);
+            expect(moved?.y).toBe(spot.y);
+        }
+    });
+
     it('новая деревня не двигает уже расселённые', () => {
         const before = layoutVillages(villages, river);
         const after = layoutVillages([...villages, village('Новая', 1, { playerId: 99 })], river);

@@ -73,6 +73,8 @@ export const mulberry32 = (seed: number) => {
     };
 };
 
+const MAX_CLEARING = TIER_CLEARING.reduce((max, value) => Math.max(max, value), 0);
+
 export const villageTier = (level: number) => TIER_THRESHOLDS.filter(threshold => level >= threshold).length;
 
 const snap = (value: number) => Math.round(value / 4) * 4;
@@ -114,14 +116,14 @@ export const layoutVillages = (villages: WorldVillageDto[], river: RiverSegment[
         const angle = index * GOLDEN_ANGLE + jitter;
         const tier = villageTier(village.level);
         const clearing = TIER_CLEARING[tier] ?? 40;
-        const margin = clearing + 40;
+        const margin = MAX_CLEARING + 40;
         let x = SPIRAL_CX + radius * Math.cos(angle);
         let y = SPIRAL_CY + radius * Math.sin(angle) * 0.7;
         x = snap(Math.min(WORLD_W - margin, Math.max(margin, x)));
         y = snap(Math.min(WORLD_H - margin - 24, Math.max(margin + 24, y)));
         const riverX = riverXAt(river, y);
         const offset = x - riverX;
-        const guard = clearing + 64;
+        const guard = MAX_CLEARING + 64;
         if (Math.abs(offset) < guard) {
             x = snap(offset >= 0 ? riverX + guard : riverX - guard);
         }

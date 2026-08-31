@@ -71,6 +71,16 @@ describe('yardMap', () => {
         }
     });
 
+    it('плотный двор не даёт наложений даже при полном капе', () => {
+        const counts = [28, 18, 17, 5, 10, 0, 4, 18, 2, 0, 1, 1, 1];
+        const layout = yard(28, counts.map((count, index) => decor(index + 1, count)));
+        for (const [index, item] of layout.decors.entries()) {
+            for (const other of layout.decors.slice(index + 1)) {
+                expect(Math.hypot(item.x - other.x, item.y - other.y)).toBeGreaterThanOrEqual(32);
+            }
+        }
+    });
+
     it('раскладка не зависит от порядка входа', () => {
         const owned = [decor(2, 2), decor(1, 3)];
         const direct = layoutYard([domik(1), domik(2), domik(3)], owned, 12);

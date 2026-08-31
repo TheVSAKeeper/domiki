@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { DecorStateDto, DomikDto, DomikTypeDto, VillageLevelDto, WeatherPeriodDto, WorkerDto } from '../types/api';
 import { workIntensity } from '../utils/game';
 import { weatherMark, weatherMarkSpeech } from '../utils/weather';
 import { hashString } from '../utils/worldMap';
-import { layoutYard, type YardGreen, type YardSpot } from '../utils/yardMap';
+import { layoutYard, yardRowBaseY, type YardGreen, type YardSpot } from '../utils/yardMap';
 import { DecorSprite, DomikSprite, MechanicSprite, NeighborSprite, SheepSprite, WeatherSprite } from './sprites';
 import '../styles/yard.css';
 
@@ -175,7 +175,7 @@ const sheepPlacements = (spots: YardSpot[], domikTypes: DomikTypeDto[], height: 
     return placements;
 };
 
-interface SceneItem { key: string; y: number; node: ReactNode; }
+interface SceneItem { key: string; y: number; x: number; node: ReactNode; }
 
 const pathHeadY = (points: string | undefined, fallback: number) =>
     Number(points?.split(' ')[0]?.split(',')[1] ?? fallback);
@@ -189,7 +189,7 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
     const [collapsed, setCollapsed] = useState<boolean>(() => localStorage.getItem('domiki.yard.collapsed') === '1');
     const [sheepPhase, setSheepPhase] = useState(0);
     const [visible, setVisible] = useState(true);
-    const stageRef = useRef<HTMLDivElement>(null);
+    const [stage, setStage] = useState<HTMLDivElement | null>(null);
     const owned = decor?.owned;
     const level = villageLevel?.level;
     const layout = useMemo(
@@ -200,7 +200,6 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
     const sheep = useMemo(() => sheepPlacements(layout.spots, domikTypes, layout.height), [layout, domikTypes]);
 
     useEffect(() => {
-        const stage = stageRef.current;
         if (stage == null || typeof IntersectionObserver === 'undefined') {
             return;
         }
@@ -212,7 +211,7 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
         }, { rootMargin: '80px' });
         observer.observe(stage);
         return () => { observer.disconnect(); };
-    }, [collapsed]);
+    }, [stage]);
 
     useEffect(() => {
         if (sheep.length === 0 || collapsed || !visible || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -248,6 +247,7 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
         scene.push({
             key: `decor:${item.key}`,
             y: item.y + 4,
+            x: item.x,
             node: <DecorSprite logicName={type.logicName} x={item.x - 16} y={item.y - 28} width={32} height={32} aria-hidden="true" />,
         });
     }
@@ -262,7 +262,8 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
         const mark = weatherMark(currentWeather, spot.domik.typeId);
         scene.push({
             key: `domik:${spot.domik.id}`,
-            y: spot.y + 18,
+            y: yardRowBaseY(spot.row) + 18,
+            x: spot.x,
             node: (
                 <g className={'yard-domik' + (selected ? ' yard-domik-selected' : '')}
                     role="button" tabIndex={0}
@@ -301,29 +302,31 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
     }
 
     for (const tree of layout.trees) {
-        scene.push({ key: `tree:${tree.x}:${tree.y}`, y: tree.y + 8 * tree.scale, node: <YardTree green={tree} /> });
+        scene.push({ key: `tree:${tree.x}:${tree.y}`, y: tree.y + 8 * tree.scale, x: tree.x, node: <YardTree green={tree} /> });
     }
 
     sheep.forEach((placement, index) => {
         scene.push({
             key: `sheep:${placement.key}`,
             y: placement.y,
+            x: placement.x,
             node: <YardSheep x={placement.x} y={placement.y} phase={sheepPhase + index} />,
         });
     });
 
     for (const folk of busyFolk) {
-        scene.push({ key: `busy:${folk.x}:${folk.y}:${folk.name}`, y: folk.y, node: <YardFolk x={folk.x} y={folk.y} name={folk.name} /> });
+        scene.push({ key: `busy:${folk.x}:${folk.y}:${folk.name}`, y: folk.y, x: folk.x, node: <YardFolk x={folk.x} y={folk.y} name={folk.name} /> });
     }
 
     for (const folk of freeFolk) {
-        scene.push({ key: `free:${folk.x}:${folk.y}:${folk.name}`, y: folk.y, node: <YardFolk x={folk.x} y={folk.y} name={folk.name} /> });
+        scene.push({ key: `free:${folk.x}:${folk.y}:${folk.name}`, y: folk.y, x: folk.x, node: <YardFolk x={folk.x} y={folk.y} name={folk.name} /> });
     }
 
     if (recapPending) {
         scene.push({
             key: 'recap',
             y: firstPathY + 22,
+            x: 16,
             node: (
                 <g className="yard-vignette" role="button" tabIndex={0}
                     aria-label="Гостинец ждёт – открыть сводку"
@@ -346,6 +349,7 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
         scene.push({
             key: 'neighbor',
             y: firstPathY - 17,
+            x: 26,
             node: (
                 <g aria-hidden="true">
                     <title>{`Дружба с ${friendNeighbor.name}`}</title>
@@ -361,11 +365,12 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
         scene.push({
             key: 'cart',
             y: lastPathY + 8,
+            x: layout.width - 44,
             node: <YardCart x={layout.width - 44} y={lastPathY - 4} title={'В походе: ' + activeExpeditionNames.join(', ')} />,
         });
     }
 
-    scene.sort((a, b) => a.y - b.y);
+    scene.sort((a, b) => a.y - b.y || a.x - b.x);
 
     return (
         <section className="yard pixel-panel">
@@ -376,7 +381,7 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
                 </button>
             </header>
             {!collapsed &&
-                <div className="yard-stage" data-weather={currentWeather?.logicName} ref={stageRef}>
+                <div className="yard-stage" data-weather={currentWeather?.logicName} ref={setStage}>
                     <div className="yard-scroll">
                         <svg className="yard-svg" viewBox={`0 0 ${layout.width} ${layout.height}`}
                             shapeRendering="crispEdges" aria-label="Двор деревни: постройки, декор и трудяги">
