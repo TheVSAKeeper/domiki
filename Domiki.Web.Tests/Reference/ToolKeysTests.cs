@@ -148,6 +148,25 @@ public sealed class ToolKeysTests
         }
     }
 
+    /// <summary>
+    /// Чертёж целится ровно в одно: постройку или рецепт, и один рецепт открывает не больше одного чертежа.
+    /// </summary>
+    /// <remarks>
+    /// Гейт в <see cref="Domiki.Web.Core.DomikManager"/> и замок карточки на фронте берут первый совпавший чертёж,
+    /// поэтому второй чертёж на тот же рецепт молча остался бы без действия; в схеме это держит уникальный индекс.
+    /// </remarks>
+    [Test]
+    public void BlueprintTargetsAreDistinctTest()
+    {
+        var blueprints = App.Act<ResourceManager, Blueprint[]>(m => m.GetBlueprints());
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(blueprints.Where(x => (x.DomikTypeId == null) == (x.ReceiptId == null)), Is.Empty);
+            Assert.That(blueprints.Where(x => x.ReceiptId != null).GroupBy(x => x.ReceiptId).Where(x => x.Count() > 1), Is.Empty);
+        }
+    }
+
     private static Receipt GetReceipt(int receiptId)
     {
         return App.Act<ResourceManager, Receipt[]>(m => m.GetReceipts()).Single(x => x.Id == receiptId);

@@ -95,6 +95,11 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             .IsUnique()
             .HasFilter("\"village_name\" IS NOT NULL");
 
+        modelBuilder.Entity<Blueprint>()
+            .HasIndex(x => x.ReceiptId)
+            .IsUnique()
+            .HasFilter("\"receipt_id\" IS NOT NULL");
+
         modelBuilder.Entity<WorkerMilestone>()
             .HasOne<Worker>()
             .WithMany()
