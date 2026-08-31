@@ -1249,7 +1249,13 @@ internal sealed class SimulationRun
 
     private Receipt[] GetReceipts(SimDomik domik)
     {
-        return GetDomikLevel(domik).Receipts.Select(x => _data.ReceiptById[x.Id]).ToArray();
+        return GetDomikLevel(domik).Receipts.Select(x => _data.ReceiptById[x.Id]).Where(HasReceiptBlueprint).ToArray();
+    }
+
+    private bool HasReceiptBlueprint(Receipt receipt)
+    {
+        var blueprint = _data.Blueprints.FirstOrDefault(x => x.ReceiptId == receipt.Id);
+        return blueprint == null || _state.OwnedBlueprints.Contains(blueprint.Id);
     }
 
     private int GetScoutHutLevel()

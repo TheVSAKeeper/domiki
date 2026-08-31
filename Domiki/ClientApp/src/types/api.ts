@@ -178,7 +178,8 @@ export type ConvoyDto = z.infer<typeof convoySchema>;
 export const blueprintSchema = z.object({
     id: z.number(),
     name: z.string(),
-    domikTypeId: z.number(),
+    domikTypeId: z.number().nullable(),
+    receiptId: z.number().nullable(),
     neighborId: z.number(),
     neighborName: z.string(),
     reputationThreshold: z.number(),

@@ -588,6 +588,15 @@ public class DomikManager
         var domikLevel = domikType.Levels.First(x => x.Value == dbDomik.Level);
         var levelReceipt = domikLevel.Receipts.FirstOrDefault(x => x.Id == receiptId) ?? throw new BusinessException("Рецепт больше не доступен на этом уровне");
         var receipt = _resourceManager.GetReceipts().First(x => x.Id == levelReceipt.Id);
+
+        _blueprintManager.EnsureBlueprints(playerId);
+        var receiptBlueprint = _resourceManager.GetBlueprints().FirstOrDefault(x => x.ReceiptId == receipt.Id);
+        if (receiptBlueprint != null && !_blueprintManager.IsOwned(playerId, receiptBlueprint.Id))
+        {
+            var blueprintNeighbor = _resourceManager.GetNeighbors().First(x => x.Id == receiptBlueprint.NeighborId);
+            throw new BusinessException($"Нужен чертёж (репутация {blueprintNeighbor.Name} {receiptBlueprint.ReputationThreshold})");
+        }
+
         var needPlodderCount = receipt.PlodderCount;
         if (freeWorkers.Length < needPlodderCount)
         {

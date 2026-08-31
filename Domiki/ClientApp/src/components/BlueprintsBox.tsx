@@ -1,7 +1,7 @@
 import CheckIcon from 'pixelarticons/svg/check.svg?react';
 import FlagIcon from 'pixelarticons/svg/flag.svg?react';
-import type { BlueprintDto, DecorTypeDto, DomikTypeDto, NeighborReputationDto } from '../types/api';
-import { DecorSprite, DomikSprite, MechanicSprite, NeighborSprite } from './sprites';
+import type { BlueprintDto, DecorTypeDto, DomikTypeDto, NeighborReputationDto, ReceiptDto, ResourceTypeDto } from '../types/api';
+import { DecorSprite, DomikSprite, MechanicSprite, NeighborSprite, ResourceSprite } from './sprites';
 import '../styles/blueprints.css';
 
 interface BlueprintsBoxProps {
@@ -9,11 +9,13 @@ interface BlueprintsBoxProps {
     domikTypes: DomikTypeDto[];
     decorTypes: DecorTypeDto[];
     reputations: NeighborReputationDto[];
+    receipts: ReceiptDto[];
+    resourceTypes: ResourceTypeDto[];
 }
 
 interface Milestone {
     key: string;
-    kind: 'blueprint' | 'decor';
+    kind: 'blueprint' | 'craft' | 'decor';
     name: string;
     neighborId: number;
     neighborName: string;
@@ -22,6 +24,7 @@ interface Milestone {
     current: number;
     owned: boolean;
     building?: DomikTypeDto | undefined;
+    resourceLogicName?: string | undefined;
     decorLogicName?: string;
 }
 
@@ -33,11 +36,23 @@ const neighborKeepsake: Record<string, string> = {
     dubrava: 'Дубравские добро помнят годами: уважишь – зачтётся сторицей.',
 };
 
+const keyResourceLogicName = (blueprint: BlueprintDto, receipts: ReceiptDto[], resourceTypes: ResourceTypeDto[]) => {
+    const receipt = blueprint.receiptId == null ? undefined : receipts.find(x => x.id === blueprint.receiptId);
+    const output = receipt?.outputResources[0];
+    return output == null ? undefined : resourceTypes.find(x => x.id === output.typeId)?.logicName;
+};
+
 const keepsakeFor = (logicName: string) => neighborKeepsake[logicName] ?? 'Соседи приберегли доброе – для доброго имени.';
 
-const kindLabel = (kind: Milestone['kind']) => (kind === 'blueprint' ? 'чертёж стройки' : 'убранство двора');
+const kindLabel = (kind: Milestone['kind']) => {
+    if (kind === 'blueprint') {
+        return 'чертёж стройки';
+    }
 
-export const BlueprintsBox = ({ blueprints, domikTypes, decorTypes, reputations }: BlueprintsBoxProps) => {
+    return kind === 'craft' ? 'чертёж ремесла' : 'убранство двора';
+};
+
+export const BlueprintsBox = ({ blueprints, domikTypes, decorTypes, reputations, receipts, resourceTypes }: BlueprintsBoxProps) => {
     if (blueprints.length === 0 && decorTypes.every(x => x.neighborId == null)) {
         return null;
     }
@@ -47,7 +62,7 @@ export const BlueprintsBox = ({ blueprints, domikTypes, decorTypes, reputations 
     const milestones: Milestone[] = [
         ...blueprints.map((blueprint): Milestone => ({
             key: `blueprint-${blueprint.id}`,
-            kind: 'blueprint',
+            kind: blueprint.receiptId != null ? 'craft' : 'blueprint',
             name: blueprint.name,
             neighborId: blueprint.neighborId,
             neighborName: blueprint.neighborName,
@@ -56,6 +71,7 @@ export const BlueprintsBox = ({ blueprints, domikTypes, decorTypes, reputations 
             current: blueprint.currentReputation,
             owned: blueprint.owned,
             building: domikTypes.find(type => type.id === blueprint.domikTypeId),
+            resourceLogicName: keyResourceLogicName(blueprint, receipts, resourceTypes),
         })),
         ...decorTypes.filter(x => x.neighborId != null).map((decorType): Milestone => {
             const points = reputations.find(x => x.neighborId === decorType.neighborId)?.points ?? 0;
@@ -112,7 +128,9 @@ export const BlueprintsBox = ({ blueprints, domikTypes, decorTypes, reputations 
                                 <span className="veha-gift-sprite">
                                     {milestone.building != null
                                         ? <DomikSprite logicName={milestone.building.logicName} />
-                                        : milestone.decorLogicName != null
+                                        : milestone.resourceLogicName != null
+                                            ? <ResourceSprite logicName={milestone.resourceLogicName} size={48} />
+                                            : milestone.decorLogicName != null
                                             ? <DecorSprite logicName={milestone.decorLogicName} size={64} />
                                             : <MechanicSprite logicName="blueprints" size={48} aria-hidden="true" />}
                                 </span>

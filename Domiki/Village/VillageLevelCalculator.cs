@@ -104,7 +104,7 @@ public class VillageLevelCalculator
 
     private VillageLevelUnlock[] GetUnlocks(int playerId, int level)
     {
-        var blueprintDomikTypeIds = _resourceManager.GetBlueprints().Select(b => b.DomikTypeId).ToHashSet();
+        var blueprintDomikTypeIds = _resourceManager.GetBlueprints().Where(b => b.DomikTypeId != null).Select(b => b.DomikTypeId!.Value).ToHashSet();
 
         var domikUnlocks = _resourceManager.GetDomikTypes()
             .Where(x => x.UnlockLevel > 0 && !blueprintDomikTypeIds.Contains(x.Id))
@@ -179,18 +179,26 @@ public class VillageLevelCalculator
         var reputations = _context.NeighborReputations.Where(x => x.PlayerId == playerId).ToArray();
         var neighbors = _resourceManager.GetNeighbors();
         var domikTypes = _resourceManager.GetDomikTypes();
+        var receipts = _resourceManager.GetReceipts();
         var blueprintUnlocks = _resourceManager.GetBlueprints()
             .Where(b => !owned.Contains(b.Id))
-            .Select(b => new { b, neighbor = neighbors.First(n => n.Id == b.NeighborId), domik = domikTypes.First(d => d.Id == b.DomikTypeId), points = reputations.FirstOrDefault(r => r.NeighborId == b.NeighborId)?.Points ?? 0 })
+            .Select(b => new
+            {
+                b,
+                neighbor = neighbors.First(n => n.Id == b.NeighborId),
+                domik = b.DomikTypeId == null ? null : domikTypes.First(d => d.Id == b.DomikTypeId),
+                receipt = b.ReceiptId == null ? null : receipts.First(r => r.Id == b.ReceiptId),
+                points = reputations.FirstOrDefault(r => r.NeighborId == b.NeighborId)?.Points ?? 0,
+            })
             .Where(x => x.points < x.b.ReputationThreshold)
             .Select(x => new VillageLevelUnlock
             {
                 Level = null,
-                Label = x.domik.Name,
+                Label = x.domik == null ? x.receipt!.Name ?? string.Empty : x.domik.Name,
                 Requirement = $"чертёж: {x.neighbor.Name}, репутация {x.points}/{x.b.ReputationThreshold}",
                 Unlocked = false,
-                Kind = "building",
-                LogicName = x.domik.LogicName,
+                Kind = x.domik == null ? "receipt" : "building",
+                LogicName = x.domik == null ? x.receipt!.LogicName ?? string.Empty : x.domik.LogicName,
             });
 
         return domikUnlocks

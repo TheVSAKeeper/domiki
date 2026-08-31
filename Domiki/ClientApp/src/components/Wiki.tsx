@@ -224,6 +224,8 @@ const METAL_CHAIN: { logicName: string; name: string; where: string }[] = [
     { logicName: 'ore', name: 'Руда', where: 'Рудник' },
     { logicName: 'iron', name: 'Железо', where: 'Кузница' },
     { logicName: 'tool', name: 'Инструмент', where: 'Кузница + доски' },
+    { logicName: 'pick', name: 'Кайло', where: 'Кузница, чертёж Каменки' },
+    { logicName: 'tongs', name: 'Клещи', where: 'Кузница, чертёж Глинищ' },
 ];
 
 interface ResChipsProps {

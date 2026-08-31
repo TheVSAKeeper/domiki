@@ -19,6 +19,8 @@ import WoolResSprite from '../../assets/resourceTypes/wool.svg?react';
 import ClothResSprite from '../../assets/resourceTypes/cloth.svg?react';
 import CloakResSprite from '../../assets/resourceTypes/cloak.svg?react';
 import CheeseResSprite from '../../assets/resourceTypes/cheese.svg?react';
+import PickResSprite from '../../assets/resourceTypes/pick.svg?react';
+import TongsResSprite from '../../assets/resourceTypes/tongs.svg?react';
 import { renderIconSprite } from './core';
 import type { IconSpriteProps, SpriteComponent } from './core';
 
@@ -44,6 +46,8 @@ const resourceSprites: Record<string, SpriteComponent> = {
     cloth: ClothResSprite,
     cloak: CloakResSprite,
     cheese: CheeseResSprite,
+    pick: PickResSprite,
+    tongs: TongsResSprite,
 };
 
 export const ResourceSprite = (props: IconSpriteProps) => <>{renderIconSprite('resource', resourceSprites, undefined, props)}</>;

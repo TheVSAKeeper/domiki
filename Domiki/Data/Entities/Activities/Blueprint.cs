@@ -3,7 +3,7 @@
 namespace Domiki.Web.Data.Entities;
 
 /// <summary>
-/// Справочник чертежей: постройка, которую открывает чертёж, и сосед-источник с порогом репутации для выдачи.
+/// Справочник чертежей: что открывает чертёж (постройка или рецепт) и сосед-источник с порогом репутации для выдачи.
 /// </summary>
 public class Blueprint
 {
@@ -26,7 +26,14 @@ public class Blueprint
     /// <summary>
     /// Тип постройки, покупка которой становится доступна после получения чертежа.
     /// </summary>
-    public int DomikTypeId { get; set; }
+    /// <value><see langword="null"/> у чертежа ремесла: такой открывает не постройку, а рецепт <see cref="ReceiptId"/>.</value>
+    public int? DomikTypeId { get; set; }
+
+    /// <summary>
+    /// Рецепт, который становится доступен после получения чертежа.
+    /// </summary>
+    /// <value><see langword="null"/> у чертежа постройки.</value>
+    public int? ReceiptId { get; set; }
 
     /// <summary>
     /// Сосед, чья репутация выдаёт чертёж по достижении ReputationThreshold.
@@ -44,7 +51,12 @@ public class Blueprint
     /// <summary>
     /// Навигационное свойство к типу постройки, который открывает чертёж.
     /// </summary>
-    public DomikType DomikType { get; set; } = null!;
+    public DomikType? DomikType { get; set; }
+
+    /// <summary>
+    /// Навигационное свойство к рецепту, который открывает чертёж.
+    /// </summary>
+    public Receipt? Receipt { get; set; }
 
     /// <summary>
     /// Навигационное свойство к соседу-источнику чертежа.

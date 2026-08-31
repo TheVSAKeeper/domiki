@@ -27,7 +27,14 @@ public class Blueprint
     /// <summary>
     /// Постройка, которую открывает чертёж – ссылка на <see cref="Core.Models.DomikType.Id"/>.
     /// </summary>
-    public int DomikTypeId { get; set; }
+    /// <value><see langword="null"/> у чертежа ремесла: такой открывает рецепт <see cref="ReceiptId"/>.</value>
+    public int? DomikTypeId { get; set; }
+
+    /// <summary>
+    /// Рецепт, который открывает чертёж – ссылка на <see cref="Reference.Models.Receipt.Id"/>.
+    /// </summary>
+    /// <value><see langword="null"/> у чертежа постройки.</value>
+    public int? ReceiptId { get; set; }
 
     /// <summary>
     /// Сосед, у которого чертёж можно заслужить репутацией или получить в экспедиции.

@@ -11,6 +11,7 @@ public static class BlueprintDtoExtensions
             Id = blueprint.Blueprint.Id,
             Name = blueprint.Blueprint.Name,
             DomikTypeId = blueprint.Blueprint.DomikTypeId,
+            ReceiptId = blueprint.Blueprint.ReceiptId,
             NeighborId = blueprint.Blueprint.NeighborId,
             NeighborName = blueprint.Neighbor.Name,
             ReputationThreshold = blueprint.Blueprint.ReputationThreshold,

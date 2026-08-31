@@ -160,6 +160,8 @@ public class ResourceManager
             20 => 120,
             15 => 20,
             21 => 25,
+            22 => 160,
+            23 => 115,
             _ => BaseMarketValue,
         };
     }
@@ -302,6 +304,7 @@ public class ResourceManager
                 Name = x.Name,
                 LogicName = x.LogicName,
                 DomikTypeId = x.DomikTypeId,
+                ReceiptId = x.ReceiptId,
                 NeighborId = x.NeighborId,
                 ReputationThreshold = x.ReputationThreshold,
             })

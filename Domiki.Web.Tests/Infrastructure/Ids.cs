@@ -26,6 +26,16 @@ public static class ResourceIds
     /// Сыр.
     /// </summary>
     public const int Cheese = 21;
+
+    /// <summary>
+    /// Кайло.
+    /// </summary>
+    public const int Pick = 22;
+
+    /// <summary>
+    /// Клещи.
+    /// </summary>
+    public const int Tongs = 23;
 }
 
 public static class DomikIds
@@ -172,6 +182,46 @@ public static class ReceiptIds
     /// Продать сыр.
     /// </summary>
     public const int SellCheese = 75;
+
+    /// <summary>
+    /// Сковать кайло.
+    /// </summary>
+    public const int MakePick = 76;
+
+    /// <summary>
+    /// Сковать клещи.
+    /// </summary>
+    public const int MakeTongs = 77;
+
+    /// <summary>
+    /// Артелью копать глину.
+    /// </summary>
+    public const int ClayDigArtel = 78;
+
+    /// <summary>
+    /// Артелью ломать камень.
+    /// </summary>
+    public const int StoneDigArtel = 79;
+
+    /// <summary>
+    /// Артелью бить руду.
+    /// </summary>
+    public const int OreDigArtel = 80;
+
+    /// <summary>
+    /// Расколоть глыбу.
+    /// </summary>
+    public const int SplitBlock = 81;
+
+    /// <summary>
+    /// Обжечь большую садку.
+    /// </summary>
+    public const int BigKiln = 82;
+
+    /// <summary>
+    /// Пустить домницу.
+    /// </summary>
+    public const int BlastFurnace = 83;
 }
 
 public static class BlueprintIds
@@ -180,6 +230,16 @@ public static class BlueprintIds
     public const int Stonecutter = 2;
     public const int Pottery = 3;
     public const int Bakery = 4;
+
+    /// <summary>
+    /// Чертёж кайла.
+    /// </summary>
+    public const int Pick = 5;
+
+    /// <summary>
+    /// Чертёж клещей.
+    /// </summary>
+    public const int Tongs = 6;
 }
 
 public static class WeatherIds

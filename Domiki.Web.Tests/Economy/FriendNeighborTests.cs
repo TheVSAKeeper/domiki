@@ -87,6 +87,7 @@ public sealed class FriendNeighborTests
     [TestCase(5, 15, "«Чертёж гончарни»")]
     [TestCase(15, 20, "второй товар в обозе")]
     [TestCase(20, 40, "щедрый обоз")]
+    [TestCase(40, 50, "«Чертёж клещей»")]
     public void NextReputationMilestoneNamesRealRewardTest(int points, int expectedThreshold, string expectedName)
     {
         var player = TestPlayer.Create()
@@ -102,13 +103,18 @@ public sealed class FriendNeighborTests
     }
 
     /// <summary>
+    /// Репутация заведомо выше любого существующего порога Глинищ.
+    /// </summary>
+    private const int PastEveryThresholdReputation = 100;
+
+    /// <summary>
     /// Когда игрок прошёл все известные пороги соседа, ближайший порог и его название не заполняются.
     /// </summary>
     [Test]
     public void NextReputationMilestoneIsNullPastEveryThresholdTest()
     {
         var player = TestPlayer.Create()
-            .WithReputation(NeighborIds.Glinischi, ConvoyManager.HighLimitReputationThreshold);
+            .WithReputation(NeighborIds.Glinischi, PastEveryThresholdReputation);
 
         var reputation = player.Reputation().First(x => x.Neighbor.Id == NeighborIds.Glinischi);
 

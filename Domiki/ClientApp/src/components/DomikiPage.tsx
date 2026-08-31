@@ -412,7 +412,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'blueprints', label: 'Вехи соседей', icon: <MechanicSprite logicName="blueprints" size={32} className="game-tab-ico" aria-hidden="true" />, visible: blueprints.length > 0 || (decor?.types ?? []).some(x => x.neighborId != null),
-            node: () => <BlueprintsBox blueprints={blueprints} domikTypes={domikTypes} decorTypes={decor?.types ?? []} reputations={reputation} />,
+            node: () => <BlueprintsBox blueprints={blueprints} domikTypes={domikTypes} decorTypes={decor?.types ?? []} reputations={reputation} receipts={receipts} resourceTypes={resourceTypes} />,
         },
         {
             key: 'expeditions', label: 'Экспедиции', icon: <MechanicSprite logicName="expeditions" size={32} className="game-tab-ico" aria-hidden="true" />, visible: expeditions != null,
@@ -563,7 +563,7 @@ export const DomikiPage = () => {
                 </section>
                 {selected != null && <div className="actions-scrim" role="presentation" onClick={() => { setSelectedDomikId(null); }} />}
                 <PerfZone id="карточка">
-                    <SelectedDomikPanel ref={selectedDomikPanelRef} selected={selected} resources={resources} resourceTypes={resourceTypes} receipts={receipts}
+                    <SelectedDomikPanel ref={selectedDomikPanelRef} selected={selected} resources={resources} resourceTypes={resourceTypes} receipts={receipts} blueprints={blueprints}
                         workers={workers} goals={goals} villageLevel={villageLevel} currentWeather={currentWeather} sickTypes={sickTypes} now={now}
                         goldValue={goldValue} goldType={goldType} goldVein={goldVeinContext} plodderFree={plodder.free} displayName={domikDisplayName}
                         onClose={() => setSelectedDomikId(null)} onUpgrade={upgrade} onHurryDomik={hurryDomikAction}

@@ -7,7 +7,7 @@ import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import CloseIcon from 'pixelarticons/svg/close.svg?react';
 import InfoBoxIcon from 'pixelarticons/svg/info-box.svg?react';
 import PlayIcon from 'pixelarticons/svg/play.svg?react';
-import type { DomikTypeDto, GoalsStateDto, ReceiptDto, ResourceDto, ResourceTypeDto, SelectedDomikView, SickTypeDto, VillageLevelDto, WeatherEffectDto, WeatherPeriodDto, WorkerDto } from '../types/api';
+import type { BlueprintDto, DomikTypeDto, GoalsStateDto, ReceiptDto, ResourceDto, ResourceTypeDto, SelectedDomikView, SickTypeDto, VillageLevelDto, WeatherEffectDto, WeatherPeriodDto, WorkerDto } from '../types/api';
 import type { DomikNamer } from '../utils/domikNames';
 import { PLODDER_MODIFICATOR_TYPE_ID, SICK_MIN_VILLAGE_LEVEL, computeReceiptView, goldVeinView, isWorkerFree, progressPercent, residentsGain, resourceShortfall, workIntensity, workerFitness, type GoldVeinContext, type GoldVeinView } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
@@ -88,6 +88,7 @@ const receiptUiReducer = (state: ReceiptUiState, action: ReceiptUiAction): Recei
 
 interface ReceiptRowProps {
     receipt: ReceiptDto;
+    blueprintLock: string | null;
     domikId: number;
     domikType: DomikTypeDto;
     resources: ResourceDto[];
@@ -109,7 +110,7 @@ interface ReceiptRowProps {
     formatShortfall: (cost: { typeId: number; value: number }[]) => string;
 }
 
-const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, workers, goals, villageLevel, weatherEffect, sickName, now, plodderFree, atManufactureCap, runningManufactures, maxManufactures, goldVein, ui, dispatch, onStart, formatShortfall }: ReceiptRowProps) => {
+const ReceiptRow = ({ receipt, blueprintLock, domikId, domikType, resources, resourceTypes, workers, goals, villageLevel, weatherEffect, sickName, now, plodderFree, atManufactureCap, runningManufactures, maxManufactures, goldVein, ui, dispatch, onStart, formatShortfall }: ReceiptRowProps) => {
     const { expanded, useOptional, autoRepeat, isManual, selectedWorkerIds } = ui;
     const hasOptional = receipt.optionalInputResources.length > 0;
     const optionalNames = receipt.optionalInputResources
@@ -128,13 +129,14 @@ const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, wor
     const capReason = atManufactureCap ? `Все места заняты: ${runningManufactures} из ${maxManufactures}` : null;
     const canRun = (isManual
         ? view.hasResources && validSelectedIds.length === receipt.plodderCount
-        : view.canRun) && !atManufactureCap && goldVein?.blockReason == null;
+        : view.canRun) && !atManufactureCap && goldVein?.blockReason == null && blueprintLock == null;
     const workerBlockReason = isManual
         ? validSelectedIds.length !== receipt.plodderCount
             ? `Выберите ровно ${receipt.plodderCount} трудяг (сейчас ${validSelectedIds.length})`
             : null
         : !view.hasPlodders ? `Не хватает свободных трудяг: ${automaticWorkerShortfall}` : null;
     const blockTitle = [
+        blueprintLock,
         capReason,
         goldVein?.blockReason ?? null,
         !view.hasResources ? `Не хватает: ${missingResourcesText}` : null,
@@ -285,7 +287,7 @@ const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, wor
                         <PlayIcon className="btn-ico" aria-hidden="true" />
                         Запустить
                     </ActionButton>
-                     {!canRun && (!view.hasResources || workerBlockReason != null || goldVein?.blockReason != null) &&
+                     {!canRun && (!view.hasResources || workerBlockReason != null || goldVein?.blockReason != null || blueprintLock != null) &&
                         <div className="note-warn resource-shortfall">
                             <img src="/images/upgrade_no_resources.png" alt="" />
                             {!view.hasResources
@@ -293,6 +295,7 @@ const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, wor
                                 : null}
                             {workerBlockReason != null && <span>{workerBlockReason}</span>}
                             {goldVein?.blockReason != null && <span>{goldVein.blockReason}</span>}
+                            {blueprintLock != null && <span>{blueprintLock}</span>}
                         </div>
                      }
                 </div>
@@ -386,6 +389,7 @@ interface SelectedDomikPanelProps {
     resources: ResourceDto[];
     resourceTypes: ResourceTypeDto[];
     receipts: ReceiptDto[];
+    blueprints: BlueprintDto[];
     workers: WorkerDto[];
     goals: GoalsStateDto | null;
     villageLevel: VillageLevelDto | null;
@@ -407,7 +411,7 @@ interface SelectedDomikPanelProps {
     onSetManufactureMeasure: (manufactureId: number, resourceTypeId: number | null, value: number | null) => void;
 }
 
-export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, receipts, workers, goals, villageLevel, currentWeather, sickTypes, now, goldValue, goldType, goldVein, plodderFree, displayName, onClose, onUpgrade, onHurryDomik, onStartManufacture, onHurryManufacture, onToggleManufactureRepeat, elderHouseLevel, onSetManufactureMeasure }: SelectedDomikPanelProps) => {
+export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, receipts, blueprints, workers, goals, villageLevel, currentWeather, sickTypes, now, goldValue, goldType, goldVein, plodderFree, displayName, onClose, onUpgrade, onHurryDomik, onStartManufacture, onHurryManufacture, onToggleManufactureRepeat, elderHouseLevel, onSetManufactureMeasure }: SelectedDomikPanelProps) => {
     const [ui, dispatch] = useReducer(receiptUiReducer, initialReceiptUiState);
     const [tab, setTab] = useState<PanelView>('work');
     const [tabbedDomikId, setTabbedDomikId] = useState(selected?.domik.id);
@@ -477,17 +481,26 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
         : soonestManufacture != null ? formatDuration(soonestManufacture) : null;
     const freeSlots = maxManufactures - runningManufactures;
     const slotsText = `${freeSlots}/${maxManufactures} свободно`;
+    const blueprintLockFor = (receipt: ReceiptDto) => {
+        const blueprint = blueprints.find(x => x.receiptId === receipt.id);
+        return blueprint == null || blueprint.owned
+            ? null
+            : `Нужен чертёж «${blueprint.name}»: репутация ${blueprint.neighborName} ${blueprint.currentReputation}/${blueprint.reputationThreshold}`;
+    };
+
     const readyReceipts: ReceiptDto[] = [];
     const blockedReceipts: ReceiptDto[] = [];
     for (const receipt of selected?.receipts ?? []) {
         const veinBlocked = selected != null && goldVeinView(receipt, selected.domik, goldVein)?.blockReason != null;
-        const canRun = computeReceiptView(receipt, resources, plodderFree, false, goals?.zealCharges, selected?.domikType).canRun && !veinBlocked;
+        const canRun = computeReceiptView(receipt, resources, plodderFree, false, goals?.zealCharges, selected?.domikType).canRun
+            && !veinBlocked && blueprintLockFor(receipt) == null;
         (canRun ? readyReceipts : blockedReceipts).push(receipt);
     }
 
     const renderReceipt = (receipt: ReceiptDto, view: SelectedDomikView) =>
         <ReceiptRow key={receipt.id}
             receipt={receipt}
+            blueprintLock={blueprintLockFor(receipt)}
             domikId={view.domik.id}
             domikType={view.domikType}
             resources={resources}

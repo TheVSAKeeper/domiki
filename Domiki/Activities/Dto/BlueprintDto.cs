@@ -21,7 +21,14 @@ public sealed record BlueprintDto
     /// <summary>
     /// Постройка, которую открывает чертёж – ссылка на <see cref="Core.Dto.DomikTypeDto.Id"/>.
     /// </summary>
-    public required int DomikTypeId { get; init; }
+    /// <value><see langword="null"/> у чертежа ремесла: такой открывает рецепт <see cref="ReceiptId"/>.</value>
+    public required int? DomikTypeId { get; init; }
+
+    /// <summary>
+    /// Рецепт, который открывает чертёж – ссылка на <see cref="Reference.Dto.ReceiptDto.Id"/>.
+    /// </summary>
+    /// <value><see langword="null"/> у чертежа постройки.</value>
+    public required int? ReceiptId { get; init; }
 
     /// <summary>
     /// Сосед, у которого чертёж можно заслужить репутацией или получить в экспедиции.
