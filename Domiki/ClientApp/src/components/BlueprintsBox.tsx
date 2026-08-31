@@ -36,6 +36,10 @@ const neighborKeepsake: Record<string, string> = {
     dubrava: 'Дубравские добро помнят годами: уважишь – зачтётся сторицей.',
 };
 
+const ownedHint: Record<string, string> = {
+    pick: 'кузница куёт кайло, а артель ждёт его на четвёртом уровне карьера, каменоломни или рудника',
+};
+
 const keyResourceLogicName = (blueprint: BlueprintDto, receipts: ReceiptDto[], resourceTypes: ResourceTypeDto[]) => {
     const receipt = blueprint.receiptId == null ? undefined : receipts.find(x => x.id === blueprint.receiptId);
     const output = receipt?.outputResources[0];
@@ -141,7 +145,7 @@ export const BlueprintsBox = ({ blueprints, domikTypes, decorTypes, reputations,
                             </div>
                             <p className="veha-plea">{keepsakeFor(milestone.neighborLogicName)}</p>
                             {milestone.owned
-                                ? <div className="veha-open"><CheckIcon aria-hidden="true" />Веха взята – заветное открыто</div>
+                                ? <div className="veha-open"><CheckIcon aria-hidden="true" />Веха взята – {(milestone.resourceLogicName == null ? undefined : ownedHint[milestone.resourceLogicName]) ?? 'заветное открыто'}</div>
                                 : <div className="veha-milestone">
                                     <div className="veha-track" aria-label={`${progress} из ${milestone.threshold} доброго имени`}>
                                         <span className="veha-track-fill" style={{ width: `${percent}%` }} />
