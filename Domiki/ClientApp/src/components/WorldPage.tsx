@@ -372,7 +372,7 @@ export const WorldPage = () => {
                                     {visit.canHelp &&
                                         <button type="button" className="btn-game icon-chip-btn" disabled={helpBusy}
                                             onClick={() => { void submitHelp(); }}>
-                                            <MechanicSprite logicName="village_help" size={32} className="btn-ico" aria-hidden="true" />
+                                            <MechanicSprite logicName="village_help" size={24} className="btn-ico" aria-hidden="true" />
                                             Подсобить
                                         </button>
                                     }
@@ -421,7 +421,7 @@ export const WorldPage = () => {
                                                 </div>
                                                 <button type="button" className="btn-game icon-chip-btn" disabled={guestbookPhraseId == null || guestbookBusy}
                                                     onClick={() => { void submitGuestbookEntry(); }}>
-                                                    <MechanicSprite logicName="guestbook" size={32} className="btn-ico" aria-hidden="true" />
+                                                    <MechanicSprite logicName="guestbook" size={24} className="btn-ico" aria-hidden="true" />
                                                     Расписаться
                                                 </button>
                                             </>

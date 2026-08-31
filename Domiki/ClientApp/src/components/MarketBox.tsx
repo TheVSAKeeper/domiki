@@ -281,7 +281,7 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                     <ActionButton className="btn-game icon-chip-btn" disabled={!canPost}
                         title={lotsFull ? 'Все места на прилавке заняты' : canAffordPost ? undefined : 'Не хватает ресурсов'}
                         onClick={submitPost}>
-                        <MechanicSprite logicName="market" size={32} className="btn-ico" aria-hidden="true" />
+                        <MechanicSprite logicName="market" size={24} className="btn-ico" aria-hidden="true" />
                         Выставить лот
                     </ActionButton>
                 </form>

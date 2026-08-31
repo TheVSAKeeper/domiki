@@ -482,12 +482,12 @@ export const DomikiPage = () => {
                 nav={
                     <>
                         <Link className="btn-game icon-chip-btn" to="/world">
-                            <MechanicSprite logicName="world" size={32} className="btn-ico" aria-hidden="true" />
+                            <MechanicSprite logicName="world" size={24} className="btn-ico" aria-hidden="true" />
                             Мир
                         </Link>
                         {purchaseDomikTypes != null &&
                             <ActionButton className="btn-game icon-chip-btn" onClick={() => toggleShop()}>
-                                <MechanicSprite logicName="shop" size={32} className="btn-ico" aria-hidden="true" />
+                                <MechanicSprite logicName="shop" size={24} className="btn-ico" aria-hidden="true" />
                                 {shopVisible ? 'Закрыть' : 'Плотник'}
                             </ActionButton>
                         }

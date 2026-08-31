@@ -103,7 +103,7 @@ export const ErrandAcceptModal = ({ errand, workers, now, onConfirm, onClose }: 
                 </div>
             }
             <ActionButton className="btn-game icon-chip-btn" disabled={!canConfirm} onClick={confirm}>
-                <MechanicSprite logicName="errands" size={32} className="btn-ico" aria-hidden="true" />
+                <MechanicSprite logicName="errands" size={24} className="btn-ico" aria-hidden="true" />
                 Отправить на поиски
             </ActionButton>
         </dialog>

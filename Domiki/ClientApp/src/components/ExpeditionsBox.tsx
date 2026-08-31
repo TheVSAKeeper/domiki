@@ -266,7 +266,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                                     ))}
                                 </div>
                             }
-                            <ActionButton className="btn-game" disabled={!canStart} title={blockedTitle}
+                            <ActionButton className="btn-game icon-chip-btn" disabled={!canStart} title={blockedTitle}
                                 onClick={() => automaticProvisions
                                     ? onStart(type.id, isManual ? picked : undefined)
                                     : onStart(type.id, isManual ? picked : undefined, useProvisions)}>

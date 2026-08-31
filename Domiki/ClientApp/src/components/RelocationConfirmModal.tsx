@@ -81,7 +81,7 @@ export const RelocationConfirmModal = ({ plan, villageName, onConfirm, onClose }
                     </p>
                     <div className="errand-actions">
                         <ActionButton className="btn-game icon-chip-btn" onClick={() => { setHarnessed(true); }}>
-                            <AbstractSprite logicName="prestige_new_valley" size={32} className="btn-ico" aria-hidden="true" />
+                            <AbstractSprite logicName="prestige_new_valley" size={24} className="btn-ico" aria-hidden="true" />
                             Собрать узелок
                         </ActionButton>
                         <ActionButton className="btn-game btn-ghost" onClick={() => { onClose(); }}>
@@ -117,7 +117,7 @@ export const RelocationConfirmModal = ({ plan, villageName, onConfirm, onClose }
                     <p className="relocation-warning">Обратной дороги нет.</p>
                     <div className="errand-actions">
                         <ActionButton className="btn-game icon-chip-btn" onClick={confirm}>
-                            <AbstractSprite logicName="prestige_new_valley" size={32} className="btn-ico" aria-hidden="true" />
+                            <AbstractSprite logicName="prestige_new_valley" size={24} className="btn-ico" aria-hidden="true" />
                             Трогай
                         </ActionButton>
                         <ActionButton className="btn-game btn-ghost" onClick={() => { onClose(); }}>
