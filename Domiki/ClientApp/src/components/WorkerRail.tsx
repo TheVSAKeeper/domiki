@@ -71,7 +71,8 @@ const WorkerRailCard = ({ worker, domikTypes, state, skillDomikTypeId, skillType
             role={onGrab == null ? undefined : 'button'}
             tabIndex={onGrab == null ? undefined : -1}
             title={`${worker.name} – ${worker.traitName}${skillOf == null ? '' : `, ${skillOf}: ${bonus > 0 ? '+' : ''}${bonus} %`}`}
-            onPointerDown={onGrab == null ? undefined : event => { onGrab(worker.id, event); }}>
+            onPointerDown={onGrab == null ? undefined : event => { if (event.pointerType !== 'touch' || held) { onGrab(worker.id, event); } }}
+            onPointerUp={onGrab == null ? undefined : event => { if (event.pointerType === 'touch' && !held) { onGrab(worker.id, event); } }}>
             <span className="rail-card-portrait">
                 <WorkerSprite name={worker.name} state={state === 'free' || state === 'away' ? 'idle' : state === 'sick' ? 'sick' : state === 'resting' ? 'resting' : 'working'}
                     skilled={isSkilledWorker(worker)} aria-hidden="true" />
@@ -82,12 +83,12 @@ const WorkerRailCard = ({ worker, domikTypes, state, skillDomikTypeId, skillType
                         <DomikSprite logicName={ownType.logicName} level={1} className="rail-card-skill-ico" aria-hidden="true" />
                     }
                     <b>{bonus > 0 ? `+${bonus}` : bonus}&nbsp;%</b>
-                    {speed !== 0 &&
-                        <i className="rail-card-trait" title={worker.traitName}>{speed > 0 ? `+${speed}` : speed}</i>
-                    }
                 </span>
                 <span className="rail-card-name">{worker.name}</span>
             </span>
+            {speed !== 0 &&
+                <i className={`rail-card-trait rail-card-trait--${speed > 0 ? 'fast' : 'slow'}`} title={worker.traitName}>{speed > 0 ? `+${speed}` : speed}</i>
+            }
         </div>
     );
 };

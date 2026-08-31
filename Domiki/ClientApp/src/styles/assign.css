@@ -220,12 +220,15 @@
 }
 
 .rail-card-skill-ico {
+    flex: none;
     width: 16px;
     height: 16px;
     image-rendering: pixelated;
 }
 
 .rail-card-trait {
+    flex: none;
+    margin-left: auto;
     font-style: normal;
     font-size: 9px;
     color: var(--ink-muted);
@@ -522,8 +525,10 @@ body.assign-active .actions-scrim {
         flex-direction: row;
         overflow-x: auto;
         overflow-y: hidden;
+        overscroll-behavior-x: contain;
         scroll-snap-type: x proximity;
         scrollbar-gutter: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .rail-card {
@@ -536,6 +541,13 @@ body.assign-active .actions-scrim {
         padding: 5px 4px 6px;
         box-shadow: inset 0 -4px 0 var(--rail-mark, transparent);
         scroll-snap-align: start;
+        touch-action: manipulation;
+        cursor: pointer;
+    }
+
+    .rail-card--held {
+        touch-action: none;
+        opacity: .8;
     }
 
     .rail-card-portrait svg {
@@ -572,15 +584,25 @@ body.assign-active .actions-scrim {
     }
 
     .rail-card-skill-ico {
-        width: 12px;
-        height: 12px;
+        width: 14px;
+        height: 14px;
     }
 
     .rail-card-trait {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        margin: 0;
         padding: 0 2px;
         font-size: 8px;
-        color: inherit;
-        background: rgba(0, 0, 0, .22);
+        line-height: 12px;
+        color: #fff8e6;
+        background: var(--pine-dark);
+        box-shadow: 0 0 0 2px var(--ink);
+    }
+
+    .rail-card-trait--slow {
+        background: var(--roof);
     }
 
     .rail-card-name {
