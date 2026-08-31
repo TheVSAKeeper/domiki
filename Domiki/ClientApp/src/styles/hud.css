@@ -1,12 +1,41 @@
-.hud {
+.hud-shell {
     position: sticky;
     top: 8px;
     z-index: 100;
+    margin-bottom: 20px;
+}
+
+.hud-shell:has(.hud-flyout) .hud {
+    border-bottom: 0;
+    box-shadow: none;
+    clip-path: polygon(0 var(--px), var(--px) var(--px), var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px), 100% 100%, 0 100%);
+}
+
+.hud-flyout {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 1;
+    width: min(340px, 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 10px 14px 12px;
+    text-align: left;
+    color: var(--ink);
+    background: #fffaec;
+    border: 3px solid var(--ink);
+    border-top: 2px solid var(--plank-dark);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%, var(--px) 100%, var(--px) calc(100% - var(--px)), 0 calc(100% - var(--px)));
+    box-shadow: inset 0 -4px 0 var(--plank-dark);
+}
+
+.hud {
     display: flex;
     flex-direction: column;
     align-items: stretch;
     padding: 0 14px;
-    margin-bottom: 20px;
     box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
 
@@ -145,7 +174,8 @@
         background: var(--plank-dark);
     }
 
-    .weather-capsule.is-open {
+    .weather-capsule.is-open,
+    .village-level-box.is-open {
         background: var(--plank-dark);
     }
 
@@ -273,28 +303,15 @@
     background: transparent;
 }
 
-.weather-capsule-caret {
+.hud-capsule-caret {
     width: 13px;
     height: 13px;
     color: #8a7a5e;
 }
 
-.weather-flyout {
-    position: fixed;
-    z-index: 120;
-    width: 260px;
-    max-width: calc(100vw - 16px);
-    right: clamp(8px, var(--flyout-right, 8px), max(8px, 100vw - 268px));
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 10px 11px 12px;
-    color: var(--ink);
-    background: #fffaec;
-    border: 3px solid var(--ink);
-    clip-path: var(--cut);
-    box-shadow: inset 0 -4px 0 var(--plank-dark);
+.weather-capsule-name {
+    display: none;
+    font-weight: 700;
 }
 
 .wf-head {
@@ -319,10 +336,22 @@
 
 .weather-flyout .weather-forecast {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 7px;
     padding-left: 0;
     border-left: none;
+}
+
+.weather-flyout .weather-chip {
+    flex-wrap: wrap;
+    gap: 5px;
+    opacity: 1;
+}
+
+.weather-chip-when {
+    flex: 1 0 calc(100% - 21px);
+    font-weight: 700;
+    color: var(--ink-muted);
 }
 
 .village-level-label {
@@ -378,26 +407,6 @@
 .village-level {
     position: relative;
     display: inline-flex;
-}
-
-.village-level-flyout {
-    position: fixed;
-    z-index: 120;
-    width: 252px;
-    max-width: calc(100vw - 16px);
-    right: clamp(8px, var(--flyout-right, 8px), max(8px, 100vw - 260px));
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 9px 11px 11px;
-    text-align: left;
-    color: var(--ink);
-    background: #fffaec;
-    border: 3px solid var(--ink);
-    clip-path: var(--cut);
-    box-shadow: inset 0 -4px 0 var(--plank-dark);
-    pointer-events: none;
 }
 
 .village-profile-chip {
@@ -1294,10 +1303,14 @@ dialog.recap-modal::backdrop {
 }
 
 @media (max-width: 700px) {
-    .hud {
-        position: static;
-        padding: 0 10px;
+    .hud-shell {
+        position: relative;
+        top: auto;
         margin-bottom: 14px;
+    }
+
+    .hud {
+        padding: 0 10px;
     }
 
     .hud-bar {
@@ -1361,5 +1374,107 @@ dialog.recap-modal::backdrop {
 @media (max-width: 575px) {
     .hud > .resources {
         gap: 7px 12px;
+    }
+
+    .nav-village,
+    .village-title,
+    .village-identity {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .village-name {
+        flex: 1;
+        max-width: none;
+        -webkit-line-clamp: 1;
+        font-size: 11px;
+    }
+
+    .hud {
+        padding: 0 10px;
+    }
+
+    .hud-shell {
+        margin-bottom: 12px;
+    }
+
+    .hud-flyout {
+        left: 0;
+        width: auto;
+        padding: 10px 10px 12px;
+    }
+
+    .hud-left,
+    .hud-right {
+        display: contents;
+    }
+
+    .hud-casna {
+        order: 1;
+    }
+
+    .hud-div {
+        display: none;
+    }
+
+    .hud-plodders {
+        order: 2;
+    }
+
+    .weather-capsule {
+        order: 3;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .weather-capsule-name {
+        display: inline;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .weather-left {
+        margin-left: auto;
+        flex: none;
+    }
+
+    .hud-capsule-caret {
+        flex: none;
+    }
+
+    .village-level {
+        order: 4;
+    }
+
+    .village-level-label {
+        display: none;
+    }
+
+    .hud-ribbon {
+        order: 5;
+        width: 100%;
+        flex-wrap: nowrap;
+    }
+
+    .hud-ribbon-slot {
+        flex: 1 1 0;
+    }
+
+    .hud-ribbon-item {
+        width: 100%;
+        gap: 4px;
+        padding: 4px 6px;
+        font-size: 11px;
+    }
+
+    .hud-ribbon-label {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .hud-ribbon-clock {
+        margin-left: auto;
     }
 }

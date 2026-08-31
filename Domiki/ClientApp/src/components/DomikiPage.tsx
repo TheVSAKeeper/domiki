@@ -478,7 +478,7 @@ export const DomikiPage = () => {
             <PerfZone id="шапка">
             <VillageHud resources={resources} resourceTypes={resourceTypes} domikTypes={domikTypes} plodder={plodder} digest={hudDigest}
                 villageLevel={villageLevel} weather={weather} now={now} onStickyOffsetChange={setHudStickyOffset} villageProfile={villageProfile}
-                onOpenHousehold={() => { setActiveTab('household'); scrollToGameTabPanel(); }}
+                onOpenTab={tab => { setActiveTab(tab); scrollToGameTabPanel(); }}
                 nav={
                     <>
                         <Link className="btn-game icon-chip-btn" to="/world">

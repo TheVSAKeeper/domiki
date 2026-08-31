@@ -7,7 +7,7 @@ import { domikLore } from '../utils/domikLore';
 import { unlockLore } from '../utils/unlockLore';
 import { resourceLore } from '../utils/resourceLore';
 import { flyoutLeft, flyoutWidth, useFlyoutTop } from '../utils/flyout';
-import { strongestWeatherEffect } from '../utils/game';
+import { weatherEffects } from '../utils/game';
 import { profileGenitiveName, profileLore } from '../utils/profileLore';
 import type { ConvoyDto, DecorStateDto, DomikTypeDto, NeighborReputationDto, ReceiptDto, ResourceDto, ResourceTypeDto, TolokaStateDto, VillageDto, VillageLevelDto, VillageProfileDto, WeatherStateDto } from '../types/api';
 import { AbstractSprite, DecorSprite, DomikSprite, MechanicSprite, NeighborSprite, ResourceSprite, WeatherSprite } from './sprites';
@@ -654,21 +654,20 @@ const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes, convoy
                                                 <>
                                                     <span className="wiki-mechanic-live-label">Прогноз:</span>
                                                     <div className="weather-effects">
-                                                        {weather.forecast.map(period => {
-                                                            const hint = strongestWeatherEffect(period.effects, domikTypes);
-                                                            return (
-                                                                <span key={period.startDate} className="weather-chip" title={period.weatherName}>
-                                                                    <WeatherSprite logicName={period.logicName} size={24} className="weather-chip-ico" aria-hidden="true" />
-                                                                    {period.weatherName}
-                                                                    {hint != null && (
-                                                                        <span className={'weather-effect' + (hint.delta > 0 ? ' weather-effect-buff' : ' weather-effect-nerf')} title={`${hint.domikType.name}: ${hint.delta > 0 ? '+' : ''}${hint.delta}% выход`}>
-                                                                            <DomikSprite className="weather-effect-ico" logicName={hint.domikType.logicName} />
-                                                                            {hint.delta > 0 ? '+' : ''}{hint.delta}%
-                                                                        </span>
-                                                                    )}
-                                                                </span>
-                                                            );
-                                                        })}
+                                                        {weather.forecast.map(period => (
+                                                            <span key={period.startDate} className="weather-chip" title={period.weatherName}>
+                                                                <WeatherSprite logicName={period.logicName} size={24} className="weather-chip-ico" aria-hidden="true" />
+                                                                {period.weatherName}
+                                                                {weatherEffects(period.effects, domikTypes).map(row => (
+                                                                    <span key={row.domikType.id}
+                                                                        className={'weather-effect' + (row.delta > 0 ? ' weather-effect-buff' : ' weather-effect-nerf')}
+                                                                        title={`${row.domikType.name}: ${row.delta > 0 ? '+' : ''}${row.delta}% выход`}>
+                                                                        <DomikSprite className="weather-effect-ico" logicName={row.domikType.logicName} />
+                                                                        {row.delta > 0 ? '+' : ''}{row.delta}%
+                                                                    </span>
+                                                                ))}
+                                                            </span>
+                                                        ))}
                                                     </div>
                                                 </>
                                             )}

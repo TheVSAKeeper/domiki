@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ResourceDto, WorkerDto } from '../types/api';
-import { canAffordUpgrade, computeReceiptView, goldVeinView, isWorkerFree, manufactureProgressPercent, progressPercent, residentsGain, resourceShortfall, resourceSourceMap, sortDomiks, tradeDeal, tradeRatio, workIntensity, zealApplies, zealMultiplier } from './game';
+import { canAffordUpgrade, computeReceiptView, goldVeinView, isWorkerFree, manufactureProgressPercent, progressPercent, residentsGain, resourceShortfall, resourceSourceMap, sortDomiks, tradeDeal, tradeRatio, weatherEffects, workIntensity, zealApplies, zealMultiplier } from './game';
 import type { WorkIntensity } from './game';
 
 describe('resourceShortfall', () => {
@@ -407,5 +407,27 @@ describe('goldVeinView', () => {
         const overdue = shift(goldReceipt.id, now - 30 * 60 * 1000);
         expect(goldVeinView(goldReceipt, mine([overdue]), context(2, [mine([overdue])]))?.blockReason)
             .toBe('Остаток жилы уже на вороте – его заберёт смена, что сейчас идёт');
+    });
+});
+
+describe('weatherEffects', () => {
+    const type = (id: number, name: string): DomikTypeDto => ({
+        id, name, logicName: `type_${id}`, maxCount: 1, availableCount: 0, maxLevel: 5, unlockLevel: 0,
+        blueprintId: null, nextCountGateLevel: null, levels: [],
+    });
+    const types = [type(1, 'Кузница'), type(2, 'Каменоломня'), type(3, 'Мельница')];
+
+    it('drops neutral effects and unknown building types', () => {
+        expect(weatherEffects(
+            [{ domikTypeId: 1, outputPercent: 100 }, { domikTypeId: 9, outputPercent: 150 }, { domikTypeId: 2, outputPercent: 75 }],
+            types,
+        )).toEqual([{ delta: -25, domikType: types[1] }]);
+    });
+
+    it('sorts by effect strength, then by building id', () => {
+        expect(weatherEffects(
+            [{ domikTypeId: 3, outputPercent: 125 }, { domikTypeId: 1, outputPercent: 125 }, { domikTypeId: 2, outputPercent: 50 }],
+            types,
+        ).map(row => row.domikType.id)).toEqual([2, 1, 3]);
     });
 });

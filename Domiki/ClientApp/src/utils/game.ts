@@ -291,23 +291,17 @@ export function sortDomiks(domiks: DomikDto[], domikTypes: DomikTypeDto[], resou
     return copy.sort((a, b) => attentionRank(a, domikTypes, resources) - attentionRank(b, domikTypes, resources));
 }
 
-export function strongestWeatherEffect(effects: { domikTypeId: number; outputPercent: number }[], domikTypes: DomikTypeDto[]): { delta: number; domikType: DomikTypeDto } | null {
+export function weatherEffects(effects: { domikTypeId: number; outputPercent: number }[], domikTypes: DomikTypeDto[]): { delta: number; domikType: DomikTypeDto }[] {
     const typeById = new Map(domikTypes.map(type => [type.id, type]));
-    let best: { delta: number; domikType: DomikTypeDto } | null = null;
+    const rows: { delta: number; domikType: DomikTypeDto }[] = [];
     for (const effect of effects) {
-        if (effect.outputPercent === 100) {
-            continue;
-        }
         const domikType = typeById.get(effect.domikTypeId);
-        if (domikType == null) {
+        if (effect.outputPercent === 100 || domikType == null) {
             continue;
         }
-        const delta = effect.outputPercent - 100;
-        if (best == null || Math.abs(delta) > Math.abs(best.delta)) {
-            best = { delta, domikType };
-        }
+        rows.push({ delta: effect.outputPercent - 100, domikType });
     }
-    return best;
+    return rows.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta) || a.domikType.id - b.domikType.id);
 }
 
 const DAY_MS = 86400000;

@@ -1,16 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
-import { createPortal } from 'react-dom';
+import type { ReactNode } from 'react';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
 import HomeIcon from 'pixelarticons/svg/home.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
 import type { DomikTypeDto, PlodderCount, ResourceDto, ResourceTypeDto, VillageLevelDto, WeatherStateDto } from '../types/api';
-import { COIN_RESOURCE_TYPE_ID, GOLD_RESOURCE_TYPE_ID, strongestWeatherEffect } from '../utils/game';
+import { COIN_RESOURCE_TYPE_ID, GOLD_RESOURCE_TYPE_ID, weatherEffects } from '../utils/game';
 import type { HudDigest } from '../utils/hud';
 import { pluralRu } from '../utils/plural';
 import { remainingSeconds } from '../utils/time';
-import { useFlyoutTop } from '../utils/flyout';
 import { AbstractSprite, DomikSprite, MechanicSprite, NeighborSprite, WeatherSprite } from './sprites';
 import { HudResource } from './HudResource';
 import { HudRibbon } from './HudRibbon';
@@ -29,50 +27,40 @@ interface VillageHudProps {
     onStickyOffsetChange: (offset: number) => void;
     villageProfile?: { logicName: string; name: string; buildings: string[] } | null;
     nav: ReactNode;
-    onOpenHousehold: () => void;
+    onOpenTab: (tab: string) => void;
 }
-
-const flyoutStyle = (anchor: DOMRect, top: number, hidden: boolean) =>
-    ({
-        top,
-        '--flyout-right': `${window.innerWidth - anchor.right}px`,
-        visibility: hidden ? 'hidden' : undefined,
-    }) as CSSProperties;
 
 const hoursLeft = (finishDate: string, now: number) => Math.max(1, Math.ceil(remainingSeconds(finishDate, now) / 3600));
 
-export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, digest, villageLevel, weather, now, onStickyOffsetChange, villageProfile, nav, onOpenHousehold }: VillageHudProps) => {
-    const hudRef = useRef<HTMLElement>(null);
-    const [levelFlyout, setLevelFlyout] = useState<DOMRect | null>(null);
-    const [weatherFlyout, setWeatherFlyout] = useState<DOMRect | null>(null);
-    const villageLevelRef = useRef<HTMLDivElement>(null);
-    const weatherCapsuleRef = useRef<HTMLButtonElement>(null);
-    const [levelFlyoutRef, levelFlyoutTop, levelFlyoutHidden] = useFlyoutTop<HTMLDivElement>(levelFlyout);
-    const [weatherFlyoutRef, weatherFlyoutTop, weatherFlyoutHidden] = useFlyoutTop<HTMLDivElement>(weatherFlyout);
-    const openLevelFlyout = () => {
-        const rect = villageLevelRef.current?.getBoundingClientRect();
-        if (rect != null) {
-            setLevelFlyout(rect);
-        }
-    };
-    const closeLevelFlyout = () => setLevelFlyout(null);
-    const toggleWeatherFlyout = () => {
-        setWeatherFlyout(open => open != null ? null : weatherCapsuleRef.current?.getBoundingClientRect() ?? null);
-    };
+const WeatherEffectChip = ({ domikType, delta }: { domikType: DomikTypeDto; delta: number }) => (
+    <span className={'weather-effect' + (delta > 0 ? ' weather-effect-buff' : ' weather-effect-nerf')}
+        title={`${domikType.name}: ${delta > 0 ? '+' : ''}${delta}% выход`}>
+        <DomikSprite className="weather-effect-ico" logicName={domikType.logicName} />
+        {delta > 0 ? '+' : ''}{delta}%
+    </span>
+);
+
+export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, digest, villageLevel, weather, now, onStickyOffsetChange, villageProfile, nav, onOpenTab }: VillageHudProps) => {
+    const hudRef = useRef<HTMLDivElement>(null);
+    const [flyout, setFlyout] = useState<'weather' | 'level' | null>(null);
+    const levelFlyout = flyout === 'level';
+    const weatherFlyout = flyout === 'weather';
+    const toggleFlyout = (name: 'weather' | 'level') => { setFlyout(open => open === name ? null : name); };
 
     useEffect(() => {
-        if (weatherFlyout == null) {
+        if (flyout == null) {
             return;
         }
 
         const onDocInteract = (event: Event) => {
-            if (!weatherCapsuleRef.current?.contains(event.target as Node)) {
-                setWeatherFlyout(null);
+            const element = event.target instanceof Element ? event.target : null;
+            if (element?.closest('.weather-capsule, .village-level-box, .hud-flyout') == null) {
+                setFlyout(null);
             }
         };
         const onKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
-                setWeatherFlyout(null);
+                setFlyout(null);
             }
         };
         document.addEventListener('mousedown', onDocInteract);
@@ -81,7 +69,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
             document.removeEventListener('mousedown', onDocInteract);
             document.removeEventListener('keydown', onKey);
         };
-    }, [weatherFlyout]);
+    }, [flyout]);
 
     useEffect(() => {
         const hud = hudRef.current;
@@ -101,7 +89,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
     const goldValue = resources.find(r => r.typeId === GOLD_RESOURCE_TYPE_ID)?.value;
     const currentWeather = weather?.current ?? null;
     const nextGoal = villageLevel?.unlocks.find((unlock): unlock is typeof unlock & { level: number } => !unlock.unlocked && unlock.level != null);
-    const effectChips = currentWeather?.effects.filter(effect => effect.outputPercent !== 100) ?? [];
+    const effectChips = currentWeather == null ? [] : weatherEffects(currentWeather.effects, domikTypes);
     const villageProfileBuildingsText = villageProfile == null ? '' : villageProfile.buildings.join(' и ');
     const weatherLeftHours = currentWeather != null ? hoursLeft(currentWeather.endDate, now) : 0;
     const nextPeriod = weather?.forecast[0] ?? null;
@@ -120,7 +108,8 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
 
     return (
         <>
-            <header ref={hudRef} className="hud pixel-panel">
+            <div ref={hudRef} className="hud-shell">
+            <header className="hud pixel-panel">
                 <div className="hud-bar">
                     <div className="hud-left">
                         <div className="hud-casna">
@@ -142,31 +131,34 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                                 </div>
                             </>}
 
-                        <HudRibbon digest={digest} onOpenHousehold={onOpenHousehold} />
+                        <HudRibbon digest={digest} onOpenTab={onOpenTab} />
                     </div>
 
                     <div className="hud-right">
                         {weather != null && currentWeather != null &&
-                            <button type="button" ref={weatherCapsuleRef}
-                                className={'weather-capsule' + (weatherFlyout != null ? ' is-open' : '')}
-                                onClick={toggleWeatherFlyout} aria-expanded={weatherFlyout != null}
+                            <button type="button"
+                                className={'weather-capsule' + (weatherFlyout ? ' is-open' : '')}
+                                onClick={() => { toggleFlyout('weather'); }} aria-expanded={weatherFlyout}
                                 title={`${currentWeather.weatherName}, ещё ${weatherLeftHours} ч`}>
                                 <WeatherSprite logicName={currentWeather.logicName} className="weather-ico" aria-hidden="true" />
+                                <span className="weather-capsule-name">{currentWeather.weatherName}</span>
                                 <span className="weather-left">ещё {weatherLeftHours}ч</span>
-                                {weatherFlyout != null
-                                    ? <ChevronUpIcon className="btn-ico weather-capsule-caret" aria-hidden="true" />
-                                    : <ChevronDownIcon className="btn-ico weather-capsule-caret" aria-hidden="true" />}
+                                {weatherFlyout
+                                    ? <ChevronUpIcon className="btn-ico hud-capsule-caret" aria-hidden="true" />
+                                    : <ChevronDownIcon className="btn-ico hud-capsule-caret" aria-hidden="true" />}
                             </button>}
 
                         {villageLevel != null &&
-                            <div className="village-level" ref={villageLevelRef}
-                                onMouseEnter={openLevelFlyout} onMouseLeave={closeLevelFlyout}
-                                onFocus={openLevelFlyout} onBlur={closeLevelFlyout}>
-                                <button type="button" className="village-level-box"
+                            <div className="village-level">
+                                <button type="button" className={'village-level-box' + (levelFlyout ? ' is-open' : '')}
+                                    onClick={() => { toggleFlyout('level'); }} aria-expanded={levelFlyout}
                                     title={`Постройки ${villageLevel.buildings}, жители ${villageLevel.residents}, репутация ${villageLevel.reputation}, уют ${villageLevel.comfort}`}>
                                     <MechanicSprite logicName="obzhitost" size={24} className="village-level-ico" aria-hidden="true" />
                                     <span className="village-level-label">Обжитость</span>
                                     <span className="village-level-value">{villageLevel.level}</span>
+                                    {levelFlyout
+                                        ? <ChevronUpIcon className="btn-ico hud-capsule-caret" aria-hidden="true" />
+                                        : <ChevronDownIcon className="btn-ico hud-capsule-caret" aria-hidden="true" />}
                                 </button>
                             </div>}
                     </div>
@@ -175,9 +167,10 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                 <div className="hud-deck">
                     <div className="hud-deck-nav">{nav}</div>
                 </div>
+            </header>
 
-                {weatherFlyout != null && currentWeather != null && createPortal(
-                    <div ref={weatherFlyoutRef} className="weather-flyout" style={flyoutStyle(weatherFlyout, weatherFlyoutTop, weatherFlyoutHidden)}>
+                {weatherFlyout && currentWeather != null &&
+                    <div className="hud-flyout weather-flyout">
                         <div className="wf-head">
                             <WeatherSprite logicName={currentWeather.logicName} className="weather-ico" aria-hidden="true" />
                             <span className="weather-name">{currentWeather.weatherName}</span>
@@ -185,48 +178,26 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                         </div>
                         {effectChips.length > 0 &&
                             <div className="weather-effects">
-                                {effectChips.map(effect => {
-                                    const domikType = domikTypes.find(type => type.id === effect.domikTypeId);
-                                    if (domikType == null) {
-                                        return null;
-                                    }
-
-                                    const delta = effect.outputPercent - 100;
-                                    const buff = delta > 0;
-                                    return (
-                                        <span key={effect.domikTypeId}
-                                            className={'weather-effect' + (buff ? ' weather-effect-buff' : ' weather-effect-nerf')}
-                                            title={`${domikType.name}: ${buff ? '+' : ''}${delta}% выход`}>
-                                            <DomikSprite className="weather-effect-ico" logicName={domikType.logicName} />
-                                            {buff ? '+' : ''}{delta}%
-                                        </span>
-                                    );
-                                })}
+                                {effectChips.map(row =>
+                                    <WeatherEffectChip key={row.domikType.id} domikType={row.domikType} delta={row.delta} />)}
                             </div>}
                         {nextPeriod != null &&
                             <div className="wf-forecast-title">Впереди</div>}
                         {nextPeriod != null &&
                             <div className="weather-forecast">
-                                {[nextPeriod, ...laterPeriods].map(period => {
-                                    const hint = strongestWeatherEffect(period.effects, domikTypes);
-                                    return (
-                                        <span key={period.startDate} className="weather-chip" title={period.weatherName}>
-                                            <WeatherSprite logicName={period.logicName} size={24} className="weather-chip-ico" aria-hidden="true" />
-                                            через {hoursLeft(period.startDate, now)}ч
-                                            {hint != null &&
-                                                <span className={'weather-effect' + (hint.delta > 0 ? ' weather-effect-buff' : ' weather-effect-nerf')}>
-                                                    <DomikSprite className="weather-effect-ico" logicName={hint.domikType.logicName} />
-                                                    {hint.delta > 0 ? '+' : ''}{hint.delta}%
-                                                </span>}
-                                        </span>
-                                    );
-                                })}
+                                {[nextPeriod, ...laterPeriods].map(period => (
+                                    <span key={period.startDate} className="weather-chip" title={period.weatherName}>
+                                        <WeatherSprite logicName={period.logicName} size={24} className="weather-chip-ico" aria-hidden="true" />
+                                        <span className="weather-chip-when">{period.weatherName}, через {hoursLeft(period.startDate, now)}ч</span>
+                                        {weatherEffects(period.effects, domikTypes).map(row =>
+                                            <WeatherEffectChip key={row.domikType.id} domikType={row.domikType} delta={row.delta} />)}
+                                    </span>
+                                ))}
                             </div>}
-                    </div>,
-                    document.body)}
+                    </div>}
 
-                {levelFlyout != null && createPortal(
-                    <div ref={levelFlyoutRef} className="village-level-flyout" style={flyoutStyle(levelFlyout, levelFlyoutTop, levelFlyoutHidden)}>
+                {levelFlyout &&
+                    <div className="hud-flyout village-level-flyout">
                         <div className="vlf-stats">
                             <span className="vlf-stat"><span className="vlf-stat-label">Постройки</span><span className="vlf-stat-value">{villageLevel?.buildings}</span></span>
                             <span className="vlf-stat"><span className="vlf-stat-label">Жители</span><span className="vlf-stat-value">{villageLevel?.residents}</span></span>
@@ -287,10 +258,8 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                                 </div>
                             );
                         })()}
-                    </div>,
-                    document.body)}
-
-            </header>
+                    </div>}
+            </div>
         </>
     );
 };

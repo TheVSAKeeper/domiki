@@ -7,25 +7,27 @@ import { MechanicSprite, NeighborSprite } from './sprites';
 
 interface HudRibbonProps {
     digest: HudDigest;
-    onOpenHousehold: () => void;
+    onOpenTab: (tab: string) => void;
 }
 
 const RIBBON_LIMIT = 2;
 
-export const HudRibbon = ({ digest, onOpenHousehold }: HudRibbonProps) => {
-    const items: { key: string; text: string; node: ReactNode }[] = [];
+export const HudRibbon = ({ digest, onOpenTab }: HudRibbonProps) => {
+    const items: { key: string; text: string; tab: string; node: ReactNode }[] = [];
 
     if (digest.soonestOrder != null) {
         items.push({
             key: 'order',
             text: `заказ ${digest.soonestOrder.neighborName}, ${digest.soonestOrder.hours}ч`,
+            tab: 'orders',
             node: (
-                <span className="hud-ribbon-item hud-ribbon-order"
+                <button type="button" className="hud-ribbon-item hud-ribbon-order"
+                    onClick={() => { onOpenTab('orders'); }}
                     title={`Ближайший заказ истекает через ${digest.soonestOrder.hours} ч`}>
                     <NeighborSprite logicName={digest.soonestOrder.neighborLogicName} size={24} className="hud-ribbon-ico" aria-hidden="true" />
-                    заказ {digest.soonestOrder.neighborName}
+                    <span className="hud-ribbon-label">заказ {digest.soonestOrder.neighborName}</span>
                     <ClockIcon className="hud-ribbon-clock" aria-hidden="true" />{digest.soonestOrder.hours}ч
-                </span>
+                </button>
             ),
         });
     }
@@ -34,13 +36,18 @@ export const HudRibbon = ({ digest, onOpenHousehold }: HudRibbonProps) => {
         items.push({
             key: 'expeditions',
             text: digest.expeditionsBack === 1 ? 'поход вернулся' : `${digest.expeditionsBack} похода вернулись`,
+            tab: 'expeditions',
             node: (
-                <span className="hud-ribbon-item" title="Поход вернулся – загляните за добычей">
+                <button type="button" className="hud-ribbon-item"
+                    onClick={() => { onOpenTab('expeditions'); }} title="Поход вернулся – загляните за добычей">
                     <MechanicSprite logicName="expeditions" size={24} className="hud-ribbon-ico" aria-hidden="true" />
-                    {digest.expeditionsBack === 1
-                        ? 'поход вернулся'
-                        : `${digest.expeditionsBack} ${pluralRu(digest.expeditionsBack, 'поход', 'похода', 'походов')} вернулись`}
-                </span>
+                    {digest.expeditionsBack > 1 && <b>{digest.expeditionsBack}</b>}
+                    <span className="hud-ribbon-label">
+                        {digest.expeditionsBack === 1
+                            ? 'поход вернулся'
+                            : `${pluralRu(digest.expeditionsBack, 'поход', 'похода', 'походов')} вернулись`}
+                    </span>
+                </button>
             ),
         });
     }
@@ -49,12 +56,15 @@ export const HudRibbon = ({ digest, onOpenHousehold }: HudRibbonProps) => {
         items.push({
             key: 'idle',
             text: `${digest.idleDomiks} ${pluralRu(digest.idleDomiks, 'домик', 'домика', 'домиков')} в простое`,
+            tab: 'household',
             node: (
-                <span className="hud-ribbon-item"
+                <button type="button" className="hud-ribbon-item"
+                    onClick={() => { onOpenTab('household'); }}
                     title="Домики без запущенного производства – докиньте входы и запустите смену">
                     <HomeIcon className="hud-ribbon-ico" aria-hidden="true" />
-                    {digest.idleDomiks} {pluralRu(digest.idleDomiks, 'домик', 'домика', 'домиков')} в простое
-                </span>
+                    <b>{digest.idleDomiks}</b>
+                    <span className="hud-ribbon-label">в простое</span>
+                </button>
             ),
         });
     }
@@ -71,7 +81,7 @@ export const HudRibbon = ({ digest, onOpenHousehold }: HudRibbonProps) => {
             {shown.map(item => <span key={item.key} className="hud-ribbon-slot">{item.node}</span>)}
             {hidden.length > 0 &&
                 <button type="button" className="hud-ribbon-more" title={hidden.map(item => item.text).join(', ')}
-                    onClick={onOpenHousehold}>
+                    onClick={() => { onOpenTab(hidden[0]?.tab ?? 'household'); }}>
                     +{hidden.length}
                 </button>}
         </div>
