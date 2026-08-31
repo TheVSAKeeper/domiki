@@ -507,6 +507,25 @@
     align-self: center;
 }
 
+.manufacture-repeat p.manufacture-repeat-key {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 8px;
+    font-size: 11px;
+    color: var(--ink);
+    background: var(--plank-dark);
+    border-left: 4px solid var(--roof);
+}
+
+.manufacture-repeat-key-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-weight: bold;
+}
+
 .status-repeat {
     padding: 2px;
     color: #fff;

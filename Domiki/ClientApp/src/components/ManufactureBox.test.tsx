@@ -41,6 +41,25 @@ describe('ManufactureBox наряд controls', () => {
         expect(onToggle).toHaveBeenCalledWith(17, false);
     });
 
+    it('warns that a standing наряд keeps eating the ремесленный ключ', () => {
+        const keyReceipt = { ...receipt, inputResources: [{ typeId: 200, value: 2 }, { typeId: 300, value: 1 }] };
+        render(<ManufactureBox manufacture={{ ...manufacture, autoRepeat: false }} receipt={keyReceipt}
+            now={Date.parse(manufacture.finishDate) - 1000} remainingText="1 с" goldValue={0}
+            resourceTypes={[{ id: 300, name: 'Кайло', logicName: 'pick', marketValue: 160, isFood: false }]}
+            keyResourceTypeIds={[300]} onHurry={vi.fn()} onToggleAutoRepeat={vi.fn()} />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Наряда нет' }));
+        expect(screen.getByText(/Каждая смена забирает/)).toBeInTheDocument();
+        expect(screen.getByText('×1')).toBeInTheDocument();
+    });
+
+    it('keeps the наряд hint clean when no key is spent', () => {
+        renderBox({ ...manufacture, autoRepeat: false });
+
+        fireEvent.click(screen.getByRole('button', { name: 'Наряда нет' }));
+        expect(screen.queryByText(/Каждая смена забирает/)).not.toBeInTheDocument();
+    });
+
     it('lets the player put a наряд on the current shift', () => {
         const onToggle = renderBox({ ...manufacture, autoRepeat: false });
 

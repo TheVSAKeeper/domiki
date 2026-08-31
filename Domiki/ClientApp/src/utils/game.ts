@@ -1,4 +1,4 @@
-import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ReceiptView, ResourceDto, SelectedDomikView, UpgradeView, WorkerDto } from '../types/api';
+import type { BlueprintDto, DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ReceiptView, ResourceDto, SelectedDomikView, UpgradeView, WorkerDto } from '../types/api';
 import { formatDuration, remainingSeconds } from './time';
 
 export const INSTA_FINISH_SECONDS_PER_GOLD = 3600;
@@ -14,6 +14,18 @@ export const EXPEDITION_LOOT_KIND_TRAIT_UPGRADE = 3;
 export const EXPEDITION_LOOT_KIND_BLUEPRINT = 4;
 
 export const PLODDER_MODIFICATOR_TYPE_ID = 1;
+
+export function keyResourceTypeIds(receipts: ReceiptDto[], blueprints: BlueprintDto[]): number[] {
+    const gated = new Set(blueprints.map(blueprint => blueprint.receiptId).filter(id => id != null));
+    const ids = new Set<number>();
+    for (const receipt of receipts.filter(x => gated.has(x.id))) {
+        for (const output of receipt.outputResources) {
+            ids.add(output.typeId);
+        }
+    }
+
+    return [...ids];
+}
 
 export function nextUpgradeLevel(domikType: DomikTypeDto, level: number) {
     return domikType.levels.find(x => x.value === level + 1) ?? null;

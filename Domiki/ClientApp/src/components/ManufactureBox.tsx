@@ -18,12 +18,13 @@ interface ManufactureBoxProps {
     goldType?: ResourceTypeDto | undefined;
     resourceTypes?: ResourceTypeDto[];
     measureUnlocked?: boolean;
+    keyResourceTypeIds?: number[];
     onHurry: (manufactureId: number) => void;
     onToggleAutoRepeat: (manufactureId: number, next: boolean) => void;
     onSetMeasure?: (manufactureId: number, resourceTypeId: number | null, value: number | null) => void;
 }
 
-export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldValue, goldType, resourceTypes = [], measureUnlocked = false, onHurry, onToggleAutoRepeat, onSetMeasure }: ManufactureBoxProps) => {
+export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldValue, goldType, resourceTypes = [], measureUnlocked = false, keyResourceTypeIds = [], onHurry, onToggleAutoRepeat, onSetMeasure }: ManufactureBoxProps) => {
     const [repeatExpanded, setRepeatExpanded] = useState(false);
     const measureDefaultTypeId = manufacture.measureResourceTypeId
         ?? receipt.outputResources[0]?.typeId
@@ -36,6 +37,10 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
     const measureReady = Number.isFinite(parsedMeasure) && parsedMeasure > 0;
     const percent = manufactureProgressPercent(manufacture, now);
     const repeatAt = formatTimeOfDay(manufacture.finishDate, now);
+    const keyInputs = receipt.inputResources.flatMap(input => {
+        const type = resourceTypes.find(candidate => candidate.id === input.typeId);
+        return keyResourceTypeIds.includes(input.typeId) && type != null ? [{ value: input.value, type }] : [];
+    });
 
     return (
         <div className="manufacture-box">
@@ -65,6 +70,17 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
                                 ? <>Следующая попытка в {repeatAt}: снова возьмутся за «{receipt.name}», если хватит припасов и трудяг.</>
                                 : <>После завершения «{receipt.name}» новая смена сама не запустится.</>}
                         </p>
+                        {keyInputs.length > 0 &&
+                            <p className="manufacture-repeat-key">
+                                <span>Каждая смена забирает</span>
+                                {keyInputs.map(input => (
+                                    <span key={input.type.id} className="manufacture-repeat-key-item">
+                                        <ResourceNameChip resourceType={input.type} /> ×{input.value}
+                                    </span>
+                                ))}
+                                <span>: под нарядом ключи будут уходить один за другим.</span>
+                            </p>
+                        }
                         <ActionButton className="btn-game btn-ghost manufacture-repeat-action"
                             onClick={() => onToggleAutoRepeat(manufacture.id, !manufacture.autoRepeat)}>
                             {manufacture.autoRepeat ? 'Снять наряд' : 'Поставить наряд'}

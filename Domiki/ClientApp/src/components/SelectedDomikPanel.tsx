@@ -9,7 +9,7 @@ import InfoBoxIcon from 'pixelarticons/svg/info-box.svg?react';
 import PlayIcon from 'pixelarticons/svg/play.svg?react';
 import type { BlueprintDto, DomikTypeDto, GoalsStateDto, ReceiptDto, ResourceDto, ResourceTypeDto, SelectedDomikView, SickTypeDto, VillageLevelDto, WeatherEffectDto, WeatherPeriodDto, WorkerDto } from '../types/api';
 import type { DomikNamer } from '../utils/domikNames';
-import { PLODDER_MODIFICATOR_TYPE_ID, SICK_MIN_VILLAGE_LEVEL, computeReceiptView, goldVeinView, isWorkerFree, progressPercent, residentsGain, resourceShortfall, workIntensity, workerFitness, type GoldVeinContext, type GoldVeinView } from '../utils/game';
+import { PLODDER_MODIFICATOR_TYPE_ID, SICK_MIN_VILLAGE_LEVEL, computeReceiptView, goldVeinView, isWorkerFree, keyResourceTypeIds, progressPercent, residentsGain, resourceShortfall, workIntensity, workerFitness, type GoldVeinContext, type GoldVeinView } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { sickRiskPercent, sickTypeForWeather, weatherMark, weatherOutputChange } from '../utils/weather';
 import { domikLore } from '../utils/domikLore';
@@ -481,6 +481,7 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
         : soonestManufacture != null ? formatDuration(soonestManufacture) : null;
     const freeSlots = maxManufactures - runningManufactures;
     const slotsText = `${freeSlots}/${maxManufactures} свободно`;
+    const keyResourceTypes = keyResourceTypeIds(receipts, blueprints);
     const blueprintLockFor = (receipt: ReceiptDto) => {
         const blueprint = blueprints.find(x => x.receiptId === receipt.id);
         return blueprint == null || blueprint.owned
@@ -661,6 +662,7 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
                                         goldValue={goldValue} goldType={goldType} onHurry={onHurryManufacture}
                                         onToggleAutoRepeat={onToggleManufactureRepeat}
                                         resourceTypes={resourceTypes} measureUnlocked={elderHouseLevel >= MEASURE_MIN_LEVEL}
+                                        keyResourceTypeIds={keyResourceTypes}
                                         onSetMeasure={onSetManufactureMeasure} />
                                 );
                             })}
