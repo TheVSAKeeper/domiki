@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { DecorStateDto, DomikDto, DomikTypeDto, VillageLevelDto, WeatherPeriodDto, WorkerDto } from '../types/api';
 import { workIntensity } from '../utils/game';
 import { weatherMark, weatherMarkSpeech } from '../utils/weather';
 import { hashString } from '../utils/worldMap';
-import { layoutYard, YARD_H, type YardGreen, type YardSpot } from '../utils/yardMap';
+import { layoutYard, type YardGreen, type YardSpot } from '../utils/yardMap';
 import { DecorSprite, DomikSprite, MechanicSprite, NeighborSprite, SheepSprite, WeatherSprite } from './sprites';
 import '../styles/yard.css';
 
@@ -157,7 +157,7 @@ const freeFolkPlacements = (workers: WorkerDto[], spots: YardSpot[], domikTypes:
 
 interface SheepPlacement { key: string; x: number; y: number; }
 
-const sheepPlacements = (spots: YardSpot[], domikTypes: DomikTypeDto[]): SheepPlacement[] => {
+const sheepPlacements = (spots: YardSpot[], domikTypes: DomikTypeDto[], height: number): SheepPlacement[] => {
     const placements: SheepPlacement[] = [];
     for (const spot of spots) {
         if (domikTypes.find(type => type.id === spot.domik.typeId)?.logicName !== 'sheepfold') {
@@ -168,18 +168,28 @@ const sheepPlacements = (spots: YardSpot[], domikTypes: DomikTypeDto[]): SheepPl
             placements.push({
                 key: `${spot.domik.id}:${index}`,
                 x: spot.x + (index - (count - 1) / 2) * SHEEP_SPACING,
-                y: Math.min(YARD_H - 8, spot.y + 46 + (index % 2) * 8),
+                y: Math.min(height - 8, spot.y + 46 + (index % 2) * 8),
             });
         }
     }
     return placements;
 };
 
+interface SceneItem { key: string; y: number; node: ReactNode; }
+
+const pathHeadY = (points: string | undefined, fallback: number) =>
+    Number(points?.split(' ')[0]?.split(',')[1] ?? fallback);
+
+const pathTailY = (points: string | undefined, fallback: number) => {
+    const parts = points?.split(' ') ?? [];
+    return Number(parts[parts.length - 1]?.split(',')[1] ?? fallback);
+};
+
 export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, currentWeather, selectedDomikId, displayName, onSelect, recapPending, onOpenRecap, activeExpeditionNames, friendNeighbor }: VillageYardProps) => {
     const [collapsed, setCollapsed] = useState<boolean>(() => localStorage.getItem('domiki.yard.collapsed') === '1');
     const [sheepPhase, setSheepPhase] = useState(0);
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const scrolledToRef = useRef<number | null>(null);
+    const [visible, setVisible] = useState(true);
+    const stageRef = useRef<HTMLDivElement>(null);
     const owned = decor?.owned;
     const level = villageLevel?.level;
     const layout = useMemo(
@@ -187,32 +197,30 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
         [domiks, owned, level],
     );
 
-    const sheep = useMemo(() => sheepPlacements(layout.spots, domikTypes), [layout, domikTypes]);
+    const sheep = useMemo(() => sheepPlacements(layout.spots, domikTypes, layout.height), [layout, domikTypes]);
 
     useEffect(() => {
-        if (sheep.length === 0 || collapsed || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const stage = stageRef.current;
+        if (stage == null || typeof IntersectionObserver === 'undefined') {
+            return;
+        }
+        const observer = new IntersectionObserver(entries => {
+            const entry = entries[0];
+            if (entry != null) {
+                setVisible(entry.isIntersecting);
+            }
+        }, { rootMargin: '80px' });
+        observer.observe(stage);
+        return () => { observer.disconnect(); };
+    }, [collapsed]);
+
+    useEffect(() => {
+        if (sheep.length === 0 || collapsed || !visible || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             return;
         }
         const timer = setInterval(() => { setSheepPhase(prev => prev + 1); }, SHEEP_STEP_MS);
         return () => { clearInterval(timer); };
-    }, [sheep, collapsed]);
-
-    useEffect(() => {
-        const scroll = scrollRef.current;
-        if (scroll == null || selectedDomikId == null || selectedDomikId === scrolledToRef.current) {
-            return;
-        }
-        scrolledToRef.current = selectedDomikId;
-        const spot = layout.spots.find(s => s.domik.id === selectedDomikId);
-        if (spot == null) {
-            return;
-        }
-        const target = spot.x * (scroll.scrollWidth / layout.width);
-        if (target > scroll.scrollLeft + 48 && target < scroll.scrollLeft + scroll.clientWidth - 48) {
-            return;
-        }
-        scroll.scrollTo({ left: target - scroll.clientWidth / 2, behavior: 'smooth' });
-    }, [selectedDomikId, layout]);
+    }, [sheep, collapsed, visible]);
 
     if (domiks.length === 0) {
         return null;
@@ -225,12 +233,139 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
     };
 
     const workerList = workers ?? [];
-    const firstPathY = Number(layout.path.split(' ')[0]?.split(',')[1] ?? YARD_H / 2);
-    const pathPoints = layout.path.split(' ');
-    const lastPathY = Number(pathPoints[pathPoints.length - 1]?.split(',')[1] ?? YARD_H / 2);
+    const firstPathY = pathHeadY(layout.paths[0], layout.height / 2);
+    const lastPathY = pathTailY(layout.paths[layout.paths.length - 1], layout.height / 2);
     const busyFolk = layout.spots.flatMap(spot => busyFolkForSpot(spot, workerList));
     const freeFolk = freeFolkPlacements(workerList, layout.spots, domikTypes, firstPathY);
-    const depthSpots = [...layout.spots].sort((a, b) => a.y - b.y);
+
+    const scene: SceneItem[] = [];
+
+    for (const item of layout.decors) {
+        const type = decor?.types.find(t => t.id === item.decorTypeId);
+        if (type == null) {
+            continue;
+        }
+        scene.push({
+            key: `decor:${item.key}`,
+            y: item.y + 4,
+            node: <DecorSprite logicName={type.logicName} x={item.x - 16} y={item.y - 28} width={32} height={32} aria-hidden="true" />,
+        });
+    }
+
+    for (const spot of layout.spots) {
+        const domikType = domikTypes.find(type => type.id === spot.domik.typeId);
+        if (domikType == null) {
+            continue;
+        }
+        const selected = selectedDomikId === spot.domik.id;
+        const intensity = workIntensity(spot.domik, domikType);
+        const mark = weatherMark(currentWeather, spot.domik.typeId);
+        scene.push({
+            key: `domik:${spot.domik.id}`,
+            y: spot.y + 18,
+            node: (
+                <g className={'yard-domik' + (selected ? ' yard-domik-selected' : '')}
+                    role="button" tabIndex={0}
+                    aria-label={displayName(spot.domik) + (mark == null ? '' : weatherMarkSpeech(mark))}
+                    onClick={() => { onSelect(spot.domik.id); }}
+                    onKeyDown={event => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            onSelect(spot.domik.id);
+                        }
+                    }}>
+                    <DomikSprite logicName={domikType.logicName} level={spot.domik.level}
+                        working={(spot.domik.manufactures?.length ?? 0) > 0}
+                        data-motion={intensity === 'normal' ? undefined : intensity}
+                        x={spot.x - 32} y={spot.y - 46} width={64} height={64} />
+                    {mark != null &&
+                        <g className="yard-weather-mark" aria-hidden="true">
+                            <title>{mark.title}</title>
+                            <rect x={spot.x - 24} y={spot.y - 2} width={48} height={mark.buff ? 4 : 2}
+                                fill={mark.buff ? PINE : NERF_MARK} />
+                            <WeatherSprite logicName={mark.weatherLogicName} size={24}
+                                x={spot.x + 14} y={spot.y - 52} width={16} height={16} />
+                        </g>
+                    }
+                    {selected &&
+                        <g aria-hidden="true">
+                            <SelectionBrackets x={spot.x} y={spot.y} />
+                            <text className="yard-label" x={spot.x} y={spot.y + 44} textAnchor="middle">
+                                {displayName(spot.domik)}
+                            </text>
+                        </g>
+                    }
+                </g>
+            ),
+        });
+    }
+
+    for (const tree of layout.trees) {
+        scene.push({ key: `tree:${tree.x}:${tree.y}`, y: tree.y + 8 * tree.scale, node: <YardTree green={tree} /> });
+    }
+
+    sheep.forEach((placement, index) => {
+        scene.push({
+            key: `sheep:${placement.key}`,
+            y: placement.y,
+            node: <YardSheep x={placement.x} y={placement.y} phase={sheepPhase + index} />,
+        });
+    });
+
+    for (const folk of busyFolk) {
+        scene.push({ key: `busy:${folk.x}:${folk.y}:${folk.name}`, y: folk.y, node: <YardFolk x={folk.x} y={folk.y} name={folk.name} /> });
+    }
+
+    for (const folk of freeFolk) {
+        scene.push({ key: `free:${folk.x}:${folk.y}:${folk.name}`, y: folk.y, node: <YardFolk x={folk.x} y={folk.y} name={folk.name} /> });
+    }
+
+    if (recapPending) {
+        scene.push({
+            key: 'recap',
+            y: firstPathY + 22,
+            node: (
+                <g className="yard-vignette" role="button" tabIndex={0}
+                    aria-label="Гостинец ждёт – открыть сводку"
+                    onClick={onOpenRecap}
+                    onKeyDown={event => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            onOpenRecap();
+                        }
+                    }}>
+                    <title>Гостинец ждёт – открыть сводку</title>
+                    <rect x={16} y={firstPathY + 20} width={24} height={3} fill={GRASS_SHADOW} />
+                    <MechanicSprite logicName="gifts" x={14} y={firstPathY - 6} width={28} height={28} />
+                </g>
+            ),
+        });
+    }
+
+    if (friendNeighbor != null) {
+        scene.push({
+            key: 'neighbor',
+            y: firstPathY - 17,
+            node: (
+                <g aria-hidden="true">
+                    <title>{`Дружба с ${friendNeighbor.name}`}</title>
+                    <rect x={26} y={firstPathY - 46} width={4} height={26} fill={TRUNK} />
+                    <rect x={20} y={firstPathY - 20} width={16} height={3} fill={GRASS_SHADOW} />
+                    <NeighborSprite logicName={friendNeighbor.logicName} x={16} y={firstPathY - 70} width={24} height={24} />
+                </g>
+            ),
+        });
+    }
+
+    if (activeExpeditionNames.length > 0) {
+        scene.push({
+            key: 'cart',
+            y: lastPathY + 8,
+            node: <YardCart x={layout.width - 44} y={lastPathY - 4} title={'В походе: ' + activeExpeditionNames.join(', ')} />,
+        });
+    }
+
+    scene.sort((a, b) => a.y - b.y);
 
     return (
         <section className="yard pixel-panel">
@@ -241,9 +376,9 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
                 </button>
             </header>
             {!collapsed &&
-                <div className="yard-stage" data-weather={currentWeather?.logicName}>
-                    <div className="yard-scroll" ref={scrollRef}>
-                        <svg className="yard-svg" viewBox={`0 0 ${layout.width} ${YARD_H}`}
+                <div className="yard-stage" data-weather={currentWeather?.logicName} ref={stageRef}>
+                    <div className="yard-scroll">
+                        <svg className="yard-svg" viewBox={`0 0 ${layout.width} ${layout.height}`}
                             shapeRendering="crispEdges" aria-label="Двор деревни: постройки, декор и трудяги">
                             <defs>
                                 <pattern id="yard-meadow" width="64" height="64" patternUnits="userSpaceOnUse">
@@ -252,92 +387,29 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
                                     <rect x="32" y="32" width="32" height="32" fill={MEADOW_ALT} />
                                 </pattern>
                             </defs>
-                            <rect x={-200} y={-200} width={layout.width + 400} height={YARD_H + 400} fill="url(#yard-meadow)" />
+                            <rect x={-200} y={-200} width={layout.width + 400} height={layout.height + 400} fill="url(#yard-meadow)" />
                             {layout.tufts.map(tuft =>
                                 <rect key={`${tuft.x}:${tuft.y}`} x={tuft.x} y={tuft.y} width={tuft.kind === 1 ? 10 : 6} height={4} fill={GRASS_SHADOW} />,
                             )}
-                            <polyline points={layout.path} fill="none" stroke={ROAD_SHADOW} strokeWidth={14} />
-                            <polyline points={layout.path} fill="none" stroke={ROAD} strokeWidth={8} />
                             {layout.spots.map(spot =>
                                 <g key={spot.domik.id}>
                                     <rect x={spot.x - 40} y={spot.y + 18} width={80} height={14} fill={GRASS_CLEAR} />
                                     <rect x={spot.x - 40} y={spot.y + 32} width={80} height={3} fill={GRASS_SHADOW} />
                                 </g>,
                             )}
-                            {layout.decors.map(d => {
-                                const type = decor?.types.find(t => t.id === d.decorTypeId);
-                                return type == null ? null : (
-                                    <DecorSprite key={d.key} logicName={type.logicName} x={d.x - 16} y={d.y - 28} width={32} height={32} aria-hidden="true" />
-                                );
-                            })}
-                            {depthSpots.map(spot => {
-                                const domikType = domikTypes.find(type => type.id === spot.domik.typeId);
-                                if (domikType == null) {
-                                    return null;
-                                }
-                                const selected = selectedDomikId === spot.domik.id;
-                                const intensity = workIntensity(spot.domik, domikType);
-                                const mark = weatherMark(currentWeather, spot.domik.typeId);
-                                return (
-                                    <g key={spot.domik.id} className={'yard-domik' + (selected ? ' yard-domik-selected' : '')}
-                                        role="button" tabIndex={0}
-                                        aria-label={displayName(spot.domik) + (mark == null ? '' : weatherMarkSpeech(mark))}
-                                        onClick={() => { onSelect(spot.domik.id); }}
-                                        onKeyDown={event => {
-                                            if (event.key === 'Enter' || event.key === ' ') {
-                                                event.preventDefault();
-                                                onSelect(spot.domik.id);
-                                            }
-                                        }}>
-                                        <DomikSprite logicName={domikType.logicName} level={spot.domik.level}
-                                            working={(spot.domik.manufactures?.length ?? 0) > 0}
-                                            data-motion={intensity === 'normal' ? undefined : intensity}
-                                            x={spot.x - 32} y={spot.y - 46} width={64} height={64} />
-                                        {mark != null &&
-                                            <g className="yard-weather-mark" aria-hidden="true">
-                                                <title>{mark.title}</title>
-                                                <rect x={spot.x - 24} y={spot.y - 2} width={48} height={mark.buff ? 4 : 2}
-                                                    fill={mark.buff ? PINE : NERF_MARK} />
-                                                <WeatherSprite logicName={mark.weatherLogicName} size={24}
-                                                    x={spot.x + 14} y={spot.y - 52} width={16} height={16} />
-                                            </g>
-                                        }
-                                        {selected && <SelectionBrackets x={spot.x} y={spot.y} />}
-                                    </g>
-                                );
-                            })}
-                            {layout.trees.map(tree => <YardTree key={`${tree.x}:${tree.y}`} green={tree} />)}
-                            {sheep.map((placement, index) =>
-                                <YardSheep key={placement.key} x={placement.x} y={placement.y} phase={sheepPhase + index} />,
+                            {layout.links.map(link =>
+                                <g key={`link:${link.x}`}>
+                                    <rect x={link.x - 7} y={Math.min(link.y1, link.y2)} width={14} height={Math.abs(link.y2 - link.y1)} fill={ROAD_SHADOW} />
+                                    <rect x={link.x - 4} y={Math.min(link.y1, link.y2)} width={8} height={Math.abs(link.y2 - link.y1)} fill={ROAD} />
+                                </g>,
                             )}
-                            {recapPending &&
-                                <g className="yard-vignette" role="button" tabIndex={0}
-                                    aria-label="Гостинец ждёт – открыть сводку"
-                                    onClick={onOpenRecap}
-                                    onKeyDown={event => {
-                                        if (event.key === 'Enter' || event.key === ' ') {
-                                            event.preventDefault();
-                                            onOpenRecap();
-                                        }
-                                    }}>
-                                    <title>Гостинец ждёт – открыть сводку</title>
-                                    <rect x={16} y={firstPathY + 20} width={24} height={3} fill={GRASS_SHADOW} />
-                                    <MechanicSprite logicName="gifts" x={14} y={firstPathY - 6} width={28} height={28} />
-                                </g>
-                            }
-                            {friendNeighbor != null &&
-                                <g aria-hidden="true">
-                                    <title>{`Дружба с ${friendNeighbor.name}`}</title>
-                                    <rect x={26} y={firstPathY - 46} width={4} height={26} fill={TRUNK} />
-                                    <rect x={20} y={firstPathY - 20} width={16} height={3} fill={GRASS_SHADOW} />
-                                    <NeighborSprite logicName={friendNeighbor.logicName} x={16} y={firstPathY - 70} width={24} height={24} />
-                                </g>
-                            }
-                            {activeExpeditionNames.length > 0 &&
-                                <YardCart x={layout.width - 44} y={lastPathY - 4} title={'В походе: ' + activeExpeditionNames.join(', ')} />
-                            }
-                            {busyFolk.map(folk => <YardFolk key={`b:${folk.x}:${folk.y}:${folk.name}`} x={folk.x} y={folk.y} name={folk.name} />)}
-                            {freeFolk.map(folk => <YardFolk key={`f:${folk.x}:${folk.y}:${folk.name}`} x={folk.x} y={folk.y} name={folk.name} />)}
+                            {layout.paths.map((points, index) =>
+                                <g key={`path:${index}`}>
+                                    <polyline points={points} fill="none" stroke={ROAD_SHADOW} strokeWidth={14} />
+                                    <polyline points={points} fill="none" stroke={ROAD} strokeWidth={8} />
+                                </g>,
+                            )}
+                            {scene.map(item => <g key={item.key}>{item.node}</g>)}
                         </svg>
                     </div>
                 </div>
