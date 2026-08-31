@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import MenuIcon from 'pixelarticons/svg/menu.svg?react';
-import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import { LoginMenu } from './api-authorization/LoginMenu';
 import { InstallHint } from './InstallHint';
 import { PushToggle } from './PushToggle';
@@ -29,7 +28,7 @@ export const NavMenu = () => {
                     <ul className={'nav-links' + (open ? ' nav-links-open' : '')}>
                         <li>
                             <Link className="nav-link" to="/domiki-page" onClick={close}>
-                                <BuildingIcon className="nav-ico" aria-hidden="true" />
+                                <MechanicSprite logicName="domiki" size={24} className="nav-ico" aria-hidden="true" />
                                 Домики
                             </Link>
                         </li>

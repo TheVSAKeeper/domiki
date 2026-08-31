@@ -108,8 +108,8 @@ const ErrandCard = ({ errand, workers, now, onAccept, onCancel }: ErrandCardProp
                 : <>
                     <p className="order-plea errand-offer-text">{template.offer}</p>
                     <div className="errand-actions">
-                        <ActionButton className="btn-game" onClick={onAccept}>
-                            <MechanicSprite logicName="errands" size={24} className="btn-ico" aria-hidden="true" />
+                        <ActionButton className="btn-game icon-chip-btn" onClick={onAccept}>
+                            <MechanicSprite logicName="errands" size={32} className="btn-ico" aria-hidden="true" />
                             Помочь
                         </ActionButton>
                         <ActionButton className="btn-game btn-ghost" onClick={onCancel}>Отказаться</ActionButton>

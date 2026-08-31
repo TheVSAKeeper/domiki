@@ -102,8 +102,8 @@ export const ErrandAcceptModal = ({ errand, workers, now, onConfirm, onClose }: 
                     <span className="errand-reward-preview-value">+{rewardCoins} монет, +{errandReputationByClue[clueId]} реп.</span>
                 </div>
             }
-            <ActionButton className="btn-game" disabled={!canConfirm} onClick={confirm}>
-                <MechanicSprite logicName="errands" size={24} className="btn-ico" aria-hidden="true" />
+            <ActionButton className="btn-game icon-chip-btn" disabled={!canConfirm} onClick={confirm}>
+                <MechanicSprite logicName="errands" size={32} className="btn-ico" aria-hidden="true" />
                 Отправить на поиски
             </ActionButton>
         </dialog>

@@ -278,10 +278,10 @@ export const MarketBox = ({ market, resourceTypes, resources, now, onPost, onAcc
                     </div>
                     {invalidPair && <p className="note-warn">Нужны разные ресурсы</p>}
                     {lotsFull && <p className="note-warn">Все места на прилавке заняты – качайте Торговый двор</p>}
-                    <ActionButton className="btn-game" disabled={!canPost}
+                    <ActionButton className="btn-game icon-chip-btn" disabled={!canPost}
                         title={lotsFull ? 'Все места на прилавке заняты' : canAffordPost ? undefined : 'Не хватает ресурсов'}
                         onClick={submitPost}>
-                        <MechanicSprite logicName="market" size={24} className="btn-ico" aria-hidden="true" />
+                        <MechanicSprite logicName="market" size={32} className="btn-ico" aria-hidden="true" />
                         Выставить лот
                     </ActionButton>
                 </form>

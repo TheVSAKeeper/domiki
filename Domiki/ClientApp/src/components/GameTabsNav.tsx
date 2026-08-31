@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { KeyboardEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
-import BuildingIcon from 'pixelarticons/svg/building.svg?react';
 import { useElementHeightVar } from '../hooks/useElementHeightVar';
+import { MechanicSprite } from './sprites';
 
 interface GameTabEntry {
     key: string;
@@ -121,7 +121,7 @@ export const GameTabsNav = ({ tabs, activeKey, onSelect, onScrollToPanel }: Game
             onClickCapture={suppressDragClick}>
             <span className="game-tabs-affordance game-tabs-affordance-left" aria-hidden="true">‹</span>
             <button type="button" className="game-tab game-tab-home icon-chip-btn" onClick={() => { window.scrollTo({ top: 0 }); }}>
-                <BuildingIcon className="game-tab-ico" aria-hidden="true" />
+                <MechanicSprite logicName="domiki" size={32} className="game-tab-ico" aria-hidden="true" />
                 Домики
             </button>
             <div className="game-tabs-list" role="tablist" aria-label="Игровые разделы">

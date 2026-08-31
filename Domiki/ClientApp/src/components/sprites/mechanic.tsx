@@ -22,6 +22,7 @@ import MechIncidentSprite from '../../assets/mechanics/incident.svg?react';
 import MechTavernSprite from '../../assets/mechanics/tavern.svg?react';
 import MechUkladSprite from '../../assets/mechanics/uklad.svg?react';
 import MechAilmentsSprite from '../../assets/mechanics/ailments.svg?react';
+import MechDomikiSprite from '../../assets/mechanics/domiki.svg?react';
 import { renderIconSprite } from './core';
 import type { IconSpriteProps, SpriteComponent } from './core';
 
@@ -50,6 +51,7 @@ const mechanicSprites: Record<string, SpriteComponent> = {
     tavern: MechTavernSprite,
     uklad: MechUkladSprite,
     ailments: MechAilmentsSprite,
+    domiki: MechDomikiSprite,
 };
 
 export const MechanicSprite = (props: IconSpriteProps) => <>{renderIconSprite('mechanic', mechanicSprites, undefined, props)}</>;

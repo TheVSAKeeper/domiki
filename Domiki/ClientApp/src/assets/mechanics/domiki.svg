@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" role="img" aria-labelledby="domiki-title domiki-desc" focusable="false" preserveAspectRatio="xMidYMid meet" color-interpolation="sRGB" data-active="true" data-state="idle" data-motion="on" data-animation-profile="grounded" style="--asset-phase:-.5s">
+<title id="domiki-title">Домики</title><desc id="domiki-desc">Два домика на общей земле: задний с зелёной крышей, передний с красной крышей и дымящей трубой.</desc>
+<style>
+svg{--asset-loop:4.8s;--asset-step:1px;overflow:hidden}
+.asset-stage,.asset-fx,.asset-fx *{transform-box:fill-box;transform-origin:center}
+.asset-fx,.asset-fx *{pointer-events:none}
+svg[data-motion="on"][data-active="true"] .profile-grounded{animation:asset-enter .28s steps(3,end) both,asset-rest var(--asset-loop) steps(1,end) var(--asset-phase,-.5s) infinite}
+svg[data-motion="on"][data-active="true"] .asset-accent{animation:asset-accent 3.4s steps(1,end) var(--asset-phase,-.5s) infinite}
+svg[data-motion="on"][data-active="true"] .fx-rise{animation:fx-rise var(--asset-loop) steps(1,end) var(--asset-phase,-.5s) infinite}
+.fx-selection,.fx-attention{display:none}
+svg[data-state="selected"] .fx-selection{display:inline;animation:asset-pulse 1.2s steps(1,end) infinite}
+svg[data-state="attention"] .fx-attention{display:inline;animation:asset-attention 1s steps(1,end) infinite}
+svg[data-state="pressed"] .asset-stage{animation:none!important;transform:translateY(var(--asset-step))}
+svg[data-state="disabled"] .asset-stage,svg[data-state="disabled"] .asset-fx{animation:none!important;filter:saturate(.25);opacity:.58}
+svg[data-state="hidden"] .asset-stage,svg[data-state="hidden"] .asset-fx{visibility:hidden}
+svg[data-motion="slow"]{--asset-loop:6.8s}svg[data-motion="fast"]{--asset-loop:3.1s}
+svg[data-motion="paused"] *{animation-play-state:paused!important}svg[data-motion="off"] *{animation:none!important}
+@keyframes asset-enter{0%{opacity:0;transform:translateY(2px)}70%{opacity:1;transform:translateY(-1px)}100%{opacity:1;transform:none}}
+@keyframes asset-rest{0%,78%,100%{opacity:1}82%{opacity:.96}86%{opacity:1}}
+@keyframes asset-accent{0%,44%,58%,100%{opacity:1}48%{opacity:.72}52%{opacity:1}56%{opacity:.86}}
+@keyframes fx-rise{0%,40%{opacity:0;transform:none}50%,64%{opacity:1;transform:none}78%{opacity:.6;transform:translateY(-2px)}90%,100%{opacity:0;transform:translateY(-4px)}}
+@keyframes asset-pulse{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes asset-attention{0%,32%,100%{opacity:0}38%,68%{opacity:1}74%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.asset-stage,.asset-fx *,.asset-accent{animation:none!important;transform:none!important;opacity:1}.fx-attention,.fx-rise{display:none!important}}
+</style>
+<g class="asset-stage profile-grounded">
+  <rect x="10" y="24" width="12" height="4" fill="#262626"/>
+  <rect x="6" y="28" width="20" height="4" fill="#262626"/>
+  <rect x="2" y="32" width="28" height="4" fill="#262626"/>
+  <rect x="12" y="26" width="8" height="2" fill="#4f9a3c"/>
+  <rect x="8" y="28" width="16" height="4" fill="#4f9a3c"/>
+  <rect x="4" y="32" width="24" height="2" fill="#4f9a3c"/>
+  <rect x="6" y="36" width="20" height="18" fill="#262626"/>
+  <rect x="8" y="38" width="16" height="16" fill="#9a6a38"/>
+  <rect x="12" y="40" width="8" height="8" fill="#262626"/>
+  <rect x="14" y="42" width="4" height="4" fill="#4a7ab5" class="asset-accent"/>
+
+  <rect x="50" y="6" width="8" height="14" fill="#262626"/>
+  <rect x="52" y="8" width="4" height="12" fill="#b5563a"/>
+  <rect x="38" y="12" width="12" height="4" fill="#262626"/>
+  <rect x="34" y="16" width="20" height="4" fill="#262626"/>
+  <rect x="30" y="20" width="28" height="4" fill="#262626"/>
+  <rect x="26" y="24" width="36" height="4" fill="#262626"/>
+  <rect x="40" y="14" width="8" height="2" fill="#c03434"/>
+  <rect x="36" y="16" width="16" height="4" fill="#c03434"/>
+  <rect x="32" y="20" width="24" height="4" fill="#c03434"/>
+  <rect x="28" y="24" width="32" height="2" fill="#c03434"/>
+  <rect x="32" y="28" width="24" height="26" fill="#262626"/>
+  <rect x="34" y="30" width="20" height="24" fill="#b07c42"/>
+  <rect x="36" y="32" width="10" height="10" fill="#262626"/>
+  <rect x="38" y="34" width="6" height="6" fill="#4a7ab5" class="asset-accent"/>
+  <rect x="42" y="44" width="10" height="10" fill="#262626"/>
+  <rect x="44" y="46" width="6" height="8" fill="#6f4a24"/>
+
+  <rect x="2" y="54" width="60" height="2" fill="#565656"/>
+  <rect x="2" y="56" width="60" height="6" fill="#8f8f8f"/>
+  <rect x="8" y="58" width="6" height="2" fill="#6e6e6e"/>
+  <rect x="30" y="56" width="8" height="2" fill="#6e6e6e"/>
+  <rect x="48" y="58" width="6" height="2" fill="#6e6e6e"/>
+</g>
+<g class="asset-fx" aria-hidden="true">
+  <rect x="52" y="2" width="4" height="4" fill="#c9c2b4" class="fx-rise"/>
+</g>
+<g class="asset-fx fx-selection" aria-hidden="true"><rect x="4" y="4" width="12" height="4" fill="#e8b83a"/><rect x="4" y="4" width="4" height="12" fill="#e8b83a"/><rect x="48" y="4" width="12" height="4" fill="#e8b83a"/><rect x="60" y="4" width="4" height="12" fill="#e8b83a"/><rect x="4" y="60" width="12" height="4" fill="#e8b83a"/><rect x="4" y="48" width="4" height="12" fill="#e8b83a"/><rect x="48" y="60" width="12" height="4" fill="#e8b83a"/><rect x="60" y="48" width="4" height="12" fill="#e8b83a"/></g>
+<g class="asset-fx fx-attention" aria-hidden="true"><rect x="52" y="4" width="6" height="12" fill="#c03434"/><rect x="50" y="2" width="10" height="4" fill="#e8b83a"/></g>
+</svg>

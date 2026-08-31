@@ -47,8 +47,8 @@ export const VillageProfileConfirmModal = ({ genitiveName, buildings, onConfirm,
             </div>
             <p className="errand-modal-offer">{body}</p>
             <div className="errand-actions">
-                <ActionButton className="btn-game" onClick={confirm}>
-                    <MechanicSprite logicName="obzhitost" size={24} className="btn-ico" aria-hidden="true" />
+                <ActionButton className="btn-game icon-chip-btn" onClick={confirm}>
+                    <MechanicSprite logicName="obzhitost" size={32} className="btn-ico" aria-hidden="true" />
                     Перенять уклад
                 </ActionButton>
                 <ActionButton className="btn-game btn-ghost" onClick={() => { onClose(); }}>

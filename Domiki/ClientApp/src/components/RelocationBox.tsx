@@ -96,8 +96,8 @@ export const RelocationBox = ({ relocation, villageName, onRelocate, onBuyPerk }
                     </span>
                 </div>
                 {relocation.canRelocate &&
-                    <ActionButton className="btn-game" disabled={plan == null} onClick={() => { setConfirmOpen(true); }}>
-                        <AbstractSprite logicName="prestige_new_valley" size={24} className="btn-ico" aria-hidden="true" />
+                    <ActionButton className="btn-game icon-chip-btn" disabled={plan == null} onClick={() => { setConfirmOpen(true); }}>
+                        <AbstractSprite logicName="prestige_new_valley" size={32} className="btn-ico" aria-hidden="true" />
                         Собраться в дорогу
                     </ActionButton>
                 }
