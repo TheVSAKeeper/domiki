@@ -11,11 +11,14 @@ import {
     bridgeSegment,
     buildRoads,
     buildRiver,
+    labelWidth,
     layoutVillages,
     mulberry32,
+    pickLabels,
     scatterTrees,
     scatterTufts,
     villageKey,
+    type LabelBox,
     type MapRoad,
     type MapSpot,
     type MapTree,
@@ -279,10 +282,44 @@ const Brackets = ({ r }: { r: number }) => (
     </g>
 );
 
+const s4 = (value: number) => Math.round(value / 2) * 2;
+
+const varyHuts = (places: readonly HutPlace[], rng: () => number): HutPlace[] => {
+    const mirrored = rng() < 0.5;
+    const smokeIndex = places.length === 0 ? 0 : Math.floor(rng() * places.length);
+    return places.map((place, index) => ({
+        dx: s4((mirrored ? -place.dx : place.dx) + (rng() - 0.5) * 12),
+        dy: s4(place.dy + (rng() - 0.5) * 10),
+        w: place.w + (rng() < 0.35 ? 2 : 0),
+        smoke: place.smoke === true || index === smokeIndex,
+    }));
+};
+
+const Approaches = ({ r, seed }: { r: number; seed: number }) => {
+    const rng = mulberry32(seed ^ 0x5bd1);
+    const posts = Math.max(3, Math.round(r / 14));
+    const left = s2(-r * 0.7);
+    const step = s2((r * 1.4) / Math.max(1, posts - 1));
+    const fenceY = s2(r * 0.5);
+    const bedX = s2(rng() < 0.5 ? -r * 0.86 : r * 0.4);
+    const bedY = s2(-r * 0.5);
+    return (
+        <g aria-hidden="true">
+            {Array.from({ length: posts }, (_, index) => (
+                <rect key={index} x={left + index * step} y={fenceY} width={2} height={8} fill={TRUNK} />
+            ))}
+            <rect x={left} y={fenceY + 2} width={s2(r * 1.4)} height={2} fill={WOOD} />
+            <rect x={bedX} y={bedY} width={16} height={12} fill="#8a6a3f" />
+            <rect x={bedX + 2} y={bedY + 2} width={12} height={2} fill={LEAF} />
+            <rect x={bedX + 2} y={bedY + 6} width={12} height={2} fill={LEAF} />
+        </g>
+    );
+};
+
 const SettlementArt = memo(({ spot }: { spot: MapSpot }) => {
     const rng = mulberry32(spot.seed);
     const fallbackStyle = HUT_STYLES[0];
-    const huts = (TIER_HUTS[spot.tier] ?? TIER_HUTS[0] ?? [])
+    const huts = varyHuts(TIER_HUTS[spot.tier] ?? TIER_HUTS[0] ?? [], rng)
         .map(place => ({ place, style: HUT_STYLES[Math.floor(rng() * HUT_STYLES.length)] ?? fallbackStyle }))
         .sort((a, b) => a.place.dy - b.place.dy);
     const crestColor = VILLAGE_CREST_COLORS[spot.village.crestColor] ?? VILLAGE_CREST_COLORS[0];
@@ -291,6 +328,7 @@ const SettlementArt = memo(({ spot }: { spot: MapSpot }) => {
     return (
         <g>
             <Clearing r={spot.clearing} />
+            <Approaches r={spot.clearing} seed={spot.seed} />
             {spot.village.isNpc ? (
                 <NeighborSprite
                     logicName={spot.village.npcLogicName ?? 'generic'}
@@ -335,15 +373,19 @@ const SettlementArt = memo(({ spot }: { spot: MapSpot }) => {
 
 SettlementArt.displayName = 'SettlementArt';
 
+const REGION_HALF_W = 240;
+const REGION_HALF_H = 70;
+
 interface WorldSceneryProps {
     river: RiverSegment[];
+    clearings: { x: number; y: number; clearing: number }[];
     roads: MapRoad[];
     trees: MapTree[];
     tufts: MapTuft[];
     bridge: RiverSegment | null;
 }
 
-const WorldScenery = memo(({ river, roads, trees, tufts, bridge }: WorldSceneryProps) => {
+const WorldScenery = memo(({ river, roads, trees, tufts, bridge, clearings }: WorldSceneryProps) => {
     const shimmer: { segment: RiverSegment; offset: number }[] = [];
     let n = 0;
     river.forEach((segment, index) => {
@@ -365,7 +407,9 @@ const WorldScenery = memo(({ river, roads, trees, tufts, bridge }: WorldSceneryP
             <rect x={-400} y={-400} width={WORLD_W + 800} height={WORLD_H + 800} fill="url(#wm-meadow)" />
             <Field x={170} y={1370} w={190} h={120} />
             <Field x={2140} y={1300} w={220} h={132} />
-            {REGIONS.map(region => (
+            {REGIONS.filter(region => !clearings.some(spot =>
+                Math.abs(spot.x - region.x) < spot.clearing + REGION_HALF_W && Math.abs(spot.y - region.y) < spot.clearing + REGION_HALF_H,
+            )).map(region => (
                 <text key={region.label} className="wm-region-label" x={region.x} y={region.y} textAnchor="middle">
                     {region.label}
                 </text>
@@ -654,6 +698,45 @@ export const WorldMap = ({ villages, metricKey, metricLabel, selectedKey, onSele
     const k = kBucket / 4;
     const showAllLabels = k >= 2.15;
 
+    const labels = useMemo(() => {
+        const boxes: LabelBox[] = [];
+        const meta = new Map<string, { name: string; isMe: boolean; fontSize: number }>();
+        for (const spot of spots) {
+            const rank = ranks.get(spot.key);
+            const selected = selectedKey === spot.key;
+            const special = spot.village.isMe || spot.village.isNpc || rank != null || selected;
+            if (!showAllLabels && !special) {
+                continue;
+            }
+            const fontSize = Math.round((special ? 38 : 34) / k);
+            const priority = spot.village.isMe ? 4 : selected ? 3 : spot.village.isNpc || rank != null ? 2 : 1;
+            boxes.push({
+                key: spot.key,
+                x: spot.x,
+                y: spot.y + spot.clearing + 24,
+                width: labelWidth(spot.village.villageName, fontSize),
+                height: fontSize * 1.2,
+                pinned: special,
+                priority,
+            });
+            meta.set(spot.key, { name: spot.village.villageName, isMe: spot.village.isMe, fontSize });
+        }
+        const shown = pickLabels(boxes);
+        return boxes
+            .filter(box => shown.has(box.key))
+            .map(box => {
+                const info = meta.get(box.key);
+                return {
+                    key: box.key,
+                    x: box.x,
+                    y: box.y,
+                    name: info?.name ?? '',
+                    isMe: info?.isMe ?? false,
+                    fontSize: info?.fontSize ?? 16,
+                };
+            });
+    }, [spots, ranks, selectedKey, showAllLabels, k]);
+
     return (
         <div className="world-map pixel-panel">
             <svg
@@ -669,11 +752,10 @@ export const WorldMap = ({ villages, metricKey, metricLabel, selectedKey, onSele
                 onPointerUp={onPointerUp}
                 onPointerCancel={onPointerUp}
             >
-                <WorldScenery river={river} roads={roads} trees={trees} tufts={tufts} bridge={bridge} />
+                <WorldScenery river={river} roads={roads} trees={trees} tufts={tufts} bridge={bridge} clearings={spots} />
                 {spots.map(spot => {
                     const rank = ranks.get(spot.key);
                     const selected = selectedKey === spot.key;
-                    const special = spot.village.isMe || spot.village.isNpc || rank != null || selected;
                     return (
                         <g
                             key={spot.key}
@@ -707,20 +789,23 @@ export const WorldMap = ({ villages, metricKey, metricLabel, selectedKey, onSele
                             <SettlementArt spot={spot} />
                             {rank != null && metricKey !== 'level' && <RankBanner rank={rank} />}
                             <Brackets r={spot.clearing + 10} />
-                            {(showAllLabels || special) && (
-                                <text
-                                    className={'wm-label' + (spot.village.isMe ? ' wm-label-me' : '')}
-                                    x={0}
-                                    y={spot.clearing + 24}
-                                    textAnchor="middle"
-                                    style={{ fontSize: Math.round((special ? 38 : 34) / k) }}
-                                >
-                                    {spot.village.villageName}
-                                </text>
-                            )}
                         </g>
                     );
                 })}
+                <g className="wm-labels" aria-hidden="true">
+                    {labels.map(label => (
+                        <text
+                            key={label.key}
+                            className={'wm-label' + (label.isMe ? ' wm-label-me' : '')}
+                            x={label.x}
+                            y={label.y}
+                            textAnchor="middle"
+                            style={{ fontSize: label.fontSize, strokeWidth: Math.max(1, 5 / k) }}
+                        >
+                            {label.name}
+                        </text>
+                    ))}
+                </g>
             </svg>
             <div className="wm-title">Долина Домиков</div>
             <div className="wm-hint">Тяни карту · колесо — масштаб</div>

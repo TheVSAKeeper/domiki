@@ -129,6 +129,8 @@ public class WorldManager
 
     private IEnumerable<WorldVillage> GetNpcVillages()
     {
+        var resourceNameById = _resourceManager.GetResourceTypes().ToDictionary(x => x.Id, x => x.Name);
+
         return _resourceManager.GetNeighbors()
             .Where(x => NpcPresentations.ContainsKey(x.LogicName))
             .Select(x =>
@@ -144,6 +146,7 @@ public class WorldManager
                     IsNpc = true,
                     IsMe = false,
                     NpcResourceTypeId = x.PrimaryResourceTypeId,
+                    NpcResourceName = x.PrimaryResourceTypeId is { } resourceTypeId && resourceNameById.TryGetValue(resourceTypeId, out var resourceName) ? resourceName : null,
                     NpcLogicName = x.LogicName,
                 };
             });

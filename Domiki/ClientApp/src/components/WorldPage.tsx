@@ -333,7 +333,8 @@ export const WorldPage = () => {
                             <Crest icon={selectedVillage.crestIcon} color={selectedVillage.crestColor} />
                             <div>
                                 <h2 className="panel-title">{selectedVillage.villageName}</h2>
-                                <p className="hint">Торгует ресурсом #{selectedVillage.npcResourceTypeId}</p>
+                                {selectedVillage.npcResourceName != null &&
+                                    <p className="hint">Торгует: {selectedVillage.npcResourceName}</p>}
                             </div>
                         </div>
                     }

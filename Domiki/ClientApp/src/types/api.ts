@@ -228,6 +228,7 @@ export const worldVillageSchema = z.object({
     isNpc: z.boolean(),
     isMe: z.boolean(),
     npcResourceTypeId: z.number().nullable(),
+    npcResourceName: z.string().nullable(),
     npcLogicName: z.string().nullable(),
     profileLogicName: z.string().nullable(),
     seasonOrders: z.number(),

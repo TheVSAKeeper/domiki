@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { WORLD_H, WORLD_W, buildRiver, buildRoads, layoutVillages, riverXAt, scatterTrees, villageTier } from './worldMap';
+import { WORLD_H, WORLD_W, buildRiver, buildRoads, layoutVillages, pickLabels, riverXAt, scatterTrees, villageTier } from './worldMap';
 import type { WorldVillageDto } from '../types/api';
 
 const village = (name: string, level: number, overrides?: Partial<WorldVillageDto>): WorldVillageDto => ({
@@ -11,6 +11,7 @@ const village = (name: string, level: number, overrides?: Partial<WorldVillageDt
     isNpc: false,
     isMe: false,
     npcResourceTypeId: null,
+    npcResourceName: null,
     npcLogicName: null,
     profileLogicName: null,
     seasonOrders: 0,
@@ -81,5 +82,41 @@ describe('villageTier', () => {
         [500, 4],
     ])('обжитость %i – ярус %i', (level, tier) => {
         expect(villageTier(level)).toBe(tier);
+    });
+});
+
+describe('worldMap подписи и стабильность', () => {
+    const river = buildRiver();
+    const villages = Array.from({ length: 12 }, (_, i) => village(`Деревня ${i}`, i * 5, { playerId: i + 1 }));
+
+    it('позиция деревни не зависит от уровней', () => {
+        const before = layoutVillages(villages, river);
+        const grown = villages.map((item, index) => ({ ...item, level: item.level + (index % 3) * 40 }));
+        const after = layoutVillages(grown, river);
+        for (const spot of before) {
+            const moved = after.find(item => item.key === spot.key);
+            expect(moved?.x).toBe(spot.x);
+            expect(moved?.y).toBe(spot.y);
+        }
+    });
+
+    it('новая деревня не двигает уже расселённые', () => {
+        const before = layoutVillages(villages, river);
+        const after = layoutVillages([...villages, village('Новая', 1, { playerId: 99 })], river);
+        for (const spot of before) {
+            const moved = after.find(item => item.key === spot.key);
+            expect(moved?.x).toBe(spot.x);
+            expect(moved?.y).toBe(spot.y);
+        }
+    });
+
+    it('перекрывающиеся подписи скрываются, кроме закреплённых', () => {
+        const shown = pickLabels([
+            { key: 'a', x: 0, y: 0, width: 100, height: 20, pinned: true, priority: 4 },
+            { key: 'b', x: 10, y: 0, width: 100, height: 20, pinned: true, priority: 2 },
+            { key: 'c', x: 20, y: 0, width: 100, height: 20, pinned: false, priority: 1 },
+            { key: 'd', x: 400, y: 0, width: 100, height: 20, pinned: false, priority: 1 },
+        ]);
+        expect([...shown].sort()).toEqual(['a', 'b', 'd']);
     });
 });

@@ -94,6 +94,14 @@ public sealed record WorldVillageDto
     public int? NpcResourceTypeId { get; init; }
 
     /// <summary>
+    /// Название ресурса, которым торгует NPC-сосед.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> для деревень игроков (см. <see cref="IsNpc"/>).
+    /// </remarks>
+    public string? NpcResourceName { get; init; }
+
+    /// <summary>
     /// Технический код NPC-соседа.
     /// </summary>
     /// <remarks>

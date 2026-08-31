@@ -27,6 +27,7 @@ public static class WorldDtoExtensions
             IsNpc = village.IsNpc,
             IsMe = village.IsMe,
             NpcResourceTypeId = village.NpcResourceTypeId,
+            NpcResourceName = village.NpcResourceName,
             NpcLogicName = village.NpcLogicName,
             ProfileLogicName = village.ProfileLogicName,
             SeasonOrders = village.SeasonOrders,

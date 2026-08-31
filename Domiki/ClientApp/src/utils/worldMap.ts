@@ -95,8 +95,18 @@ export const riverXAt = (river: RiverSegment[], y: number) => {
     return segment == null ? WORLD_W * 0.64 : segment.x + segment.w / 2;
 };
 
+const settledOrder = (a: WorldVillageDto, b: WorldVillageDto) => {
+    if (a.isNpc !== b.isNpc) {
+        return a.isNpc ? -1 : 1;
+    }
+    if (a.playerId != null && b.playerId != null && a.playerId !== b.playerId) {
+        return a.playerId - b.playerId;
+    }
+    return a.villageName.localeCompare(b.villageName, 'ru');
+};
+
 export const layoutVillages = (villages: WorldVillageDto[], river: RiverSegment[]): MapSpot[] => {
-    const ordered = [...villages].sort((a, b) => b.level - a.level || a.villageName.localeCompare(b.villageName, 'ru'));
+    const ordered = [...villages].sort(settledOrder);
     return ordered.map((village, index) => {
         const seed = hashString(villageKey(village));
         const jitter = ((seed % 997) / 997 - 0.5) * 0.6;
@@ -243,3 +253,32 @@ export const buildRoads = (spots: MapSpot[], river: RiverSegment[]): MapRoad[] =
 
     return roads;
 };
+
+export interface LabelBox {
+    key: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    pinned: boolean;
+    priority: number;
+}
+
+const overlaps = (a: LabelBox, b: LabelBox) =>
+    Math.abs(a.x - b.x) * 2 < a.width + b.width && Math.abs(a.y - b.y) * 2 < a.height + b.height;
+
+export const pickLabels = (boxes: LabelBox[]): Set<string> => {
+    const ordered = [...boxes].sort((a, b) =>
+        Number(b.pinned) - Number(a.pinned) || b.priority - a.priority || a.key.localeCompare(b.key));
+    const shown: LabelBox[] = [];
+    const keys = new Set<string>();
+    for (const box of ordered) {
+        if (box.pinned || !shown.some(placed => overlaps(placed, box))) {
+            shown.push(box);
+            keys.add(box.key);
+        }
+    }
+    return keys;
+};
+
+export const labelWidth = (name: string, fontSize: number) => name.length * fontSize * 0.55;
