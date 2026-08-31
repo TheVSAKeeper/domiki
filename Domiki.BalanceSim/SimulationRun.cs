@@ -660,10 +660,19 @@ internal sealed class SimulationRun
             return candidates[0];
         }
 
+        var workerBound = IsWorkerBound(candidates);
+
         return candidates
-            .OrderByDescending(x => GetReceiptEv(x.Receipt, x.UseOptional, GetWeatherOutputPercent(domik.Type.Id)) * GetSaturationDiscount(x.Receipt) / x.Receipt.PlodderCount)
+            .OrderByDescending(x => GetReceiptEv(x.Receipt, x.UseOptional, GetWeatherOutputPercent(domik.Type.Id))
+                                    * GetSaturationDiscount(x.Receipt)
+                                    / (workerBound ? x.Receipt.PlodderCount : 1))
             .ThenBy(x => x.Receipt.Id)
             .First();
+    }
+
+    private bool IsWorkerBound((Receipt Receipt, bool UseOptional)[] candidates)
+    {
+        return GetFreeWorkers().Count <= candidates.Max(x => x.Receipt.PlodderCount);
     }
 
     private double GetSaturationDiscount(Receipt receipt)
