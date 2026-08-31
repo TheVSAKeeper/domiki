@@ -829,7 +829,7 @@ internal sealed class SimulationRun
 
         foreach (var output in manufacture.Receipt.OutputResources)
         {
-            var granted = Math.Max(1, (int)Math.Round(output.Value * manufacture.OutputPercent / 100.0));
+            var granted = DomikManager.GetOutputGrant(output.Value, manufacture.OutputPercent);
             if (output.Type.Id == 5)
             {
                 var day = _now / 86400;
@@ -1100,7 +1100,7 @@ internal sealed class SimulationRun
         }
 
         var effectiveOutputPercent = useOptional && receipt.OptionalInputResources.Length > 0 ? outputPercent + receipt.OutputBonusPercent : outputPercent;
-        var output = receipt.OutputResources.Sum(x => Math.Max(1, (int)Math.Round(x.Value * effectiveOutputPercent / 100.0)) * ResourceManager.GetMarketValue(x.Type.Id));
+        var output = receipt.OutputResources.Sum(x => DomikManager.GetOutputGrant(x.Value, effectiveOutputPercent) * ResourceManager.GetMarketValue(x.Type.Id));
         var input = GetInputs(receipt, useOptional).Sum(x => x.Value * ResourceManager.GetMarketValue(x.Type.Id));
         var duration = receipt.DurationSeconds;
         return (output - input) / (duration / 3600.0);

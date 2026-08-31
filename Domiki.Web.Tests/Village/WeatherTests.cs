@@ -1,4 +1,6 @@
-﻿using Domiki.Web.Infrastructure;
+﻿using Domiki.Web.Core;
+using Domiki.Web.Infrastructure;
+using Domiki.Web.Reference;
 using Domiki.Web.Village;
 using Domiki.Web.Village.Models;
 using WeatherPeriod = Domiki.Web.Data.Entities.WeatherPeriod;
@@ -12,6 +14,37 @@ public sealed class WeatherTests
     public void TearDown()
     {
         ClearWeatherSchedule();
+    }
+
+    /// <summary>
+    /// Мороз усиливает кузницу, но выход рецепта в одну единицу от этого не растёт – и хвори такая смена не стоит.
+    /// </summary>
+    [Test]
+    public void BonusWeatherOnSingleUnitReceiptGrantsNoExtraAndNoRiskTest()
+    {
+        const int baseIron = 1;
+        var player = TestPlayer.Create()
+            .WithResource(ResourceIds.Ore, 10)
+            .WithDomik(DomikIds.Forge)
+            .RaiseVillageLevel(DomikManager.SickMinVillageLevel);
+
+        var domikId = player.DomikId(DomikIds.Forge);
+        SetWeather(WeatherIds.Frost);
+
+        using (App.PendingEvents())
+        {
+            player.StartManufacture(domikId, ReceiptIds.MakeIron);
+        }
+
+        var manufacture = player.Manufacture(domikId);
+        var sickChance = GetManufactureSickChance(manufacture.Id);
+        player.FinishManufacture(manufacture.Id, manufacture.FinishDate.AddSeconds(1));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(player.Resource(ResourceIds.Iron), Is.EqualTo(baseIron));
+            Assert.That(sickChance, Is.Zero);
+        }
     }
 
     /// <summary>
@@ -162,6 +195,48 @@ public sealed class WeatherTests
     }
 
     /// <summary>
+    /// Процент выхода сдвигает выдачу только на целые единицы: дробная часть сдвига отбрасывается, поэтому выход в одну
+    /// единицу не меняют ни бонус, ни штраф, а сама выдача никогда не опускается ниже единицы.
+    /// </summary>
+    /// <param name="baseValue">Базовый выход ресурса по рецепту.</param>
+    /// <param name="outputPercent">Процент выхода, зафиксированный за сменой.</param>
+    /// <param name="expectedGrant">Ожидаемое число выданных единиц ресурса.</param>
+    [TestCase(1, 75, 1)]
+    [TestCase(1, 125, 1)]
+    [TestCase(1, 140, 1)]
+    [TestCase(1, 150, 1)]
+    [TestCase(1, 210, 2)]
+    [TestCase(2, 75, 2)]
+    [TestCase(2, 125, 2)]
+    [TestCase(2, 140, 2)]
+    [TestCase(2, 150, 3)]
+    [TestCase(2, 210, 4)]
+    [TestCase(3, 75, 3)]
+    [TestCase(3, 125, 3)]
+    [TestCase(3, 140, 4)]
+    [TestCase(3, 150, 4)]
+    [TestCase(3, 210, 6)]
+    [TestCase(4, 75, 3)]
+    [TestCase(4, 125, 5)]
+    [TestCase(4, 140, 5)]
+    [TestCase(4, 150, 6)]
+    [TestCase(4, 210, 8)]
+    [TestCase(8, 75, 6)]
+    [TestCase(8, 125, 10)]
+    [TestCase(8, 140, 11)]
+    [TestCase(8, 150, 12)]
+    [TestCase(8, 210, 16)]
+    [TestCase(24, 75, 18)]
+    [TestCase(24, 125, 30)]
+    [TestCase(24, 140, 33)]
+    [TestCase(24, 150, 36)]
+    [TestCase(24, 210, 50)]
+    public void GetOutputGrantShiftsByWholeUnitsTest(int baseValue, int outputPercent, int expectedGrant)
+    {
+        Assert.That(DomikManager.GetOutputGrant(baseValue, outputPercent), Is.EqualTo(expectedGrant));
+    }
+
+    /// <summary>
     /// Запрос погоды возвращает текущий период плюс прогноз из двух периодов, идущих без разрывов и покрывающих весь горизонт
     /// прогноза.
     /// </summary>
@@ -191,6 +266,39 @@ public sealed class WeatherTests
     }
 
     /// <summary>
+    /// Риск хвори делится между трудягами смены: та же прибавка в четыре глины стоит одиночке 15%, а артели из пяти – 3%.
+    /// </summary>
+    [Test]
+    public void SickChanceSplitsAcrossShiftWorkersTest()
+    {
+        const int soloSickChance = 15;
+        const int groupSickChance = 3;
+
+        var solo = TestPlayer.Create()
+            .RaiseVillageLevel(DomikManager.SickMinVillageLevel);
+
+        var group = TestPlayer.Create()
+            .WithDomiks(DomikIds.Barrack, 4)
+            .WithDomik(DomikIds.ClayMine, 2)
+            .RaiseVillageLevel(DomikManager.SickMinVillageLevel);
+
+        var groupDomikId = group.DomikId(DomikIds.ClayMine);
+        SetWeather(WeatherIds.Rain);
+
+        using (App.PendingEvents())
+        {
+            solo.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig8h);
+            group.StartManufacture(groupDomikId, ReceiptIds.ClayDigTogether);
+        }
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(GetManufactureSickChance(solo.Manufacture(StartingDomikIds.ClayMine).Id), Is.EqualTo(soloSickChance));
+            Assert.That(GetManufactureSickChance(group.Manufacture(groupDomikId).Id), Is.EqualTo(groupSickChance));
+        }
+    }
+
+    /// <summary>
     /// Погода, влияющая на добываемый ресурс (дождь усиливает глину, засуха усиливает дерево, и наоборот – ослабляет
     /// противоположный ресурс), фиксирует процент выхода производства в момент запуска.
     /// </summary>
@@ -202,6 +310,7 @@ public sealed class WeatherTests
     [TestCase(WeatherIds.Rain, DomikIds.LumberMill, ReceiptIds.WoodDig8h, 75)]
     [TestCase(WeatherIds.Drought, DomikIds.LumberMill, ReceiptIds.WoodDig8h, 150)]
     [TestCase(WeatherIds.Drought, DomikIds.ClayMine, ReceiptIds.ClayDig8h, 75)]
+    [TestCase(WeatherIds.Drought, DomikIds.StoneMine, ReceiptIds.StoneDig8h, 125)]
     public void StartManufactureAppliesWeatherOutputPercentTest(int weatherTypeId, int domikTypeId, int receiptId, int expectedOutputPercent)
     {
         var player = TestPlayer.Create()
@@ -228,7 +337,7 @@ public sealed class WeatherTests
     [TestCase(WeatherIds.Clear, DomikIds.ClayMine, ReceiptIds.ClayDig8h)]
     [TestCase(WeatherIds.Clear, DomikIds.LumberMill, ReceiptIds.WoodDig8h)]
     [TestCase(WeatherIds.Rain, DomikIds.StoneMine, ReceiptIds.StoneDig8h)]
-    [TestCase(WeatherIds.Drought, DomikIds.StoneMine, ReceiptIds.StoneDig8h)]
+    [TestCase(WeatherIds.Wind, DomikIds.StoneMine, ReceiptIds.StoneDig8h)]
     public void StartManufactureWithoutWeatherEffectKeepsOutputPercent100Test(int weatherTypeId, int domikTypeId, int receiptId)
     {
         var player = TestPlayer.Create()
@@ -245,6 +354,44 @@ public sealed class WeatherTests
 
         var manufacture = player.Manufacture(5);
         Assert.That(GetManufactureOutputPercent(manufacture.Id), Is.EqualTo(100));
+    }
+
+    /// <summary>
+    /// Справочник погоды двусторонний: у каждого вида погоды с эффектами есть и усиление, и ослабление, и у каждой
+    /// затронутой постройки тоже – ни один вид погоды и ни одна постройка не остаются с одним лишь бонусом или штрафом.
+    /// </summary>
+    [Test]
+    public void WeatherEffectsAreTwoSidedForWeatherAndBuildingTest()
+    {
+        var effects = GetWeatherTypes()
+            .SelectMany(weather => weather.Effects.Select(effect => (Weather: weather.LogicName, effect.DomikTypeId, effect.OutputPercent)))
+            .ToArray();
+
+        Assert.That(effects, Is.Not.Empty);
+        using (Assert.EnterMultipleScope())
+        {
+            foreach (var weather in effects.GroupBy(x => x.Weather))
+            {
+                Assert.That(weather.Any(x => x.OutputPercent > 100), Is.True, $"погода {weather.Key} без усиления");
+                Assert.That(weather.Any(x => x.OutputPercent < 100), Is.True, $"погода {weather.Key} без ослабления");
+            }
+
+            foreach (var domik in effects.GroupBy(x => x.DomikTypeId))
+            {
+                Assert.That(domik.Any(x => x.OutputPercent > 100), Is.True, $"постройка {domik.Key} без усиления");
+                Assert.That(domik.Any(x => x.OutputPercent < 100), Is.True, $"постройка {domik.Key} без ослабления");
+            }
+        }
+    }
+
+    private static int GetManufactureSickChance(int manufactureId)
+    {
+        return App.Read(context => context.Manufactures.Single(x => x.Id == manufactureId).SickChance);
+    }
+
+    private static WeatherType[] GetWeatherTypes()
+    {
+        return App.Act<ResourceManager, WeatherType[]>(m => m.GetWeatherTypes());
     }
 
     private static int GetManufactureOutputPercent(int manufactureId)

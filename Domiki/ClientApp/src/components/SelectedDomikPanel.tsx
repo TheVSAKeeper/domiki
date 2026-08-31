@@ -11,7 +11,7 @@ import type { DomikTypeDto, GoalsStateDto, ReceiptDto, ResourceDto, ResourceType
 import type { DomikNamer } from '../utils/domikNames';
 import { PLODDER_MODIFICATOR_TYPE_ID, SICK_MIN_VILLAGE_LEVEL, computeReceiptView, goldVeinView, isWorkerFree, progressPercent, residentsGain, resourceShortfall, workIntensity, workerFitness, type GoldVeinContext, type GoldVeinView } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
-import { formatOutputDelta, sickRiskPercent, sickTypeForWeather, weatherMark } from '../utils/weather';
+import { sickRiskPercent, sickTypeForWeather, weatherMark, weatherOutputChange } from '../utils/weather';
 import { domikLore } from '../utils/domikLore';
 import { pluralRu } from '../utils/plural';
 import { isSkilledWorker } from '../utils/worker';
@@ -150,6 +150,7 @@ const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, wor
         });
 
     const lackLabel = !view.hasResources ? 'нет припасов' : !view.hasPlodders ? 'нет трудяг' : null;
+    const weatherOutput = weatherEffect == null ? null : weatherOutputChange(receipt.outputResources, weatherEffect.outputPercent);
 
     return (
         <div className={'receipt-row' + (expanded ? ' receipt-open' : '') + (view.canRun ? '' : ' receipt-blocked')}>
@@ -207,14 +208,14 @@ const ReceiptRow = ({ receipt, domikId, domikType, resources, resourceTypes, wor
                             </div>
                         }
                     </div>
-                    {weatherEffect != null &&
+                    {weatherOutput != null && weatherOutput.delta !== 0 &&
                         <p className="weather-modifier">
-                            Погода: {formatOutputDelta(weatherEffect.outputPercent - 100)} выход
+                            Погода: выход {weatherOutput.base} → {weatherOutput.granted}
                         </p>
                     }
-                    {weatherEffect != null && sickName != null && weatherEffect.outputPercent > 100 && (villageLevel?.level ?? 0) >= SICK_MIN_VILLAGE_LEVEL &&
+                    {weatherOutput != null && weatherOutput.delta > 0 && sickName != null && (villageLevel?.level ?? 0) >= SICK_MIN_VILLAGE_LEVEL &&
                         <p className="weather-modifier weather-modifier--risk">
-                            {sickName}: риск {sickRiskPercent(weatherEffect.outputPercent)} %
+                            {sickName}: риск {sickRiskPercent(weatherOutput.delta, receipt.plodderCount)} %
                         </p>
                     }
                     {goldVein != null &&

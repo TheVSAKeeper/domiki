@@ -1,6 +1,13 @@
-import type { SickTypeDto, WeatherPeriodDto } from '../types/api';
+import type { ResourceDto, SickTypeDto, WeatherPeriodDto } from '../types/api';
 
-export const SICK_CHANCE_PER_BONUS_POINT = 0.3;
+const SICK_CHANCE_PER_UNIT = 4;
+const SICK_CHANCE_CAP = 15;
+
+export interface WeatherOutputChange {
+    base: number;
+    granted: number;
+    delta: number;
+}
 
 export interface WeatherMarkView {
     outputPercent: number;
@@ -37,8 +44,19 @@ export function weatherMarkSpeech(mark: WeatherMarkView) {
     return `, ${mark.weatherName.toLocaleLowerCase()} ${direction} ${Math.abs(mark.delta)} %`;
 }
 
-export function sickRiskPercent(outputPercent: number) {
-    return outputPercent <= 100 ? 0 : Math.round((outputPercent - 100) * SICK_CHANCE_PER_BONUS_POINT);
+export function grantOutput(base: number, percent: number) {
+    return Math.max(1, base + Math.trunc(base * (percent - 100) / 100));
+}
+
+export function weatherOutputChange(outputResources: ResourceDto[], outputPercent: number): WeatherOutputChange {
+    return outputResources.reduce<WeatherOutputChange>((total, output) => {
+        const granted = grantOutput(output.value, outputPercent);
+        return { base: total.base + output.value, granted: total.granted + granted, delta: total.delta + granted - output.value };
+    }, { base: 0, granted: 0, delta: 0 });
+}
+
+export function sickRiskPercent(weatherExtra: number, plodderCount: number) {
+    return weatherExtra <= 0 || plodderCount <= 0 ? 0 : Math.min(SICK_CHANCE_CAP, Math.round(SICK_CHANCE_PER_UNIT * weatherExtra / plodderCount));
 }
 
 export function sickTypeForWeather(sickTypes: SickTypeDto[], weatherTypeId: number | null | undefined) {

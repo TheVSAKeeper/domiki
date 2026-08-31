@@ -25,9 +25,14 @@ public class DomikManager
     public const int RestSeconds = 2 * 3600;
     public const int RestComfortMaxPercent = 50;
     /// <summary>
-    /// Процент шанса хвори на каждый процентный пункт погодного бонуса сверх <c>100</c>.
+    /// Процент шанса хвори за каждую единицу ресурса, добытую сверх базового выхода благодаря погоде.
     /// </summary>
-    public const double SickChancePerBonusPoint = 0.3;
+    public const int SickChancePerExtraUnit = 4;
+
+    /// <summary>
+    /// Наибольший шанс хвори, который может быть зафиксирован для смены.
+    /// </summary>
+    public const int MaxSickChancePercent = 15;
 
     /// <summary>
     /// Наименьший шанс хвори для трудяги, прикрытого плащом.
@@ -680,16 +685,17 @@ public class DomikManager
             outputPercent += receipt.OutputBonusPercent;
         }
 
-        var sickType = weatherPercent > 100 && _villageLevelCalculator.GetLevel(playerId).Level >= SickMinVillageLevel
+        var weatherExtra = receipt.OutputResources.Sum(x => GetOutputGrant(x.Value, weatherPercent) - x.Value);
+        var sickType = weatherExtra > 0 && _villageLevelCalculator.GetLevel(playerId).Level >= SickMinVillageLevel
             ? _weatherManager.GetCurrentPeriod(date) is { } weatherPeriod
                 ? _resourceManager.GetSickTypes().FirstOrDefault(x => x.WeatherTypeId == weatherPeriod.WeatherType.Id)
                 : null
             : null;
         var sickChance = sickType == null
             ? 0
-            : (int)Math.Round((weatherPercent - 100) * SickChancePerBonusPoint, MidpointRounding.AwayFromZero);
+            : Math.Min(MaxSickChancePercent, (int)Math.Round(SickChancePerExtraUnit * weatherExtra / (double)selectedWorkers.Length, MidpointRounding.AwayFromZero));
         var cloakCount = 0;
-        if (sickType?.CloakProtects == true)
+        if (sickChance > 0 && sickType?.CloakProtects == true)
         {
             var cloakStock = _context.Resources.Where(x => x.PlayerId == playerId && x.TypeId == CloakResourceTypeId).Select(x => (int?)x.Value).FirstOrDefault() ?? 0;
             var cloaksOut = _context.Manufactures.Where(x => x.DomikPlayerId == playerId).Sum(x => (int?)x.CloakCount) ?? 0;
@@ -779,7 +785,7 @@ public class DomikManager
             var produced = new Dictionary<int, int>();
             foreach (var resource in recept.OutputResources)
             {
-                var granted = Math.Max(1, (int)Math.Round(resource.Value * dbManufacture.OutputPercent / 100.0));
+                var granted = GetOutputGrant(resource.Value, dbManufacture.OutputPercent);
                 if (resource.Type.Id == GoldResourceTypeId)
                 {
                     var today = date.Date;
@@ -1134,6 +1140,19 @@ public class DomikManager
                 Value = cost,
             },
         });
+    }
+
+    /// <summary>
+    /// Возвращает выдачу ресурса за смену: базовый выход, сдвинутый процентом выхода на целое число единиц. Дробный
+    /// остаток сдвига отбрасывается, поэтому на выходе в одну единицу модификатор ничего не меняет, а сама выдача
+    /// никогда не опускается ниже одной единицы.
+    /// </summary>
+    /// <param name="baseValue">Базовый выход ресурса по рецепту.</param>
+    /// <param name="outputPercent">Процент выхода, зафиксированный за сменой.</param>
+    /// <returns>Число выданных единиц ресурса.</returns>
+    public static int GetOutputGrant(int baseValue, int outputPercent)
+    {
+        return Math.Max(1, baseValue + baseValue * (outputPercent - 100) / 100);
     }
 
     /// <summary>

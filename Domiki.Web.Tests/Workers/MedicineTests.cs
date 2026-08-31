@@ -75,8 +75,8 @@ public sealed class MedicineTests
     }
 
     /// <summary>
-    /// Шанс хвори фиксируется при старте производства по величине погодного бонуса, только при обжитости не ниже порога и для
-    /// постройки с положительным эффектом погоды.
+    /// Шанс хвори фиксируется при старте производства по числу единиц, добытых сверх базового выхода благодаря погоде, только
+    /// при обжитости не ниже порога: бонус, не давший ни одной целой единицы, риска не создаёт.
     /// </summary>
     /// <param name="weatherTypeId">Погода на момент старта производства.</param>
     /// <param name="domikTypeId">Тип постройки, где запускается производство.</param>
@@ -84,7 +84,7 @@ public sealed class MedicineTests
     /// <param name="highVillage">Поднята ли деревня до порога простуды.</param>
     /// <param name="expectedSickChance">Ожидаемый зафиксированный шанс заболеть.</param>
     [TestCase(WeatherIds.Rain, DomikIds.ClayMine, ReceiptIds.ClayDig8h, true, 15)]
-    [TestCase(WeatherIds.Frost, DomikIds.Forge, ReceiptIds.MakeTool, true, 8)]
+    [TestCase(WeatherIds.Frost, DomikIds.Forge, ReceiptIds.MakeTool, true, 0)]
     [TestCase(WeatherIds.Wind, DomikIds.LumberMill, ReceiptIds.WoodDig8h, true, 8)]
     [TestCase(WeatherIds.Clear, DomikIds.ClayMine, ReceiptIds.ClayDig8h, true, 0)]
     [TestCase(WeatherIds.Rain, DomikIds.LumberMill, ReceiptIds.WoodDig8h, true, 0)]

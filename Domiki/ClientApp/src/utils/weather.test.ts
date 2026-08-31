@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { SickTypeDto, WeatherPeriodDto } from '../types/api';
-import { sickRiskPercent, sickTypeForWeather, weatherMark, weatherMarkSpeech } from './weather';
+import { grantOutput, sickRiskPercent, sickTypeForWeather, weatherMark, weatherMarkSpeech, weatherOutputChange } from './weather';
 
 const period = (weatherTypeId: number, weatherName: string, logicName: string, effects: { domikTypeId: number; outputPercent: number }[]): WeatherPeriodDto => ({
     weatherTypeId,
@@ -42,14 +42,43 @@ describe('weatherMark', () => {
     });
 });
 
+describe('grantOutput', () => {
+    it.each([
+        [1, 75, 1], [1, 125, 1], [1, 150, 1],
+        [2, 75, 2], [2, 125, 2], [2, 150, 3],
+        [3, 75, 3], [3, 125, 3], [3, 150, 4],
+        [4, 75, 3], [4, 125, 5], [4, 150, 6],
+        [8, 75, 6], [8, 125, 10], [8, 150, 12],
+        [24, 75, 18], [24, 125, 30], [24, 150, 36],
+    ])('выход %i при %i%% даёт %i', (base, percent, expected) => {
+        expect(grantOutput(base, percent)).toBe(expected);
+    });
+});
+
+describe('weatherOutputChange', () => {
+    it.each([
+        ['часовой рецепт на единицу', [{ typeId: 1, value: 1 }], 150, 1, 1, 0],
+        ['часовой рецепт под помехой', [{ typeId: 1, value: 1 }], 75, 1, 1, 0],
+        ['крупную смену с прибавкой', [{ typeId: 1, value: 8 }], 125, 8, 10, 2],
+        ['крупную смену с убытком', [{ typeId: 1, value: 8 }], 75, 8, 6, -2],
+        ['смену на два ресурса', [{ typeId: 1, value: 4 }, { typeId: 2, value: 1 }], 150, 5, 7, 2],
+        ['погоду без влияния', [{ typeId: 1, value: 8 }], 100, 8, 8, 0],
+    ])('считает %s', (_case, outputResources, outputPercent, base, granted, delta) => {
+        expect(weatherOutputChange(outputResources, outputPercent)).toEqual({ base, granted, delta });
+    });
+});
+
 describe('sickRiskPercent', () => {
     it.each([
-        [150, 15],
-        [125, 8],
-        [100, 0],
-        [75, 0],
-    ])('шанс при выходе %i%% равен %i%%', (outputPercent, expected) => {
-        expect(sickRiskPercent(outputPercent)).toBe(expected);
+        [2, 1, 8],
+        [2, 2, 4],
+        [3, 4, 3],
+        [12, 3, 15],
+        [0, 2, 0],
+        [-2, 2, 0],
+        [4, 0, 0],
+    ])('риск от %i лишних единиц на %i трудяг равен %i%%', (weatherExtra, plodderCount, expected) => {
+        expect(sickRiskPercent(weatherExtra, plodderCount)).toBe(expected);
     });
 });
 
