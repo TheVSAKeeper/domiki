@@ -26,10 +26,12 @@ export const TermTip = ({ term, children, className }: TermTipProps) => {
         }
 
         const onInteract = (event: Event) => {
-            const element = event.target instanceof Element ? event.target : null;
-            if (element?.closest('.term-tip, .term-tip-pop') == null) {
-                setShown(null);
+            const node = event.target instanceof Node ? event.target : null;
+            if (node != null && (buttonRef.current?.contains(node) === true || popRef.current?.contains(node) === true)) {
+                return;
             }
+
+            setShown(null);
         };
         const onKey = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -49,7 +51,7 @@ export const TermTip = ({ term, children, className }: TermTipProps) => {
             window.removeEventListener('scroll', onShift, { capture: true });
             window.removeEventListener('resize', onShift);
         };
-    }, [anchor]);
+    }, [anchor, popRef]);
 
     if (gloss == null) {
         return <>{children}</>;
@@ -66,7 +68,9 @@ export const TermTip = ({ term, children, className }: TermTipProps) => {
                 aria-describedby={glossId}
                 onClick={() => { if (shown?.pinned === true) { setShown(null); } else { show(true); } }}
                 onPointerEnter={event => { if (event.pointerType === 'mouse' && shown == null) { show(false); } }}
-                onPointerLeave={event => { if (event.pointerType === 'mouse' && shown?.pinned === false) { setShown(null); } }}>
+                onPointerLeave={event => { if (event.pointerType === 'mouse' && shown?.pinned === false) { setShown(null); } }}
+                onFocus={event => { if (event.target.matches(':focus-visible')) { show(false); } }}
+                onBlur={() => { setShown(null); }}>
                 {children}
             </button>
             <span className="term-tip-gloss" id={glossId}>{gloss}</span>

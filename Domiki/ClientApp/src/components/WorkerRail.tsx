@@ -192,7 +192,7 @@ export const WorkerRail = ({ workers, domikTypes, now, skillDomikTypeId, heldWor
                                 onClick={() => { toggleGroup(state); }}>
                                 {GROUP_LABELS[state]} {group.length}
                             </button>
-                            {state === 'away' && open && <p className="worker-rail-away-hint">{termLore.worker_away}</p>}
+                            {state === 'away' && <p className="worker-rail-away-hint">{termLore.worker_away}</p>}
                             {open && group.map(worker =>
                                 <WorkerRailCard key={worker.id} worker={worker} domikTypes={domikTypes} state={state} order={0}
                                     skillDomikTypeId={skillDomikTypeId} skillTypeName={skillTypeName} held={false} onGrab={null} />,

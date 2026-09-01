@@ -8,6 +8,7 @@ import { isSkilledWorker } from '../utils/worker';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { ActionButton } from './ActionButton';
 import { ProgressBar } from './ProgressBar';
+import { TermTip } from './TermTip';
 import { DomikSprite, WorkerSprite } from './sprites';
 
 interface DomikIncidentCardProps {
@@ -73,7 +74,7 @@ export const DomikIncidentCard = ({ incident, workers, domikTypes, now, onStartS
             </div>
             <p className="incident-hook">{domikIncidentText(template.hook, domikName, '', undefined)}</p>
             <span className="incident-return">Разгадается сама к {timeLabel(incident.autoResolveDate)}</span>
-            <span className="panel-label">зацепка</span>
+            <span className="panel-label"><TermTip term="clue">зацепка</TermTip></span>
             <div className="errand-clue-list">
                 {template.clues.map((clue, index) => (
                     <button key={clue.label} type="button" role="radio" aria-checked={clueId === index} className={'errand-clue' + (clueId === index ? ' errand-clue-selected' : '')} onClick={() => setClueId(index)}>

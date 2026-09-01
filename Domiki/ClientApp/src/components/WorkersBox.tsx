@@ -38,6 +38,7 @@ interface WorkersBoxProps {
 const stateLabels: Record<WorkerState, string> = { expedition: 'В экспедиции', errand: 'В поручении', incidentMissing: 'Задержался', incidentSearch: 'В поисках', domikIncidentSearch: 'Разбирается', busy: 'Работает', resting: 'Отдыхает', away: 'В отходе', free: 'Свободен' };
 const tallyLabels: Record<WorkerState, string> = { expedition: 'в пути', errand: 'в поручении', incidentMissing: 'задержались', incidentSearch: 'в поисках', domikIncidentSearch: 'разбираются', busy: 'за работой', resting: 'отдыхают', away: 'в отходе', free: 'свободны' };
 const tallyOrder: WorkerState[] = ['free', 'busy', 'resting', 'away', 'incidentMissing', 'incidentSearch', 'domikIncidentSearch', 'errand', 'expedition'];
+const stateTerms: Partial<Record<WorkerState, string>> = { away: 'worker_away', incidentMissing: 'worker_missing', incidentSearch: 'worker_search', domikIncidentSearch: 'worker_domik_search' };
 const FATIGUE_THRESHOLD_SECONDS = 28800;
 
 const useShownPortraits = () => {
@@ -420,7 +421,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, receipts, expeditions,
                             <div className="worker-topline" title={stateKey === 'resting' ? restTitle : undefined}>
                                 <span className="worker-badge">
                                     {stateKey === 'resting' && <AbstractSprite logicName="fatigue_rest" size={24} className="worker-badge-ico" aria-hidden="true" />}
-                                    {stateKey === 'away' ? <TermTip term="worker_away">{stateLabel}</TermTip> : stateLabel}
+                                    {stateTerms[stateKey] != null ? <TermTip term={stateTerms[stateKey]}>{stateLabel}</TermTip> : stateLabel}
                                 </span>
                                 {workplace?.autoRepeat === true &&
                                     <span className="worker-shift-badge"><TermTip term="naryad">наряд</TermTip></span>

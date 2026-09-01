@@ -7,6 +7,7 @@ import { NumberStepper } from './NumberStepper';
 import { ProgressBar } from './ProgressBar';
 import { ActionButton } from './ActionButton';
 import { StatChip } from './StatChip';
+import { TermTip } from './TermTip';
 import { MechanicSprite, ResourceSprite, TolokaSprite } from './sprites';
 
 interface TolokaBoxProps {
@@ -39,9 +40,9 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute,
                     <h3 className="panel-title toloka-hero-title">Толока</h3>
                     <p className="toloka-hero-sub">Всем миром строим «{active.name}» – скидываемся в общий котёл. Достроим – по всей округе праздник, и всякая работа спорится веселее.</p>
                 </div>
-                <div className="toloka-hero-stat" title="Праздник толоки за твой вклад">
+                <div className="toloka-hero-stat">
                     <span className="toloka-hero-stat-num">{toloka.buffHours}ч</span>
-                    <span className="toloka-hero-stat-label">{toloka.nextBuffHours != null ? `вложись – ${toloka.nextBuffHours}ч` : 'праздник толоки'}</span>
+                    <span className="toloka-hero-stat-label"><TermTip term="toloka_feast">{toloka.nextBuffHours != null ? `вложись – ${toloka.nextBuffHours}ч` : 'праздник толоки'}</TermTip></span>
                 </div>
             </div>
 
