@@ -87,6 +87,7 @@ const mappings: Record<string, ContractSchema> = {
     WeatherEffectDto: { schemaName: 'weatherEffectSchema', shape: api.weatherEffectSchema.shape },
     WeatherPeriodDto: { schemaName: 'weatherPeriodSchema', shape: api.weatherPeriodSchema.shape },
     WeatherStateDto: { schemaName: 'weatherStateSchema', shape: api.weatherStateSchema.shape },
+    WikiStateDto: { schemaName: 'wikiStateSchema', shape: api.wikiStateSchema.shape },
     WorkerDto: { schemaName: 'workerSchema', shape: api.workerSchema.shape },
     WorkerSkillDto: { schemaName: 'workerSkillSchema', shape: api.workerSkillSchema.shape },
     WorldDto: { schemaName: 'worldSchema', shape: api.worldSchema.shape },

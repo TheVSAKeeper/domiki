@@ -349,6 +349,8 @@ public sealed class AppScope : IDisposable
 
     public ApplicationDbContext Context => Get<ApplicationDbContext>();
 
+    public IServiceProvider Services => _scope.ServiceProvider;
+
     public T Get<T>() where T : notnull
     {
         return _scope.ServiceProvider.GetRequiredService<T>();

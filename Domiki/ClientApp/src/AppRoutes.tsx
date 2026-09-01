@@ -30,6 +30,7 @@ const AppRoutes: AppRouteConfig[] = [
     {
         path: '/wiki',
         element: lazyPage(<Wiki />),
+        requireAuth: true,
     },
     {
         path: '/world',

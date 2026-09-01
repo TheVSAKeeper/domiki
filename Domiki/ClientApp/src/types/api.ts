@@ -757,6 +757,22 @@ export const gameStateSchema = z.object({
 });
 export type GameStateDto = z.infer<typeof gameStateSchema>;
 
+export const wikiStateSchema = z.object({
+    domikTypes: domikTypeSchema.array(),
+    resourceTypes: resourceTypeSchema.array(),
+    receipts: receiptSchema.array(),
+    weather: weatherStateSchema,
+    decor: decorStateSchema,
+    villageLevel: villageLevelSchema,
+    convoys: z.array(convoySchema),
+    toloka: tolokaStateSchema.nullable(),
+    village: villageSchema,
+    villageProfiles: z.array(villageProfileSchema),
+    reputation: neighborReputationSchema.array(),
+    relocation: relocationSchema,
+});
+export type WikiStateDto = z.infer<typeof wikiStateSchema>;
+
 export interface PlodderCount {
     max: number;
     free: number;

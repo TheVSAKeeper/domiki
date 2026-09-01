@@ -16,6 +16,7 @@ import {
     villageSchema,
     worldSchema,
     villageVisitSchema,
+    wikiStateSchema,
     type DecorStateDto,
     type GameStateDto,
     type JournalPageDto,
@@ -27,6 +28,7 @@ import {
     type MarketStateDto,
     type VillageDto,
     type VillageVisitDto,
+    type WikiStateDto,
     type WorldDto,
 } from '../types/api';
 
@@ -112,6 +114,9 @@ export const apiGet = <T>(url: string, schema: z.ZodType<T>, signal?: AbortSigna
 
 export const getGameState = (signal?: AbortSignal): Promise<GameStateDto> =>
     apiGet('Domiki/GetGameState', gameStateSchema, signal);
+
+export const getWikiState = (signal?: AbortSignal): Promise<WikiStateDto> =>
+    apiGet('Domiki/GetWikiState', wikiStateSchema, signal);
 
 export async function apiPost(url: string, signal?: AbortSignal): Promise<void> {
     await request('POST', url, null, signal);

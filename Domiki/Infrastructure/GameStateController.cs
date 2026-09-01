@@ -121,4 +121,40 @@ public class GameStateController : GameControllerBase
 
         return content;
     }
+
+    /// <summary>
+    /// Справочный срез состояния для внутриигрового справочника.
+    /// </summary>
+    /// <returns>Справочники, погода, обжитость, обозы, толока и уклад деревни игрока.</returns>
+    /// <remarks>
+    /// Отдельный от <see cref="GetGameState"/> экшен именно потому, что снимок состояния игры – не чистое чтение:
+    /// он выдаёт витрину «Пока вас не было» и двигает курсор доставки событий
+    /// (<see cref="PlayerEventManager.TakeRecap"/>), выдаёт подарок и веху трудяги, забирает дельту вклада в толоку
+    /// (<see cref="Activities.TolokaManager.TakeProgress"/>) и продвигает наказы. Справочник открывают между делом,
+    /// в том числе первым экраном после долгого отсутствия, поэтому здесь ничего из этого не вызывается.
+    /// </remarks>
+    [HttpGet]
+    [Route("/Domiki/GetWikiState")]
+    public WikiStateDto GetWikiState()
+    {
+        var playerId = GetPlayerId();
+        var blueprints = _resourceManager.GetBlueprints();
+        var villageLevel = _villageLevelCalculator.GetLevel(playerId);
+
+        return new WikiStateDto
+        {
+            DomikTypes = _resourceManager.GetDomikTypes().Select(x => x.ToDto(blueprintId: blueprints.FirstOrDefault(b => b.DomikTypeId == x.Id)?.Id)).ToArray(),
+            ResourceTypes = _resourceManager.GetResourceTypes().Select(x => x.ToDto()).ToArray(),
+            Receipts = _resourceManager.GetReceipts().Select(x => x.ToDto()).ToArray(),
+            Weather = _weatherManager.GetWeather(DateTimeHelper.GetNowDate()).ToDto(),
+            Decor = _decorManager.GetDecor(playerId).ToDto(_resourceManager.GetNeighbors()),
+            VillageLevel = villageLevel.ToDto(),
+            Convoys = _convoyManager.GetConvoys(playerId).Select(x => x.ToDto()).ToArray(),
+            Toloka = _tolokaManager.GetToloka(DateTimeHelper.GetNowDate(), playerId)?.ToDto(),
+            Village = _domikManager.GetVillage(playerId).ToDto(),
+            VillageProfiles = _resourceManager.GetVillageProfileEffects().Select(x => x.ToDto()).ToArray(),
+            Reputation = _orderManager.GetReputation(playerId).Select(x => x.ToDto()).ToArray(),
+            Relocation = _relocationManager.GetState(playerId, villageLevel.Level).ToDto(),
+        };
+    }
 }

@@ -1,8 +1,9 @@
 interface OfflineBannerProps {
     staleSince: number | null;
+    subject?: string;
 }
 
-export const OfflineBanner = ({ staleSince }: OfflineBannerProps) => {
+export const OfflineBanner = ({ staleSince, subject = 'деревня показана такой, какой была' }: OfflineBannerProps) => {
     if (staleSince == null) {
         return null;
     }
@@ -11,7 +12,7 @@ export const OfflineBanner = ({ staleSince }: OfflineBannerProps) => {
 
     return (
         <div className="offline-banner" role="status" aria-live="polite">
-            Связи нет – деревня показана такой, какой была в {savedAt}
+            Связи нет – {subject} в {savedAt}
         </div>
     );
 };
