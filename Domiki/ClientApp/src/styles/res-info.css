@@ -7,6 +7,10 @@
     pointer-events: none;
 }
 
+.res-info-pop--pinned {
+    pointer-events: auto;
+}
+
 .res-info-head {
     display: flex;
     align-items: center;

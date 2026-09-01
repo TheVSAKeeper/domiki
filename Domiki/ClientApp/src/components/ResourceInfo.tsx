@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { DomikTypeDto, ReceiptDto, ResourceTypeDto } from '../types/api';
 import { resourceSourceMap } from '../utils/game';
@@ -19,14 +19,53 @@ interface ResourceInfoProviderProps {
 export const ResourceInfoProvider = ({ resourceTypes, domikTypes, receipts, children }: ResourceInfoProviderProps) => {
     const sources = useMemo(() => resourceSourceMap(domikTypes, receipts), [domikTypes, receipts]);
     const typeById = useMemo(() => new Map(resourceTypes.map(type => [type.id, type])), [resourceTypes]);
-    const [flyout, setFlyout] = useState<{ typeId: number; rect: DOMRect } | null>(null);
+    const [flyout, setFlyout] = useState<{ typeId: number; rect: DOMRect; pinned: boolean } | null>(null);
     const [popRef, popTop, popHidden] = useFlyoutTop<HTMLDivElement>(flyout?.rect ?? null);
 
     const open = useCallback((typeId: number, el: HTMLElement) => {
-        setFlyout({ typeId, rect: el.getBoundingClientRect() });
+        setFlyout(prev => prev?.pinned === true ? prev : { typeId, rect: el.getBoundingClientRect(), pinned: false });
     }, []);
-    const close = useCallback(() => { setFlyout(null); }, []);
-    const value = useMemo(() => ({ open, close }), [open, close]);
+    const close = useCallback(() => {
+        setFlyout(prev => prev?.pinned === true ? prev : null);
+    }, []);
+    const toggle = useCallback((typeId: number, el: HTMLElement) => {
+        setFlyout(prev => prev?.pinned === true && prev.typeId === typeId
+            ? null
+            : { typeId, rect: el.getBoundingClientRect(), pinned: true });
+    }, []);
+    const value = useMemo(() => ({ open, close, toggle }), [open, close, toggle]);
+
+    useEffect(() => {
+        if (flyout?.pinned !== true) {
+            return;
+        }
+
+        const onInteract = (event: Event) => {
+            const node = event.target instanceof Node ? event.target : null;
+            if (node != null && popRef.current?.contains(node) === true) {
+                return;
+            }
+
+            setFlyout(null);
+        };
+        const onKey = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setFlyout(null);
+            }
+        };
+        const onShift = () => { setFlyout(null); };
+
+        document.addEventListener('pointerdown', onInteract);
+        document.addEventListener('keydown', onKey);
+        window.addEventListener('scroll', onShift, { capture: true, passive: true });
+        window.addEventListener('resize', onShift);
+        return () => {
+            document.removeEventListener('pointerdown', onInteract);
+            document.removeEventListener('keydown', onKey);
+            window.removeEventListener('scroll', onShift, { capture: true });
+            window.removeEventListener('resize', onShift);
+        };
+    }, [flyout?.pinned, popRef]);
 
     const type = flyout == null ? null : typeById.get(flyout.typeId) ?? null;
     const lore = type == null ? null : resourceLore[type.logicName] ?? null;
@@ -36,7 +75,7 @@ export const ResourceInfoProvider = ({ resourceTypes, domikTypes, receipts, chil
         <ResourceInfoContext.Provider value={value}>
             {children}
             {flyout != null && type != null && createPortal(
-                <div ref={popRef} className="res-info-pop pixel-panel" role="tooltip"
+                <div ref={popRef} className={'res-info-pop pixel-panel' + (flyout.pinned ? ' res-info-pop--pinned' : '')} role="tooltip"
                     style={{
                         top: popTop,
                         left: flyoutLeft(flyout.rect.left, flyoutWidth(FLYOUT_WIDTH)),
