@@ -497,6 +497,15 @@
 }
 
 .manufacture-repeat-note,
+.receipt-lore {
+    margin: 0 0 8px;
+    font-family: 'Golos Text', 'Segoe UI', sans-serif;
+    font-size: 12px;
+    font-style: italic;
+    line-height: 1.45;
+    color: rgba(51, 41, 26, .75);
+}
+
 .receipt-repeat-hint {
     font-size: 11px;
     line-height: 1.4;

@@ -20,6 +20,7 @@ import { ActionButton } from './ActionButton';
 import { HurryButton } from './HurryButton';
 import { StatChip } from './StatChip';
 import { TermTip } from './TermTip';
+import { receiptLore } from '../utils/receiptLore';
 import { ProgressBar } from './ProgressBar';
 import { ResourcesBox } from './ResourcesBox';
 import { WeatherMark } from './WeatherMark';
@@ -200,6 +201,9 @@ const ReceiptRow = ({ receipt, blueprintLock, domikId, domikType, resources, res
             </button>
             {expanded &&
                 <div className="receipt-body">
+                    {receiptLore[receipt.logicName] != null &&
+                        <p className="receipt-lore">{receiptLore[receipt.logicName]}</p>
+                    }
                     <div className="receipt-io">
                         {view.inputs.length > 0 &&
                             <div className="receipt-io-row">
