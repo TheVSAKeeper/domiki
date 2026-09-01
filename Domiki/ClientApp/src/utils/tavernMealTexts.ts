@@ -16,13 +16,13 @@ const mealTemplates: string[] = [
 export type WorkerMealNoMealReason = 'forbidden' | 'empty';
 
 const noMealSingleTemplates: Record<WorkerMealNoMealReason, string> = {
-    forbidden: '{имя} {ушёл|ушла} отдыхать без обеда – в кладовой только заповедное',
+    forbidden: '{имя} {ушёл|ушла} отдыхать без обеда – на складе только заповедное',
     empty: 'Котёл пустой – {имя} отдыхает полный срок',
 };
 
 const noMealMergedTemplates: Record<WorkerMealNoMealReason, string> = {
     forbidden: 'Без обеда ×{N} – заповедное не тронули',
-    empty: 'Без обеда ×{N} – в кладовой пусто',
+    empty: 'Без обеда ×{N} – на складе нет съестного',
 };
 
 export function getWorkerMealTemplate(variant: number): string {

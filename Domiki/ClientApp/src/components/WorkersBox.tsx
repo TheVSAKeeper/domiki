@@ -216,7 +216,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, receipts, expeditions,
         return !(rule?.forbidden ?? false) && stockFor(type.id) > (rule?.reserve ?? 0);
     });
     const larderState = !hasFood
-        ? 'В кладовой пусто – уставшие отдыхают полный срок'
+        ? 'На складе нет съестного – уставшие отдыхают полный срок'
         : allFoodForbidden
             ? 'Вся еда заповедана – корчмарь не подаёт, уставшие отдыхают полный срок'
             : !anyFoodSpendable
@@ -307,7 +307,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, receipts, expeditions,
                     <div className="workers-larder-panel-head">
                         <MechanicSprite logicName="tavern" size={24} className="workers-larder-panel-ico" aria-hidden="true" />
                         <div className="workers-larder-panel-text">
-                            <span className="workers-larder-panel-title">Кладовая</span>
+                            <span className="workers-larder-panel-title">Съестное</span>
                             <span className="workers-larder-panel-hint">Что беречь от котла: корчмарь берёт сам, дешёвое первым</span>
                         </div>
                         <button type="button" className="workers-larder-toggle" aria-expanded={larderOpen} onClick={() => setLarderOpen(open => !open)}>

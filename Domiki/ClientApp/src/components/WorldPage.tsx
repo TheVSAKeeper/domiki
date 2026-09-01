@@ -46,7 +46,7 @@ const ProfileTag = ({ logicName, className, iconClassName }: { logicName: string
 const LevelBreakdown = ({ visit }: { visit: VillageVisitDto }) => (
     <div className="world-level-grid">
         <span>Постройки: {visit.level.buildings}</span>
-        <span>Жители: {visit.level.residents}</span>
+        <span>Койки: {visit.level.residents}</span>
         <span>Доброе имя: {visit.level.reputation}</span>
         <span>Уют: {visit.level.comfort}</span>
     </div>

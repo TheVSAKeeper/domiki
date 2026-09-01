@@ -81,7 +81,7 @@ export const RelocationBox = ({ relocation, villageName, onRelocate, onBuyPerk }
                     <p className="relocation-hero-valley">Нынче стоим в долине {relocation.valleyName}</p>
                     <p className="relocation-hero-sub">
                         Всё, что здесь умели, уже поставлено, а за перевалом земля не пахана.
-                        Двор и припас останутся, люди и чертежи поедут с вами.
+                        Двор и припас останутся, трудяги и чертежи поедут с вами.
                     </p>
                 </div>
             </header>

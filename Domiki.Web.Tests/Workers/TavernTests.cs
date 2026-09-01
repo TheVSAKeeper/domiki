@@ -165,7 +165,7 @@ public sealed class TavernTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex.Message, Is.EqualTo("Свободной еды нет – остальное заповедано в кладовой"));
+            Assert.That(ex.Message, Is.EqualTo("Свободной еды нет – остальное заповедано на складе"));
             Assert.That(player.Resource(ResourceIds.Bread), Is.EqualTo(bread));
             Assert.That(player.Expeditions().Active, Is.Empty);
         }

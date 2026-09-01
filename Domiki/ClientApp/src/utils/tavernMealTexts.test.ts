@@ -21,10 +21,10 @@ describe('getWorkerMealText', () => {
     });
 
     it.each([
-        ['forbidden', 1, 'Аким ушёл отдыхать без обеда – в кладовой только заповедное'],
+        ['forbidden', 1, 'Аким ушёл отдыхать без обеда – на складе только заповедное'],
         ['empty', 1, 'Котёл пустой – Аким отдыхает полный срок'],
         ['forbidden', 4, 'Без обеда ×4 – заповедное не тронули'],
-        ['empty', 4, 'Без обеда ×4 – в кладовой пусто'],
+        ['empty', 4, 'Без обеда ×4 – на складе нет съестного'],
     ])('reason %s with count %s resolves to %s', (reason, count, expected) => {
         const workerName = count > 1 ? null : 'Аким';
         const workerGender = count > 1 ? null : 1;

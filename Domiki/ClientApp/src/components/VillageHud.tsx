@@ -152,7 +152,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                             <div className="village-level">
                                 <button type="button" className={'village-level-box' + (levelFlyout ? ' is-open' : '')}
                                     onClick={() => { toggleFlyout('level'); }} aria-expanded={levelFlyout}
-                                    title={`Постройки ${villageLevel.buildings}, жители ${villageLevel.residents}, доброе имя ${villageLevel.reputation}, уют ${villageLevel.comfort}`}>
+                                    title={`Постройки ${villageLevel.buildings}, койки ${villageLevel.residents}, доброе имя ${villageLevel.reputation}, уют ${villageLevel.comfort}`}>
                                     <MechanicSprite logicName="obzhitost" size={24} className="village-level-ico" aria-hidden="true" />
                                     <span className="village-level-label">Обжитость</span>
                                     <span className="village-level-value">{villageLevel.level}</span>
@@ -200,7 +200,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                     <div className="hud-flyout village-level-flyout">
                         <div className="vlf-stats">
                             <span className="vlf-stat"><span className="vlf-stat-label">Постройки</span><span className="vlf-stat-value">{villageLevel?.buildings}</span></span>
-                            <span className="vlf-stat"><span className="vlf-stat-label">Жители</span><span className="vlf-stat-value">{villageLevel?.residents}</span></span>
+                            <span className="vlf-stat"><span className="vlf-stat-label">Койки</span><span className="vlf-stat-value">{villageLevel?.residents}</span></span>
                             <span className="vlf-stat"><span className="vlf-stat-label">Доброе имя</span><span className="vlf-stat-value">{villageLevel?.reputation}</span></span>
                             <span className="vlf-stat"><span className="vlf-stat-label">Уют</span><span className="vlf-stat-value">{villageLevel?.comfort}</span></span>
                         </div>
@@ -251,7 +251,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                                                         <span className="vlf-req">{unlock.requirement}</span>}
                                                 </span>
                                                 {unlock.level != null &&
-                                                    <span className="vlf-badge">обж {unlock.level}</span>}
+                                                    <span className="vlf-badge" aria-label={`обжитость ${unlock.level}`}>{unlock.level}</span>}
                                             </li>
                                         ))}
                                     </ul>

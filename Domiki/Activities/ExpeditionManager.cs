@@ -160,7 +160,7 @@ public class ExpeditionManager
         var foodAffordable = food.Sum(x => x.Value) == foodCount;
         if (provisions && !foodAffordable && _tavernManager.GetFoodStock(playerId) >= foodCount)
         {
-            throw new BusinessException("Свободной еды нет – остальное заповедано в кладовой");
+            throw new BusinessException("Свободной еды нет – остальное заповедано на складе");
         }
 
         var provisionResources = (foodAffordable
