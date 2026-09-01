@@ -19,7 +19,8 @@ export const ResourceChip = ({ resourceType, value, min, max, rare }: ResourceCh
             title={info == null ? resourceType.name : undefined}
             onMouseEnter={info == null ? undefined : event => { info.open(resourceType.id, event.currentTarget); }}
             onMouseLeave={info?.close}
-            onClick={info == null ? undefined : event => { info.toggle(resourceType.id, event.currentTarget); }}>
+            onClick={info == null ? undefined : event => { event.stopPropagation(); info.toggle(resourceType.id, event.currentTarget); }}
+            data-res-info={info == null ? undefined : ''}>
             <ResourceSprite logicName={resourceType.logicName} aria-hidden="true" />
             {min != null && max != null ? `${min}–${max}` : value}
         </span>

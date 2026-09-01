@@ -46,6 +46,10 @@ export const ResourceInfoProvider = ({ resourceTypes, domikTypes, receipts, chil
                 return;
             }
 
+            if (node instanceof Element && node.closest('[data-res-info]') != null) {
+                return;
+            }
+
             setFlyout(null);
         };
         const onKey = (event: KeyboardEvent) => {

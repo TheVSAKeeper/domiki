@@ -48,7 +48,8 @@ const StockChip = ({ row, reserve, den, denLabel, alarm, focused }: StockChipPro
             title={info == null ? row.type.name : undefined}
             onMouseEnter={info == null ? undefined : event => { info.open(row.type.id, event.currentTarget); }}
             onMouseLeave={info?.close}
-            onClick={info == null ? undefined : event => { info.toggle(row.type.id, event.currentTarget); }}>
+            onClick={info == null ? undefined : event => { event.stopPropagation(); info.toggle(row.type.id, event.currentTarget); }}
+            data-res-info={info == null ? undefined : ''}>
             <ResourceSprite logicName={row.type.logicName} size={32} className="stock-chip-ico" aria-hidden="true" />
             <span className="stock-chip-value">{row.value}</span>
         </div>

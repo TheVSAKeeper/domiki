@@ -29,7 +29,8 @@ export const ResourcesBox = ({ resources, resourceTypes, have, showNames = false
                         title={info == null ? resourceType.name : undefined}
                         onMouseEnter={info == null ? undefined : event => { info.open(res.typeId, event.currentTarget); }}
                         onMouseLeave={info?.close}
-                        onClick={info == null ? undefined : event => { info.toggle(res.typeId, event.currentTarget); }}>
+                        onClick={info == null ? undefined : event => { event.stopPropagation(); info.toggle(res.typeId, event.currentTarget); }}
+                        data-res-info={info == null ? undefined : ''}>
                         <ResourceSprite logicName={resourceType.logicName} aria-hidden="true" />
                         {showNames && <span className="resource-name">{resourceType.name}</span>}
                         <span className="resource-value">{lacking ? `${ownedValue}/${res.value}` : res.value}</span>
