@@ -25,6 +25,10 @@
             margin-bottom: 0;
         }
 
+    .wiki-intro .btn-game {
+        margin-top: 16px;
+    }
+
 .wiki-section {
     margin-top: 40px;
 }
@@ -254,6 +258,7 @@ button.wiki-res-cell {
 
 .wiki-building {
     padding: 0;
+    scroll-margin-top: 12px;
 }
 
 .wiki-building-head {

@@ -14,7 +14,7 @@ const App = () => {
                         <Route
                             key={route.path ?? '/'}
                             {...rest}
-                            element={requireAuth ? <AuthorizeRoute {...rest} element={element} /> : element}
+                            element={requireAuth ? <AuthorizeRoute element={element} /> : element}
                         />
                     );
                 })}

@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { ApiError, OfflineError, getWikiState } from '../services/api';
 import { loadSnapshot } from '../services/offlineSnapshot';
@@ -10,12 +11,14 @@ import { resourceLore } from '../utils/resourceLore';
 import { flyoutLeft, flyoutWidth, useFlyoutTop } from '../utils/flyout';
 import { PLODDER_MODIFICATOR_TYPE_ID, weatherEffects } from '../utils/game';
 import { profileGenitiveName, profileLore } from '../utils/profileLore';
+import { wikiArticleAnchor, wikiBuildingAnchor } from '../utils/wikiLinks';
 import type { ConvoyDto, DecorStateDto, DomikTypeDto, NeighborReputationDto, ReceiptDto, RelocationDto, ResourceDto, ResourceTypeDto, TolokaStateDto, VillageDto, VillageLevelDto, VillageProfileDto, WeatherStateDto, WikiStateDto } from '../types/api';
 import { AbstractSprite, DecorSprite, DomikSprite, MechanicSprite, NeighborSprite, ResourceSprite, WeatherSprite } from './sprites';
 import { AnimatedDomikSprite } from './AnimatedDomikSprite';
 import { ConvoyTally } from './ConvoyTally';
 import { PixelLoader } from './PixelLoader';
 import { OfflineBanner } from './OfflineBanner';
+import ArrowLeftIcon from 'pixelarticons/svg/arrow-left.svg?react';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import CheckIcon from 'pixelarticons/svg/check.svg?react';
 import HomeIcon from 'pixelarticons/svg/home.svg?react';
@@ -56,6 +59,16 @@ const toCatalog = (state: WikiStateDto): Catalog => ({
     reputation: state.reputation,
     relocation: state.relocation,
 });
+
+const revealArticle = (anchorId: string) => {
+    const node = document.getElementById(anchorId);
+    if (node == null) {
+        return;
+    }
+
+    node.scrollIntoView({ block: 'start' });
+    node.querySelector('button')?.focus({ preventScroll: true });
+};
 
 interface Mechanic {
     key: string;
@@ -422,10 +435,15 @@ interface WikiBuildingsSectionProps {
     domikTypes: DomikTypeDto[];
     resourceTypes: ResourceTypeDto[];
     receipts: ReceiptDto[];
+    openLogicName: string | null;
 }
 
-const WikiBuildingsSection = ({ domikTypes, resourceTypes, receipts }: WikiBuildingsSectionProps) => {
-    const [openIds, setOpenIds] = useState<ReadonlySet<number>>(new Set());
+const WikiBuildingsSection = ({ domikTypes, resourceTypes, receipts, openLogicName }: WikiBuildingsSectionProps) => {
+    const buildingIdByLogicName = (logicName: string | null) => (logicName == null ? undefined : domikTypes.find(type => type.logicName === logicName)?.id);
+    const [openIds, setOpenIds] = useState<ReadonlySet<number>>(() => {
+        const target = buildingIdByLogicName(openLogicName);
+        return target == null ? new Set() : new Set([target]);
+    });
     const toggleBuilding = (id: number) => setOpenIds(prev => {
         const next = new Set(prev);
         if (next.has(id)) {
@@ -437,6 +455,21 @@ const WikiBuildingsSection = ({ domikTypes, resourceTypes, receipts }: WikiBuild
     });
     const receiptById = (id: number) => receipts.find(x => x.id === id);
     const buildings = [...domikTypes].sort((a, b) => a.unlockLevel - b.unlockLevel || a.id - b.id);
+
+    const [appliedLogicName, setAppliedLogicName] = useState<string | null>(openLogicName);
+    if (openLogicName !== appliedLogicName) {
+        setAppliedLogicName(openLogicName);
+        const target = buildingIdByLogicName(openLogicName);
+        if (target != null) {
+            setOpenIds(prev => new Set(prev).add(target));
+        }
+    }
+
+    useEffect(() => {
+        if (openLogicName != null) {
+            revealArticle(wikiBuildingAnchor(openLogicName));
+        }
+    }, [openLogicName]);
 
     return (
         <section className="wiki-section">
@@ -455,7 +488,7 @@ const WikiBuildingsSection = ({ domikTypes, resourceTypes, receipts }: WikiBuild
                     }
 
                     return (
-                        <div key={type.id} className={'wiki-building pixel-panel' + (open ? ' receipt-open' : '')}>
+                        <div key={type.id} id={wikiBuildingAnchor(type.logicName)} className={'wiki-building pixel-panel' + (open ? ' receipt-open' : '')}>
                             <button type="button" className="wiki-building-head" aria-expanded={open} onClick={() => toggleBuilding(type.id)}>
                                 <AnimatedDomikSprite mode="loop" logicName={type.logicName} maxLevel={type.levels.length} active={open} />
                                 <span className="wiki-building-titles">
@@ -528,10 +561,13 @@ interface WikiMechanicsSectionProps {
     villageProfiles: VillageProfileDto[];
     reputation: NeighborReputationDto[];
     relocation: RelocationDto;
+    openKey: string | null;
 }
 
-const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes, convoys, toloka, resourceTypes, village, villageProfiles, reputation, relocation }: WikiMechanicsSectionProps) => {
-    const [openMechanics, setOpenMechanics] = useState<ReadonlySet<string>>(new Set());
+const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes, convoys, toloka, resourceTypes, village, villageProfiles, reputation, relocation, openKey }: WikiMechanicsSectionProps) => {
+    const [openMechanics, setOpenMechanics] = useState<ReadonlySet<string>>(() => (
+        openKey != null && MECHANICS.some(mechanic => mechanic.key === openKey) ? new Set([openKey]) : new Set()
+    ));
     const unlocks = villageLevel.unlocks;
     const unlocked = unlocks.filter(unlock => unlock.unlocked);
     const upcoming = unlocks.filter(unlock => !unlock.unlocked);
@@ -560,6 +596,19 @@ const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes, convoy
 
         return null;
     };
+    const [appliedKey, setAppliedKey] = useState<string | null>(openKey);
+    if (openKey !== appliedKey) {
+        setAppliedKey(openKey);
+        if (openKey != null && MECHANICS.some(mechanic => mechanic.key === openKey)) {
+            setOpenMechanics(prev => new Set(prev).add(openKey));
+        }
+    }
+
+    useEffect(() => {
+        if (openKey != null) {
+            revealArticle(wikiArticleAnchor(openKey));
+        }
+    }, [openKey]);
     const toggleMechanic = (key: string) => setOpenMechanics(prev => {
         const next = new Set(prev);
         if (next.has(key)) {
@@ -597,7 +646,7 @@ const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes, convoy
                         : [];
 
                     return (
-                        <div key={m.key} className={'wiki-building pixel-panel' + (open ? ' receipt-open' : '')}>
+                        <div key={m.key} id={wikiArticleAnchor(m.key)} className={'wiki-building pixel-panel' + (open ? ' receipt-open' : '')}>
                             <button type="button" className="wiki-building-head" aria-expanded={open} onClick={() => toggleMechanic(m.key)}>
                                 {m.domikLogic != null
                                     ? <DomikSprite logicName={m.domikLogic} level={3} className="wiki-mech-ico" aria-hidden="true" />
@@ -922,6 +971,7 @@ const WikiMechanicsSection = ({ villageLevel, weather, decor, domikTypes, convoy
 
 export const Wiki = () => {
     const toast = useToast();
+    const [searchParams] = useSearchParams();
     const [view, setView] = useState<CatalogView | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [attempt, setAttempt] = useState(0);
@@ -975,6 +1025,8 @@ export const Wiki = () => {
     }
 
     const { domikTypes, resourceTypes, receipts, weather, decor, villageLevel, convoys, toloka, village, villageProfiles, reputation, relocation } = view.catalog;
+    const openArticle = searchParams.get('article');
+    const openBuilding = searchParams.get('building');
 
     return (
         <div className="wiki">
@@ -983,11 +1035,15 @@ export const Wiki = () => {
                 <h1 className="wiki-title">Справочник</h1>
                 <p>Domiki – уютная idle-деревня. Заходи на пару минут: строй домики, запускай производства, бери заказы соседей. Ресурсы копятся сами, даже с закрытой вкладкой.</p>
                 <p>Ниже – ресурсы, постройки, рецепты и обзор механик. Данные загружаются из текущего состояния игры при открытии справочника.</p>
+                <Link className="btn-game" to="/domiki-page">
+                    <ArrowLeftIcon className="btn-ico" aria-hidden="true" />
+                    В игру
+                </Link>
             </section>
 
             <WikiResourcesSection resourceTypes={resourceTypes} />
 
-            <WikiBuildingsSection domikTypes={domikTypes} resourceTypes={resourceTypes} receipts={receipts} />
+            <WikiBuildingsSection domikTypes={domikTypes} resourceTypes={resourceTypes} receipts={receipts} openLogicName={openBuilding} />
 
             <section className="wiki-section">
                 <h2 className="section-head">Переделы</h2>
@@ -1009,7 +1065,7 @@ export const Wiki = () => {
             </section>
 
             <WikiMechanicsSection villageLevel={villageLevel} weather={weather} decor={decor} domikTypes={domikTypes} convoys={convoys} toloka={toloka} resourceTypes={resourceTypes} relocation={relocation}
-                village={village} villageProfiles={villageProfiles} reputation={reputation} />
+                village={village} villageProfiles={villageProfiles} reputation={reputation} openKey={openArticle} />
         </div>
     );
 };

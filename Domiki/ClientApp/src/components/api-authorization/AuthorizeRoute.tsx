@@ -3,11 +3,10 @@ import { authService } from '../../services/auth';
 import type { AuthStatus } from '../../services/auth';
 
 interface AuthorizeRouteProps {
-    path?: string;
     element: ReactNode;
 }
 
-export const AuthorizeRoute = ({ path, element }: AuthorizeRouteProps) => {
+export const AuthorizeRoute = ({ element }: AuthorizeRouteProps) => {
     const [status, setStatus] = useState<AuthStatus>('unknown');
 
     useEffect(() => {
@@ -36,9 +35,9 @@ export const AuthorizeRoute = ({ path, element }: AuthorizeRouteProps) => {
 
     useEffect(() => {
         if (status === 'anonymous') {
-            authService.signIn(path);
+            authService.signIn();
         }
-    }, [status, path]);
+    }, [status]);
 
     if (status === 'unknown' || status === 'anonymous') {
         return <div></div>;
