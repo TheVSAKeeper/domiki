@@ -8,6 +8,7 @@ import { bestSkill, workerSkillPercent } from '../utils/assign';
 import { isSkilledWorker } from '../utils/worker';
 import { useElementHeightVar } from '../hooks/useElementHeightVar';
 import { useNarrowScreen } from '../hooks/useNarrowScreen';
+import { termLore } from '../utils/termLore';
 import { remainingSeconds } from '../utils/time';
 import { DomikSprite, WorkerSprite } from './sprites';
 
@@ -22,8 +23,6 @@ const GROUP_LABELS: Record<Exclude<RailState, 'free'>, string> = {
 };
 
 const GROUP_ORDER: Exclude<RailState, 'free'>[] = ['busy', 'resting', 'sick', 'trip', 'away'];
-
-const AWAY_HINT = 'Коек в деревне меньше, чем трудяг: эти работы не берут, пока не появится койка';
 
 const GROUPS_AFTER_FREE = 1000;
 
@@ -190,10 +189,10 @@ export const WorkerRail = ({ workers, domikTypes, now, skillDomikTypeId, heldWor
                     return (
                         <div key={state} className="worker-rail-group" style={{ order: GROUPS_AFTER_FREE + index }}>
                             <button type="button" className="worker-rail-group-head" aria-expanded={open}
-                                title={state === 'away' ? AWAY_HINT : undefined}
                                 onClick={() => { toggleGroup(state); }}>
                                 {GROUP_LABELS[state]} {group.length}
                             </button>
+                            {state === 'away' && open && <p className="worker-rail-away-hint">{termLore.worker_away}</p>}
                             {open && group.map(worker =>
                                 <WorkerRailCard key={worker.id} worker={worker} domikTypes={domikTypes} state={state} order={0}
                                     skillDomikTypeId={skillDomikTypeId} skillTypeName={skillTypeName} held={false} onGrab={null} />,

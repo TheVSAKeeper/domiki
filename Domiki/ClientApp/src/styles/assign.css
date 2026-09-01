@@ -134,6 +134,14 @@
     cursor: pointer;
 }
 
+.worker-rail-away-hint {
+    margin: 0 6px;
+    font-size: 11px;
+    font-style: italic;
+    line-height: 1.4;
+    color: var(--ink-muted);
+}
+
 .rail-card {
     display: flex;
     align-items: center;

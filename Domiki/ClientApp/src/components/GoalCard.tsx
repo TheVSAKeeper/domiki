@@ -3,6 +3,7 @@ import { zealMultiplier } from '../utils/game';
 import { ProgressBar } from './ProgressBar';
 import { ResourceChip } from './ResourceChip';
 import { StatChip } from './StatChip';
+import { TermTip } from './TermTip';
 import { AbstractSprite } from './sprites';
 
 interface GoalCardProps {
@@ -21,9 +22,9 @@ const shiftWord = (n: number): string => {
 const ZealChip = ({ charges }: { charges: number }) => {
     const multiplier = zealMultiplier(charges);
     return (
-        <StatChip icon={<AbstractSprite logicName="untouched_deposits" size={24} className="stat-chip-ico" aria-hidden="true" />} title="Ускорение коротких производств">
+        <StatChip icon={<AbstractSprite logicName="untouched_deposits" size={24} className="stat-chip-ico" aria-hidden="true" />}>
             <span className="zeal-chip">
-                <span className="zeal-chip-label">Нетронутые залежи</span>
+                <span className="zeal-chip-label"><TermTip term="untouched_deposits">Нетронутые залежи</TermTip></span>
                 <span className="zeal-chip-count">{charges} {shiftWord(charges)}</span>
                 <span className="zeal-chip-mult">×{multiplier}</span>
             </span>
@@ -50,7 +51,7 @@ export const GoalCard = ({ goals, resourceTypes }: GoalCardProps) => {
                     <AbstractSprite logicName="elder_order" size={32} className="goal-emblem-ico" aria-hidden="true" />
                 </div>
                 <div className="goal-hero-text">
-                    <h3 className="goal-title">Наказ старосты</h3>
+                    <h3 className="goal-title"><TermTip term="elder_order">Наказ старосты</TermTip></h3>
                     <p className="goal-quest">{goals.active.name}</p>
                 </div>
                 <div className="goal-stat" title="Наказ по счёту">

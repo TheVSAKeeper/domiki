@@ -19,6 +19,7 @@ import { ManufactureBox } from './ManufactureBox';
 import { ActionButton } from './ActionButton';
 import { HurryButton } from './HurryButton';
 import { StatChip } from './StatChip';
+import { TermTip } from './TermTip';
 import { ProgressBar } from './ProgressBar';
 import { ResourcesBox } from './ResourcesBox';
 import { WeatherMark } from './WeatherMark';
@@ -562,10 +563,9 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
                         </div>
                         <div className="panel-status">
                             {maxManufactures > 0 &&
-                                <span className={'panel-status-item' + (atManufactureCap ? ' panel-status-item--full' : '')}
-                                    title="Места для одновременных смен">
+                                <span className={'panel-status-item' + (atManufactureCap ? ' panel-status-item--full' : '')}>
                                     <AbstractSprite logicName="production_recipe" size={24} className="panel-status-ico" aria-hidden="true" />
-                                    {slotsText}
+                                    <TermTip term="shift">{slotsText}</TermTip>
                                 </span>
                             }
                             {statusTimer != null &&

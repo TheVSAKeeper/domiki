@@ -11,6 +11,7 @@ import { AbstractSprite, DomikSprite, MechanicSprite, ResourceSprite, TraitSprit
 import { genderForm, traitLabel } from '../utils/gender';
 import { pluralRu } from '../utils/plural';
 import { flyoutLeft, flyoutWidth, useFlyoutTop } from '../utils/flyout';
+import { TermTip } from './TermTip';
 
 type WorkerState = 'expedition' | 'errand' | 'incidentMissing' | 'incidentSearch' | 'domikIncidentSearch' | 'busy' | 'resting' | 'away' | 'free';
 
@@ -37,7 +38,6 @@ interface WorkersBoxProps {
 const stateLabels: Record<WorkerState, string> = { expedition: 'В экспедиции', errand: 'В поручении', incidentMissing: 'Задержался', incidentSearch: 'В поисках', domikIncidentSearch: 'Разбирается', busy: 'Работает', resting: 'Отдыхает', away: 'В отходе', free: 'Свободен' };
 const tallyLabels: Record<WorkerState, string> = { expedition: 'в пути', errand: 'в поручении', incidentMissing: 'задержались', incidentSearch: 'в поисках', domikIncidentSearch: 'разбираются', busy: 'за работой', resting: 'отдыхают', away: 'в отходе', free: 'свободны' };
 const tallyOrder: WorkerState[] = ['free', 'busy', 'resting', 'away', 'incidentMissing', 'incidentSearch', 'domikIncidentSearch', 'errand', 'expedition'];
-const AWAY_TITLE = 'Койки заняты – трудяга ждёт своей и работы не берёт';
 const FATIGUE_THRESHOLD_SECONDS = 28800;
 
 const useShownPortraits = () => {
@@ -417,13 +417,13 @@ export const WorkersBox = ({ workers, domikTypes, domiks, receipts, expeditions,
                             onMouseLeave={() => clearHover(worker.id)}
                             onFocus={event => setHover({ worker, rect: event.currentTarget.getBoundingClientRect() })}
                             onBlur={() => clearHover(worker.id)}>
-                            <div className="worker-topline" title={stateKey === 'resting' ? restTitle : stateKey === 'away' ? AWAY_TITLE : undefined}>
+                            <div className="worker-topline" title={stateKey === 'resting' ? restTitle : undefined}>
                                 <span className="worker-badge">
                                     {stateKey === 'resting' && <AbstractSprite logicName="fatigue_rest" size={24} className="worker-badge-ico" aria-hidden="true" />}
-                                    {stateLabel}
+                                    {stateKey === 'away' ? <TermTip term="worker_away">{stateLabel}</TermTip> : stateLabel}
                                 </span>
                                 {workplace?.autoRepeat === true &&
-                                    <span className="worker-shift-badge" title="Наряд: работа повторяется сама">наряд</span>
+                                    <span className="worker-shift-badge"><TermTip term="naryad">наряд</TermTip></span>
                                 }
                                 {timer != null &&
                                     <span className="worker-timer" title={timer.full}>

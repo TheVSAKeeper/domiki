@@ -429,6 +429,17 @@
     image-rendering: pixelated;
 }
 
+.vlf-gloss {
+    margin: 0 0 10px;
+    padding-bottom: 8px;
+    font-family: 'Golos Text', 'Segoe UI', sans-serif;
+    font-size: 13px;
+    font-style: italic;
+    line-height: 1.45;
+    color: rgba(51, 41, 26, .75);
+    border-bottom: 2px dashed var(--plank-dark);
+}
+
 .vlf-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;

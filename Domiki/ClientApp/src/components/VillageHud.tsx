@@ -8,6 +8,7 @@ import type { DomikTypeDto, PlodderCount, ResourceDto, ResourceTypeDto, VillageL
 import { COIN_RESOURCE_TYPE_ID, GOLD_RESOURCE_TYPE_ID, weatherEffects } from '../utils/game';
 import type { HudDigest } from '../utils/hud';
 import { pluralRu } from '../utils/plural';
+import { termLore } from '../utils/termLore';
 import { remainingSeconds } from '../utils/time';
 import { AbstractSprite, DomikSprite, MechanicSprite, NeighborSprite, WeatherSprite } from './sprites';
 import { HudResource } from './HudResource';
@@ -198,6 +199,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
 
                 {levelFlyout &&
                     <div className="hud-flyout village-level-flyout">
+                        <p className="vlf-gloss">{termLore.obzhitost}</p>
                         <div className="vlf-stats">
                             <span className="vlf-stat"><span className="vlf-stat-label">Постройки</span><span className="vlf-stat-value">{villageLevel?.buildings}</span></span>
                             <span className="vlf-stat"><span className="vlf-stat-label">Койки</span><span className="vlf-stat-value">{villageLevel?.residents}</span></span>
