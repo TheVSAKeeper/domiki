@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import type { NeighborReputationDto } from '../types/api';
-import { Link } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { acceptErrand as acceptErrandApi, apiPost, ApiError, cancelErrand as cancelErrandApi, cancelOrder as cancelOrderApi, completeOrder as completeOrderApi, setFriendNeighbor as setFriendNeighborApi, setVillageProfile as setVillageProfileApi, startIncidentSearch as startIncidentSearchApi } from '../services/api';
 import { useToast } from '../services/toastContext';
 import { useGameData } from '../hooks/useGameData';
@@ -21,14 +21,14 @@ import { ReceiptDropMenu } from './ReceiptDropMenu';
 import { buildDomikNamer } from '../utils/domikNames';
 import { profileGenitiveName } from '../utils/profileLore';
 import { GameTabsNav } from './GameTabsNav';
+import { BOARD_TAB_KEY, tabPath } from '../utils/gameTabs';
 import { VillageIdentityModal } from './VillageIdentityModal';
 import { VillageHud } from './VillageHud';
-import { ChangelogButton } from './ChangelogButton';
 import { DomikGridSection } from './DomikGridSection';
 import { HouseholdBox } from './HouseholdBox';
 import { VillageYard } from './VillageYard';
 import { SelectedDomikPanel } from './SelectedDomikPanel';
-import { ActionButton, ActionBusyProvider } from './ActionButton';
+import { ActionBusyProvider } from './ActionButton';
 import { OrdersBox } from './OrdersBox';
 import { GoalCard } from './GoalCard';
 import { IncidentCard } from './IncidentCard';
@@ -73,13 +73,25 @@ export const DomikiPage = () => {
     const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, staleSince, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
         useGameData();
 
-    const [shopVisible, setShopVisible] = useState(false);
     const [recapOpen, setRecapOpen] = useState(false);
     const [selectedDomikId, setSelectedDomikId] = useState<number | null>(null);
     const [assignMenu, setAssignMenu] = useState<{ workerId: number; domikId: number; point: AssignPoint } | null>(null);
-    const [activeTab, setActiveTab] = useState('');
     const [identity, setIdentity] = useState<'auto' | 'open' | 'dismissed'>('auto');
-    const gameTabPanelRef = useRef<HTMLDivElement>(null);
+    const { tab: routeTab } = useParams();
+    const navigate = useNavigate();
+    const openTab = (key: string) => { void navigate(tabPath(key)); };
+    useEffect(() => { window.scrollTo({ top: 0 }); }, [routeTab]);
+    const shopAsked = useRef(false);
+    useEffect(() => {
+        if (routeTab !== 'shop' || purchaseDomikTypes != null || shopAsked.current) {
+            return;
+        }
+        shopAsked.current = true;
+        refreshPurchaseTypes().catch((err: unknown) => {
+            shopAsked.current = false;
+            toast.error(err instanceof ApiError ? err.message : 'Плотник не отозвался – загляните позже');
+        });
+    }, [routeTab, purchaseDomikTypes, refreshPurchaseTypes, toast]);
     const selectedDomikPanelRef = useRef<HTMLElement>(null);
     const [hudStickyOffset, setHudStickyOffset] = useState(76);
     const [sortMode, setSortMode] = useState<DomikSortMode>(() => {
@@ -363,22 +375,8 @@ export const DomikiPage = () => {
         });
     };
 
-    const toggleShop = async () => {
-        await runAction(async () => {
-            const willShow = !shopVisible;
-            setShopVisible(willShow);
-            if (willShow && purchaseDomikTypes == null) {
-                await refreshPurchaseTypes();
-            }
-        });
-    };
-
-    const selectDomik = (id: number, logicName: string) => {
+    const selectDomik = (id: number) => {
         setSelectedDomikId(id);
-        const mechTab = MECHANIC_TAB[logicName];
-        if (mechTab && mechTab !== activeTab) {
-            setActiveTab(mechTab);
-        }
     };
 
     const scrollToSelectedDomikPanel = () => {
@@ -391,16 +389,24 @@ export const DomikiPage = () => {
         }
     };
 
-    const selectDomikFromBoard = (id: number, logicName: string) => {
-        selectDomik(id, logicName);
+    const selectDomikFromBoard = (id: number) => {
+        selectDomik(id);
         scrollToSelectedDomikPanel();
     };
 
     const gameTabs: GameTab[] = [
         {
+            key: 'shop', label: 'Лавка', icon: <MechanicSprite logicName="shop" size={32} className="game-tab-ico" aria-hidden="true" />, visible: true,
+            node: () => purchaseDomikTypes == null
+                ? <PixelLoader label="Плотник раскладывает чертежи…" />
+                : <ShopBox purchaseDomikTypes={purchaseDomikTypes} domikTypes={domikTypes} receipts={receipts}
+                    resourceTypes={resourceTypes} resources={resources} blueprints={blueprints} villageLevel={villageLevel}
+                    onBuy={buy} onClose={() => { openTab(BOARD_TAB_KEY); }} />,
+        },
+        {
             key: 'household', label: 'Хозяйство', icon: <AbstractSprite logicName="household" size={32} className="game-tab-ico" aria-hidden="true" />, visible: true,
             node: () => <HouseholdBox digest={hudDigest} resourceTypes={resourceTypes} resources={resources} reserves={reserves} ledger={ledger} now={now}
-                onSetReserve={setResourceReserveAction} onSelectDomik={selectDomikFromBoard} onOpenTab={setActiveTab}
+                onSetReserve={setResourceReserveAction} onSelectDomik={selectDomikFromBoard} onOpenTab={openTab}
                 onToggleRepeat={toggleManufactureAutoRepeat} />,
         },
         {
@@ -449,13 +455,10 @@ export const DomikiPage = () => {
         },
     ];
     const visibleGameTabs = gameTabs.filter(tab => tab.visible);
-    const activeGameTab = visibleGameTabs.find(tab => tab.key === activeTab) ?? visibleGameTabs[0];
-
-    const scrollToGameTabPanel = () => {
-        if (window.matchMedia('(max-width: 900px)').matches) {
-            gameTabPanelRef.current?.scrollIntoView({ block: 'start' });
-        }
-    };
+    const activeGameTab = routeTab == null ? undefined : visibleGameTabs.find(tab => tab.key === routeTab);
+    const onBoard = routeTab == null;
+    const strayTab = routeTab != null && activeGameTab == null && !loading && domikTypes.length > 0;
+    const mechanicTab = selected == null ? undefined : visibleGameTabs.find(tab => tab.key === MECHANIC_TAB[selected.domikType.logicName]);
 
     return (
         <ResourceInfoProvider resourceTypes={resourceTypes} domikTypes={domikTypes} receipts={receipts}>
@@ -478,27 +481,15 @@ export const DomikiPage = () => {
             <PerfZone id="шапка">
             <VillageHud resources={resources} resourceTypes={resourceTypes} domikTypes={domikTypes} plodder={plodder} digest={hudDigest}
                 villageLevel={villageLevel} weather={weather} now={now} onStickyOffsetChange={setHudStickyOffset} villageProfile={villageProfile}
-                onOpenTab={tab => { setActiveTab(tab); scrollToGameTabPanel(); }}
-                nav={
-                    <>
-                        <Link className="btn-game icon-chip-btn" to="/world">
-                            <MechanicSprite logicName="world" size={24} className="btn-ico" aria-hidden="true" />
-                            Мир
-                        </Link>
-                        {purchaseDomikTypes != null &&
-                            <ActionButton className="btn-game icon-chip-btn" onClick={() => toggleShop()}>
-                                <MechanicSprite logicName="shop" size={24} className="btn-ico" aria-hidden="true" />
-                                {shopVisible ? 'Закрыть' : 'Плотник'}
-                            </ActionButton>
-                        }
-                        <ChangelogButton />
-                    </>
-                }
-                />
+                onOpenTab={openTab} compact={!onBoard} />
             </PerfZone>
-            <GoalCard goals={goals} resourceTypes={resourceTypes} />
-            {incident != null && <IncidentCard incident={incident} workers={workers} now={now} onStartSearch={startIncidentSearchAction} />}
-            {domikIncident != null && <DomikIncidentCard incident={domikIncident} workers={workers} domikTypes={domikTypes} now={now} onStartSearch={startIncidentSearchAction} />}
+            {strayTab && <Navigate to="/domiki-page" replace />}
+            <GameTabsNav tabs={visibleGameTabs} activeKey={activeGameTab?.key ?? BOARD_TAB_KEY} />
+            {onBoard && <>
+                <GoalCard goals={goals} resourceTypes={resourceTypes} />
+                {incident != null && <IncidentCard incident={incident} workers={workers} now={now} onStartSearch={startIncidentSearchAction} />}
+                {domikIncident != null && <DomikIncidentCard incident={domikIncident} workers={workers} domikTypes={domikTypes} now={now} onStartSearch={startIncidentSearchAction} />}
+            </>}
             {identityVisible &&
                 <VillageIdentityModal village={village} onSave={saveIdentity} onClose={closeIdentity} />
             }
@@ -515,6 +506,7 @@ export const DomikiPage = () => {
                     onClose={clearRecap}
                 />
             }
+            {onBoard && <>
             <PerfZone id="двор">
             <VillageYard domiks={domiks} domikTypes={domikTypes} decor={decor} workers={workers}
                 villageLevel={villageLevel} currentWeather={currentWeather} selectedDomikId={selectedDomikId}
@@ -522,11 +514,7 @@ export const DomikiPage = () => {
                     const domikType = domikTypes.find(type => type.id === domik.typeId);
                     return domikType == null ? '' : domikDisplayName(domik.typeId, domik.id, domikType.name, domikType.logicName);
                 }}
-                onSelect={id => {
-                    const domik = domiks.find(item => item.id === id);
-                    const domikType = domik == null ? undefined : domikTypes.find(type => type.id === domik.typeId);
-                    selectDomik(id, domikType?.logicName ?? '');
-                }}
+                onSelect={selectDomik}
                 recapPending={recapPending}
                 onOpenRecap={() => { setRecapOpen(true); }}
                 activeExpeditionNames={(expeditions?.active ?? []).map(e => e.expeditionName)}
@@ -548,11 +536,6 @@ export const DomikiPage = () => {
                     </div>
                 </div>
                 <section className="village">
-                    {shopVisible && purchaseDomikTypes != null &&
-                        <ShopBox purchaseDomikTypes={purchaseDomikTypes} domikTypes={domikTypes} receipts={receipts}
-                            resourceTypes={resourceTypes} resources={resources} blueprints={blueprints} villageLevel={villageLevel}
-                            onBuy={buy} onClose={() => setShopVisible(false)} />
-                    }
                     <PerfZone id="сетка">
                         <DomikGridSection domiks={domiks} domikTypes={domikTypes} receipts={receipts} resources={resources}
                             resourceTypes={resourceTypes} currentWeather={currentWeather} now={now} sortMode={sortMode}
@@ -566,6 +549,7 @@ export const DomikiPage = () => {
                     <SelectedDomikPanel ref={selectedDomikPanelRef} selected={selected} resources={resources} resourceTypes={resourceTypes} receipts={receipts} blueprints={blueprints}
                         workers={workers} goals={goals} villageLevel={villageLevel} currentWeather={currentWeather} sickTypes={sickTypes} now={now}
                         goldValue={goldValue} goldType={goldType} goldVein={goldVeinContext} plodderFree={plodder.free} displayName={domikDisplayName}
+                        mechanicTab={mechanicTab == null ? null : { key: mechanicTab.key, label: mechanicTab.label }} onOpenTab={openTab}
                         onClose={() => setSelectedDomikId(null)} onUpgrade={upgrade} onHurryDomik={hurryDomikAction}
                         onStartManufacture={startManufacture} onHurryManufacture={hurryManufactureAction}
                         elderHouseLevel={ledger?.level ?? 0}
@@ -585,11 +569,12 @@ export const DomikiPage = () => {
                     }}
                     onClose={() => { setAssignMenu(null); }} />
             }
-            <GameTabsNav tabs={visibleGameTabs} activeKey={activeGameTab?.key} onSelect={setActiveTab} onScrollToPanel={scrollToGameTabPanel} />
-            <div className="game-tab-panel" ref={gameTabPanelRef} id="game-tab-panel" role="tabpanel"
-                aria-labelledby={activeGameTab == null ? undefined : `game-tab-${activeGameTab.key}`} tabIndex={0}>
-                <PerfZone id="вкладка">{activeGameTab?.node()}</PerfZone>
-            </div>
+            </>}
+            {!onBoard && activeGameTab != null &&
+                <section className="game-tab-panel" aria-label={activeGameTab.label}>
+                    <PerfZone id="вкладка">{activeGameTab.node()}</PerfZone>
+                </section>
+            }
         </div>
         </ActionBusyProvider>
         </ResourceInfoProvider>

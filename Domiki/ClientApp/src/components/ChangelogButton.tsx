@@ -6,7 +6,7 @@ import '../styles/changelog.css';
 
 const STORAGE_KEY = 'changelog-last-seen';
 
-export const ChangelogButton = () => {
+export const ChangelogButton = ({ onOpen }: { onOpen?: () => void }) => {
     const [open, setOpen] = useState(false);
     const [lastSeen, setLastSeen] = useState(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -24,9 +24,9 @@ export const ChangelogButton = () => {
 
     return (
         <>
-            <button type="button" className="btn-game icon-chip-btn changelog-chip" title="Сельский вестник"
-                aria-label="Сельский вестник – история изменений" onClick={() => { setOpen(true); }}>
-                <MechanicSprite logicName="vestnik" size={24} className="btn-ico" aria-hidden="true" />
+            <button type="button" className="nav-link changelog-chip" title="Сельский вестник"
+                aria-label="Сельский вестник – история изменений" onClick={() => { setOpen(true); onOpen?.(); }}>
+                <MechanicSprite logicName="vestnik" size={24} className="nav-ico" aria-hidden="true" />
                 Вестник
                 {unread && <span className="hud-news-dot" aria-hidden="true" />}
             </button>

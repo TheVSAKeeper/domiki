@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import MenuIcon from 'pixelarticons/svg/menu.svg?react';
 import HomeIcon from 'pixelarticons/svg/home.svg?react';
 import { LoginMenu } from './api-authorization/LoginMenu';
+import { ChangelogButton } from './ChangelogButton';
 import { InstallHint } from './InstallHint';
 import { PushToggle } from './PushToggle';
 import { MechanicSprite } from './sprites';
@@ -40,10 +41,19 @@ export const NavMenu = () => {
                             </Link>
                         </li>
                         <li>
+                            <Link className="nav-link" to="/world" onClick={close}>
+                                <MechanicSprite logicName="world" size={24} className="nav-ico" aria-hidden="true" />
+                                Мир
+                            </Link>
+                        </li>
+                        <li>
                             <Link className="nav-link" to="/wiki" onClick={close}>
                                 <MechanicSprite logicName="wiki" size={24} className="nav-ico" aria-hidden="true" />
                                 Справочник
                             </Link>
+                        </li>
+                        <li>
+                            <ChangelogButton onOpen={close} />
                         </li>
                         <li>
                             <PushToggle />

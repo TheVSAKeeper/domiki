@@ -5,6 +5,7 @@ import type { DecorTypeDto, ExpeditionStateDto, ResourceDto, ResourceTypeDto, Wo
 import { EXPEDITION_LOOT_KIND_BLUEPRINT, EXPEDITION_LOOT_KIND_DECOR, EXPEDITION_LOOT_KIND_RESOURCE, EXPEDITION_LOOT_KIND_TRAIT_UPGRADE, GOLD_RESOURCE_TYPE_ID, hasResourcesFor, isWorkerFree } from '../utils/game';
 import { isSkilledWorker } from '../utils/worker';
 import { formatDuration, remainingSeconds } from '../utils/time';
+import { SectionHero } from './SectionHero';
 import { ResourceChip } from './ResourceChip';
 import { StatChip } from './StatChip';
 import { ProgressBar } from './ProgressBar';
@@ -90,19 +91,19 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
 
     return (
         <section className="expeditions-panel pixel-panel">
-            <div className="expeditions-hero">
-                <div className="expeditions-hero-emblem">
+            <SectionHero className="expeditions-hero">
+                <div className="expeditions-hero-emblem sec-hero-emblem">
                     <MechanicSprite logicName="expeditions" size={40} aria-hidden="true" />
                 </div>
                 <div className="expeditions-hero-text">
                     <h3 className="panel-title expeditions-hero-title">Экспедиции</h3>
-                    <p className="expeditions-hero-sub">Снаряжайте отряды в дорогу – трудяги приносят ресурсы, декор и редкие находки.</p>
+                    <p className="expeditions-hero-sub sec-hero-sub">Снаряжайте отряды в дорогу – трудяги приносят ресурсы, декор и редкие находки.</p>
                 </div>
                 <div className="expeditions-hero-stat" title="Отрядов в походе из максимума">
                     <span className="expeditions-hero-stat-num">{expeditions.active.length}/{expeditions.maxActive}</span>
                     <span className="expeditions-hero-stat-label">отрядов в дороге</span>
                 </div>
-            </div>
+            </SectionHero>
             {expeditions.pityThreshold > 0 &&
                 <div className="expeditions-trail" title="Чем дольше без редкой находки, тем ближе гарантированная редкость">
                     <span className="expeditions-trail-label">тропа<br />до находки</span>

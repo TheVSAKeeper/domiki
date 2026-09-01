@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import type { KeyboardEvent, MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent, ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { useElementHeightVar } from '../hooks/useElementHeightVar';
+import { BOARD_TAB_KEY, tabPath } from '../utils/gameTabs';
 import { MechanicSprite } from './sprites';
 
 interface GameTabEntry {
@@ -11,15 +13,18 @@ interface GameTabEntry {
 
 interface GameTabsNavProps {
     tabs: GameTabEntry[];
-    activeKey: string | undefined;
-    onSelect: (key: string) => void;
-    onScrollToPanel: () => void;
+    activeKey: string;
 }
 
-export const GameTabsNav = ({ tabs, activeKey, onSelect, onScrollToPanel }: GameTabsNavProps) => {
-    const gameTabsRef = useRef<HTMLDivElement>(null);
+export const GameTabsNav = ({ tabs, activeKey }: GameTabsNavProps) => {
+    const gameTabsRef = useRef<HTMLElement>(null);
     const dragRef = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
     const [tabsOverflow, setTabsOverflow] = useState({ left: false, right: false });
+
+    const navTabs: GameTabEntry[] = [
+        { key: BOARD_TAB_KEY, label: 'Домики', icon: <MechanicSprite logicName="domiki" size={32} className="game-tab-ico" aria-hidden="true" /> },
+        ...tabs,
+    ];
 
     useElementHeightVar(gameTabsRef, '--game-tabs-height');
 
@@ -41,11 +46,11 @@ export const GameTabsNav = ({ tabs, activeKey, onSelect, onScrollToPanel }: Game
             tabsEl.removeEventListener('scroll', updateOverflow);
             observer?.disconnect();
         };
-    }, [tabs.length]);
+    }, [navTabs.length]);
 
     useEffect(() => {
         const tabsEl = gameTabsRef.current;
-        const active = activeKey == null ? null : tabsEl?.querySelector<HTMLElement>(`#game-tab-${activeKey}`);
+        const active = tabsEl?.querySelector<HTMLElement>(`#game-tab-${activeKey}`);
         if (tabsEl == null || active == null) {
             return;
         }
@@ -53,26 +58,9 @@ export const GameTabsNav = ({ tabs, activeKey, onSelect, onScrollToPanel }: Game
         const left = active.offsetLeft;
         const right = left + active.offsetWidth;
         if (left < tabsEl.scrollLeft || right > tabsEl.scrollLeft + tabsEl.clientWidth) {
-            tabsEl.scrollTo({ left: Math.max(0, left - 12), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+            tabsEl.scrollLeft = Math.max(0, left - 12);
         }
     }, [activeKey]);
-
-    const activateTabByKeyboard = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
-            return;
-        }
-        event.preventDefault();
-        const nextIndex = event.key === 'Home'
-            ? 0
-            : event.key === 'End'
-                ? tabs.length - 1
-                : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
-        const next = tabs[nextIndex];
-        if (next != null) {
-            onSelect(next.key);
-            requestAnimationFrame(() => document.getElementById(`game-tab-${next.key}`)?.focus());
-        }
-    };
 
     const beginDrag = (event: ReactPointerEvent<HTMLElement>) => {
         const tabsEl = gameTabsRef.current;
@@ -120,28 +108,22 @@ export const GameTabsNav = ({ tabs, activeKey, onSelect, onScrollToPanel }: Game
             onPointerDown={beginDrag} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag}
             onClickCapture={suppressDragClick}>
             <span className="game-tabs-affordance game-tabs-affordance-left" aria-hidden="true">‹</span>
-            <button type="button" className="game-tab game-tab-home icon-chip-btn" onClick={() => { window.scrollTo({ top: 0 }); }}>
-                <MechanicSprite logicName="domiki" size={32} className="game-tab-ico" aria-hidden="true" />
-                Домики
-            </button>
-            <div className="game-tabs-list" role="tablist" aria-label="Игровые разделы">
-                {tabs.map((tab, index) => {
+            <ul className="game-tabs-list">
+                {navTabs.map(tab => {
                     const active = tab.key === activeKey;
                     return (
-                        <button type="button" role="tab" key={tab.key} id={`game-tab-${tab.key}`}
-                            data-game-tab={tab.key}
-                            aria-selected={active}
-                            aria-controls="game-tab-panel"
-                            tabIndex={active ? 0 : -1}
-                            className={'game-tab icon-chip-btn' + (active ? ' game-tab-active' : '')}
-                            onKeyDown={event => activateTabByKeyboard(event, index)}
-                            onClick={() => { onSelect(tab.key); onScrollToPanel(); }}>
-                            {tab.icon}
-                            {tab.label}
-                        </button>
+                        <li key={tab.key} className="game-tabs-item">
+                            <Link id={`game-tab-${tab.key}`} to={tabPath(tab.key)}
+                                data-game-tab={tab.key}
+                                aria-current={active ? 'page' : undefined}
+                                className={'game-tab icon-chip-btn' + (active ? ' game-tab-active' : '') + (tab.key === BOARD_TAB_KEY ? ' game-tab-board' : '')}>
+                                {tab.icon}
+                                {tab.label}
+                            </Link>
+                        </li>
                     );
                 })}
-            </div>
+            </ul>
             <span className="game-tabs-affordance game-tabs-affordance-right" aria-hidden="true">›</span>
         </nav>
     );

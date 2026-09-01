@@ -3,6 +3,7 @@ import HandIcon from 'pixelarticons/svg/hand.svg?react';
 import type { ResourceDto, ResourceTypeDto, TolokaPositionDto, TolokaStateDto } from '../types/api';
 import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
+import { SectionHero } from './SectionHero';
 import { NumberStepper } from './NumberStepper';
 import { ProgressBar } from './ProgressBar';
 import { ActionButton } from './ActionButton';
@@ -32,19 +33,19 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute,
 
     return (
         <section className="toloka-panel pixel-panel">
-            <div className="toloka-hero">
-                <div className="toloka-hero-emblem">
+            <SectionHero className="toloka-hero">
+                <div className="toloka-hero-emblem sec-hero-emblem">
                     <MechanicSprite logicName="toloka" size={40} aria-hidden="true" />
                 </div>
                 <div className="toloka-hero-text">
                     <h3 className="panel-title toloka-hero-title">Толока</h3>
-                    <p className="toloka-hero-sub">Всем миром строим «{active.name}» – скидываемся в общий котёл. Достроим – по всей округе праздник, и всякая работа спорится веселее.</p>
+                    <p className="toloka-hero-sub sec-hero-sub">Всем миром строим «{active.name}» – скидываемся в общий котёл. Достроим – по всей округе праздник, и всякая работа спорится веселее.</p>
                 </div>
                 <div className="toloka-hero-stat">
                     <span className="toloka-hero-stat-num">{toloka.buffHours}ч</span>
                     <span className="toloka-hero-stat-label"><TermTip term="toloka_feast">{toloka.nextBuffHours != null ? `вложись – ${toloka.nextBuffHours}ч` : 'праздник толоки'}</TermTip></span>
                 </div>
-            </div>
+            </SectionHero>
 
             <div className={'toloka-site' + (done ? ' toloka-site-done' : '')}>
                 <div className="toloka-scene">

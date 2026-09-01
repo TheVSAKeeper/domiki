@@ -23,7 +23,7 @@ const AppRoutes: AppRouteConfig[] = [
         element: lazyPage(<Home />),
     },
     {
-        path: '/domiki-page',
+        path: '/domiki-page/:tab?',
         element: lazyPage(<PerfZone id="страница"><DomikiPage /></PerfZone>),
         requireAuth: true,
     },

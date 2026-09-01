@@ -1,0 +1,53 @@
+.sec-hero .sec-hero-fold {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .sec-hero.sec-hero {
+        gap: 8px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .sec-hero .sec-hero-emblem {
+        display: none;
+    }
+
+    .sec-hero .sec-hero-sub {
+        margin: 4px 0 0;
+    }
+
+    .sec-hero:not(.sec-hero--open) .sec-hero-sub {
+        display: none;
+    }
+
+    .sec-hero:has(.sec-hero-sub) .sec-hero-fold {
+        display: inline-flex;
+        order: -1;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        flex: none;
+        align-self: center;
+        color: var(--ink);
+        background: #fffaec;
+        border: 2px solid var(--ink);
+        clip-path: var(--cut);
+        cursor: pointer;
+    }
+
+    .sec-hero .sec-hero-fold:focus-visible {
+        outline: 3px solid var(--coin);
+        outline-offset: -3px;
+    }
+
+    .sec-hero .sec-hero-fold-ico {
+        width: 18px;
+        height: 18px;
+    }
+
+    .sec-hero--open .sec-hero-fold-ico {
+        transform: scaleY(-1);
+    }
+}

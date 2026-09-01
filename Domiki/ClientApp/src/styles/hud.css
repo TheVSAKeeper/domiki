@@ -47,30 +47,6 @@
     padding: 9px 0;
 }
 
-.hud-deck {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 8px 0 9px;
-    border-top: 2px solid var(--plank-dark);
-}
-
-.hud-deck-nav {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    flex: 1 1 auto;
-    min-width: 0;
-}
-
-    .hud-deck-nav > .btn-game {
-        flex: 1 1 0;
-        min-width: 118px;
-        justify-content: flex-start;
-    }
-
 .hud-left {
     display: flex;
     align-items: center;
@@ -1357,29 +1333,6 @@ dialog.recap-modal::backdrop {
         height: 30px;
     }
 
-    .hud-deck {
-        gap: 6px;
-        padding: 6px 0 7px;
-    }
-
-    .hud-deck-nav {
-        flex: 1 1 100%;
-    }
-
-        .hud-deck-nav > .btn-game {
-            min-width: 0;
-            font-size: 12px;
-        }
-
-    .hud-deck .btn-game.icon-chip-btn {
-        gap: 7px;
-        padding-right: 10px;
-    }
-
-        .hud-deck .btn-game.icon-chip-btn > .px-sprite {
-            padding: 6px;
-        }
-
 }
 
 @media (max-width: 575px) {
@@ -1487,5 +1440,11 @@ dialog.recap-modal::backdrop {
 
     .hud-ribbon-clock {
         margin-left: auto;
+    }
+}
+
+@media (max-width: 900px) {
+    .hud-shell--compact .hud-ribbon {
+        display: none;
     }
 }

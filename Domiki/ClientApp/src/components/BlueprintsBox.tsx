@@ -1,6 +1,7 @@
 import CheckIcon from 'pixelarticons/svg/check.svg?react';
 import FlagIcon from 'pixelarticons/svg/flag.svg?react';
 import type { BlueprintDto, DecorTypeDto, DomikTypeDto, NeighborReputationDto, ReceiptDto, ResourceTypeDto } from '../types/api';
+import { SectionHero } from './SectionHero';
 import { DecorSprite, DomikSprite, MechanicSprite, NeighborSprite, ResourceSprite } from './sprites';
 import '../styles/blueprints.css';
 
@@ -98,19 +99,19 @@ export const BlueprintsBox = ({ blueprints, domikTypes, decorTypes, reputations,
 
     return (
         <section className="blueprints-panel pixel-panel">
-            <div className="bp-hero">
-                <div className="bp-hero-emblem">
+            <SectionHero className="bp-hero">
+                <div className="bp-hero-emblem sec-hero-emblem">
                     <MechanicSprite logicName="blueprints" size={40} aria-hidden="true" />
                 </div>
                 <div className="bp-hero-text">
                     <h3 className="panel-title bp-hero-title">Вехи соседей</h3>
-                    <p className="bp-hero-sub">Растёт доброе имя – и на каждой вехе сосед делится заветным: чертежом стройки да убранством для двора.</p>
+                    <p className="bp-hero-sub sec-hero-sub">Растёт доброе имя – и на каждой вехе сосед делится заветным: чертежом стройки да убранством для двора.</p>
                 </div>
                 <div className="bp-hero-stat" title="Открыто вех">
                     <span className="bp-hero-stat-num">{opened}<span className="bp-hero-stat-of">/{milestones.length}</span></span>
                     <span className="bp-hero-stat-label">вех открыто</span>
                 </div>
-            </div>
+            </SectionHero>
             <div className="bp-grid">
                 {milestones.map(milestone => {
                     const progress = Math.min(milestone.current, milestone.threshold);

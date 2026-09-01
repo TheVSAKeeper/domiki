@@ -8,6 +8,7 @@ import { formatDuration, remainingSeconds } from '../utils/time';
 import { getErrandTemplate } from '../utils/errandTexts';
 import { getVillageProfileState, VILLAGE_PROFILE_LEVEL_REQUIREMENT, VILLAGE_PROFILE_REPUTATION_REQUIREMENT } from '../utils/villageProfile';
 import { profileGenitiveName } from '../utils/profileLore';
+import { SectionHero } from './SectionHero';
 import { ResourcesBox } from './ResourcesBox';
 import { ActionButton } from './ActionButton';
 import { ConvoyTally } from './ConvoyTally';
@@ -127,19 +128,19 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
     const profileModalBuildings = profileModalNeighbor == null ? [] : getVillageProfileState(villageProfiles, domikTypes, profileModalNeighbor, villageLevel?.level ?? 0, village?.profileNeighborId ?? null, village?.profileChangeAvailableDate ?? null, now).buildings;
     return (
         <section className="orders-panel pixel-panel">
-            <div className="orders-hero">
-                <div className="orders-hero-emblem">
+            <SectionHero className="orders-hero">
+                <div className="orders-hero-emblem sec-hero-emblem">
                     <MechanicSprite logicName="orders" size={40} aria-hidden="true" />
                 </div>
                 <div className="orders-hero-text">
                     <h3 className="panel-title orders-hero-title">Заказы от соседей</h3>
-                    <p className="orders-hero-sub">Из окрестных выселок шлют весточки – сделайте, что просят, и заслужите доброе имя.</p>
+                    <p className="orders-hero-sub sec-hero-sub">Из окрестных выселок шлют весточки – сделайте, что просят, и заслужите доброе имя.</p>
                 </div>
                 <div className="orders-hero-stat" title="Весточек на столе">
                     <span className="orders-hero-stat-num">{orders.length}</span>
                     <span className="orders-hero-stat-label">весточек на столе</span>
                 </div>
-            </div>
+            </SectionHero>
             {reputation.length > 0 &&
                 <div className="standing-board">
                     <div className="standing-board-head">

@@ -406,6 +406,8 @@ interface SelectedDomikPanelProps {
     goldVein: GoldVeinContext;
     plodderFree: number;
     displayName: DomikNamer;
+    mechanicTab: { key: string; label: string } | null;
+    onOpenTab: (key: string) => void;
     onClose: () => void;
     onUpgrade: (id: number) => void;
     onHurryDomik: (id: number) => void;
@@ -416,7 +418,7 @@ interface SelectedDomikPanelProps {
     onSetManufactureMeasure: (manufactureId: number, resourceTypeId: number | null, value: number | null) => void;
 }
 
-export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, receipts, blueprints, workers, goals, villageLevel, currentWeather, sickTypes, now, goldValue, goldType, goldVein, plodderFree, displayName, onClose, onUpgrade, onHurryDomik, onStartManufacture, onHurryManufacture, onToggleManufactureRepeat, elderHouseLevel, onSetManufactureMeasure }: SelectedDomikPanelProps) => {
+export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, receipts, blueprints, workers, goals, villageLevel, currentWeather, sickTypes, now, goldValue, goldType, goldVein, plodderFree, displayName, mechanicTab, onOpenTab, onClose, onUpgrade, onHurryDomik, onStartManufacture, onHurryManufacture, onToggleManufactureRepeat, elderHouseLevel, onSetManufactureMeasure }: SelectedDomikPanelProps) => {
     const [ui, dispatch] = useReducer(receiptUiReducer, initialReceiptUiState);
     const [tab, setTab] = useState<PanelView>('work');
     const [tabbedDomikId, setTabbedDomikId] = useState(selected?.domik.id);
@@ -582,6 +584,11 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
                                 </span>
                             }
                         </div>
+                        {mechanicTab != null &&
+                            <button type="button" className="panel-mech-link" onClick={() => { onOpenTab(mechanicTab.key); }}>
+                                Открыть раздел «{mechanicTab.label}»
+                            </button>
+                        }
                         </div>
                         <PanelTabs active={activeView} onSelect={setTab} workPip={idlePip} growPip={growPip}
                             available={{ work: hasWork, grow: hasGrow }} />

@@ -15,6 +15,7 @@ import { withStableKeys } from '../utils/keys';
 import { formatDuration, formatRelativeTime } from '../utils/time';
 import { genderForm, traitLabel } from '../utils/gender';
 import { guestbookPhraseText } from '../constants/guestbookPhrases';
+import { SectionHero } from './SectionHero';
 import { AbstractSprite, DomikSprite, MechanicSprite, ResourceSprite } from './sprites';
 import { ResourceChip } from './ResourceChip';
 import { Crest } from './Crest';
@@ -623,11 +624,11 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, neig
 
     return (
         <section className="journal-panel pixel-panel">
-            <header className="journal-hero">
-                <span className="journal-hero-emblem" aria-hidden="true"><AbstractSprite logicName="journal" size={40} /></span>
+            <SectionHero className="journal-hero">
+                <span className="journal-hero-emblem sec-hero-emblem" aria-hidden="true"><AbstractSprite logicName="journal" size={40} /></span>
                 <div className="journal-hero-text">
                     <h3 className="journal-hero-title panel-title">Журнал</h3>
-                    <p className="journal-hero-sub">Летопись двора: что ни день – то новое дело.</p>
+                    <p className="journal-hero-sub sec-hero-sub">Летопись двора: что ни день – то новое дело.</p>
                 </div>
                 {(totalCount ?? entries.length) > 0 &&
                     <span className="journal-hero-stat">
@@ -635,7 +636,7 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, neig
                         <small>{pluralRu(totalCount ?? entries.length, 'запись', 'записи', 'записей')}</small>
                     </span>
                 }
-            </header>
+            </SectionHero>
 
             {digest.length > 0 &&
                 <div className="journal-digest">

@@ -13,6 +13,7 @@ import type { LedgerDto, ResourceDto, ResourceReserveDto, ResourceTypeDto } from
 import type { HudBlockedBuilding, HudBuildingRef, HudDigest } from '../utils/hud';
 import { formatTimeOfDay } from '../utils/time';
 import { pluralRu } from '../utils/plural';
+import { SectionHero } from './SectionHero';
 import { ActionButton } from './ActionButton';
 import { ResourceChip } from './ResourceChip';
 import { ResourceNameChip } from './ResourceNameChip';
@@ -276,17 +277,17 @@ export const HouseholdBox = ({ digest, resourceTypes, resources, reserves, ledge
 
     return (
         <section className="household-panel pixel-panel">
-            <header className="household-hero">
-                <span className="household-hero-emblem" aria-hidden="true"><AbstractSprite logicName="household" size={40} /></span>
+            <SectionHero className="household-hero">
+                <span className="household-hero-emblem sec-hero-emblem" aria-hidden="true"><AbstractSprite logicName="household" size={40} /></span>
                 <div className="household-hero-text">
                     <h3 className="panel-title household-hero-title">Хозяйство</h3>
-                    <p className="household-hero-sub">Здесь видно, что в деревне просит рук – а дела правятся на дворе.</p>
+                    <p className="household-hero-sub sec-hero-sub">Здесь видно, что в деревне просит рук – а дела правятся на дворе.</p>
                 </div>
                 <div className="household-hero-stat" data-calm={handsNeeded === 0 ? 'true' : 'false'} title="Построек, что просят рук">
                     <span className="household-hero-stat-num">{handsNeeded}</span>
                     <span className="household-hero-stat-label">дел на дворе</span>
                 </div>
-            </header>
+            </SectionHero>
 
             <div className="household-block">
                 <span className="panel-label">Сейчас</span>

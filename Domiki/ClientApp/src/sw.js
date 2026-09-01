@@ -3,7 +3,7 @@ import { NavigationRoute, registerRoute } from 'workbox-routing';
 
 const spaRoutes = [
     /^\/$/,
-    /^\/domiki-page$/,
+    /^\/domiki-page(\/[^/]*)?$/,
     /^\/wiki$/,
     /^\/world$/,
 ];

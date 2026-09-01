@@ -3,6 +3,7 @@ import { ApiError, getMemorialPost, getRelocationPlan } from '../services/api';
 import { useToast } from '../services/toastContext';
 import type { MemorialPostDto, RelocationDto, RelocationPlanDto } from '../types/api';
 import { pluralRu } from '../utils/plural';
+import { SectionHero } from './SectionHero';
 import { ActionButton } from './ActionButton';
 import { Crest } from './Crest';
 import { PixelLoader } from './PixelLoader';
@@ -74,17 +75,17 @@ export const RelocationBox = ({ relocation, villageName, onRelocate, onBuyPerk }
 
     return (
         <section className="relocation-panel pixel-panel">
-            <header className="relocation-hero">
-                <span className="relocation-hero-emblem" aria-hidden="true"><AbstractSprite logicName="prestige_new_valley" /></span>
+            <SectionHero className="relocation-hero">
+                <span className="relocation-hero-emblem sec-hero-emblem" aria-hidden="true"><AbstractSprite logicName="prestige_new_valley" /></span>
                 <div className="relocation-hero-text">
                     <h3 className="relocation-hero-title panel-title">Переезд в новую долину</h3>
                     <p className="relocation-hero-valley">Нынче стоим в долине {relocation.valleyName}</p>
-                    <p className="relocation-hero-sub">
+                    <p className="relocation-hero-sub sec-hero-sub">
                         Всё, что здесь умели, уже поставлено, а за перевалом земля не пахана.
                         Двор и припас останутся, трудяги и чертежи поедут с вами.
                     </p>
                 </div>
-            </header>
+            </SectionHero>
 
             <div className="relocation-gate">
                 <div className="relocation-gate-meter">

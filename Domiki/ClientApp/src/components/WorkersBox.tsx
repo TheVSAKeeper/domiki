@@ -7,6 +7,7 @@ import type { CloakStateDto, DomikDto, DomikIncidentDto, DomikTypeDto, ErrandDto
 import { buildDomikNamer, type DomikNamer } from '../utils/domikNames';
 import { formatDuration, formatDurationShort, formatTimeOfDay, remainingSeconds } from '../utils/time';
 import { describeWorker, describeWorkerParts, isSkilledWorker, rankedSkills } from '../utils/worker';
+import { SectionHero } from './SectionHero';
 import { AbstractSprite, DomikSprite, MechanicSprite, ResourceSprite, TraitSprite, WorkerSprite } from './sprites';
 import { genderForm, traitLabel } from '../utils/gender';
 import { pluralRu } from '../utils/plural';
@@ -269,8 +270,8 @@ export const WorkersBox = ({ workers, domikTypes, domiks, receipts, expeditions,
     return (
         <section className="workers-panel pixel-panel">
             <div className="workers-head">
-                <div className="workers-hero">
-                    <span className="workers-hero-emblem"><MechanicSprite logicName="workers" size={40} aria-hidden="true" /></span>
+                <SectionHero className="workers-hero">
+                    <span className="workers-hero-emblem sec-hero-emblem"><MechanicSprite logicName="workers" size={40} aria-hidden="true" /></span>
                     <div className="workers-hero-text">
                         <h3 className="panel-title workers-hero-title">Трудяги</h3>
                         {workers.length > 0 &&
@@ -284,7 +285,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, receipts, expeditions,
                             </div>
                         }
                     </div>
-                </div>
+                </SectionHero>
                 {filledCap != null &&
                     <div className="workers-cap">
                         Артель полна: {filledCap} {pluralRu(filledCap, 'трудяга', 'трудяги', 'трудяг')} – столько двор и кормит. Новые койки пока постоят пустыми.

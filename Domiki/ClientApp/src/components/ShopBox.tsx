@@ -5,6 +5,7 @@ import CloseIcon from 'pixelarticons/svg/close.svg?react';
 import type { BlueprintDto, DomikTypeDto, ReceiptDto, ResourceDto, ResourceTypeDto, VillageLevelDto } from '../types/api';
 import { hasResourcesFor, resourceShortfall, resourceSourceMap } from '../utils/game';
 import { resourceLore } from '../utils/resourceLore';
+import { SectionHero } from './SectionHero';
 import { DomikSprite, MechanicSprite, ResourceSprite } from './sprites';
 import { ResourcesBox } from './ResourcesBox';
 import { ActionButton } from './ActionButton';
@@ -26,18 +27,18 @@ export const ShopBox = ({ purchaseDomikTypes, domikTypes, receipts, resourceType
 
     return (
         <section className="shop pixel-panel" aria-label="Плотницкий двор">
-            <header className="shop-head">
+            <SectionHero className="shop-head">
                 <div className="shop-title">
-                    <MechanicSprite logicName="shop" size={32} className="shop-title-ico" aria-hidden="true" />
+                    <MechanicSprite logicName="shop" size={32} className="shop-title-ico sec-hero-emblem" aria-hidden="true" />
                     <div>
                         <h2 className="panel-title">Плотницкий двор</h2>
-                        <p className="shop-sub">Выберите, что построить в деревне</p>
+                        <p className="shop-sub sec-hero-sub">Выберите, что построить в деревне</p>
                     </div>
                 </div>
                 <button type="button" className="shop-close" title="Закрыть" onClick={onClose}>
                     <CloseIcon className="btn-ico" aria-hidden="true" />
                 </button>
-            </header>
+            </SectionHero>
             <div className="shop-grid">
                 {purchaseDomikTypes.length === 0 &&
                     <p className="hint shop-empty">Пока строить нечего – новые постройки открываются с ростом обжитости.</p>

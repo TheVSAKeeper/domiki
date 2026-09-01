@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
 import HomeIcon from 'pixelarticons/svg/home.svg?react';
@@ -27,7 +26,7 @@ interface VillageHudProps {
     now: number;
     onStickyOffsetChange: (offset: number) => void;
     villageProfile?: { logicName: string; name: string; buildings: string[] } | null;
-    nav: ReactNode;
+    compact: boolean;
     onOpenTab: (tab: string) => void;
 }
 
@@ -41,7 +40,7 @@ const WeatherEffectChip = ({ domikType, delta }: { domikType: DomikTypeDto; delt
     </span>
 );
 
-export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, digest, villageLevel, weather, now, onStickyOffsetChange, villageProfile, nav, onOpenTab }: VillageHudProps) => {
+export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, digest, villageLevel, weather, now, onStickyOffsetChange, villageProfile, compact, onOpenTab }: VillageHudProps) => {
     const hudRef = useRef<HTMLDivElement>(null);
     const [flyout, setFlyout] = useState<'weather' | 'level' | null>(null);
     const levelFlyout = flyout === 'level';
@@ -109,7 +108,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
 
     return (
         <>
-            <div ref={hudRef} className="hud-shell">
+            <div ref={hudRef} className={'hud-shell' + (compact ? ' hud-shell--compact' : '')}>
             <header className="hud pixel-panel">
                 <div className="hud-bar">
                     <div className="hud-left">
@@ -165,9 +164,6 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                     </div>
                 </div>
 
-                <div className="hud-deck">
-                    <div className="hud-deck-nav">{nav}</div>
-                </div>
             </header>
 
                 {weatherFlyout && currentWeather != null &&

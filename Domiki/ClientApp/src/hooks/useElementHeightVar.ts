@@ -14,7 +14,7 @@ export function useElementHeightVar(ref: RefObject<HTMLElement | null>, name: st
         observer?.observe(element);
         return () => {
             observer?.disconnect();
-            document.documentElement.style.removeProperty(name);
+            document.documentElement.style.setProperty(name, '0px');
         };
     }, [ref, name]);
 }

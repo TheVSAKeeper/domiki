@@ -2,6 +2,19 @@
     position: relative;
 }
 
+.nav-link.changelog-chip {
+    font: inherit;
+    font-weight: 600;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.nav-link.changelog-chip .hud-news-dot {
+    top: 0;
+    right: -4px;
+}
+
 .hud-news-dot {
     position: absolute;
     top: 4px;

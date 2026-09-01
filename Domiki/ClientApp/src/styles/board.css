@@ -8,7 +8,7 @@
 .game-tabs {
     display: flex;
     flex-wrap: nowrap;
-    gap: 8px;
+    gap: 6px;
     margin-top: 20px;
     padding-bottom: 8px;
     overflow-x: auto;
@@ -21,7 +21,8 @@
     display: none;
 }
 
-.game-tabs-list {
+.game-tabs-list,
+.game-tabs-item {
     display: contents;
 }
 
@@ -71,11 +72,13 @@
 
 .game-tab-panel {
     min-height: calc(100vh - 120px);
+    margin-top: 12px;
 }
 
 .game-tab {
     display: inline-flex;
     flex: 0 0 auto;
+    text-decoration: none;
     align-items: center;
     min-height: 44px;
     font: inherit;
@@ -99,27 +102,13 @@
     box-shadow: 0 0 0 2px #fffaec;
 }
 
-.game-tab-panel:focus-visible {
-    outline: 3px solid var(--coin);
-    outline-offset: 3px;
-}
-
-.game-tab-home {
-    display: none;
-}
-
 .game-tab-ico {
     width: 20px;
     height: 20px;
 }
 
-.game-tab-home > .game-tab-ico {
-    width: 36px;
-    height: 36px;
-    flex: none;
-    padding: 5px 9px;
-    background: #fffaec;
-    border-right: 2px solid var(--ink);
+.game-tab-board {
+    margin-right: 6px;
 }
 
 .village {
@@ -1092,6 +1081,27 @@
     flex-shrink: 0;
 }
 
+.panel-mech-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    margin-top: 6px;
+    padding: 0 10px;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--plank);
+    background: var(--pine);
+    border: 2px solid var(--ink);
+    clip-path: var(--cut);
+    cursor: pointer;
+}
+
+.panel-mech-link:focus-visible {
+    outline: 3px solid var(--coin);
+    outline-offset: -3px;
+}
+
 .panel-tabs {
     display: flex;
     gap: 6px;
@@ -1458,12 +1468,9 @@
         opacity: 1;
     }
 
-    .game-tab-home {
-        display: inline-flex;
-    }
-
     .game-tab-panel {
         min-height: 45vh;
+        margin-top: 8px;
         scroll-margin-top: 68px;
     }
 

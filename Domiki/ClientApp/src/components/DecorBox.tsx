@@ -2,6 +2,7 @@ import PlusIcon from 'pixelarticons/svg/plus-box.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
 import type { DecorStateDto, DecorTypeDto, NeighborReputationDto, PlayerDecorDto, ResourceDto, ResourceTypeDto } from '../types/api';
 import { hasResourcesFor } from '../utils/game';
+import { SectionHero } from './SectionHero';
 import { ProgressBar } from './ProgressBar';
 import { ResourcesBox } from './ResourcesBox';
 import { ActionButton } from './ActionButton';
@@ -29,19 +30,19 @@ export const DecorBox =({ decor, resourceTypes, resources, reputations, onBuy }:
 
     return (
         <section className="decor-panel pixel-panel">
-            <div className="decor-hero">
-                <div className="decor-hero-emblem">
+            <SectionHero className="decor-hero">
+                <div className="decor-hero-emblem sec-hero-emblem">
                     <MechanicSprite logicName="decor" size={40} aria-hidden="true" />
                 </div>
                 <div className="decor-hero-text">
                     <h3 className="panel-title decor-hero-title">Декор</h3>
-                    <p className="decor-hero-sub">Обустраивайте деревню – уют ускоряет отдых трудяг и растит обжитость.</p>
+                    <p className="decor-hero-sub sec-hero-sub">Обустраивайте деревню – уют ускоряет отдых трудяг и растит обжитость.</p>
                 </div>
                 <div className="decor-hero-comfort">
                     <span className="decor-hero-comfort-num">{decor.comfort}</span>
                     <span className="decor-hero-comfort-label">уюта в деревне</span>
                 </div>
-            </div>
+            </SectionHero>
             <div className="decor-grid">
                 {ordinaryPurchasable.map(type => {
                     const owned = decor.owned.find(x => x.decorTypeId === type.id)?.count ?? 0;
