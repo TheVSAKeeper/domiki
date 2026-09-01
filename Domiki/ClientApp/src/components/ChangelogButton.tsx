@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { latestChangelogId } from '../constants/changelog';
 import { ChangelogModal } from './ChangelogModal';
 import { MechanicSprite } from './sprites';
@@ -30,7 +31,7 @@ export const ChangelogButton = ({ onOpen }: { onOpen?: () => void }) => {
                 Вестник
                 {unread && <span className="hud-news-dot" aria-hidden="true" />}
             </button>
-            {open && <ChangelogModal lastSeenId={lastSeen} onClose={close} />}
+            {open && createPortal(<ChangelogModal lastSeenId={lastSeen} onClose={close} />, document.body)}
         </>
     );
 };
