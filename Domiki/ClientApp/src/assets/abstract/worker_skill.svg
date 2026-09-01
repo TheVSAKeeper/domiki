@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" role="img" aria-labelledby="worker_skill-title worker_skill-desc" focusable="false" preserveAspectRatio="xMidYMid meet" color-interpolation="sRGB" data-active="true" data-state="idle" data-motion="on" data-animation-profile="badge" style="--asset-phase:-1.84s">
   <title id="worker_skill-title">Опыт / навык</title>
-  <desc id="worker_skill-desc">Молот и ступенчатое долото над рабочей лентой — знак освоенного ремесла.</desc><style>
+  <desc id="worker_skill-desc">Молот и ступенчатое долото над рабочей лентой – знак освоенного ремесла.</desc><style>
     .micro { }
     .tiny { }
     svg[data-size="32"] .tiny, svg[data-size="24"] .tiny { display:none }

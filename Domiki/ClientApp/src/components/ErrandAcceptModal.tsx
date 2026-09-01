@@ -79,7 +79,7 @@ export const ErrandAcceptModal = ({ errand, workers, now, onConfirm, onClose }: 
                         <span className="errand-clue-detail">{clue.detail}</span>
                         <span className="errand-clue-meta">
                             <span><ClockIcon aria-hidden="true" />≈{errandClueDurationsHours[index]} ч</span>
-                            <span><AbstractSprite logicName="reputation" size={24} className="reputation-ico" aria-hidden="true" />+{errandReputationByClue[index]} реп.</span>
+                            <span><AbstractSprite logicName="reputation" size={24} className="reputation-ico" aria-hidden="true" />+{errandReputationByClue[index]} к имени</span>
                         </span>
                     </button>
                 ))}
@@ -99,7 +99,7 @@ export const ErrandAcceptModal = ({ errand, workers, now, onConfirm, onClose }: 
             {canConfirm &&
                 <div className="errand-reward-preview">
                     <span className="panel-label">награда за поиски</span>
-                    <span className="errand-reward-preview-value">+{rewardCoins} монет, +{errandReputationByClue[clueId]} реп.</span>
+                    <span className="errand-reward-preview-value">+{rewardCoins} монет, +{errandReputationByClue[clueId]} к доброму имени</span>
                 </div>
             }
             <ActionButton className="btn-game icon-chip-btn" disabled={!canConfirm} onClick={confirm}>

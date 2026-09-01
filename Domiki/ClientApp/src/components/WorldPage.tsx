@@ -47,7 +47,7 @@ const LevelBreakdown = ({ visit }: { visit: VillageVisitDto }) => (
     <div className="world-level-grid">
         <span>Постройки: {visit.level.buildings}</span>
         <span>Жители: {visit.level.residents}</span>
-        <span>Репутация: {visit.level.reputation}</span>
+        <span>Доброе имя: {visit.level.reputation}</span>
         <span>Уют: {visit.level.comfort}</span>
     </div>
 );
@@ -318,13 +318,13 @@ export const WorldPage = () => {
                 <aside className="world-visit pixel-panel">
                     {selectedVillage == null &&
                         <div className="world-legend">
-                            <h2 className="panel-title">Весь мир — на ладони</h2>
+                            <h2 className="panel-title">Весь мир – на ладони</h2>
                             <p className="hint">Исследуй долину, находи сильнейшие артели и заглядывай в гости. Карта живая: тяни её и меняй масштаб.</p>
                             <ul className="world-legend-list">
                                 <li>Поселения растут вместе с обжитостью</li>
                                 <li>Золотой вымпел отмечает твою деревню</li>
-                                <li>Номер над поляной — место в сезонном топ-3</li>
-                                <li>Большая эмблема — торговое село соседей</li>
+                                <li>Номер над поляной – место в сезонном топ-3</li>
+                                <li>Большая эмблема – торговое село соседей</li>
                             </ul>
                         </div>
                     }

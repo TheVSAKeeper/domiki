@@ -383,7 +383,7 @@ public class DomikManager
             if (blueprint != null && !_blueprintManager.IsOwned(playerId, blueprint.Id))
             {
                 var neighbor = _resourceManager.GetNeighbors().First(x => x.Id == blueprint.NeighborId);
-                throw new BusinessException($"Нужен чертёж (репутация {neighbor.Name} {blueprint.ReputationThreshold})");
+                throw new BusinessException($"Нужен чертёж: {neighbor.Name}, доброе имя {blueprint.ReputationThreshold}");
             }
 
             var domikLevel = domikType.Levels.First(x => x.Value == 1);
@@ -594,7 +594,7 @@ public class DomikManager
         if (receiptBlueprint != null && !_blueprintManager.IsOwned(playerId, receiptBlueprint.Id))
         {
             var blueprintNeighbor = _resourceManager.GetNeighbors().First(x => x.Id == receiptBlueprint.NeighborId);
-            throw new BusinessException($"Нужен чертёж (репутация {blueprintNeighbor.Name} {receiptBlueprint.ReputationThreshold})");
+            throw new BusinessException($"Нужен чертёж: {blueprintNeighbor.Name}, доброе имя {receiptBlueprint.ReputationThreshold}");
         }
 
         var needPlodderCount = receipt.PlodderCount;

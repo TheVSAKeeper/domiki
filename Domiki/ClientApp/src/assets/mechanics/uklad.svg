@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" role="img" aria-labelledby="uklad-title uklad-desc" focusable="false" preserveAspectRatio="xMidYMid meet" color-interpolation="sRGB" data-active="true" data-state="idle" data-motion="on" data-animation-profile="grounded" style="--asset-phase:-.4s">
-<title id="uklad-title">Уклад деревни</title><desc id="uklad-desc">Две деревни передают друг другу ремесленный молот — знак перенятого уклада.</desc>
+<title id="uklad-title">Уклад деревни</title><desc id="uklad-desc">Две деревни передают друг другу ремесленный молот – знак перенятого уклада.</desc>
 <style>
 .micro{} .tiny{}
 svg[data-size="32"] .tiny,svg[data-size="24"] .tiny{display:none}

@@ -352,7 +352,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
                         {coinType != null && <ResourceChip resourceType={coinType} value={data.coins} />}
                         <span className="reputation-reward">
                             <AbstractSprite logicName="reputation" size={24} className="reputation-ico" aria-hidden="true" />
-                            +{data.reputation} реп.
+                            +{data.reputation} к имени
                         </span>
                         {bonusType != null && isNumber(data.bonusValue) && <ResourceChip resourceType={bonusType} value={data.bonusValue} rare />}
                     </span>

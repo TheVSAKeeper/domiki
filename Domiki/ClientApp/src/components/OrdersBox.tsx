@@ -193,12 +193,12 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                                         {profile.state === 'need-level' || profile.state === 'need-reputation' || profile.state === 'closed'
                                             ? <span className="standing-friend-mark standing-friend-mark-locked"
                                                 title={profile.state === 'need-reputation'
-                                                    ? `Мало доверия для уклада – репутация ${item.points}/${VILLAGE_PROFILE_REPUTATION_REQUIREMENT}`
+                                                    ? `Мало доверия для уклада – доброе имя ${item.points}/${VILLAGE_PROFILE_REPUTATION_REQUIREMENT}`
                                                     : profile.state === 'need-level'
                                                         ? `Мала ещё обжитость для уклада – ${villageLevel?.level ?? 0}/${VILLAGE_PROFILE_LEVEL_REQUIREMENT}`
                                                         : !item.isOpen ? 'Дорога ещё не открыта' : 'У этого соседа нет своего уклада'}
                                                 aria-label={profile.state === 'need-reputation'
-                                                    ? `Уклад ${genitiveName} закрыт: репутация ${item.points} из ${VILLAGE_PROFILE_REPUTATION_REQUIREMENT}`
+                                                    ? `Уклад ${genitiveName} закрыт: доброе имя ${item.points} из ${VILLAGE_PROFILE_REPUTATION_REQUIREMENT}`
                                                     : profile.state === 'need-level'
                                                         ? `Уклад ${genitiveName} закрыт: обжитость ${villageLevel?.level ?? 0} из ${VILLAGE_PROFILE_LEVEL_REQUIREMENT}`
                                                         : undefined}>
@@ -324,7 +324,7 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                                         <ResourcesBox resources={rewardResources(order)} resourceTypes={resourceTypes} />
                                         <span className="reputation-reward">
                                             <AbstractSprite logicName="reputation" size={24} className="reputation-ico" aria-hidden="true" />
-                                            +{order.rewardReputation} реп.
+                                            +{order.rewardReputation} к имени
                                         </span>
                                     </div>
                                 </div>

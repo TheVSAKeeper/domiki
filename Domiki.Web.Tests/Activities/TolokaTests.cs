@@ -143,7 +143,7 @@ public sealed class TolokaTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex.Message, Is.EqualTo("Нужна Сходня"));
+            Assert.That(ex.Message, Is.EqualTo("Нужна Сборня"));
             Assert.That(ActiveStonePosition().Collected, Is.Zero);
             Assert.That(player.Resource(ResourceIds.Stone), Is.EqualTo(startStone));
         }
@@ -584,7 +584,7 @@ public sealed class TolokaTests
     }
 
     /// <summary>
-    /// Голос за следующую толоку без постройки Сходня отклоняется исключением.
+    /// Голос за следующую толоку без постройки Сборня отклоняется исключением.
     /// </summary>
     [Test]
     public void VoteRequiresGatheringBuildingTest()
@@ -593,7 +593,7 @@ public sealed class TolokaTests
 
         var ex = Throws.Business(() => player.Vote(TolokaTypeIds.Kiln));
 
-        Assert.That(ex.Message, Is.EqualTo("Нужна Сходня"));
+        Assert.That(ex.Message, Is.EqualTo("Нужна Сборня"));
     }
 
     /// <summary>

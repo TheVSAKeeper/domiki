@@ -808,7 +808,7 @@ export const WorldMap = ({ villages, metricKey, metricLabel, selectedKey, onSele
                 </g>
             </svg>
             <div className="wm-title">Долина Домиков</div>
-            <div className="wm-hint">Тяни карту · колесо — масштаб</div>
+            <div className="wm-hint">Тяни карту · колесо – масштаб</div>
             <MapControls
                 onOverview={() => { flyTo(fitSpots(spots), 700); }}
                 onZoomIn={() => { zoomBy(1.45); }}

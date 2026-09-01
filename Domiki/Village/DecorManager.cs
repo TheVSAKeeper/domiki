@@ -59,7 +59,7 @@ public class DecorManager
             if (points < type.ReputationThreshold)
             {
                 var neighbor = _resourceManager.GetNeighbors().First(x => x.Id == type.NeighborId);
-                throw new BusinessException($"Откроется за репутацию: {neighbor.Name}, {points}/{type.ReputationThreshold}");
+                throw new BusinessException($"Откроется за доброе имя: {neighbor.Name}, {points}/{type.ReputationThreshold}");
             }
         }
 

@@ -195,7 +195,7 @@ public class VillageLevelCalculator
             {
                 Level = null,
                 Label = x.domik == null ? x.receipt!.Name ?? string.Empty : x.domik.Name,
-                Requirement = $"чертёж: {x.neighbor.Name}, репутация {x.points}/{x.b.ReputationThreshold}",
+                Requirement = $"чертёж: {x.neighbor.Name}, доброе имя {x.points}/{x.b.ReputationThreshold}",
                 Unlocked = false,
                 Kind = x.domik == null ? "receipt" : "building",
                 LogicName = x.domik == null ? x.receipt!.LogicName ?? string.Empty : x.domik.LogicName,

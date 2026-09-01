@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" role="img" aria-labelledby="reputation-title reputation-desc" focusable="false" preserveAspectRatio="xMidYMid meet" color-interpolation="sRGB" data-active="true" data-state="idle" data-motion="on" data-animation-profile="badge" style="--asset-phase:-0.06s">
-  <title id="reputation-title">Репутация</title>
-  <desc id="reputation-desc">Смысловая пиксельная SVG-иконка «Репутация», оптимизированная для размеров 64, 32 и 24 px. Поддерживаются состояния idle, selected, attention, pressed, disabled и режимы motion on/slow/fast/paused/off.</desc><style>
+  <title id="reputation-title">Доброе имя</title>
+  <desc id="reputation-desc">Смысловая пиксельная SVG-иконка «Доброе имя», оптимизированная для размеров 64, 32 и 24 px. Поддерживаются состояния idle, selected, attention, pressed, disabled и режимы motion on/slow/fast/paused/off.</desc><style>
     .micro { }
     .tiny { }
     svg[data-size="32"] .tiny, svg[data-size="24"] .tiny { display:none }

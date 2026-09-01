@@ -152,7 +152,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                             <div className="village-level">
                                 <button type="button" className={'village-level-box' + (levelFlyout ? ' is-open' : '')}
                                     onClick={() => { toggleFlyout('level'); }} aria-expanded={levelFlyout}
-                                    title={`Постройки ${villageLevel.buildings}, жители ${villageLevel.residents}, репутация ${villageLevel.reputation}, уют ${villageLevel.comfort}`}>
+                                    title={`Постройки ${villageLevel.buildings}, жители ${villageLevel.residents}, доброе имя ${villageLevel.reputation}, уют ${villageLevel.comfort}`}>
                                     <MechanicSprite logicName="obzhitost" size={24} className="village-level-ico" aria-hidden="true" />
                                     <span className="village-level-label">Обжитость</span>
                                     <span className="village-level-value">{villageLevel.level}</span>
@@ -201,7 +201,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                         <div className="vlf-stats">
                             <span className="vlf-stat"><span className="vlf-stat-label">Постройки</span><span className="vlf-stat-value">{villageLevel?.buildings}</span></span>
                             <span className="vlf-stat"><span className="vlf-stat-label">Жители</span><span className="vlf-stat-value">{villageLevel?.residents}</span></span>
-                            <span className="vlf-stat"><span className="vlf-stat-label">Репутация</span><span className="vlf-stat-value">{villageLevel?.reputation}</span></span>
+                            <span className="vlf-stat"><span className="vlf-stat-label">Доброе имя</span><span className="vlf-stat-value">{villageLevel?.reputation}</span></span>
                             <span className="vlf-stat"><span className="vlf-stat-label">Уют</span><span className="vlf-stat-value">{villageLevel?.comfort}</span></span>
                         </div>
                         {villageLevel != null && nextGoal != null &&

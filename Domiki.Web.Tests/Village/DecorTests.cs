@@ -29,7 +29,7 @@ public sealed class DecorTests
     }
 
     /// <summary>
-    /// Декор, открываемый репутацией с соседом, нельзя купить без нужной репутации – ошибка упоминает «репутац».
+    /// Декор, открываемый репутацией с соседом, нельзя купить без нужной репутации – ошибка упоминает доброе имя.
     /// </summary>
     [Test]
     public void BuyGatedDecorWithoutReputationThrowsTest()
@@ -40,7 +40,7 @@ public sealed class DecorTests
 
         var ex = Throws.Business(() => player.BuyDecor(DecorIds.BrickArch));
 
-        Assert.That(ex.Message, Does.Contain("репутац"));
+        Assert.That(ex.Message, Does.Contain("доброе имя"));
     }
 
     /// <summary>

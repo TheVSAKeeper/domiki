@@ -69,7 +69,7 @@ public class VillageProfileManager
 
         if (reputation < ReputationRequirement)
         {
-            throw new BusinessException($"Для уклада нужна репутация {ReputationRequirement} у этого соседа");
+            throw new BusinessException($"Для уклада нужно доброе имя {ReputationRequirement} у этого соседа");
         }
 
         var current = _context.Players.AsNoTracking()

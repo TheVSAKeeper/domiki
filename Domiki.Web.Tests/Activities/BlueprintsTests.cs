@@ -77,7 +77,7 @@ public sealed class BlueprintsTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex.Message, Is.EqualTo("Нужен чертёж (репутация Боровое 30)"));
+            Assert.That(ex.Message, Is.EqualTo("Нужен чертёж: Боровое, доброе имя 30"));
             Assert.That(player.Resources().Select(x => (x.Type.Id, x.Value)), Is.EquivalentTo(before.Select(x => (x.Type.Id, x.Value))));
             Assert.That(player.Domiks().Count(x => x.Type.Id == DomikIds.Workshop), Is.Zero);
         }

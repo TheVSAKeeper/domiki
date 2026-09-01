@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges" data-size="64" role="img" aria-labelledby="tavern-title tavern-desc" focusable="false" preserveAspectRatio="xMidYMid meet" color-interpolation="sRGB" data-active="true" data-state="idle" data-motion="on" data-animation-profile="bob" style="--asset-phase:-1.3s">
-<title id="tavern-title">Корчма</title><desc id="tavern-desc">Большая кружка с пеной и вывеской — компактная иконка механики корчмы.</desc>
+<title id="tavern-title">Корчма</title><desc id="tavern-desc">Большая кружка с пеной и вывеской – компактная иконка механики корчмы.</desc>
 <style>
 .micro{} .tiny{}
 svg[data-size="32"] .tiny,svg[data-size="24"] .tiny{display:none}

@@ -60,7 +60,7 @@ export const ShopBox = ({ purchaseDomikTypes, domikTypes, receipts, resourceType
                                 ? `Поставить ещё – при обжитости ${domikType.nextCountGateLevel}`
                                 : undefined;
                     const lockHint = blueprintLocked
-                        ? `Репутация ${blueprint.reputationThreshold}: бери заказы соседа или ищи чертёж в экспедиции`
+                        ? `Доброе имя ${blueprint.reputationThreshold}: бери заказы соседа или ищи чертёж в экспедиции`
                         : null;
                     const buyTitle = isLocked
                         ? (lockHint != null ? `${lockTitle ?? ''} – ${lockHint}` : lockTitle)

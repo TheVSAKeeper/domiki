@@ -486,7 +486,7 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
         const blueprint = blueprints.find(x => x.receiptId === receipt.id);
         return blueprint == null || blueprint.owned
             ? null
-            : `Нужен чертёж «${blueprint.name}»: репутация ${blueprint.neighborName} ${blueprint.currentReputation}/${blueprint.reputationThreshold}`;
+            : `Нужен чертёж «${blueprint.name}»: ${blueprint.neighborName}, доброе имя ${blueprint.currentReputation}/${blueprint.reputationThreshold}`;
     };
 
     const readyReceipts: ReceiptDto[] = [];

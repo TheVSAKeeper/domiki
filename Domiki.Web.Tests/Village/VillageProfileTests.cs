@@ -41,7 +41,7 @@ public sealed class VillageProfileTests
 
         var ex = Throws.Business(() => player.SetVillageProfile(NeighborIds.Zarechye));
 
-        Assert.That(ex.Message, Is.EqualTo($"Для уклада нужна репутация {VillageProfileManager.ReputationRequirement} у этого соседа"));
+        Assert.That(ex.Message, Is.EqualTo($"Для уклада нужно доброе имя {VillageProfileManager.ReputationRequirement} у этого соседа"));
     }
 
     /// <summary>

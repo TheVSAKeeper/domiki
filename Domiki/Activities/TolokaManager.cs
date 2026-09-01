@@ -210,7 +210,7 @@ public class TolokaManager
 
         if (!HasBuilding(playerId, "gathering"))
         {
-            throw new BusinessException("Нужна Сходня");
+            throw new BusinessException("Нужна Сборня");
         }
 
         _playerResourceManager.WriteOffResources(playerId, new[]
@@ -300,7 +300,7 @@ public class TolokaManager
     /// </summary>
     /// <remarks>
     /// Тот же порядок блокировок, что и <see cref="Contribute"/> (<see cref="LockActiveToloka"/>, затем
-    /// <see cref="PlayerResourceManager.LockDbPlayerRow"/>), – голос не ляжет на завершающуюся толоку. Гейт постройкой «Сходня».
+    /// <see cref="PlayerResourceManager.LockDbPlayerRow"/>), – голос не ляжет на завершающуюся толоку. Гейт постройкой «Сборня».
     /// Смена выбора – UPDATE строки голоса. Голос без вклада разрешён.
     /// </remarks>
     /// <param name="playerId">Игрок, отдающий голос.</param>
@@ -319,7 +319,7 @@ public class TolokaManager
 
         if (!HasBuilding(playerId, "gathering"))
         {
-            throw new BusinessException("Нужна Сходня");
+            throw new BusinessException("Нужна Сборня");
         }
 
         var vote = _context.TolokaVotes.FirstOrDefault(x => x.TolokaId == dbToloka.Id && x.PlayerId == playerId);
