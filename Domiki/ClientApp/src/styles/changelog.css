@@ -191,7 +191,7 @@ dialog.changelog-modal::backdrop {
     z-index: 2;
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-end;
+    align-items: center;
     justify-content: space-between;
     gap: 10px 12px;
     padding: 12px 18px 14px;
