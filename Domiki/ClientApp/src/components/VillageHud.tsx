@@ -14,6 +14,7 @@ import { HudResource } from './HudResource';
 import { HudRibbon } from './HudRibbon';
 import { ProgressBar } from './ProgressBar';
 import { GiftVisitDots } from './GiftVisitDots';
+import { TermTip } from './TermTip';
 
 interface VillageHudProps {
     resources: ResourceDto[];
@@ -199,7 +200,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                         <div className="vlf-stats">
                             <span className="vlf-stat"><span className="vlf-stat-label">Постройки</span><span className="vlf-stat-value">{villageLevel?.buildings}</span></span>
                             <span className="vlf-stat"><span className="vlf-stat-label">Койки</span><span className="vlf-stat-value">{villageLevel?.residents}</span></span>
-                            <span className="vlf-stat"><span className="vlf-stat-label">Доброе имя</span><span className="vlf-stat-value">{villageLevel?.reputation}</span></span>
+                            <span className="vlf-stat"><TermTip term="neighbor_milestones" className="vlf-stat-label">Вехи соседей</TermTip><span className="vlf-stat-value">{villageLevel?.reputation}</span></span>
                             <span className="vlf-stat"><span className="vlf-stat-label">Уют</span><span className="vlf-stat-value">{villageLevel?.comfort}</span></span>
                         </div>
                         {villageLevel != null && nextGoal != null &&

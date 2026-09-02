@@ -5,6 +5,8 @@ import type { ErrandDto, WorkerDto } from '../types/api';
 import { errandClueDurationsHours, errandCoinsPerWorkerHour, errandReputationByClue, getErrandTemplate } from '../utils/errandTexts';
 import { isWorkerFree } from '../utils/game';
 import { isSkilledWorker } from '../utils/worker';
+import { neighborPrepositionalName } from '../utils/profileLore';
+import { reputationTierAhead } from '../utils/reputationTiers';
 import { ActionButton } from './ActionButton';
 import { AbstractSprite, MechanicSprite, WorkerSprite } from './sprites';
 
@@ -13,12 +15,13 @@ const ERRAND_MAX_WORKERS = 2;
 interface ErrandAcceptModalProps {
     errand: ErrandDto;
     workers: WorkerDto[];
+    neighborPoints: number;
     now: number;
     onConfirm: (errandId: number, clueId: number, workerIds: number[]) => Promise<boolean>;
     onClose: () => void;
 }
 
-export const ErrandAcceptModal = ({ errand, workers, now, onConfirm, onClose }: ErrandAcceptModalProps) => {
+export const ErrandAcceptModal = ({ errand, workers, neighborPoints, now, onConfirm, onClose }: ErrandAcceptModalProps) => {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [clueId, setClueId] = useState<number | null>(null);
     const [workerIds, setWorkerIds] = useState<number[]>([]);
@@ -46,6 +49,7 @@ export const ErrandAcceptModal = ({ errand, workers, now, onConfirm, onClose }: 
     const canConfirm = clueId != null && workerIds.length > 0;
     const hours = clueId == null ? 0 : errandClueDurationsHours[clueId] ?? 0;
     const rewardCoins = errandCoinsPerWorkerHour * workerIds.length * hours;
+    const tierAhead = clueId == null ? null : reputationTierAhead(neighborPoints, errandReputationByClue[clueId] ?? 0);
 
     const confirm = async () => {
         if (clueId == null) {
@@ -100,6 +104,10 @@ export const ErrandAcceptModal = ({ errand, workers, now, onConfirm, onClose }: 
                 <div className="errand-reward-preview">
                     <span className="panel-label">награда за поиски</span>
                     <span className="errand-reward-preview-value">+{rewardCoins} монет, +{errandReputationByClue[clueId]} к доброму имени</span>
+                    {tierAhead != null &&
+                        <span className="errand-reward-preview-tier">
+                            и в {neighborPrepositionalName[errand.neighborLogicName] ?? errand.neighborName} ты {tierAhead.name}
+                        </span>}
                 </div>
             }
             <ActionButton className="btn-game icon-chip-btn" disabled={!canConfirm} onClick={confirm}>

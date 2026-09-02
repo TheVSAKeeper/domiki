@@ -7,13 +7,15 @@ import { hasResourcesFor } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
 import { getErrandTemplate } from '../utils/errandTexts';
 import { getVillageProfileState, VILLAGE_PROFILE_LEVEL_REQUIREMENT, VILLAGE_PROFILE_REPUTATION_REQUIREMENT } from '../utils/villageProfile';
-import { profileGenitiveName } from '../utils/profileLore';
+import { neighborPrepositionalName, profileGenitiveName } from '../utils/profileLore';
+import { reputationTier, reputationTierAhead } from '../utils/reputationTiers';
 import { SectionHero } from './SectionHero';
 import { ResourcesBox } from './ResourcesBox';
 import { ActionButton } from './ActionButton';
 import { ConvoyTally } from './ConvoyTally';
 import { ErrandAcceptModal } from './ErrandAcceptModal';
 import { VillageProfileConfirmModal } from './VillageProfileConfirmModal';
+import { TermTip } from './TermTip';
 import { AbstractSprite, MechanicSprite, NeighborSprite, ResourceSprite, WorkerSprite } from './sprites';
 
 interface OrdersBoxProps {
@@ -150,12 +152,13 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                     <div className="standing-list">
                         {reputation.map(item => {
                             const next = item.nextThreshold;
+                            const tier = reputationTier(item.points);
                             const fillPercent = next != null ? Math.min(100, Math.round((item.points / next) * 100)) : 100;
                             const title = !item.isOpen
                                 ? 'Дорога ещё не открыта'
                                 : next != null
                                     ? `До вехи ${next}: ещё ${next - item.points}${item.nextRewardName != null ? ` – ${item.nextRewardName}` : ''}`
-                                    : 'Доброе имя в почёте';
+                                    : tier.gloss;
                             const genitiveName = profileGenitiveName[item.neighborLogicName] ?? item.neighborName;
                             const profile = getVillageProfileState(villageProfiles, domikTypes, item, villageLevel?.level ?? 0, village?.profileNeighborId ?? null, village?.profileChangeAvailableDate ?? null, now);
                             const profileCooldownLeft = village?.profileChangeAvailableDate == null ? 0 : remainingSeconds(village.profileChangeAvailableDate, now);
@@ -169,12 +172,16 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                                     <NeighborSprite logicName={item.neighborLogicName} size={24} className="neighbor-ico" aria-hidden="true" />
                                     <div className="standing-badge-body">
                                         <span className="standing-badge-name">{item.neighborName}</span>
+                                        {item.isOpen &&
+                                            <TermTip term="reputation_tier" gloss={tier.gloss} className="standing-badge-tier">
+                                                {`в ${neighborPrepositionalName[item.neighborLogicName] ?? item.neighborName} ты ${tier.name}`}
+                                            </TermTip>}
                                         <div className="standing-track" aria-hidden="true">
                                             <span className="standing-track-fill" style={{ width: `${fillPercent}%` }} />
                                         </div>
                                         {item.isOpen &&
                                             <span className="standing-badge-goal">
-                                                {next != null ? <>{item.points}/{next}</> : <>{item.points} · в почёте</>}
+                                                {next != null ? <>{item.points}/{next}</> : <>{item.points}</>}
                                             </span>}
                                         {item.isOpen
                                             ? next != null && item.nextRewardName != null &&
@@ -194,7 +201,7 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                                         {profile.state === 'need-level' || profile.state === 'need-reputation' || profile.state === 'closed'
                                             ? <span className="standing-friend-mark standing-friend-mark-locked"
                                                 title={profile.state === 'need-reputation'
-                                                    ? `Мало доверия для уклада – доброе имя ${item.points}/${VILLAGE_PROFILE_REPUTATION_REQUIREMENT}`
+                                                    ? `Доброе имя ещё не доросло до уклада – ${item.points}/${VILLAGE_PROFILE_REPUTATION_REQUIREMENT}`
                                                     : profile.state === 'need-level'
                                                         ? `Мала ещё обжитость для уклада – ${villageLevel?.level ?? 0}/${VILLAGE_PROFILE_LEVEL_REQUIREMENT}`
                                                         : !item.isOpen ? 'Дорога ещё не открыта' : 'У этого соседа нет своего уклада'}
@@ -300,6 +307,7 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                         const canComplete = hasResourcesFor(order.required.map(x => ({ typeId: x.resourceTypeId, value: x.value })), resources);
                         const left = remainingSeconds(order.expireDate, now);
                         const tone = (['a', 'b', 'c', 'd'] as const)[order.neighborId % 4] ?? 'a';
+                        const tierAhead = reputationTierAhead(reputation.find(item => item.neighborId === order.neighborId)?.points ?? 0, order.rewardReputation);
                         return (
                             <div key={order.id} className="order-card">
                                 <div className={'order-postmark order-postmark-' + tone}>
@@ -328,6 +336,10 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                                             +{order.rewardReputation} к имени
                                         </span>
                                     </div>
+                                    {tierAhead != null &&
+                                        <p className="order-reward-tier">
+                                            и в {neighborPrepositionalName[order.neighborLogicName] ?? order.neighborName} ты {tierAhead.name}
+                                        </p>}
                                 </div>
                                 <div className="order-actions">
                                     <ActionButton className="btn-game" disabled={!canComplete}
@@ -347,6 +359,7 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                 </div>}
             {errand != null && errandModalId === errand.id && errand.acceptDate == null &&
                 <ErrandAcceptModal errand={errand} workers={workers} now={now}
+                    neighborPoints={reputation.find(item => item.neighborId === errand.neighborId)?.points ?? 0}
                     onConfirm={onAcceptErrand}
                     onClose={() => setErrandModalId(null)} />}
             {profileModalNeighborId != null && profileModalNeighbor != null &&

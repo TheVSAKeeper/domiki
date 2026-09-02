@@ -6,6 +6,14 @@ export const profileGenitiveName: Record<string, string> = {
     dubrava: 'Дубравы',
 };
 
+export const neighborPrepositionalName: Record<string, string> = {
+    zarechye: 'Заречье',
+    borovoe: 'Боровом',
+    kamenka: 'Каменке',
+    glinischi: 'Глинищах',
+    dubrava: 'Дубраве',
+};
+
 export const profileLore: Record<string, string> = {
     zarechye: 'Заречная сноровка: кузница и каменоломня управляются быстрее прежнего.',
     borovoe: 'Боровская выучка: лесопилка и мастерская ладят с деревом споро.',

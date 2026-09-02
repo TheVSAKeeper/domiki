@@ -447,6 +447,7 @@ public class OrderManager
 
         candidates.Add((ConvoyManager.AccessReputationThreshold, "обоз соседа"));
         candidates.Add((ConvoyManager.SecondaryReputationThreshold, "второй товар в обозе"));
+        candidates.Add((GiftManager.RepBonusThreshold, "щедрые гостинцы"));
         candidates.Add((ConvoyManager.HighLimitReputationThreshold, "щедрый обоз"));
 
         var next = candidates.Where(x => x.Threshold > points).OrderBy(x => x.Threshold).FirstOrDefault();

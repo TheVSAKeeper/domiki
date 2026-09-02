@@ -11,7 +11,10 @@ public class GiftManager
     private const int GiftAwayThresholdSeconds = 6 * 3600;
     private const int BigGiftEvery = 7;
     private const int BaseGiftValue = 40;
-    private const int RepBonusThreshold = 25;
+    /// <summary>
+    /// Порог доброго имени у соседа, с которого гостинцы становятся щедрее, а сам сосед заходит чаще.
+    /// </summary>
+    public const int RepBonusThreshold = 25;
     private const int RepWeightPerPoint = 25;
     private const int RepWeightCap = 3;
     private const int GiftCountCap = 10;

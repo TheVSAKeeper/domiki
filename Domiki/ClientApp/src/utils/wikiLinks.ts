@@ -3,12 +3,18 @@ export const termArticles: Record<string, string> = {
     elder_order: 'elder_house',
     naryad: 'elder_house',
     untouched_deposits: 'zeal',
+    artel: 'workers',
+    reputation_tier: 'friendship',
     worker_away: 'workers',
     worker_missing: 'workers',
     worker_search: 'workers',
     worker_domik_search: 'incidents',
     toloka_feast: 'toloka',
     clue: 'incidents',
+};
+
+export const termBuildings: Record<string, string> = {
+    artel_hut: 'barracks',
 };
 
 export const wikiArticleHref = (article: string) => `/wiki?article=${encodeURIComponent(article)}`;

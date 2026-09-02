@@ -47,7 +47,7 @@ const LevelBreakdown = ({ visit }: { visit: VillageVisitDto }) => (
     <div className="world-level-grid">
         <span>Постройки: {visit.level.buildings}</span>
         <span>Койки: {visit.level.residents}</span>
-        <span>Доброе имя: {visit.level.reputation}</span>
+        <span>Вехи соседей: {visit.level.reputation}</span>
         <span>Уют: {visit.level.comfort}</span>
     </div>
 );

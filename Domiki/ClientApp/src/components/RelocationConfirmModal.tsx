@@ -3,6 +3,7 @@ import CloseIcon from 'pixelarticons/svg/close.svg?react';
 import type { RelocationPlanDto } from '../types/api';
 import { pluralRu } from '../utils/plural';
 import { ActionButton } from './ActionButton';
+import { TermTip } from './TermTip';
 import { AbstractSprite } from './sprites';
 
 interface RelocationConfirmModalProps {
@@ -58,7 +59,7 @@ export const RelocationConfirmModal = ({ plan, villageName, onConfirm, onClose }
                         <div className="relocation-column relocation-column-carried">
                             <h3 className="relocation-column-title">Едет с вами</h3>
                             <ul className="relocation-column-list">
-                                <li>артель – {summary.workers} {pluralRu(summary.workers, 'трудяга', 'трудяги', 'трудяг')} со всей выучкой</li>
+                                <li><TermTip term="artel">артель</TermTip> – {summary.workers} {pluralRu(summary.workers, 'трудяга', 'трудяги', 'трудяг')} со всей выучкой</li>
                                 <li>чертежи – {summary.blueprints}</li>
                                 <li>золото – {summary.gold} из {summary.goldTotal} (остальное останется)</li>
                                 <li>доброе имя у соседей – половина</li>

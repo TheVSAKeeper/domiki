@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { flyoutLeft, flyoutWidth, useFlyoutTop } from '../utils/flyout';
 import { termLore } from '../utils/termLore';
-import { termArticles, wikiArticleHref } from '../utils/wikiLinks';
+import { termArticles, termBuildings, wikiArticleHref, wikiBuildingHref } from '../utils/wikiLinks';
 
 const POP_WIDTH = 260;
 
@@ -12,14 +12,17 @@ interface TermTipProps {
     term: string;
     children: ReactNode;
     className?: string;
+    gloss?: string;
 }
 
-export const TermTip = ({ term, children, className }: TermTipProps) => {
-    const gloss = termLore[term];
+export const TermTip = ({ term, children, className, gloss: ownGloss }: TermTipProps) => {
+    const gloss = ownGloss ?? termLore[term];
     const article = termArticles[term];
+    const building = termBuildings[term];
+    const moreHref = article != null ? wikiArticleHref(article) : building != null ? wikiBuildingHref(building) : null;
     const buttonRef = useRef<HTMLButtonElement>(null);
     const moreRef = useRef<HTMLAnchorElement>(null);
-    const [shown, setShown] = useState<{ rect: DOMRect; pinned: boolean } | null>(null);
+    const [shown, setShown] = useState<{ rect: DOMRect; pinned: boolean; host: Element } | null>(null);
     const anchor = shown?.rect ?? null;
     const pinned = shown?.pinned === true;
     const [popRef, popTop, popHidden] = useFlyoutTop<HTMLDivElement>(anchor);
@@ -69,8 +72,8 @@ export const TermTip = ({ term, children, className }: TermTipProps) => {
     }
 
     const show = (asPinned: boolean) => {
-        const rect = buttonRef.current?.getBoundingClientRect();
-        setShown(rect == null ? null : { rect, pinned: asPinned });
+        const button = buttonRef.current;
+        setShown(button == null ? null : { rect: button.getBoundingClientRect(), pinned: asPinned, host: button.closest('dialog') ?? document.body });
     };
 
     return (
@@ -85,17 +88,17 @@ export const TermTip = ({ term, children, className }: TermTipProps) => {
                 {children}
             </button>
             <span className="term-tip-gloss" id={glossId}>{gloss}</span>
-            {anchor != null && createPortal(
+            {shown != null && createPortal(
                 <div ref={popRef} className={'term-tip-pop' + (pinned ? ' term-tip-pop--pinned' : '')} role={pinned ? undefined : 'tooltip'}
                     style={{
                         top: popTop,
-                        left: flyoutLeft(anchor.left, flyoutWidth(POP_WIDTH)),
+                        left: flyoutLeft(shown.rect.left, flyoutWidth(POP_WIDTH)),
                         width: flyoutWidth(POP_WIDTH),
                         visibility: popHidden ? 'hidden' : undefined,
                     }}>
                     {gloss}
-                    {article != null && (
-                        <Link ref={moreRef} className="term-tip-more" to={wikiArticleHref(article)} aria-describedby={glossId}
+                    {moreHref != null && (
+                        <Link ref={moreRef} className="term-tip-more" to={moreHref} aria-describedby={glossId}
                             onClick={() => { setShown(null); }}
                             onKeyDown={event => {
                                 if (event.key === 'Tab' && event.shiftKey) {
@@ -113,7 +116,7 @@ export const TermTip = ({ term, children, className }: TermTipProps) => {
                         </Link>
                     )}
                 </div>,
-                document.body)}
+                shown.host)}
         </>
     );
 };

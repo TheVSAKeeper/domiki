@@ -19,7 +19,8 @@ import { PerfZone } from './PerfZone';
 import { perfCommitProbe } from '../utils/perf';
 import { ReceiptDropMenu } from './ReceiptDropMenu';
 import { buildDomikNamer } from '../utils/domikNames';
-import { profileGenitiveName } from '../utils/profileLore';
+import { neighborPrepositionalName, profileGenitiveName } from '../utils/profileLore';
+import { reputationTierAhead } from '../utils/reputationTiers';
 import { GameTabsNav } from './GameTabsNav';
 import { BOARD_TAB_KEY, tabPath } from '../utils/gameTabs';
 import { VillageIdentityModal } from './VillageIdentityModal';
@@ -265,10 +266,18 @@ export const DomikiPage = () => {
         [selected],
     );
 
-    const completeOrder = (orderId: number) => runAction(async () => {
-        await completeOrderApi(orderId);
-        scheduleReload();
-    }, 'Заказ выполнен');
+    const completeOrder = (orderId: number) => {
+        const order = orders.find(item => item.id === orderId);
+        const neighbor = order == null ? null : reputation.find(item => item.neighborId === order.neighborId) ?? null;
+        const tierAhead = order == null || neighbor == null ? null : reputationTierAhead(neighbor.points, order.rewardReputation);
+        const successMessage = tierAhead == null || neighbor == null
+            ? 'Заказ выполнен'
+            : `В ${neighborPrepositionalName[neighbor.neighborLogicName] ?? neighbor.neighborName} ты теперь ${tierAhead.name}`;
+        return runAction(async () => {
+            await completeOrderApi(orderId);
+            scheduleReload();
+        }, successMessage);
+    };
 
     const cancelOrder = (orderId: number) => runAction(async () => {
         await cancelOrderApi(orderId);

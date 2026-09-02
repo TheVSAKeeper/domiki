@@ -86,7 +86,8 @@ public sealed class FriendNeighborTests
     [TestCase(0, 5, "обоз соседа")]
     [TestCase(5, 15, "«Чертёж гончарни»")]
     [TestCase(15, 20, "второй товар в обозе")]
-    [TestCase(20, 40, "щедрый обоз")]
+    [TestCase(20, 25, "щедрые гостинцы")]
+    [TestCase(25, 40, "щедрый обоз")]
     [TestCase(40, 50, "«Чертёж клещей»")]
     public void NextReputationMilestoneNamesRealRewardTest(int points, int expectedThreshold, string expectedName)
     {
