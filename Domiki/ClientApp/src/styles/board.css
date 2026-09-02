@@ -855,53 +855,6 @@
     image-rendering: pixelated;
 }
 
-.lore-tip {
-    display: inline-flex;
-    vertical-align: middle;
-    margin-left: 6px;
-    color: var(--pine-dark);
-    cursor: help;
-}
-
-    .lore-tip:focus-visible {
-        outline: none;
-        color: var(--pine);
-    }
-
-.lore-tip-ico {
-    width: 18px;
-    height: 18px;
-}
-
-.lore-tip-pop {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    z-index: 20;
-    width: max-content;
-    max-width: 260px;
-    padding: 10px 12px;
-    font-family: 'Golos Text', 'Segoe UI', sans-serif;
-    font-size: 13px;
-    font-style: italic;
-    font-weight: 400;
-    line-height: 1.45;
-    color: rgba(51, 41, 26, .85);
-    background: var(--plank);
-    border: 3px solid var(--ink);
-    clip-path: var(--cut);
-    box-shadow: 4px 6px 0 rgba(0, 0, 0, .25);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-}
-
-.lore-tip:hover .lore-tip-pop,
-.lore-tip:focus-within .lore-tip-pop {
-    opacity: 1;
-    visibility: visible;
-}
-
 .timer {
     font-family: var(--pixel);
     font-size: 11px;

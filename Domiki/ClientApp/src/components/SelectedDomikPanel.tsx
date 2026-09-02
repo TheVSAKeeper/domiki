@@ -464,6 +464,7 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
         : currentWeather?.effects.find(effect => effect.domikTypeId === selected.domikType.id) ?? null;
     const sickName = sickTypeForWeather(sickTypes, currentWeather?.weatherTypeId)?.name ?? null;
     const crestWeather = selected == null ? null : weatherMark(currentWeather, selected.domikType.id);
+    const crestLore = selected == null ? null : domikLore[selected.domikType.logicName] ?? null;
     const formatShortfall = (cost: { typeId: number; value: number }[]) => resourceShortfall(cost, resources)
         .map(item => `${resourceTypes.find(type => type.id === item.typeId)?.name ?? `ресурс #${item.typeId}`} ×${item.value}`)
         .join(', ');
@@ -552,11 +553,11 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
                         <div className="panel-ident">
                         <h3 className="panel-title">
                             {displayName(selected.domik.typeId, selected.domik.id, selected.domikType.name, selected.domikType.logicName)}
-                            {domikLore[selected.domikType.logicName] != null &&
-                                <span className="lore-tip" tabIndex={0} aria-label="Описание постройки">
-                                    <InfoBoxIcon className="lore-tip-ico" aria-hidden="true" />
-                                    <span className="lore-tip-pop" role="tooltip">{domikLore[selected.domikType.logicName]}</span>
-                                </span>
+                            {crestLore != null &&
+                                <TermTip term={selected.domikType.logicName} gloss={crestLore}
+                                    building={selected.domikType.logicName} className="term-tip--icon" label="Описание постройки">
+                                    <InfoBoxIcon className="term-tip-ico" aria-hidden="true" />
+                                </TermTip>
                             }
                         </h3>
                         <div className="panel-level" aria-label={`Уровень ${selected.domik.level} из ${selected.domikType.maxLevel}`}>

@@ -13,13 +13,17 @@ interface TermTipProps {
     children: ReactNode;
     className?: string;
     gloss?: string;
+    building?: string;
+    label?: string;
 }
 
-export const TermTip = ({ term, children, className, gloss: ownGloss }: TermTipProps) => {
+export const TermTip = ({ term, children, className, gloss: ownGloss, building: ownBuilding, label }: TermTipProps) => {
     const gloss = ownGloss ?? termLore[term];
     const article = termArticles[term];
     const building = termBuildings[term];
-    const moreHref = article != null ? wikiArticleHref(article) : building != null ? wikiBuildingHref(building) : null;
+    const moreHref = ownBuilding != null ? wikiBuildingHref(ownBuilding)
+        : article != null ? wikiArticleHref(article)
+            : building != null ? wikiBuildingHref(building) : null;
     const buttonRef = useRef<HTMLButtonElement>(null);
     const moreRef = useRef<HTMLAnchorElement>(null);
     const [shown, setShown] = useState<{ rect: DOMRect; pinned: boolean; host: Element } | null>(null);
@@ -79,7 +83,7 @@ export const TermTip = ({ term, children, className, gloss: ownGloss }: TermTipP
     return (
         <>
             <button ref={buttonRef} type="button" className={'term-tip' + (className == null ? '' : ' ' + className)}
-                aria-describedby={glossId}
+                aria-describedby={glossId} aria-label={label}
                 onClick={() => { if (pinned) { setShown(null); } else { show(true); } }}
                 onPointerEnter={event => { if (event.pointerType === 'mouse' && shown == null) { show(false); } }}
                 onPointerLeave={event => { if (event.pointerType === 'mouse' && shown?.pinned === false) { setShown(null); } }}

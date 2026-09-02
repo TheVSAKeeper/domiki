@@ -18,6 +18,19 @@
         outline-offset: 2px;
     }
 
+.term-tip--icon {
+    display: inline-flex;
+    vertical-align: middle;
+    margin-left: 6px;
+    color: var(--pine-dark);
+    text-decoration: none;
+}
+
+.term-tip-ico {
+    width: 18px;
+    height: 18px;
+}
+
 .term-tip-gloss {
     position: absolute;
     width: 1px;
