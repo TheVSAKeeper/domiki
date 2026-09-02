@@ -1,13 +1,17 @@
 import { useSyncExternalStore } from 'react';
 
+export type UpdateCheck = 'update' | 'fresh' | 'unknown';
+
 let loadedId: string | null | undefined;
 let updateAvailable = false;
 let waitingWorker: ServiceWorker | null = null;
 let registration: ServiceWorkerRegistration | null = null;
 let reloading = false;
+const InstallWaitMs = 8000;
+const CheckTimeoutMs = 8000;
 const listeners = new Set<() => void>();
 
-function loadedBuildId(): string | null {
+export function loadedBuildId(): string | null {
     if (loadedId !== undefined) {
         return loadedId;
     }
@@ -20,6 +24,10 @@ function loadedBuildId(): string | null {
 
 function announceUpdate(worker: ServiceWorker | null): void {
     if (updateAvailable) {
+        if (waitingWorker == null) {
+            waitingWorker = worker;
+        }
+
         return;
     }
 
@@ -58,6 +66,76 @@ export function reportServerVersion(serverVersion: string | null): void {
 
     announceUpdate(null);
     reloadWhenHidden();
+}
+
+function waitForInstalling(active: ServiceWorkerRegistration): Promise<void> {
+    const installing = active.installing;
+    if (installing == null) {
+        return Promise.resolve();
+    }
+
+    return new Promise<void>(resolve => {
+        const finish = () => {
+            installing.removeEventListener('statechange', onState);
+            clearTimeout(timer);
+            resolve();
+        };
+
+        const onState = () => {
+            if (installing.state !== 'installing') {
+                finish();
+            }
+        };
+
+        const timer = setTimeout(finish, InstallWaitMs);
+        installing.addEventListener('statechange', onState);
+    });
+}
+
+function isUpdateAvailable(): boolean {
+    return updateAvailable;
+}
+
+function withTimeout<T>(work: Promise<T>): Promise<T> {
+    return Promise.race([
+        work,
+        new Promise<T>((_, reject) => setTimeout(() => reject(new Error('check-timeout')), CheckTimeoutMs)),
+    ]);
+}
+
+export async function checkForUpdate(): Promise<UpdateCheck> {
+    if (updateAvailable) {
+        return 'update';
+    }
+
+    if (registration != null) {
+        const active = registration;
+        await withTimeout(active.update());
+        await waitForInstalling(active);
+
+        if (active.waiting != null && navigator.serviceWorker.controller != null) {
+            announceUpdate(active.waiting);
+        }
+
+        return isUpdateAvailable() ? 'update' : 'fresh';
+    }
+
+    if (loadedBuildId() == null) {
+        return 'unknown';
+    }
+
+    const response = await fetch('/healthz', { cache: 'no-store', signal: AbortSignal.timeout(CheckTimeoutMs) });
+    if (!response.ok) {
+        throw new Error(`check-failed-${response.status}`);
+    }
+
+    const serverVersion = response.headers.get('X-App-Version');
+    if (serverVersion == null) {
+        return 'unknown';
+    }
+
+    reportServerVersion(serverVersion);
+    return isUpdateAvailable() ? 'update' : 'fresh';
 }
 
 export function applyUpdate(): void {
@@ -124,5 +202,5 @@ function subscribe(listener: () => void): () => void {
 }
 
 export function useUpdateAvailable(): boolean {
-    return useSyncExternalStore(subscribe, () => updateAvailable);
+    return useSyncExternalStore(subscribe, isUpdateAvailable);
 }
