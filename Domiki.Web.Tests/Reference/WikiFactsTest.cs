@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using Domiki.Web.Infrastructure;
 
@@ -120,9 +121,9 @@ public sealed class WikiFactsTest
         return File.ReadAllText(Path.Combine(GetRepositoryRoot(), "Domiki", "ClientApp", "src", "utils", fileName));
     }
 
-    private static string GetRepositoryRoot()
+    private static string GetRepositoryRoot([CallerFilePath] string callerPath = "")
     {
-        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        var directory = new DirectoryInfo(Path.GetDirectoryName(callerPath) ?? AppContext.BaseDirectory);
         while (directory != null && !File.Exists(Path.Combine(directory.FullName, "Domiki.sln")))
         {
             directory = directory.Parent;
