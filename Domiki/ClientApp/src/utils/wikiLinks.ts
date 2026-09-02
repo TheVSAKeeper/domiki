@@ -4,6 +4,7 @@ export const termArticles: Record<string, string> = {
     naryad: 'elder_house',
     untouched_deposits: 'zeal',
     artel: 'workers',
+    neighbor_milestones: 'village',
     reputation_tier: 'friendship',
     worker_away: 'workers',
     worker_missing: 'workers',

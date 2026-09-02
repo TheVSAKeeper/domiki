@@ -20,6 +20,16 @@ public class TolokaManager
     /// </remarks>
     public const int TolokaArtifactShowCount = 10;
 
+    /// <summary>
+    /// Часы праздника толоки, которые даёт сама Сборня, без надбавки за уровень.
+    /// </summary>
+    public const int FeastBaseHours = 6;
+
+    /// <summary>
+    /// Часы праздника толоки, добавляемые каждым уровнем Сборни.
+    /// </summary>
+    public const int FeastHoursPerLevel = 2;
+
     private const string BridgeLogicName = "bridge";
 
     private readonly UnitOfWork _uow;
@@ -45,7 +55,7 @@ public class TolokaManager
 
     public static int GetBuffSeconds(int level)
     {
-        return (6 + 2 * level) * 3600;
+        return (FeastBaseHours + FeastHoursPerLevel * level) * 3600;
     }
 
     public TolokaState? GetToloka(DateTime date, int playerId)

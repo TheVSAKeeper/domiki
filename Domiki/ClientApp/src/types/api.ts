@@ -758,6 +758,7 @@ export const gameStateSchema = z.object({
 export type GameStateDto = z.infer<typeof gameStateSchema>;
 
 export const wikiStateSchema = z.object({
+    facts: z.record(z.string(), z.string()),
     domikTypes: domikTypeSchema.array(),
     resourceTypes: resourceTypeSchema.array(),
     receipts: receiptSchema.array(),

@@ -54,7 +54,7 @@ public class ElderHouseManager
     /// <summary>
     /// Горизонт прогноза: запас, которого хватает дольше, за нехватку не считается.
     /// </summary>
-    private const int ShortageHorizonHours = 24;
+    public const int ShortageHorizonHours = 24;
 
     private const int CoinResourceTypeId = 1;
     private const int GoldResourceTypeId = 5;

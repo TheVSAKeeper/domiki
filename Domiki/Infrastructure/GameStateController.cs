@@ -38,8 +38,9 @@ public class GameStateController : GameControllerBase
     private readonly WorkerMilestoneManager _workerMilestoneManager;
     private readonly ElderHouseManager _elderHouseManager;
     private readonly RelocationManager _relocationManager;
+    private readonly WikiFactsProvider _wikiFactsProvider;
 
-    public GameStateController(DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, TavernManager tavernManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, ConvoyManager convoyManager, GiftManager giftManager, PlayerEventManager playerEventManager, GoalManager goalManager, ErrandManager errandManager, IncidentManager incidentManager, WorkerMilestoneManager workerMilestoneManager, ElderHouseManager elderHouseManager, RelocationManager relocationManager)
+    public GameStateController(DomikManager domikManager, ResourceManager resourceManager, OrderManager orderManager, WorkerManager workerManager, TavernManager tavernManager, WeatherManager weatherManager, VillageLevelCalculator villageLevelCalculator, BlueprintManager blueprintManager, ExpeditionManager expeditionManager, DecorManager decorManager, TolokaManager tolokaManager, MarketManager marketManager, ConvoyManager convoyManager, GiftManager giftManager, PlayerEventManager playerEventManager, GoalManager goalManager, ErrandManager errandManager, IncidentManager incidentManager, WorkerMilestoneManager workerMilestoneManager, ElderHouseManager elderHouseManager, RelocationManager relocationManager, WikiFactsProvider wikiFactsProvider)
         : base(domikManager)
     {
         _domikManager = domikManager;
@@ -63,6 +64,7 @@ public class GameStateController : GameControllerBase
         _workerMilestoneManager = workerMilestoneManager;
         _elderHouseManager = elderHouseManager;
         _relocationManager = relocationManager;
+        _wikiFactsProvider = wikiFactsProvider;
     }
 
     [HttpGet]
@@ -143,6 +145,7 @@ public class GameStateController : GameControllerBase
 
         return new WikiStateDto
         {
+            Facts = _wikiFactsProvider.GetFacts(),
             DomikTypes = _resourceManager.GetDomikTypes().Select(x => x.ToDto(blueprintId: blueprints.FirstOrDefault(b => b.DomikTypeId == x.Id)?.Id)).ToArray(),
             ResourceTypes = _resourceManager.GetResourceTypes().Select(x => x.ToDto()).ToArray(),
             Receipts = _resourceManager.GetReceipts().Select(x => x.ToDto()).ToArray(),

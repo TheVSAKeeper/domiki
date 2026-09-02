@@ -19,6 +19,16 @@ namespace Domiki.Web.Infrastructure.Dto;
 public sealed record WikiStateDto
 {
     /// <summary>
+    /// Числа статей справочника: имя факта – готовая к подстановке строка.
+    /// </summary>
+    /// <remarks>
+    /// Статьи хранят на месте чисел подстановки вида <c>{smartArtelLevel}</c> и берут значения отсюда, поэтому
+    /// балансовая правка константы или справочных данных доезжает до текста сама (см. <see cref="WikiFactsProvider"/>).
+    /// Значения уже отформатированы под русскую фразу – клиент их не пересчитывает.
+    /// </remarks>
+    public required Dictionary<string, string> Facts { get; init; }
+
+    /// <summary>
     /// Справочник типов построек вместе с персонализацией под игрока.
     /// </summary>
     /// <remarks>

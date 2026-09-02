@@ -38,6 +38,12 @@ public class OrderManager
     public const double ManufactureCycleHours = 1.5;
 
     public const int OrderRefillDelaySeconds = 30 * 60;
+
+    /// <summary>
+    /// Наименьший объём заказа: ниже него спрос не опускается ни по рыночной стоимости ресурса, ни по мощности двора.
+    /// </summary>
+    public const int MinQuantity = 2;
+
     private const int CoinResourceTypeId = 1;
     private const int GoldResourceTypeId = 5;
 
@@ -88,7 +94,7 @@ public class OrderManager
 
     public static int GetOrderQuantity(OrderTier tier, int resourceTypeId)
     {
-        return Math.Max(2, (int)Math.Round(tier.Quantity * (double)ResourceManager.BaseMarketValue / ResourceManager.GetMarketValue(resourceTypeId), MidpointRounding.AwayFromZero));
+        return Math.Max(MinQuantity, (int)Math.Round(tier.Quantity * (double)ResourceManager.BaseMarketValue / ResourceManager.GetMarketValue(resourceTypeId), MidpointRounding.AwayFromZero));
     }
 
     /// <summary>
@@ -107,7 +113,7 @@ public class OrderManager
     {
         var quantity = GetOrderQuantity(tier, resourceTypeId);
         var share = ManufactureCycleHours * BoardShare * (sameResourceOrders + 1);
-        var capacityLimit = Math.Max(2, (int)Math.Floor(capacity * tier.DurationSeconds / 3600.0 / share));
+        var capacityLimit = Math.Max(MinQuantity, (int)Math.Floor(capacity * tier.DurationSeconds / 3600.0 / share));
         return Math.Min(quantity, capacityLimit);
     }
 

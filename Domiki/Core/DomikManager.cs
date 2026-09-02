@@ -61,6 +61,12 @@ public class DomikManager
     public const int ZealStartCharges = 24;
     public const int ZealX4Threshold = 16;
     public const int ZealMaxRecipeSeconds = 3600;
+
+    /// <summary>
+    /// Пол длительности смены: сколько бы скидок ни сошлось, короче этой доли исходного срока смена не станет.
+    /// </summary>
+    public const double MinDurationShare = 0.6;
+
     private const int CrestIconCount = 8;
     private const int CrestColorCount = 8;
     private const int InstaFinishSecondsPerGold = 3600;
@@ -672,7 +678,7 @@ public class DomikManager
         duration = (int)Math.Ceiling(duration * profilePercent / 100.0);
         duration = (int)Math.Ceiling(duration * _perkManager.GetDurationPercent(playerId) / 100.0);
 
-        duration = Math.Max(duration, (int)Math.Ceiling(receipt.DurationSeconds * 0.6));
+        duration = Math.Max(duration, (int)Math.Ceiling(receipt.DurationSeconds * MinDurationShare));
 
         var marketDomikTypeId = _resourceManager.GetDomikTypes().First(x => x.LogicName == "market").Id;
         var zealChargeOwed = false;

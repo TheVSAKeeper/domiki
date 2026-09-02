@@ -1,8 +1,12 @@
+import { z } from 'zod';
 import { gameStateSchema, type GameStateDto } from '../types/api';
 
 const DB_NAME = 'domiki-offline';
 const STORE_NAME = 'snapshot';
 const RECORD_KEY = 'game-state';
+const FACTS_KEY = 'wiki-facts';
+
+const factsSchema = z.record(z.string(), z.string());
 
 export interface OfflineSnapshot {
     playerId: number;
@@ -92,6 +96,17 @@ export async function loadSnapshot(): Promise<OfflineSnapshot | null> {
     return { playerId: record.playerId, savedAt: record.savedAt, state: parsed.data };
 }
 
+export async function saveWikiFacts(facts: Readonly<Record<string, string>>): Promise<void> {
+    await withStore('readwrite', store => store.put(facts, FACTS_KEY));
+}
+
+export async function loadWikiFacts(): Promise<Readonly<Record<string, string>>> {
+    const stored = await withStore<unknown>('readonly', store => store.get(FACTS_KEY) as IDBRequest<unknown>);
+    const parsed = factsSchema.safeParse(stored);
+    return parsed.success ? parsed.data : {};
+}
+
 export async function clearSnapshot(): Promise<void> {
     await withStore('readwrite', store => store.delete(RECORD_KEY));
+    await withStore('readwrite', store => store.delete(FACTS_KEY));
 }

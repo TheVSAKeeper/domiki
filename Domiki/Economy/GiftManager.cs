@@ -8,16 +8,48 @@ namespace Domiki.Web.Economy;
 
 public class GiftManager
 {
-    private const int GiftAwayThresholdSeconds = 6 * 3600;
-    private const int BigGiftEvery = 7;
-    private const int BaseGiftValue = 40;
+    /// <summary>
+    /// Отлучка, после которой соседи встречают игрока гостинцем.
+    /// </summary>
+    /// <value>Секунды.</value>
+    public const int GiftAwayThresholdSeconds = 6 * 3600;
+
+    /// <summary>
+    /// Каждый такой по счёту визит приносит большой гостинец с украшением вместо ресурса.
+    /// </summary>
+    public const int BigGiftEvery = 7;
+
+    /// <summary>
+    /// Рыночная стоимость обычного гостинца, из которой считают число единиц ресурса.
+    /// </summary>
+    /// <value>Монеты.</value>
+    public const int BaseGiftValue = 40;
+
     /// <summary>
     /// Порог доброго имени у соседа, с которого гостинцы становятся щедрее, а сам сосед заходит чаще.
     /// </summary>
     public const int RepBonusThreshold = 25;
-    private const int RepWeightPerPoint = 25;
-    private const int RepWeightCap = 3;
-    private const int GiftCountCap = 10;
+
+    /// <summary>
+    /// Шаг доброго имени, на каждый из которых вес соседа в жребии гостинца растёт на единицу.
+    /// </summary>
+    public const int RepWeightPerPoint = 25;
+
+    /// <summary>
+    /// Наибольший вес соседа в жребии гостинца.
+    /// </summary>
+    public const int RepWeightCap = 3;
+
+    /// <summary>
+    /// Наименьшее число единиц ресурса в обычном гостинце.
+    /// </summary>
+    public const int GiftCountMin = 1;
+
+    /// <summary>
+    /// Наибольшее число единиц ресурса в обычном гостинце.
+    /// </summary>
+    public const int GiftCountCap = 10;
+
     private static readonly int[] BigGiftDecorPool = [2, 5, 9];
 
     private readonly ApplicationDbContext _context;
@@ -88,7 +120,7 @@ public class GiftManager
             var reputation = reputations.FirstOrDefault(x => x.NeighborId == neighbor.Id)?.Points ?? 0;
 
             var target = reputation >= RepBonusThreshold ? BaseGiftValue * 3 / 2 : BaseGiftValue;
-            var count = Math.Clamp((int)Math.Ceiling((double)target / ResourceManager.GetMarketValue(resourceTypeId)), 1, GiftCountCap);
+            var count = Math.Clamp((int)Math.Ceiling((double)target / ResourceManager.GetMarketValue(resourceTypeId)), GiftCountMin, GiftCountCap);
             _playerResourceManager.GrantResource(playerId, resourceTypeId, count);
             player.VisitsSinceBigGift = visitIndex;
             _playerEventManager.Record(playerId, PlayerEventType.NeighborGift, new

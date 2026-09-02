@@ -178,6 +178,7 @@ try
     builder.Services.AddScoped<PlayerEventManager>();
     builder.Services.AddScoped<GoalManager>();
     builder.Services.AddScoped<PushManager>();
+    builder.Services.AddScoped<WikiFactsProvider>();
     builder.Services.AddSingleton<PushSender>();
     builder.Services.AddSingleton<GameStateBroker>();
     builder.Services.AddSingleton<AppBuildVersion>();
