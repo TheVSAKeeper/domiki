@@ -352,7 +352,7 @@ public class RelocationManager
             GoldTotal = gold,
             Coins = resources.FirstOrDefault(x => x.TypeId == CoinResourceTypeId)?.Value ?? 0,
             Resources = resources.Where(x => x.TypeId != CoinResourceTypeId && x.TypeId != GoldResourceTypeId).Sum(x => x.Value),
-            Buildings = _context.Domiks.Count(x => x.PlayerId == playerId),
+            Buildings = _context.Domiks.Count(x => x.PlayerId == playerId && x.TypeId != DomikManager.PostHouseTypeId),
             StartingCoins = _perkManager.GetStartingCoins(playerId),
         };
     }

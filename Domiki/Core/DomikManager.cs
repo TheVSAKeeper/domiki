@@ -168,10 +168,8 @@ public class DomikManager
             _context.Domiks.Add(new()
                 { PlayerId = dbPlayer.Id, Id = 2, TypeId = StartingClayMineTypeId, Level = 1 });
 
-            _context.Domiks.Add(new()
-                { PlayerId = dbPlayer.Id, Id = 3, TypeId = PostHouseTypeId, Level = 1 });
-
             _context.SaveChanges();
+            SeedPostHouse(dbPlayer.Id);
         }
 
         return dbPlayer.Id;

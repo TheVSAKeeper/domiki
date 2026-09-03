@@ -78,6 +78,36 @@ public sealed class FriendNeighborTests
     }
 
     /// <summary>
+    /// На пятиместной доске друг тоже оставляет ячейку другим выселкам: предел растёт вместе с доской, но не до всей доски.
+    /// </summary>
+    [Test]
+    public void FriendNeighborNeverFillsWholeUpgradedBoardTest()
+    {
+        const int refillCycles = 20;
+
+        var player = TestPlayer.Create()
+            .WithDomik(DomikIds.LumberMill)
+            .WithDomik(DomikIds.StoneMine)
+            .SetFriendNeighbor(NeighborIds.Glinischi);
+
+        RaiseVillageLevelTo(player.Id, 3);
+        SetPostHouseLevel(player.Id, OrderManager.FifthSlotLevel);
+
+        for (var i = 0; i < refillCycles; i++)
+        {
+            var orders = player.Orders();
+            var friendOrders = orders.Count(x => x.Neighbor.Id == NeighborIds.Glinischi);
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(orders, Has.Count.EqualTo(OrderManager.BoardSizeMax));
+                Assert.That(friendOrders, Is.LessThanOrEqualTo(OrderManager.GetFriendBoardLimit(OrderManager.BoardSizeMax)));
+            }
+
+            ClearOrders(player.Id);
+        }
+    }
+
+    /// <summary>
     /// Ближайший недостигнутый порог репутации у соседа назван правильно и по мере роста репутации переходит к следующему.
     /// </summary>
     /// <param name="points">Очки репутации у соседа.</param>
@@ -124,6 +154,13 @@ public sealed class FriendNeighborTests
             Assert.That(reputation.NextThreshold, Is.Null);
             Assert.That(reputation.NextRewardName, Is.Null);
         }
+    }
+
+    private static void SetPostHouseLevel(int playerId, int level)
+    {
+        using var scope = App.Scope();
+        scope.Context.Domiks.Single(x => x.PlayerId == playerId && x.TypeId == DomikIds.PostHouse).Level = level;
+        scope.Commit();
     }
 
     private static void ClearOrders(int playerId)

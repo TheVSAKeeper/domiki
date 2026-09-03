@@ -400,7 +400,7 @@ public sealed class RelocationTests
         const int clay = 30;
         const int stone = 12;
         const int gold = 90;
-        const int startingBuildings = 3;
+        const int startingBuildings = 2;
 
         var player = TestPlayer.Create()
             .AtRelocationThreshold()
