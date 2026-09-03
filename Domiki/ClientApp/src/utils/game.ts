@@ -1,4 +1,5 @@
 import type { BlueprintDto, DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ReceiptView, ResourceDto, SelectedDomikView, UpgradeView, WorkerDto } from '../types/api';
+import { ZEAL_MAX_RECIPE_SECONDS, ZEAL_X4_THRESHOLD } from './manufactureDuration';
 import { formatDuration, remainingSeconds } from './time';
 
 export const INSTA_FINISH_SECONDS_PER_GOLD = 3600;
@@ -6,7 +7,6 @@ export const INSTA_FINISH_MAX_GOLD = 6;
 export const GOLD_RESOURCE_TYPE_ID = 5;
 export const COIN_RESOURCE_TYPE_ID = 1;
 export const SICK_MIN_VILLAGE_LEVEL = 15;
-export const ZEAL_X4_THRESHOLD = 16;
 
 export const EXPEDITION_LOOT_KIND_RESOURCE = 1;
 export const EXPEDITION_LOOT_KIND_DECOR = 2;
@@ -177,9 +177,12 @@ export function zealMultiplier(zealCharges: number): number {
 }
 
 export function zealApplies(receipt: ReceiptDto, domikType: DomikTypeDto): boolean {
-    return receipt.durationSeconds <= 3600 && domikType.logicName !== 'market';
+    return receipt.durationSeconds <= ZEAL_MAX_RECIPE_SECONDS && domikType.logicName !== 'market';
 }
 
+// TODO: свести оценку на карточке рецепта к общей формуле computeManufactureDuration – сейчас она знает только
+// рвение, поэтому обещает больше времени, чем идёт настоящая смена с чертами, навыками, укладом и перком. Повод
+// взяться: жалоба на расхождение обещанного и запущенного либо следующая правка множителей длительности.
 export function computeReceiptView(
     receipt: ReceiptDto,
     resources: ResourceDto[],

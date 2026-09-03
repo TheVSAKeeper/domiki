@@ -413,12 +413,13 @@ interface SelectedDomikPanelProps {
     onHurryDomik: (id: number) => void;
     onStartManufacture: (domikId: number, receiptId: number, useOptional: boolean, autoRepeat: boolean, workerIds?: number[]) => Promise<boolean>;
     onHurryManufacture: (manufactureId: number) => void;
+    predictedManufactureIds: number[];
     onToggleManufactureRepeat: (manufactureId: number, next: boolean) => void;
     elderHouseLevel: number;
     onSetManufactureMeasure: (manufactureId: number, resourceTypeId: number | null, value: number | null) => void;
 }
 
-export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, receipts, blueprints, workers, goals, villageLevel, currentWeather, sickTypes, now, goldValue, goldType, goldVein, plodderFree, displayName, mechanicTab, onOpenTab, onClose, onUpgrade, onHurryDomik, onStartManufacture, onHurryManufacture, onToggleManufactureRepeat, elderHouseLevel, onSetManufactureMeasure }: SelectedDomikPanelProps) => {
+export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, receipts, blueprints, workers, goals, villageLevel, currentWeather, sickTypes, now, goldValue, goldType, goldVein, plodderFree, displayName, mechanicTab, onOpenTab, onClose, onUpgrade, onHurryDomik, onStartManufacture, onHurryManufacture, onToggleManufactureRepeat, elderHouseLevel, onSetManufactureMeasure, predictedManufactureIds }: SelectedDomikPanelProps) => {
     const [ui, dispatch] = useReducer(receiptUiReducer, initialReceiptUiState);
     const [tab, setTab] = useState<PanelView>('work');
     const [tabbedDomikId, setTabbedDomikId] = useState(selected?.domik.id);
@@ -675,6 +676,7 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
                                         onToggleAutoRepeat={onToggleManufactureRepeat}
                                         resourceTypes={resourceTypes} measureUnlocked={elderHouseLevel >= MEASURE_MIN_LEVEL}
                                         keyResourceTypeIds={keyResourceTypes}
+                                        pending={predictedManufactureIds.includes(manufacture.id)}
                                         onSetMeasure={onSetManufactureMeasure} />
                                 );
                             })}

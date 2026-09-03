@@ -21,6 +21,11 @@ public sealed record UpgradeLevelDto
     public required ResourceDto[] Resources { get; init; }
 
     /// <summary>
+    /// Сколько секунд идёт стройка или улучшение до этого уровня.
+    /// </summary>
+    public required int UpgradeSeconds { get; init; }
+
+    /// <summary>
     /// Что нам даёт этот уровень.
     /// </summary>
     public required ModificatorDto[] Modificators { get; init; }

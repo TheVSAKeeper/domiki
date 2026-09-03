@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { acceptLot as acceptLotApi, apiGet, ApiError, enqueueCommand, buyDecor as buyDecorApi, buyFromConvoy as buyFromConvoyApi, buyPerk as buyPerkApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, postLot as postLotApi, relocate as relocateApi, setFoodRule as setFoodRuleApi, setManufactureMeasure as setManufactureMeasureApi, setResourceReserve as setResourceReserveApi, setVillage as setVillageApi, startExpedition as startExpeditionApi, voteToloka as voteTolokaApi } from '../services/api';
-import { OfflineError, setReadOnlyMode, setStateSink } from '../services/api';
+import { OfflineError, setCommandsSink, setReadOnlyMode, setStateSink } from '../services/api';
 import { useToast } from '../services/toastContext';
 import {
     domikTypeSchema,
@@ -17,6 +17,7 @@ import {
     type IncidentDto,
     type ExpeditionStateDto,
     type GameStateDto,
+    type QueuedIntent,
     type GoalsStateDto,
     type MarketStateDto,
     type NeighborReputationDto,
@@ -40,6 +41,7 @@ import {
 } from '../types/api';
 import { loadSnapshot, saveSnapshot } from '../services/offlineSnapshot';
 import { isNumber, isRecord } from '../utils/recap';
+import { predictState } from '../utils/optimistic';
 import { remainingSeconds } from '../utils/time';
 import { getWorkerMilestoneTemplate, workerMilestoneText } from '../utils/workerMilestoneTexts';
 
@@ -98,6 +100,8 @@ export interface GameData {
     buyFromConvoy: (neighborId: number, resourceTypeId: number, count: number) => Promise<void>;
     relocate: (valleyId: number, villageName: string | null) => Promise<void>;
     buyPerk: (perkType: number) => Promise<void>;
+    predictedManufactureIds: number[];
+    waitingOrderIds: number[];
     staleSince: number | null;
     recap: RecapDto | null;
     clearRecap: () => void;
@@ -177,6 +181,8 @@ export function useGameData(): GameData {
     const [purchaseDomikTypes, setPurchaseDomikTypes] = useState<DomikTypeDto[] | null>(null);
     const [recap, setRecap] = useState<RecapDto | null>(null);
     const [events, setEvents] = useState<RecapEventDto[]>([]);
+    const [serverState, setServerState] = useState<GameStateDto | null>(null);
+    const [pendingIntents, setPendingIntents] = useState<QueuedIntent[]>([]);
     const [staleSince, setStaleSince] = useState<number | null>(null);
     const [now, setNow] = useState(() => Date.now());
     const [loading, setLoading] = useState(true);
@@ -247,6 +253,7 @@ export function useGameData(): GameData {
 
     const applyState = useCallback((state: GameStateDto) => {
         lastAppliedAt.current = Date.now();
+        setServerState(state);
         setStaleSince(null);
         void saveSnapshot(state);
         lastLoadedAt.current = Date.now();
@@ -328,6 +335,16 @@ export function useGameData(): GameData {
         setStateSink(state => applyStateRef.current(state));
         return () => setStateSink(null);
     }, []);
+
+    useEffect(() => {
+        setCommandsSink(intents => setPendingIntents(intents));
+        return () => setCommandsSink(null);
+    }, []);
+
+    const predicted = useMemo(
+        () => serverState == null || pendingIntents.length === 0 ? null : predictState(serverState, pendingIntents),
+        [serverState, pendingIntents],
+    );
 
     const reload = useCallback(async () => {
         applyState(await getGameState());
@@ -499,6 +516,7 @@ export function useGameData(): GameData {
         void (async () => {
             try {
                 const state = await loadInitialState(signal, setStaleSince);
+                setServerState(state);
                 setDomikTypes(state.domikTypes);
                 setResourceTypes(state.resourceTypes);
                 setReceipts(state.receipts);
@@ -713,11 +731,11 @@ export function useGameData(): GameData {
     }, [now, scheduleReload]);
 
     return {
-        domiks,
+        domiks: predicted?.state.domiks ?? domiks,
         domikTypes,
         resourceTypes,
         receipts,
-        resources,
+        resources: predicted?.state.resources ?? resources,
         orders,
         orderBoardSize,
         orderFreeConcession,
@@ -737,8 +755,8 @@ export function useGameData(): GameData {
         toloka,
         market,
         convoys,
-        goals,
-        workers,
+        goals: predicted?.state.goals ?? goals,
+        workers: predicted?.state.workers ?? workers,
         cloaks,
         larder,
         ledger,
@@ -767,6 +785,8 @@ export function useGameData(): GameData {
         buyFromConvoy,
         relocate,
         buyPerk,
+        predictedManufactureIds: predicted?.predictedManufactureIds ?? [],
+        waitingOrderIds: predicted?.waitingOrderIds ?? [],
         staleSince,
         recap,
         clearRecap,

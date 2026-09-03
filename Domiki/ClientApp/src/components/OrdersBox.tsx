@@ -23,6 +23,7 @@ interface OrdersBoxProps {
     errands: ErrandDto[];
     boardSize: number;
     freeConcession: boolean;
+    waitingOrderIds: number[];
     workers: WorkerDto[];
     reputation: NeighborReputationDto[];
     convoys: ConvoyDto[];
@@ -125,7 +126,7 @@ const ErrandCard = ({ errand, workers, now, onAccept, onCancel }: ErrandCardProp
     );
 };
 
-export const OrdersBox = ({ orders, errands, boardSize, freeConcession, workers, reputation, convoys, resourceTypes, resources, domikTypes, villageProfiles, village, villageLevel, now, onComplete, onCancel, onAcceptErrand, onCancelErrand, onBuyFromConvoy, onSetFriend, onSetVillageProfile }: OrdersBoxProps) => {
+export const OrdersBox = ({ orders, errands, boardSize, freeConcession, waitingOrderIds, workers, reputation, convoys, resourceTypes, resources, domikTypes, villageProfiles, village, villageLevel, now, onComplete, onCancel, onAcceptErrand, onCancelErrand, onBuyFromConvoy, onSetFriend, onSetVillageProfile }: OrdersBoxProps) => {
     const [errandModalId, setErrandModalId] = useState<number | null>(null);
     const [profileModalNeighborId, setProfileModalNeighborId] = useState<number | null>(null);
     const profileModalNeighbor = profileModalNeighborId == null ? null : reputation.find(item => item.neighborId === profileModalNeighborId) ?? null;
@@ -309,6 +310,7 @@ export const OrdersBox = ({ orders, errands, boardSize, freeConcession, workers,
                 : <div className="orders-grid">
                     {orders.map(order => {
                         const canComplete = hasResourcesFor(order.required.map(x => ({ typeId: x.resourceTypeId, value: x.value })), resources);
+                        const waiting = waitingOrderIds.includes(order.id);
                         const left = remainingSeconds(order.expireDate, now);
                         const tone = (['a', 'b', 'c', 'd'] as const)[order.neighborId % 4] ?? 'a';
                         const tierAhead = reputationTierAhead(reputation.find(item => item.neighborId === order.neighborId)?.points ?? 0, order.rewardReputation);
@@ -346,12 +348,12 @@ export const OrdersBox = ({ orders, errands, boardSize, freeConcession, workers,
                                         </p>}
                                 </div>
                                 <div className="order-actions">
-                                    <ActionButton className="btn-game" disabled={!canComplete}
-                                        title={canComplete ? undefined : 'Не хватает ресурсов'}
+                                    <ActionButton className="btn-game" disabled={!canComplete || waiting}
+                                        title={waiting ? 'Заказ уехал к соседу, ждём ответа' : canComplete ? undefined : 'Не хватает ресурсов'}
                                         onClick={() => onComplete(order.id)}>
-                                        Сдать заказ
+                                        {waiting ? 'Ждёт связи' : 'Сдать заказ'}
                                     </ActionButton>
-                                    <ActionButton className="btn-game btn-ghost"
+                                    <ActionButton className="btn-game btn-ghost" disabled={waiting}
                                         title={freeConcession
                                             ? 'Заказ уйдёт в другую деревню – без обиды и без награды. Сегодня ямщик отвезёт отказ даром: новый спрос придёт без задержки.'
                                             : 'Заказ уйдёт в другую деревню – без обиды, но и без награды. Новый спрос появится не сразу.'}

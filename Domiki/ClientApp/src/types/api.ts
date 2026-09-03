@@ -45,6 +45,7 @@ export type DomikDto = z.infer<typeof domikSchema>;
 export const upgradeLevelSchema = z.object({
     value: z.number(),
     resources: z.array(resourceSchema),
+    upgradeSeconds: z.number(),
     modificators: z.array(modificatorSchema),
     receiptIds: z.array(z.number()),
     maxManufactureCount: z.number(),
@@ -770,6 +771,19 @@ export const commandBatchResultSchema = z.object({
     state: z.unknown(),
 });
 export type CommandBatchResultDto = z.infer<typeof commandBatchResultSchema>;
+
+export type GameCommand =
+    | { kind: 'BuyDomik'; args: { typeId: number } }
+    | { kind: 'UpgradeDomik'; args: { domikId: number } }
+    | { kind: 'StartManufacture'; args: { domikId: number; receiptId: number; useOptional: boolean; autoRepeat: boolean; workerIds: number[] } }
+    | { kind: 'HurryManufacture'; args: { manufactureId: number } }
+    | { kind: 'SetManufactureAutoRepeat'; args: { manufactureId: number; autoRepeat: boolean } }
+    | { kind: 'CompleteOrder'; args: { orderId: number } };
+
+export interface QueuedIntent {
+    command: GameCommand;
+    queuedAtMs: number;
+}
 
 export const wikiStateSchema = z.object({
     facts: z.record(z.string(), z.string()),

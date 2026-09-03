@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { apiGet, ApiError, apiPost, enqueueCommand, flushCommands, OfflineError, setReadOnlyMode } from './api';
+import type { QueuedIntent } from '../types/api';
+import { apiGet, ApiError, apiPost, enqueueCommand, flushCommands, OfflineError, setCommandsSink, setReadOnlyMode } from './api';
 
 vi.mock('./auth', () => ({
     authService: { signIn: vi.fn() },
@@ -149,6 +150,24 @@ describe('api', () => {
 
         expect(globalThis.fetch).toHaveBeenCalledTimes(1);
         expect(sentCommands(0)).toHaveLength(2);
+    });
+
+    it('очередь называет накопленные намерения и забывает их, как только пачка вернулась', async () => {
+        mockCommands([{ commandId: '', status: 'Applied', error: null }]);
+        const seen: QueuedIntent[][] = [];
+        setCommandsSink(intents => seen.push(intents));
+
+        try {
+            const queued = enqueueCommand({ kind: 'UpgradeDomik', args: { domikId: 4 } });
+            expect(seen.at(-1)?.map(item => item.command)).toEqual([{ kind: 'UpgradeDomik', args: { domikId: 4 } }]);
+
+            await flushCommands();
+            await queued;
+        } finally {
+            setCommandsSink(null);
+        }
+
+        expect(seen.at(-1)).toEqual([]);
     });
 
     it('два одинаковых намерения остаются двумя командами со своими идентификаторами', async () => {

@@ -663,7 +663,6 @@ public class DomikManager
         }
 
         var writeOffResources = receipt.InputResources;
-        var duration = receipt.DurationSeconds;
         var useOptionalApplied = useOptional && receipt.OptionalInputResources is not null && receipt.OptionalInputResources.Length > 0;
         if (useOptionalApplied)
         {
@@ -707,31 +706,25 @@ public class DomikManager
                 .ToArray();
         }
 
-        var avgSpeedup = selectedWorkers.Average(x => -traits[x.TraitId].DurationPercent);
-        duration = (int)Math.Ceiling(duration * (100 - avgSpeedup) / 100);
-        var avgSkill = selectedWorkers.Average(x => WorkerSkillCalculator.GetBonusPercent(skillByWorkerId.GetValueOrDefault(x.Id)));
-        duration = (int)Math.Ceiling(duration * (100 - avgSkill) / 100);
-
         var dbPlayer = _context.Players.First(x => x.Id == playerId);
         var profilePercent = dbPlayer.ProfileNeighborId is int profileNeighborId
             ? _resourceManager.GetVillageProfileEffects().FirstOrDefault(x => x.NeighborId == profileNeighborId && x.DomikTypeId == domikType.Id)?.DurationPercent ?? 100
             : 100;
-        duration = (int)Math.Ceiling(duration * profilePercent / 100.0);
-        duration = (int)Math.Ceiling(duration * _perkManager.GetDurationPercent(playerId) / 100.0);
-
-        duration = Math.Max(duration, (int)Math.Ceiling(receipt.DurationSeconds * MinDurationShare));
-
         var marketDomikTypeId = _resourceManager.GetDomikTypes().First(x => x.LogicName == "market").Id;
-        var zealChargeOwed = false;
-        if (receipt.DurationSeconds <= ZealMaxRecipeSeconds && dbDomik.TypeId != marketDomikTypeId)
+
+        var durationResult = ManufactureDurationCalculator.Compute(new()
         {
-            if (dbPlayer.ZealCharges > 0)
-            {
-                var mult = dbPlayer.ZealCharges > ZealX4Threshold ? 4 : 2;
-                duration = Math.Max(1, duration / mult);
-                zealChargeOwed = true;
-            }
-        }
+            ReceiptDurationSeconds = receipt.DurationSeconds,
+            TraitDurationPercents = selectedWorkers.Select(x => traits[x.TraitId].DurationPercent).ToArray(),
+            SkillBonusPercents = selectedWorkers.Select(x => WorkerSkillCalculator.GetBonusPercent(skillByWorkerId.GetValueOrDefault(x.Id))).ToArray(),
+            ProfilePercent = profilePercent,
+            PerkPercent = _perkManager.GetDurationPercent(playerId),
+            IsMarketDomik = dbDomik.TypeId == marketDomikTypeId,
+            ZealCharges = dbPlayer.ZealCharges,
+        });
+
+        var duration = durationResult.Seconds;
+        var zealChargeOwed = durationResult.ZealSpent;
 
         var weatherPercent = _weatherManager.GetOutputPercent(date, domikType.Id);
         var tolokaPercent = _tolokaManager.GetTolokaOutputPercent(playerId, domikType.Id, date);

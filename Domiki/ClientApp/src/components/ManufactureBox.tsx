@@ -19,12 +19,13 @@ interface ManufactureBoxProps {
     resourceTypes?: ResourceTypeDto[];
     measureUnlocked?: boolean;
     keyResourceTypeIds?: number[];
+    pending?: boolean;
     onHurry: (manufactureId: number) => void;
     onToggleAutoRepeat: (manufactureId: number, next: boolean) => void;
     onSetMeasure?: (manufactureId: number, resourceTypeId: number | null, value: number | null) => void;
 }
 
-export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldValue, goldType, resourceTypes = [], measureUnlocked = false, keyResourceTypeIds = [], onHurry, onToggleAutoRepeat, onSetMeasure }: ManufactureBoxProps) => {
+export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldValue, goldType, resourceTypes = [], measureUnlocked = false, keyResourceTypeIds = [], pending = false, onHurry, onToggleAutoRepeat, onSetMeasure }: ManufactureBoxProps) => {
     const [repeatExpanded, setRepeatExpanded] = useState(false);
     const measureDefaultTypeId = manufacture.measureResourceTypeId
         ?? receipt.outputResources[0]?.typeId
@@ -42,8 +43,8 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
         return keyResourceTypeIds.includes(input.typeId) && type != null ? [{ value: input.value, type }] : [];
     });
 
-    return (
-        <div className="manufacture-box">
+    const head = (
+        <>
             <ProgressBar value={percent} max={100} label={remainingText} />
             <div className="manufacture-info">
                 <span className="manufacture-name">{receipt.name}</span>
@@ -52,6 +53,21 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
                     <span className="resource-value">{manufacture.plodderCount}</span>
                 </span>
             </div>
+        </>
+    );
+
+    if (pending) {
+        return (
+            <div className="manufacture-box">
+                {head}
+                <p className="manufacture-pending">Смена записана, ждём ответа деревни</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="manufacture-box">
+            {head}
             <HurryButton finishDate={manufacture.finishDate} now={now} goldValue={goldValue} goldType={goldType}
                 remainingText={remainingText} onHurry={() => { onHurry(manufacture.id); }} />
             <div className={'manufacture-repeat' + (manufacture.autoRepeat ? ' manufacture-repeat-on' : '')}>

@@ -72,7 +72,7 @@ export const DomikiPage = () => {
     useEffect(() => { perfCommitProbe(); });
 
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, orderBoardSize, orderFreeConcession, errands, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, staleSince, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, orderBoardSize, orderFreeConcession, errands, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, staleSince, predictedManufactureIds, waitingOrderIds, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
         useGameData();
 
     const [recapOpen, setRecapOpen] = useState(false);
@@ -192,10 +192,21 @@ export const DomikiPage = () => {
         }
     };
 
-    const runCommand = (command: GameCommand, successMessage?: string): Promise<boolean> => reportAction(async () => {
-        await enqueueCommand(command);
-        scheduleReload();
-    }, successMessage);
+    const runCommand = (command: GameCommand, successMessage?: string): Promise<boolean> => {
+        void enqueueCommand(command)
+            .then(() => {
+                if (successMessage != null) {
+                    toast.success(successMessage);
+                }
+                scheduleReload();
+            })
+            .catch((err: unknown) => {
+                toast.error(err instanceof ApiError ? err.message : 'Деревня не приняла действие, попробуйте ещё раз.');
+                scheduleReload();
+            });
+
+        return Promise.resolve(true);
+    };
 
     const buy = (typeId: number) => {
         const domikType = domikTypes.find(type => type.id === typeId);
@@ -420,7 +431,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'orders', label: 'Заказы', icon: <MechanicSprite logicName="orders" size={32} className="game-tab-ico" aria-hidden="true" />, visible: true,
-            node: () => <OrdersBox orders={orders} errands={errands} boardSize={orderBoardSize} freeConcession={orderFreeConcession} workers={workers} reputation={reputation} convoys={convoys} resourceTypes={resourceTypes} resources={resources} now={now}
+            node: () => <OrdersBox orders={orders} errands={errands} boardSize={orderBoardSize} freeConcession={orderFreeConcession} waitingOrderIds={waitingOrderIds} workers={workers} reputation={reputation} convoys={convoys} resourceTypes={resourceTypes} resources={resources} now={now}
                 domikTypes={domikTypes} villageProfiles={villageProfiles} village={village} villageLevel={villageLevel}
                 onComplete={completeOrder} onCancel={cancelOrder} onAcceptErrand={acceptErrandAction} onCancelErrand={cancelErrandAction}
                 onBuyFromConvoy={buyFromConvoyAction} onSetFriend={setFriendNeighborAction} onSetVillageProfile={setVillageProfileAction} />,
@@ -555,7 +566,7 @@ export const DomikiPage = () => {
                 </section>
                 {selected != null && <div className="actions-scrim" role="presentation" onClick={() => { setSelectedDomikId(null); }} />}
                 <PerfZone id="карточка">
-                    <SelectedDomikPanel ref={selectedDomikPanelRef} selected={selected} resources={resources} resourceTypes={resourceTypes} receipts={receipts} blueprints={blueprints}
+                    <SelectedDomikPanel ref={selectedDomikPanelRef} predictedManufactureIds={predictedManufactureIds} selected={selected} resources={resources} resourceTypes={resourceTypes} receipts={receipts} blueprints={blueprints}
                         workers={workers} goals={goals} villageLevel={villageLevel} currentWeather={currentWeather} sickTypes={sickTypes} now={now}
                         goldValue={goldValue} goldType={goldType} goldVein={goldVeinContext} plodderFree={plodder.free} displayName={domikDisplayName}
                         mechanicTab={mechanicTab == null ? null : { key: mechanicTab.key, label: mechanicTab.label }} onOpenTab={openTab}

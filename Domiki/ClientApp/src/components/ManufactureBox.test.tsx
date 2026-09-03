@@ -27,6 +27,14 @@ const renderBox = (value: ManufactureDto, onToggle = vi.fn()) => {
 };
 
 describe('ManufactureBox наряд controls', () => {
+    it('нарисованная смена не даёт ни ускорить, ни поставить наряд, пока сервер не ответил', () => {
+        render(<ManufactureBox manufacture={{ ...manufacture, id: -1 }} receipt={receipt} now={Date.parse(manufacture.finishDate) - 1000}
+            remainingText="1 с" goldValue={0} pending onHurry={vi.fn()} onToggleAutoRepeat={vi.fn()} />);
+
+        expect(screen.getByText('Смена записана, ждём ответа деревни')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'Наряд поставлен' })).not.toBeInTheDocument();
+    });
+
     it('explains the standing наряд and lets the player lift it', () => {
         const onToggle = renderBox(manufacture);
 

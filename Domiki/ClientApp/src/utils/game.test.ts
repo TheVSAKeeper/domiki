@@ -21,7 +21,7 @@ describe('resourceSourceMap', () => {
     const building = (id: number, name: string, logicName: string, receiptIds: number[]): DomikTypeDto => ({
         id, name, logicName, maxCount: 1, availableCount: 0, maxLevel: 2, unlockLevel: 0,
         blueprintId: null, nextCountGateLevel: null,
-        levels: [{ value: 1, resources: [], modificators: [], receiptIds, maxManufactureCount: 0 }],
+        levels: [{ value: 1, resources: [], modificators: [], receiptIds, upgradeSeconds: 0, maxManufactureCount: 0 }],
     });
 
     it('maps each output resource to the buildings that produce it, without duplicates', () => {
@@ -75,8 +75,8 @@ const marketDomikType: DomikTypeDto = {
     blueprintId: null,
     nextCountGateLevel: null,
     levels: [
-        { value: 1, resources: [], modificators: [{ typeId: 1, value: 3 }], receiptIds: [], maxManufactureCount: 0 },
-        { value: 2, resources: [], modificators: [{ typeId: 1, value: 5 }], receiptIds: [], maxManufactureCount: 0 },
+        { value: 1, resources: [], modificators: [{ typeId: 1, value: 3 }], receiptIds: [], upgradeSeconds: 0, maxManufactureCount: 0 },
+        { value: 2, resources: [], modificators: [{ typeId: 1, value: 5 }], receiptIds: [], upgradeSeconds: 0, maxManufactureCount: 0 },
     ],
 };
 
@@ -104,9 +104,9 @@ describe('canAffordUpgrade', () => {
         blueprintId: null,
         nextCountGateLevel: null,
         levels: [
-            { value: 1, resources: [{ typeId: 1, value: 10 }], modificators: [], receiptIds: [], maxManufactureCount: 0 },
-            { value: 2, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [], maxManufactureCount: 0 },
-            { value: 3, resources: [{ typeId: 1, value: 999 }], modificators: [], receiptIds: [], maxManufactureCount: 0 },
+            { value: 1, resources: [{ typeId: 1, value: 10 }], modificators: [], receiptIds: [], upgradeSeconds: 0, maxManufactureCount: 0 },
+            { value: 2, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [], upgradeSeconds: 0, maxManufactureCount: 0 },
+            { value: 3, resources: [{ typeId: 1, value: 999 }], modificators: [], receiptIds: [], upgradeSeconds: 0, maxManufactureCount: 0 },
         ],
     };
     const base: DomikDto = { id: 1, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null, manufactures: null };
@@ -249,8 +249,8 @@ describe('sortDomiks', () => {
             blueprintId: null,
             nextCountGateLevel: null,
             levels: [
-                { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [], maxManufactureCount: 0 },
-                { value: 2, resources: [], modificators: [], receiptIds: [], maxManufactureCount: 0 },
+                { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [], upgradeSeconds: 0, maxManufactureCount: 0 },
+                { value: 2, resources: [], modificators: [], receiptIds: [], upgradeSeconds: 0, maxManufactureCount: 0 },
             ],
         },
         {
@@ -264,7 +264,7 @@ describe('sortDomiks', () => {
             blueprintId: null,
             nextCountGateLevel: null,
             levels: [
-                { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [], maxManufactureCount: 0 },
+                { value: 1, resources: [{ typeId: 1, value: 100 }], modificators: [], receiptIds: [], upgradeSeconds: 0, maxManufactureCount: 0 },
             ],
         },
     ];
@@ -323,7 +323,7 @@ describe('workIntensity', () => {
     const domikType = (maxManufactureCount: number): DomikTypeDto => ({
         id: 1, name: 'Кузница', logicName: 'forge', maxCount: 1, availableCount: 0, maxLevel: 5, unlockLevel: 0,
         blueprintId: null, nextCountGateLevel: null,
-        levels: [{ value: 1, resources: [], modificators: [], receiptIds: [], maxManufactureCount }],
+        levels: [{ value: 1, resources: [], upgradeSeconds: 0, modificators: [], receiptIds: [], maxManufactureCount }],
     });
     const domik = (shifts: number): DomikDto => ({
         id: 1, typeId: 1, level: 1, finishDate: null, upgradeSeconds: null,

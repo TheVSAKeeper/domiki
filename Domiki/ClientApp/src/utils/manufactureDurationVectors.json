@@ -1,0 +1,324 @@
+[
+  {
+    "input": {
+      "receiptDurationSeconds": 600,
+      "traitDurationPercents": [
+        0
+      ],
+      "skillBonusPercents": [
+        0
+      ],
+      "profilePercent": 100,
+      "perkPercent": 100,
+      "isMarketDomik": false,
+      "zealCharges": 0
+    },
+    "expected": {
+      "seconds": 600,
+      "zealSpent": false
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 600,
+      "traitDurationPercents": [
+        -20
+      ],
+      "skillBonusPercents": [
+        0
+      ],
+      "profilePercent": 100,
+      "perkPercent": 100,
+      "isMarketDomik": false,
+      "zealCharges": 0
+    },
+    "expected": {
+      "seconds": 480,
+      "zealSpent": false
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 600,
+      "traitDurationPercents": [
+        15
+      ],
+      "skillBonusPercents": [
+        0
+      ],
+      "profilePercent": 100,
+      "perkPercent": 100,
+      "isMarketDomik": false,
+      "zealCharges": 0
+    },
+    "expected": {
+      "seconds": 690,
+      "zealSpent": false
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 600,
+      "traitDurationPercents": [
+        0
+      ],
+      "skillBonusPercents": [
+        12
+      ],
+      "profilePercent": 100,
+      "perkPercent": 100,
+      "isMarketDomik": false,
+      "zealCharges": 0
+    },
+    "expected": {
+      "seconds": 528,
+      "zealSpent": false
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 3607,
+      "traitDurationPercents": [
+        -20,
+        0,
+        15
+      ],
+      "skillBonusPercents": [
+        3,
+        7,
+        0
+      ],
+      "profilePercent": 100,
+      "perkPercent": 100,
+      "isMarketDomik": false,
+      "zealCharges": 0
+    },
+    "expected": {
+      "seconds": 3429,
+      "zealSpent": false
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 3607,
+      "traitDurationPercents": [
+        -20,
+        -10
+      ],
+      "skillBonusPercents": [
+        5,
+        5
+      ],
+      "profilePercent": 85,
+      "perkPercent": 100,
+      "isMarketDomik": false,
+      "zealCharges": 0
+    },
+    "expected": {
+      "seconds": 2477,
+      "zealSpent": false
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 3607,
+      "traitDurationPercents": [
+        0
+      ],
+      "skillBonusPercents": [
+        0
+      ],
+      "profilePercent": 100,
+      "perkPercent": 90,
+      "isMarketDomik": false,
+      "zealCharges": 0
+    },
+    "expected": {
+      "seconds": 3247,
+      "zealSpent": false
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 3607,
+      "traitDurationPercents": [
+        -30,
+        -30
+      ],
+      "skillBonusPercents": [
+        30,
+        30
+      ],
+      "profilePercent": 80,
+      "perkPercent": 90,
+      "isMarketDomik": false,
+      "zealCharges": 0
+    },
+    "expected": {
+      "seconds": 2165,
+      "zealSpent": false
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 1000,
+      "traitDurationPercents": [
+        -33
+      ],
+      "skillBonusPercents": [
+        7
+      ],
+      "profilePercent": 93,
+      "perkPercent": 95,
+      "isMarketDomik": false,
+      "zealCharges": 0
+    },
+    "expected": {
+      "seconds": 600,
+      "zealSpent": false
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 3600,
+      "traitDurationPercents": [
+        0
+      ],
+      "skillBonusPercents": [
+        0
+      ],
+      "profilePercent": 100,
+      "perkPercent": 100,
+      "isMarketDomik": false,
+      "zealCharges": 1
+    },
+    "expected": {
+      "seconds": 1800,
+      "zealSpent": true
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 3600,
+      "traitDurationPercents": [
+        0
+      ],
+      "skillBonusPercents": [
+        0
+      ],
+      "profilePercent": 100,
+      "perkPercent": 100,
+      "isMarketDomik": false,
+      "zealCharges": 17
+    },
+    "expected": {
+      "seconds": 900,
+      "zealSpent": true
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 3601,
+      "traitDurationPercents": [
+        0
+      ],
+      "skillBonusPercents": [
+        0
+      ],
+      "profilePercent": 100,
+      "perkPercent": 100,
+      "isMarketDomik": false,
+      "zealCharges": 17
+    },
+    "expected": {
+      "seconds": 3601,
+      "zealSpent": false
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 3600,
+      "traitDurationPercents": [
+        0
+      ],
+      "skillBonusPercents": [
+        0
+      ],
+      "profilePercent": 100,
+      "perkPercent": 100,
+      "isMarketDomik": true,
+      "zealCharges": 17
+    },
+    "expected": {
+      "seconds": 3600,
+      "zealSpent": false
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 61,
+      "traitDurationPercents": [
+        -20,
+        -20,
+        -20
+      ],
+      "skillBonusPercents": [
+        0,
+        0,
+        0
+      ],
+      "profilePercent": 100,
+      "perkPercent": 100,
+      "isMarketDomik": false,
+      "zealCharges": 17
+    },
+    "expected": {
+      "seconds": 12,
+      "zealSpent": true
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 1,
+      "traitDurationPercents": [
+        0
+      ],
+      "skillBonusPercents": [
+        0
+      ],
+      "profilePercent": 100,
+      "perkPercent": 100,
+      "isMarketDomik": false,
+      "zealCharges": 17
+    },
+    "expected": {
+      "seconds": 1,
+      "zealSpent": true
+    }
+  },
+  {
+    "input": {
+      "receiptDurationSeconds": 86400,
+      "traitDurationPercents": [
+        -20,
+        -10,
+        0,
+        15
+      ],
+      "skillBonusPercents": [
+        10,
+        0,
+        5,
+        0
+      ],
+      "profilePercent": 85,
+      "perkPercent": 90,
+      "isMarketDomik": false,
+      "zealCharges": 0
+    },
+    "expected": {
+      "seconds": 61233,
+      "zealSpent": false
+    }
+  }
+]

@@ -10,16 +10,19 @@ const factsSchema = z.record(z.string(), z.string());
 
 const LEGACY_BOARD_SIZE = 3;
 
-// TODO: снять переходное чтение старого снимка, когда в проде не останется клиентов до «Ямской избы» –
-// признак: в снимках больше не встречается поле errand.
 function normalizeState(state: unknown): unknown {
     if (state == null || typeof state !== 'object') {
         return state;
     }
 
-    const raw = state as Record<string, unknown>;
+    return withUpgradeSeconds(withErrands(state as Record<string, unknown>));
+}
+
+// TODO: снять переходное чтение старого снимка, когда в проде не останется клиентов до «Ямской избы» –
+// признак: в снимках больше не встречается поле errand.
+function withErrands(raw: Record<string, unknown>): Record<string, unknown> {
     if (Array.isArray(raw.errands)) {
-        return state;
+        return raw;
     }
 
     const orders = Array.isArray(raw.orders) ? raw.orders : [];
@@ -28,6 +31,32 @@ function normalizeState(state: unknown): unknown {
         errands: raw.errand == null ? [] : [raw.errand],
         orderBoardSize: typeof raw.orderBoardSize === 'number' ? raw.orderBoardSize : Math.max(orders.length, LEGACY_BOARD_SIZE),
         orderFreeConcession: typeof raw.orderFreeConcession === 'boolean' ? raw.orderFreeConcession : false,
+    };
+}
+
+// TODO: снять подстановку upgradeSeconds, когда в проде не останется снимков, снятых до оптимистичного отклика –
+// признак: у уровней построек в снимках это поле есть всегда. Пока подставляется ноль: без сети деревня открывается
+// только на чтение, а первый же ответ сервера приносит настоящие сроки стройки.
+function withUpgradeSeconds(raw: Record<string, unknown>): Record<string, unknown> {
+    const fillTypes = (types: unknown): unknown => Array.isArray(types) ? types.map(fillLevels) : types;
+    return { ...raw, domikTypes: fillTypes(raw.domikTypes), purchaseAvailableDomiks: fillTypes(raw.purchaseAvailableDomiks) };
+}
+
+function fillLevels(domikType: unknown): unknown {
+    if (domikType == null || typeof domikType !== 'object') {
+        return domikType;
+    }
+
+    const raw = domikType as Record<string, unknown>;
+    if (!Array.isArray(raw.levels)) {
+        return domikType;
+    }
+
+    return {
+        ...raw,
+        levels: raw.levels.map((level: unknown) => level != null && typeof level === 'object' && !('upgradeSeconds' in level)
+            ? { ...level, upgradeSeconds: 0 }
+            : level),
     };
 }
 

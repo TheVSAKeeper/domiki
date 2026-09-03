@@ -11,7 +11,7 @@ const receipt = (id: number, plodderCount: number, inputs: { typeId: number; val
 const domikType = (receiptIds: number[], maxManufactureCount = 2): DomikTypeDto => ({
     id: 7, name: 'Кузница', logicName: 'forge', maxCount: 1, availableCount: 0, maxLevel: 3, unlockLevel: 0,
     blueprintId: null, nextCountGateLevel: null,
-    levels: [{ value: 1, resources: [], modificators: [], receiptIds, maxManufactureCount }],
+    levels: [{ value: 1, resources: [], upgradeSeconds: 0, modificators: [], receiptIds, maxManufactureCount }],
 });
 
 const manufacture = (id: number, autoRepeat: boolean): ManufactureDto => ({

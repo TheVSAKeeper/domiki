@@ -19,7 +19,9 @@ import {
     villageVisitSchema,
     wikiStateSchema,
     type DecorStateDto,
+    type GameCommand,
     type GameStateDto,
+    type QueuedIntent,
     type JournalPageDto,
     type GuestbookDto,
     type HelpResultDto,
@@ -176,17 +178,12 @@ export const getGameState = (signal?: AbortSignal): Promise<GameStateDto> =>
 export const getWikiState = (signal?: AbortSignal): Promise<WikiStateDto> =>
     apiGet('Domiki/GetWikiState', wikiStateSchema, signal);
 
-export type GameCommand =
-    | { kind: 'BuyDomik'; args: { typeId: number } }
-    | { kind: 'UpgradeDomik'; args: { domikId: number } }
-    | { kind: 'StartManufacture'; args: { domikId: number; receiptId: number; useOptional: boolean; autoRepeat: boolean; workerIds: number[] } }
-    | { kind: 'HurryManufacture'; args: { manufactureId: number } }
-    | { kind: 'SetManufactureAutoRepeat'; args: { manufactureId: number; autoRepeat: boolean } }
-    | { kind: 'CompleteOrder'; args: { orderId: number } };
+export type { GameCommand, QueuedIntent } from '../types/api';
 
 interface QueuedCommand {
     commandId: string;
     command: GameCommand;
+    queuedAtMs: number;
     resolve: () => void;
     reject: (error: Error) => void;
 }
@@ -194,6 +191,18 @@ interface QueuedCommand {
 const MAX_COMMANDS_PER_BATCH = 50;
 
 const queue: QueuedCommand[] = [];
+
+let inFlight: QueuedCommand[] = [];
+
+let commandsSink: ((intents: QueuedIntent[]) => void) | null = null;
+
+export function setCommandsSink(sink: ((intents: QueuedIntent[]) => void) | null): void {
+    commandsSink = sink;
+}
+
+function notifyCommands(): void {
+    commandsSink?.([...inFlight, ...queue].map(item => ({ command: item.command, queuedAtMs: item.queuedAtMs })));
+}
 
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -213,7 +222,8 @@ export function enqueueCommand(command: GameCommand): Promise<void> {
         reject = rejectPromise;
     });
 
-    queue.push({ commandId: newCommandId(), command, resolve, reject });
+    queue.push({ commandId: newCommandId(), command, queuedAtMs: Date.now(), resolve, reject });
+    notifyCommands();
     if (!sending && flushTimer == null) {
         flushTimer = setTimeout(() => {
             flushTimer = null;
@@ -238,6 +248,7 @@ export function flushCommands(): Promise<void> {
 async function drainQueue(): Promise<void> {
     while (queue.length > 0) {
         const batch = queue.splice(0, MAX_COMMANDS_PER_BATCH);
+        inFlight = batch;
         sending = true;
         try {
             await sendCommands(batch);
@@ -253,11 +264,17 @@ async function sendCommands(batch: QueuedCommand[]): Promise<void> {
     }
 
     const body = { commands: batch.map(item => ({ commandId: item.commandId, kind: item.command.kind, args: item.command.args })) };
+    const finishBatch = (): void => {
+        inFlight = [];
+        notifyCommands();
+    };
+
     let answer;
     try {
         answer = await request('POST', 'Domiki/ApplyCommands', commandBatchResultSchema, undefined, body);
     } catch (err) {
         if (!(err instanceof OfflineError || err instanceof MalformedResponseError) || readOnly) {
+            finishBatch();
             settleFailed(batch, err);
             return;
         }
@@ -266,10 +283,13 @@ async function sendCommands(batch: QueuedCommand[]): Promise<void> {
             await wait(COMMAND_RETRY_DELAY_MS);
             answer = await request('POST', 'Domiki/ApplyCommands', commandBatchResultSchema, undefined, body);
         } catch (retryErr) {
+            finishBatch();
             settleFailed(batch, retryErr);
             return;
         }
     }
+
+    finishBatch();
 
     const state = gameStateSchema.safeParse(answer.state);
     if (state.success) {

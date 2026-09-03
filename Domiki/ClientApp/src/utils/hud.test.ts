@@ -9,14 +9,14 @@ const forge: DomikTypeDto = {
     id: 10, name: 'Кузница', logicName: 'forge', maxCount: 3, availableCount: 0, maxLevel: 3, unlockLevel: 0,
     blueprintId: null, nextCountGateLevel: null,
     levels: [
-        { value: 1, resources: [], modificators: [], receiptIds: [1], maxManufactureCount: 1 },
-        { value: 2, resources: [{ typeId: 200, value: 5 }], modificators: [], receiptIds: [1], maxManufactureCount: 1 },
+        { value: 1, resources: [], modificators: [], receiptIds: [1], upgradeSeconds: 0, maxManufactureCount: 1 },
+        { value: 2, resources: [{ typeId: 200, value: 5 }], modificators: [], receiptIds: [1], upgradeSeconds: 0, maxManufactureCount: 1 },
     ],
 };
 const well: DomikTypeDto = {
     id: 20, name: 'Колодец', logicName: 'well', maxCount: 1, availableCount: 0, maxLevel: 1, unlockLevel: 0,
     blueprintId: null, nextCountGateLevel: null,
-    levels: [{ value: 1, resources: [], modificators: [], receiptIds: [], maxManufactureCount: 0 }],
+    levels: [{ value: 1, resources: [], modificators: [], receiptIds: [], upgradeSeconds: 0, maxManufactureCount: 0 }],
 };
 const domikTypes = [forge, well];
 
@@ -126,7 +126,7 @@ describe('computeHudDigest idle vs blocked buildings', () => {
         const closeRecipe = receipt(2, 'Починить', [{ typeId: 200, value: 2 }]);
         const farRecipe = receipt(3, 'Отковать', [{ typeId: 200, value: 9 }]);
         const domiks = [domik(1, 10, { level: 2 })];
-        const forgeLevel2 = { ...forge, levels: [{ value: 2, resources: [], modificators: [], receiptIds: [2, 3], maxManufactureCount: 1 }] };
+        const forgeLevel2 = { ...forge, levels: [{ value: 2, resources: [], modificators: [], receiptIds: [2, 3], upgradeSeconds: 0, maxManufactureCount: 1 }] };
 
         const result = computeHudDigest(domiks, [forgeLevel2, well], [closeRecipe, farRecipe], [{ typeId: 200, value: 0 }], [], null, [], NOW);
 
@@ -141,7 +141,7 @@ describe('computeHudDigest idle and upgradeable building order', () => {
     const sortableForge: DomikTypeDto = {
         id: 10, name: 'Кузница', logicName: 'forge', maxCount: 5, availableCount: 0, maxLevel: 3, unlockLevel: 0,
         blueprintId: null, nextCountGateLevel: null,
-        levels: [1, 2, 3].map(value => ({ value, resources: [], modificators: [], receiptIds: [1], maxManufactureCount: 1 })),
+        levels: [1, 2, 3].map(value => ({ value, resources: [], modificators: [], receiptIds: [1], upgradeSeconds: 0, maxManufactureCount: 1 })),
     };
 
     it.each([
@@ -167,7 +167,7 @@ describe('computeHudDigest blocked building order', () => {
     const blockedType = (id: number, receiptId: number): DomikTypeDto => ({
         id, name: `Тип${id}`, logicName: 'forge', maxCount: 5, availableCount: 0, maxLevel: 1, unlockLevel: 0,
         blueprintId: null, nextCountGateLevel: null,
-        levels: [{ value: 1, resources: [], modificators: [], receiptIds: [receiptId], maxManufactureCount: 1 }],
+        levels: [{ value: 1, resources: [], modificators: [], receiptIds: [receiptId], upgradeSeconds: 0, maxManufactureCount: 1 }],
     });
     const shortfallTypes = [blockedType(101, 1), blockedType(102, 2), blockedType(103, 3)];
     const shortfallRecipes = [

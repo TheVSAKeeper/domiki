@@ -516,6 +516,16 @@
     align-self: center;
 }
 
+.manufacture-pending {
+    margin: 0;
+    align-self: center;
+    font-family: 'Golos Text', 'Segoe UI', sans-serif;
+    font-size: 12px;
+    font-style: italic;
+    line-height: 1.45;
+    color: rgba(51, 41, 26, .75);
+}
+
 .manufacture-repeat p.manufacture-repeat-key {
     padding: 6px 8px;
     font-size: 11px;
