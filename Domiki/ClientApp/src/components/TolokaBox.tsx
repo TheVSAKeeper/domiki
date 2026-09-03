@@ -41,9 +41,9 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute,
                     <h3 className="panel-title toloka-hero-title">Толока</h3>
                     <p className="toloka-hero-sub sec-hero-sub">Всем миром строим «{active.name}» – скидываемся в общий котёл. Достроим – по всей округе праздник, и всякая работа спорится веселее.</p>
                 </div>
-                <div className="toloka-hero-stat">
-                    <span className="toloka-hero-stat-num">{toloka.buffHours}ч</span>
-                    <span className="toloka-hero-stat-label"><TermTip term="toloka_feast">{toloka.nextBuffHours != null ? `вложись – ${toloka.nextBuffHours}ч` : 'праздник толоки'}</TermTip></span>
+                <div className="toloka-hero-stat sec-hero-stat">
+                    <span className="toloka-hero-stat-num sec-hero-stat-num">{toloka.buffHours}ч</span>
+                    <span className="toloka-hero-stat-label sec-hero-stat-label"><TermTip term="toloka_feast">{toloka.nextBuffHours != null ? `вложись – ${toloka.nextBuffHours}ч` : 'праздник толоки'}</TermTip></span>
                 </div>
             </SectionHero>
 

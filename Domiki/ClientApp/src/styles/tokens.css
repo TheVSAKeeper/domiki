@@ -20,6 +20,21 @@
     --pixel: 'Press Start 2P', monospace;
     --px: 5px;
     --cut: polygon(0 var(--px), var(--px) var(--px), var(--px) 0, calc(100% - var(--px)) 0, calc(100% - var(--px)) var(--px), 100% var(--px), 100% calc(100% - var(--px)), calc(100% - var(--px)) calc(100% - var(--px)), calc(100% - var(--px)) 100%, var(--px) 100%, var(--px) calc(100% - var(--px)), 0 calc(100% - var(--px)));
+    --page-pad-x: 16px;
+    --panel-pad-y: 16px;
+    --panel-pad-x: 18px;
+    --panel-gap: 20px;
+    --hero-pad-y: 14px;
+}
+
+@media (max-width: 900px) {
+    :root {
+        --page-pad-x: 10px;
+        --panel-pad-y: 10px;
+        --panel-pad-x: 12px;
+        --panel-gap: 12px;
+        --hero-pad-y: 8px;
+    }
 }
 
 *,

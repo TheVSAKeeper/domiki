@@ -38,9 +38,9 @@ export const DecorBox =({ decor, resourceTypes, resources, reputations, onBuy }:
                     <h3 className="panel-title decor-hero-title">Декор</h3>
                     <p className="decor-hero-sub sec-hero-sub">Обустраивайте деревню – уют ускоряет отдых трудяг и растит обжитость.</p>
                 </div>
-                <div className="decor-hero-comfort">
-                    <span className="decor-hero-comfort-num">{decor.comfort}</span>
-                    <span className="decor-hero-comfort-label">уюта в деревне</span>
+                <div className="decor-hero-comfort sec-hero-stat">
+                    <span className="decor-hero-comfort-num sec-hero-stat-num">{decor.comfort}</span>
+                    <span className="decor-hero-comfort-label sec-hero-stat-label">уюта в деревне</span>
                 </div>
             </SectionHero>
             <div className="decor-grid">

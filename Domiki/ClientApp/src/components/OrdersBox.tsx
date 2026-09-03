@@ -138,9 +138,9 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                     <h3 className="panel-title orders-hero-title">Заказы от соседей</h3>
                     <p className="orders-hero-sub sec-hero-sub">Из окрестных выселок шлют весточки – сделайте, что просят, и заслужите доброе имя.</p>
                 </div>
-                <div className="orders-hero-stat" title="Весточек на столе">
-                    <span className="orders-hero-stat-num">{orders.length}</span>
-                    <span className="orders-hero-stat-label">весточек на столе</span>
+                <div className="orders-hero-stat sec-hero-stat" title="Весточек на столе">
+                    <span className="orders-hero-stat-num sec-hero-stat-num">{orders.length}</span>
+                    <span className="orders-hero-stat-label sec-hero-stat-label">весточек на столе</span>
                 </div>
             </SectionHero>
             {reputation.length > 0 &&

@@ -107,9 +107,9 @@ export const BlueprintsBox = ({ blueprints, domikTypes, decorTypes, reputations,
                     <h3 className="panel-title bp-hero-title">Вехи соседей</h3>
                     <p className="bp-hero-sub sec-hero-sub">Растёт доброе имя – и на каждой вехе сосед делится заветным: чертежом стройки да убранством для двора.</p>
                 </div>
-                <div className="bp-hero-stat" title="Открыто вех">
-                    <span className="bp-hero-stat-num">{opened}<span className="bp-hero-stat-of">/{milestones.length}</span></span>
-                    <span className="bp-hero-stat-label">вех открыто</span>
+                <div className="bp-hero-stat sec-hero-stat" title="Открыто вех">
+                    <span className="bp-hero-stat-num sec-hero-stat-num">{opened}<span className="bp-hero-stat-of">/{milestones.length}</span></span>
+                    <span className="bp-hero-stat-label sec-hero-stat-label">вех открыто</span>
                 </div>
             </SectionHero>
             <div className="bp-grid">

@@ -1,6 +1,6 @@
 .orders-panel {
-    padding: 16px 18px;
-    margin-bottom: 20px;
+    padding: var(--panel-pad-y) var(--panel-pad-x);
+    margin-bottom: var(--panel-gap);
     overflow: hidden;
     box-shadow: inset 0 -4px 0 var(--plank-dark);
 }
@@ -9,7 +9,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding: 16px 18px;
+    padding: var(--panel-pad-y) var(--panel-pad-x);
     margin-bottom: 16px;
     overflow: hidden;
     box-shadow: inset 0 -4px 0 var(--plank-dark);
@@ -45,8 +45,8 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    margin: -16px -18px 2px;
-    padding: 13px 18px;
+    margin: calc(-1 * var(--panel-pad-y)) calc(-1 * var(--panel-pad-x)) 2px;
+    padding: 13px var(--panel-pad-x);
     background: linear-gradient(115deg, #f2cd7f 0%, var(--plank) 62%);
     border-bottom: 3px solid var(--ink);
 }
@@ -170,8 +170,8 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    margin: -16px -18px 14px;
-    padding: 14px 18px;
+    margin: calc(-1 * var(--panel-pad-y)) calc(-1 * var(--panel-pad-x)) 14px;
+    padding: var(--hero-pad-y) var(--panel-pad-x);
     background: linear-gradient(115deg, #eab98d 0%, var(--plank) 60%);
     border-bottom: 3px solid var(--ink);
 }
@@ -943,6 +943,10 @@
 
     .orders-hero-stat {
         margin-left: auto;
+    }
+
+    .standing-badge {
+        flex-basis: 100%;
     }
 }
 

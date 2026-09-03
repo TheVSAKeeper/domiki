@@ -283,9 +283,9 @@ export const HouseholdBox = ({ digest, resourceTypes, resources, reserves, ledge
                     <h3 className="panel-title household-hero-title">Хозяйство</h3>
                     <p className="household-hero-sub sec-hero-sub">Здесь видно, что в деревне просит рук – а дела правятся на дворе.</p>
                 </div>
-                <div className="household-hero-stat" data-calm={handsNeeded === 0 ? 'true' : 'false'} title="Построек, что просят рук">
-                    <span className="household-hero-stat-num">{handsNeeded}</span>
-                    <span className="household-hero-stat-label">дел на дворе</span>
+                <div className="household-hero-stat sec-hero-stat" data-calm={handsNeeded === 0 ? 'true' : 'false'} title="Построек, что просят рук">
+                    <span className="household-hero-stat-num sec-hero-stat-num">{handsNeeded}</span>
+                    <span className="household-hero-stat-label sec-hero-stat-label">дел на дворе</span>
                 </div>
             </SectionHero>
 

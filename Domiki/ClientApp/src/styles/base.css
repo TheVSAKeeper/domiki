@@ -2,7 +2,7 @@
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 16px;
+    padding: 0 var(--page-pad-x);
 }
 
 @media (min-width: 1400px) {

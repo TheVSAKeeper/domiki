@@ -99,9 +99,9 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                     <h3 className="panel-title expeditions-hero-title">Экспедиции</h3>
                     <p className="expeditions-hero-sub sec-hero-sub">Снаряжайте отряды в дорогу – трудяги приносят ресурсы, декор и редкие находки.</p>
                 </div>
-                <div className="expeditions-hero-stat" title="Отрядов в походе из максимума">
-                    <span className="expeditions-hero-stat-num">{expeditions.active.length}/{expeditions.maxActive}</span>
-                    <span className="expeditions-hero-stat-label">отрядов в дороге</span>
+                <div className="expeditions-hero-stat sec-hero-stat" title="Отрядов в походе из максимума">
+                    <span className="expeditions-hero-stat-num sec-hero-stat-num">{expeditions.active.length}/{expeditions.maxActive}</span>
+                    <span className="expeditions-hero-stat-label sec-hero-stat-label">отрядов в дороге</span>
                 </div>
             </SectionHero>
             {expeditions.pityThreshold > 0 &&

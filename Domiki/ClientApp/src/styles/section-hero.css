@@ -5,20 +5,38 @@
 @media (max-width: 900px) {
     .sec-hero.sec-hero {
         gap: 8px;
-        padding-top: 8px;
-        padding-bottom: 8px;
+        margin-bottom: 10px;
     }
 
     .sec-hero .sec-hero-emblem {
         display: none;
     }
 
+    .sec-hero .panel-title {
+        font-size: 11px;
+    }
+
+    .sec-hero:not(.sec-hero--open) .panel-title {
+        margin-bottom: 0;
+    }
+
     .sec-hero .sec-hero-sub {
         margin: 4px 0 0;
     }
 
-    .sec-hero:not(.sec-hero--open) .sec-hero-sub {
+    .sec-hero:not(.sec-hero--open) .sec-hero-sub,
+    .sec-hero:not(.sec-hero--open) .sec-hero-stat-label {
         display: none;
+    }
+
+    .sec-hero:not(.sec-hero--open) .sec-hero-stat {
+        width: auto;
+        min-width: 0;
+        padding: 5px 10px;
+    }
+
+    .sec-hero:not(.sec-hero--open) .sec-hero-stat-num {
+        font-size: 16px;
     }
 
     .sec-hero:has(.sec-hero-sub) .sec-hero-fold {

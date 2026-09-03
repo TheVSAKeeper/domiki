@@ -631,9 +631,9 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, neig
                     <p className="journal-hero-sub sec-hero-sub">Летопись двора: что ни день – то новое дело.</p>
                 </div>
                 {(totalCount ?? entries.length) > 0 &&
-                    <span className="journal-hero-stat">
-                        <b>{totalCount ?? entries.length}</b>
-                        <small>{pluralRu(totalCount ?? entries.length, 'запись', 'записи', 'записей')}</small>
+                    <span className="journal-hero-stat sec-hero-stat">
+                        <b className="sec-hero-stat-num">{totalCount ?? entries.length}</b>
+                        <small className="sec-hero-stat-label">{pluralRu(totalCount ?? entries.length, 'запись', 'записи', 'записей')}</small>
                     </span>
                 }
             </SectionHero>
