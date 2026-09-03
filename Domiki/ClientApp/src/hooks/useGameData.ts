@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, buyFromConvoy as buyFromConvoyApi, buyPerk as buyPerkApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, relocate as relocateApi, setFoodRule as setFoodRuleApi, setManufactureAutoRepeat as setManufactureAutoRepeatApi, setManufactureMeasure as setManufactureMeasureApi, setResourceReserve as setResourceReserveApi, setVillage as setVillageApi, startExpedition as startExpeditionApi, voteToloka as voteTolokaApi } from '../services/api';
-import { OfflineError, setReadOnlyMode } from '../services/api';
+import { OfflineError, setReadOnlyMode, setStateSink } from '../services/api';
 import { useToast } from '../services/toastContext';
 import {
     domikTypeSchema,
@@ -104,6 +104,8 @@ export interface GameData {
     events: RecapEventDto[];
 }
 
+const FRESH_STATE_MS = 1000;
+
 const workerMilestoneEvent = (event: RecapEventDto) => {
     if (event.type !== 'WorkerMilestone' || !isRecord(event.data) || !isNumber(event.data.workerId) || !isNumber(event.data.milestoneType) || typeof event.data.workerName !== 'string' || !isNumber(event.data.workerGender)) {
         return null;
@@ -194,6 +196,7 @@ export function useGameData(): GameData {
     const incidentRef = useRef(incident);
     const domikIncidentRef = useRef(domikIncident);
     const convoysRef = useRef(convoys);
+    const lastAppliedAt = useRef(0);
     const reloadedRestDeadlinesRef = useRef<Set<string>>(new Set());
     const reloadedTolokaBuffDeadlinesRef = useRef<Set<string>>(new Set());
     const reloadedFinishDeadlinesRef = useRef<Set<string>>(new Set());
@@ -242,8 +245,8 @@ export function useGameData(): GameData {
         domikIncidentRef.current = domikIncident;
     }, [domikIncident]);
 
-    const reload = useCallback(async () => {
-        const state = await getGameState();
+    const applyState = useCallback((state: GameStateDto) => {
+        lastAppliedAt.current = Date.now();
         setStaleSince(null);
         void saveSnapshot(state);
         lastLoadedAt.current = Date.now();
@@ -315,7 +318,26 @@ export function useGameData(): GameData {
         }
     }, [toast]);
 
+    const applyStateRef = useRef(applyState);
+
+    useEffect(() => {
+        applyStateRef.current = applyState;
+    }, [applyState]);
+
+    useEffect(() => {
+        setStateSink(state => applyStateRef.current(state));
+        return () => setStateSink(null);
+    }, []);
+
+    const reload = useCallback(async () => {
+        applyState(await getGameState());
+    }, [applyState]);
+
     const scheduleReload = useCallback(() => {
+        if (Date.now() - lastAppliedAt.current < FRESH_STATE_MS) {
+            return;
+        }
+
         if (refetching.current) {
             pendingReload.current = true;
             return;

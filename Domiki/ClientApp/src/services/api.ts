@@ -52,21 +52,67 @@ export function setReadOnlyMode(value: boolean): void {
     readOnly = value;
 }
 
-async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType<T> | null, signal?: AbortSignal, body?: unknown): Promise<T> {
+const COMMAND_ID_HEADER = 'X-Command-Id';
+
+const WITH_STATE_HEADER = 'X-With-State';
+
+const COMMAND_RETRY_DELAY_MS = 600;
+
+let stateSink: ((state: GameStateDto) => void) | null = null;
+
+export function setStateSink(sink: ((state: GameStateDto) => void) | null): void {
+    stateSink = sink;
+}
+
+function newCommandId(): string {
+    if (typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID();
+    }
+
+    const hex = Array.from(crypto.getRandomValues(new Uint8Array(16)), byte => byte.toString(16).padStart(2, '0')).join('');
+    const variant = ((parseInt(hex.slice(16, 18), 16) & 0x3f) | 0x80).toString(16).padStart(2, '0');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-${variant}${hex.slice(18, 20)}-${hex.slice(20)}`;
+}
+
+const wait = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+
+async function sinkState(res: Response): Promise<void> {
+    const json: unknown = await res.json().catch(() => null);
+    if (json == null) {
+        return;
+    }
+
+    const parsed = gameStateSchema.safeParse(json);
+    if (parsed.success) {
+        stateSink?.(parsed.data);
+    }
+}
+
+async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType<T> | null, signal?: AbortSignal, body?: unknown, commandId?: string): Promise<T> {
     if (readOnly && method === 'POST') {
         throw new OfflineError('Без связи деревню можно только смотреть');
     }
 
     let res: Response;
     try {
+        const headers: Record<string, string> = {};
+        if (commandId != null) {
+            headers[COMMAND_ID_HEADER] = commandId;
+            if (stateSink != null) {
+                headers[WITH_STATE_HEADER] = '1';
+            }
+        }
         const init: RequestInit = {
             method,
             credentials: 'same-origin',
             signal: signal ?? null,
         };
         if (body != null) {
-            init.headers = { 'Content-Type': 'application/json' };
+            headers['Content-Type'] = 'application/json';
             init.body = JSON.stringify(body);
+        }
+        if (Object.keys(headers).length > 0) {
+            init.headers = headers;
         }
         res = await fetch(url, init);
     } catch (err) {
@@ -91,6 +137,10 @@ async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType
     }
 
     if (schema == null) {
+        if (commandId != null && stateSink != null) {
+            await sinkState(res);
+        }
+
         return undefined as T;
     }
 
@@ -118,8 +168,18 @@ export const getGameState = (signal?: AbortSignal): Promise<GameStateDto> =>
 export const getWikiState = (signal?: AbortSignal): Promise<WikiStateDto> =>
     apiGet('Domiki/GetWikiState', wikiStateSchema, signal);
 
-export async function apiPost(url: string, signal?: AbortSignal): Promise<void> {
-    await request('POST', url, null, signal);
+export async function apiPost(url: string, signal?: AbortSignal, body?: unknown): Promise<void> {
+    const commandId = newCommandId();
+    try {
+        await request('POST', url, null, signal, body, commandId);
+    } catch (err) {
+        if (!(err instanceof OfflineError) || readOnly || signal?.aborted === true) {
+            throw err;
+        }
+
+        await wait(COMMAND_RETRY_DELAY_MS);
+        await request('POST', url, null, signal, body, commandId);
+    }
 }
 
 export const completeOrder = (orderId: number, signal?: AbortSignal): Promise<void> =>
@@ -137,7 +197,7 @@ export const cancelErrand = (errandId: number, signal?: AbortSignal): Promise<vo
     apiPost(`Domiki/CancelErrand/${errandId}`, signal);
 
 export const startIncidentSearch = (incidentId: number, clueId: number, workerIds: number[], signal?: AbortSignal): Promise<void> =>
-    request('POST', 'Domiki/StartIncidentSearch', null, signal, { incidentId, clueId, workerIds });
+    apiPost('Domiki/StartIncidentSearch', signal, { incidentId, clueId, workerIds });
 
 export const hurryManufacture = (manufactureId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/HurryManufacture/${manufactureId}`, signal);
@@ -163,7 +223,7 @@ export const getVillage = (signal?: AbortSignal): Promise<VillageDto> =>
     apiGet('Domiki/GetVillage', villageSchema, signal);
 
 export const setVillage = (name: string, crestIcon: number, crestColor: number, signal?: AbortSignal): Promise<void> =>
-    request('POST', 'Domiki/SetVillage', null, signal, { name, crestIcon, crestColor });
+    apiPost('Domiki/SetVillage', signal, { name, crestIcon, crestColor });
 
 export const getWorld = (signal?: AbortSignal): Promise<WorldDto> =>
     apiGet('Domiki/GetWorld', worldSchema, signal);
@@ -219,10 +279,10 @@ export const cancelLot = (lotId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/CancelLot/${lotId}`, signal);
 
 export const buyFromConvoy = (neighborId: number, resourceTypeId: number, count: number, signal?: AbortSignal): Promise<void> =>
-    request('POST', 'Domiki/BuyFromConvoy', null, signal, { neighborId, resourceTypeId, count });
+    apiPost('Domiki/BuyFromConvoy', signal, { neighborId, resourceTypeId, count });
 
 export const setFriendNeighbor = (neighborId: number | null, signal?: AbortSignal): Promise<void> =>
-    request('POST', 'Domiki/SetFriendNeighbor', null, signal, { neighborId });
+    apiPost('Domiki/SetFriendNeighbor', signal, { neighborId });
 
 export const setVillageProfile = (neighborId: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/SetVillageProfile?neighborId=${neighborId}`, signal);
@@ -234,7 +294,7 @@ export const getRelocationPlan = (signal?: AbortSignal): Promise<RelocationPlanD
     apiGet('Domiki/GetRelocation', relocationPlanSchema, signal);
 
 export const relocate = (valleyId: number, villageName: string | null, signal?: AbortSignal): Promise<void> =>
-    request('POST', 'Domiki/Relocate', null, signal, { valleyId, villageName });
+    apiPost('Domiki/Relocate', signal, { valleyId, villageName });
 
 export const buyPerk = (perkType: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/BuyPerk?perkType=${perkType}`, signal);

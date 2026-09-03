@@ -303,6 +303,21 @@ public class OrderManager
         return LoadOrders(playerId);
     }
 
+    /// <summary>
+    /// Читает доску заказов как есть, не достраивая её.
+    /// </summary>
+    /// <param name="playerId">Игрок, чья доска читается.</param>
+    /// <returns>Заказы, лежащие на доске сейчас.</returns>
+    /// <remarks>
+    /// В отличие от <see cref="GetOrders"/> не берёт блокировку строки игрока и не зовёт <see cref="EnsureOrderBoard"/>,
+    /// который создаёт заказы со случайным соседом. Нужен там, где снимок состояния собирается в ответ на действие игрока
+    /// (<see cref="Infrastructure.GameStateProjector"/>): доска доедет до нормы при следующем чтении состояния.
+    /// </remarks>
+    public IEnumerable<Order> ReadOrders(int playerId)
+    {
+        return LoadOrders(playerId);
+    }
+
     public void CompleteOrder(int playerId, int orderId)
     {
         _playerResourceManager.LockDbPlayerRow(playerId);

@@ -35,6 +35,8 @@ public static class App
 {
     private static WebApplicationFactory<Program>? _factory;
 
+    private static int _clientCount;
+
     private const string RunStampFormat = "yyyyMMddHHmmss";
 
     private const string TestUserPrefix = "testUser_";
@@ -89,9 +91,22 @@ public static class App
         return read(scope.ServiceProvider.GetRequiredService<ApplicationDbContext>());
     }
 
+    /// <summary>
+    /// HTTP-клиент к тестовому хосту. Каждому клиенту выдаётся собственный адрес в X-Forwarded-For: по этому заголовку
+    /// ограничитель частоты демо-входа делит разделы, и с общим адресом десяток тестов с входом выжигал бы лимит
+    /// (10 запросов на 5 минут) на весь оставшийся прогон.
+    /// </summary>
     public static HttpClient Client()
     {
-        return _factory!.CreateClient();
+        var client = _factory!.CreateClient();
+        client.DefaultRequestHeaders.Add("X-Forwarded-For", NextClientAddress());
+        return client;
+    }
+
+    private static string NextClientAddress()
+    {
+        var index = Interlocked.Increment(ref _clientCount);
+        return string.Create(CultureInfo.InvariantCulture, $"10.{index >> 16 & 0xFF}.{index >> 8 & 0xFF}.{index & 0xFF}");
     }
 
     public static IDisposable PendingEvents()

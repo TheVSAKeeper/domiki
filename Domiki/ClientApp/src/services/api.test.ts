@@ -110,4 +110,35 @@ describe('api', () => {
             setReadOnlyMode(false);
         }
     });
+
+    it('мутация несёт идентификатор команды', async () => {
+        mockFetch(null);
+        await apiPost('Domiki/BuyDomik/1');
+        const headers = commandHeaders();
+        expect(headers).toHaveLength(1);
+        expect(headers[0]).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+    });
+
+    it('сорванная мутация повторяется один раз с тем же идентификатором команды', async () => {
+        globalThis.fetch = vi.fn()
+            .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+            .mockResolvedValue({ ok: true, status: 200, headers: new Headers(), json: () => Promise.resolve(null) });
+
+        await expect(apiPost('Domiki/BuyDomik/1')).resolves.toBeUndefined();
+
+        const headers = commandHeaders();
+        expect(headers).toHaveLength(2);
+        expect(headers[0]).toBe(headers[1]);
+    });
+
+    it('вторая попытка не делается, если и она сорвалась бы – наружу уходит офлайн-ошибка', async () => {
+        globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+        await expect(apiPost('Domiki/BuyDomik/1')).rejects.toBeInstanceOf(OfflineError);
+        expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    });
 });
+
+function commandHeaders(): (string | undefined)[] {
+    const calls = (globalThis.fetch as unknown as { mock: { calls: [string, RequestInit][] } }).mock.calls;
+    return calls.map(([, init]) => (init.headers as Record<string, string>)['X-Command-Id']);
+}

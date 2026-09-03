@@ -73,6 +73,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<VillageChronicle> VillageChronicles { get; set; }
     public DbSet<PlayerPerk> PlayerPerks { get; set; }
     public DbSet<PlayerEvent> PlayerEvents { get; set; }
+    public DbSet<PlayerCommand> PlayerCommands { get; set; }
     public DbSet<GuestbookEntry> GuestbookEntries { get; set; }
     public DbSet<PlayerPushSubscription> PlayerPushSubscriptions { get; set; }
     public DbSet<StarterGoal> StarterGoals { get; set; }

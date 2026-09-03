@@ -142,6 +142,8 @@ try
     {
         options.OutputFormatters.RemoveType<StringOutputFormatter>();
         options.OutputFormatters.RemoveType<HttpNoContentOutputFormatter>();
+        options.Filters.Add<GameStateEchoFilter>();
+        options.Filters.Add<IdempotencyFilter>();
     });
 
     builder.Services.AddRazorPages();
@@ -177,6 +179,7 @@ try
     builder.Services.AddScoped<HelpManager>();
     builder.Services.AddScoped<PlayerEventManager>();
     builder.Services.AddScoped<GoalManager>();
+    builder.Services.AddScoped<GameStateProjector>();
     builder.Services.AddScoped<PushManager>();
     builder.Services.AddScoped<WikiFactsProvider>();
     builder.Services.AddSingleton<PushSender>();
@@ -186,6 +189,7 @@ try
     builder.Services.AddScoped<CalculatorTick>();
     builder.Services.AddHostedService<CalculatorBackgroundService>();
     builder.Services.AddHostedService<PlayerEventCleanupService>();
+    builder.Services.AddHostedService<PlayerCommandCleanupService>();
 
     builder.Services.AddResponseCompression(options =>
     {
