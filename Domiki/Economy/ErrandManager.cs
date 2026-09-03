@@ -30,6 +30,11 @@ public class ErrandManager
     public const int ErrandUnlockLevel = 10;
 
     /// <summary>
+    /// Уровень «Ямской избы», с которого соседи шлют второе поручение, не дожидаясь развязки первого.
+    /// </summary>
+    public const int SecondErrandLevel = 4;
+
+    /// <summary>
     /// Продолжительность офферной фазы поручения, пока игрок не принял его.
     /// </summary>
     /// <value>Часы.</value>
@@ -143,7 +148,7 @@ public class ErrandManager
             return null;
         }
 
-        if (_context.Errands.Any(x => x.PlayerId == playerId && x.ResolvedDate == null))
+        if (_context.Errands.Count(x => x.PlayerId == playerId && x.ResolvedDate == null) >= GetOfferLimit(playerId))
         {
             return null;
         }
@@ -194,32 +199,65 @@ public class ErrandManager
     }
 
     /// <summary>
-    /// Возвращает активное поручение игрока – оффер или принятое.
+    /// Возвращает незавершённые поручения игрока – офферы и принятые.
     /// </summary>
+    /// <remarks>
+    /// Одновременно их не больше <see cref="GetOfferLimit"/>: одно, а с четвёртого уровня «Ямской избы» – два.
+    /// </remarks>
     /// <param name="playerId">Id игрока.</param>
-    /// <returns>Поручение, если у игрока есть незавершённое (<c>ResolvedDate == null</c>); иначе <see langword="null"/>.</returns>
-    public Errand? Get(int playerId)
+    /// <returns>Поручения с <c>ResolvedDate == null</c>, старшее первым; пустой массив, если их нет.</returns>
+    public Errand[] GetAll(int playerId)
     {
-        var dbErrand = _context.Errands.FirstOrDefault(x => x.PlayerId == playerId && x.ResolvedDate == null);
-        if (dbErrand == null)
+        var dbErrands = _context.Errands
+            .Where(x => x.PlayerId == playerId && x.ResolvedDate == null)
+            .OrderBy(x => x.Id)
+            .ToArray();
+
+        if (dbErrands.Length == 0)
         {
-            return null;
+            return Array.Empty<Errand>();
         }
 
         var neighbors = _resourceManager.GetNeighbors();
-        var workerIds = _context.Workers.Where(x => x.ErrandId == dbErrand.Id).Select(x => x.Id).ToArray();
+        var errandIds = dbErrands.Select(x => x.Id).ToArray();
+        var workers = _context.Workers
+            .Where(x => x.ErrandId != null && errandIds.Contains(x.ErrandId.Value))
+            .Select(x => new { x.Id, ErrandId = x.ErrandId!.Value })
+            .ToArray();
 
-        return new()
-        {
-            Id = dbErrand.Id,
-            Neighbor = neighbors.First(x => x.Id == dbErrand.NeighborId),
-            TemplateId = dbErrand.TemplateId,
-            ExpireDate = dbErrand.ExpireDate,
-            AcceptDate = dbErrand.AcceptDate,
-            ClueId = dbErrand.ClueId,
-            FinishDate = dbErrand.FinishDate,
-            WorkerIds = workerIds,
-        };
+        return dbErrands
+            .Select(dbErrand => new Errand
+            {
+                Id = dbErrand.Id,
+                Neighbor = neighbors.First(x => x.Id == dbErrand.NeighborId),
+                TemplateId = dbErrand.TemplateId,
+                ExpireDate = dbErrand.ExpireDate,
+                AcceptDate = dbErrand.AcceptDate,
+                ClueId = dbErrand.ClueId,
+                FinishDate = dbErrand.FinishDate,
+                WorkerIds = workers.Where(x => x.ErrandId == dbErrand.Id).Select(x => x.Id).ToArray(),
+            })
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Считает, сколько незавершённых поручений игрок может держать разом.
+    /// </summary>
+    /// <remarks>
+    /// Второе поручение – выигрыш четвёртого уровня «Ямской избы»; ячейку доски оффер не занимает, поэтому предел
+    /// растёт независимо от размера доски (см. <see cref="OrderManager.GetBoardSize(int)"/>).
+    /// </remarks>
+    /// <param name="playerId">Id игрока.</param>
+    /// <returns>Наибольшее число незавершённых поручений.</returns>
+    public int GetOfferLimit(int playerId)
+    {
+        var level = _context.Domiks
+                        .Where(x => x.PlayerId == playerId && x.TypeId == Core.DomikManager.PostHouseTypeId)
+                        .Select(x => (int?)x.Level)
+                        .Max()
+                    ?? 0;
+
+        return level >= SecondErrandLevel ? 2 : 1;
     }
 
     /// <summary>

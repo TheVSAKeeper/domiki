@@ -58,6 +58,15 @@ public class DomikManager
     public const int SickImmunitySeconds = 24 * 3600;
     public const int SickMinVillageLevel = 15;
     public const int StartingCoins = 200;
+
+    /// <summary>
+    /// Тип «Ямской избы» – дома слоя соседей.
+    /// </summary>
+    /// <remarks>
+    /// Единственная постройка без гейта: первый уровень бесплатен и ставится игроку сразу, поэтому доска заказов
+    /// видна новичку с первого входа (см. <see cref="SeedPostHouse"/>).
+    /// </remarks>
+    public const int PostHouseTypeId = 20;
     public const int ZealStartCharges = 24;
     public const int ZealX4Threshold = 16;
     public const int ZealMaxRecipeSeconds = 3600;
@@ -159,10 +168,34 @@ public class DomikManager
             _context.Domiks.Add(new()
                 { PlayerId = dbPlayer.Id, Id = 2, TypeId = StartingClayMineTypeId, Level = 1 });
 
+            _context.Domiks.Add(new()
+                { PlayerId = dbPlayer.Id, Id = 3, TypeId = PostHouseTypeId, Level = 1 });
+
             _context.SaveChanges();
         }
 
         return dbPlayer.Id;
+    }
+
+    /// <summary>
+    /// Ставит игроку «Ямскую избу» первого уровня, если её у него ещё нет.
+    /// </summary>
+    /// <remarks>
+    /// Изба выдаётся бесплатно и не гейтится обжитостью, поэтому её ставят и новичку, и переехавшему на новое место
+    /// (см. <see cref="Village.RelocationManager"/>): без неё игрок остался бы без доски заказов.
+    /// </remarks>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    public void SeedPostHouse(int playerId)
+    {
+        if (_context.Domiks.Any(x => x.PlayerId == playerId && x.TypeId == PostHouseTypeId))
+        {
+            return;
+        }
+
+        _context.Domiks.Add(new()
+            { PlayerId = playerId, Id = GetNextDomikId(playerId), TypeId = PostHouseTypeId, Level = 1 });
+
+        _context.SaveChanges();
     }
 
     public VillageState GetVillage(int playerId)
@@ -371,6 +404,27 @@ public class DomikManager
             .ToList();
     }
 
+    /// <summary>
+    /// Подбирает номер новой постройки – наименьший свободный в пределах игрока.
+    /// </summary>
+    /// <remarks>
+    /// Номер уникален только внутри игрока и дырок не любит: после переезда двор нумеруется заново, а тесты адресуют
+    /// свои постройки числами.
+    /// </remarks>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <returns>Свободный номер постройки.</returns>
+    private int GetNextDomikId(int playerId)
+    {
+        var usedIds = _context.Domiks.Where(x => x.PlayerId == playerId).Select(x => x.Id).ToHashSet();
+        var nextId = 1;
+        while (usedIds.Contains(nextId))
+        {
+            nextId++;
+        }
+
+        return nextId;
+    }
+
     public void BuyDomik(int playerId, int typeId)
     {
         _playerResourceManager.LockDbPlayerRow(playerId);
@@ -395,8 +449,7 @@ public class DomikManager
             var domikLevel = domikType.Levels.First(x => x.Value == 1);
             _playerResourceManager.WriteOffResources(playerId, domikLevel.Resources);
 
-            var currentId = _context.Domiks.Where(x => x.PlayerId == playerId).Max(x => (int?)x.Id) ?? 0;
-            var nextId = currentId + 1;
+            var nextId = GetNextDomikId(playerId);
             var date = DateTimeHelper.GetNowDate();
             _context.Domiks.Add(new()
                 { PlayerId = playerId, TypeId = typeId, Level = 0, Id = nextId, UpgradeSeconds = domikLevel.UpgradeSeconds, UpgradeCalculateDate = date });

@@ -8,6 +8,29 @@ const FACTS_KEY = 'wiki-facts';
 
 const factsSchema = z.record(z.string(), z.string());
 
+const LEGACY_BOARD_SIZE = 3;
+
+// TODO: снять переходное чтение старого снимка, когда в проде не останется клиентов до «Ямской избы» –
+// признак: в снимках больше не встречается поле errand.
+function normalizeState(state: unknown): unknown {
+    if (state == null || typeof state !== 'object') {
+        return state;
+    }
+
+    const raw = state as Record<string, unknown>;
+    if (Array.isArray(raw.errands)) {
+        return state;
+    }
+
+    const orders = Array.isArray(raw.orders) ? raw.orders : [];
+    return {
+        ...raw,
+        errands: raw.errand == null ? [] : [raw.errand],
+        orderBoardSize: typeof raw.orderBoardSize === 'number' ? raw.orderBoardSize : Math.max(orders.length, LEGACY_BOARD_SIZE),
+        orderFreeConcession: typeof raw.orderFreeConcession === 'boolean' ? raw.orderFreeConcession : false,
+    };
+}
+
 export interface OfflineSnapshot {
     playerId: number;
     savedAt: number;
@@ -87,7 +110,7 @@ export async function loadSnapshot(): Promise<OfflineSnapshot | null> {
         return null;
     }
 
-    const parsed = gameStateSchema.safeParse(record.state);
+    const parsed = gameStateSchema.safeParse(normalizeState(record.state));
     if (!parsed.success || parsed.data.playerId !== record.playerId) {
         await clearSnapshot();
         return null;

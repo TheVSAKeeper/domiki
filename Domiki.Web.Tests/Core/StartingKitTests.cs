@@ -17,7 +17,7 @@ public sealed class StartingKitTests
 
         var domiks = domikManager.GetDomiks(playerId);
 
-        Assert.That(domiks.Count(), Is.EqualTo(2));
+        Assert.That(domiks.Count(), Is.EqualTo(3));
         scope.Commit();
     }
 
@@ -39,21 +39,23 @@ public sealed class StartingKitTests
     }
 
     /// <summary>
-    /// Новый игрок сразу получает барак и глиняный карьер первого уровня и стартовый запас монет.
+    /// Новый игрок сразу получает барак, глиняный карьер и ямскую избу первого уровня и стартовый запас монет.
     /// </summary>
     [Test]
-    public void NewPlayerStartsWithBarrackAndClayMineAndCoinsTest()
+    public void NewPlayerStartsWithBarrackClayMinePostHouseAndCoinsTest()
     {
         var player = TestPlayer.Create();
 
         var domiks = player.Domiks().OrderBy(x => x.Id).ToArray();
-        Assert.That(domiks.Length, Is.EqualTo(2));
+        Assert.That(domiks.Length, Is.EqualTo(3));
         using (Assert.EnterMultipleScope())
         {
             Assert.That(domiks[0].Type.Id, Is.EqualTo(DomikIds.Barrack));
             Assert.That(domiks[0].Level, Is.EqualTo(1));
             Assert.That(domiks[1].Type.Id, Is.EqualTo(DomikIds.ClayMine));
             Assert.That(domiks[1].Level, Is.EqualTo(1));
+            Assert.That(domiks[2].Type.Id, Is.EqualTo(DomikIds.PostHouse));
+            Assert.That(domiks[2].Level, Is.EqualTo(1));
         }
 
         Assert.That(player.Resource(ResourceIds.Coin), Is.EqualTo(DomikManager.StartingCoins));

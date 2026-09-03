@@ -181,7 +181,8 @@ public sealed class RelocationTests
         var dbPlayer = App.Read(context => context.Players.Single(x => x.Id == player.Id));
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(App.Read(context => context.Domiks.Count(x => x.PlayerId == player.Id)), Is.Zero);
+            Assert.That(App.Read(context => context.Domiks.Count(x => x.PlayerId == player.Id)), Is.EqualTo(1));
+            Assert.That(App.Read(context => context.Domiks.Single(x => x.PlayerId == player.Id).TypeId), Is.EqualTo(DomikIds.PostHouse));
             Assert.That(player.Resource(ResourceIds.Clay), Is.Zero);
             Assert.That(player.Resource(ResourceIds.Coin), Is.EqualTo(DomikManager.StartingCoins));
             Assert.That(App.Read(context => context.PlayerDecors.Count(x => x.PlayerId == player.Id)), Is.Zero);
@@ -399,7 +400,7 @@ public sealed class RelocationTests
         const int clay = 30;
         const int stone = 12;
         const int gold = 90;
-        const int startingBuildings = 2;
+        const int startingBuildings = 3;
 
         var player = TestPlayer.Create()
             .AtRelocationThreshold()

@@ -14,17 +14,40 @@ namespace Domiki.Web.Economy;
 
 public class OrderManager
 {
-    public const int BoardSize = 3;
+    /// <summary>
+    /// Сколько ячеек на доске у «Ямской избы» первого уровня.
+    /// </summary>
+    public const int BoardSizeBase = 3;
+
+    /// <summary>
+    /// Сколько ячеек на доске у «Ямской избы» последнего уровня.
+    /// </summary>
+    public const int BoardSizeMax = 5;
+
+    /// <summary>
+    /// Уровень «Ямской избы», с которого на доске появляется четвёртая ячейка.
+    /// </summary>
+    public const int FourthSlotLevel = 2;
+
+    /// <summary>
+    /// Уровень «Ямской избы», с которого на доске появляется пятая ячейка.
+    /// </summary>
+    public const int FifthSlotLevel = 5;
+
+    /// <summary>
+    /// Уровень «Ямской избы», с которого одна уступка в сутки не отодвигает пополнение доски.
+    /// </summary>
+    public const int FreeConcessionLevel = 3;
+
+    /// <summary>
+    /// Длина скользящего окна бесплатной уступки в секундах.
+    /// </summary>
+    public const int FreeConcessionWindowSeconds = 24 * 60 * 60;
 
     /// <summary>
     /// Во сколько раз чаще на доске появляется заказ соседа, с которым игрок водит дружбу (см. <see cref="Data.Entities.Player.FriendNeighborId"/>).
     /// </summary>
     public const int FriendWeight = 3;
-
-    /// <summary>
-    /// Сколько ячеек доски может занять сосед, с которым водят дружбу: хотя бы одна весточка всегда приходит от других выселок.
-    /// </summary>
-    public const int FriendBoardLimit = BoardSize - 1;
 
     /// <summary>
     /// Доля двора, на которую рассчитан один заказ: один заказ рассчитан на половину мощности двора за свой срок, чтобы
@@ -118,6 +141,38 @@ public class OrderManager
     }
 
     /// <summary>
+    /// Считает, сколько ячеек на доске заказов даёт «Ямская изба» этого уровня.
+    /// </summary>
+    /// <remarks>
+    /// Ячейка продаёт выбор, а не доход: заказ по-прежнему рассчитан на долю двора <see cref="BoardShare"/>, а руки
+    /// капнуты, поэтому пять ячеек разом не выполняются – игрок берёт из них подходящие.
+    /// </remarks>
+    /// <param name="postHouseLevel">Уровень «Ямской избы» игрока.</param>
+    /// <returns>Число ячеек доски.</returns>
+    public static int GetBoardSize(int postHouseLevel)
+    {
+        if (postHouseLevel >= FifthSlotLevel)
+        {
+            return BoardSizeMax;
+        }
+
+        return postHouseLevel >= FourthSlotLevel ? BoardSizeBase + 1 : BoardSizeBase;
+    }
+
+    /// <summary>
+    /// Считает, сколько ячеек доски может занять сосед, с которым водят дружбу.
+    /// </summary>
+    /// <remarks>
+    /// Хотя бы одна весточка всегда приходит от других выселок, поэтому предел – на одну ячейку меньше доски.
+    /// </remarks>
+    /// <param name="boardSize">Размер доски игрока (см. <see cref="GetBoardSize(int)"/>).</param>
+    /// <returns>Наибольшее число ячеек друга.</returns>
+    public static int GetFriendBoardLimit(int boardSize)
+    {
+        return boardSize - 1;
+    }
+
+    /// <summary>
     /// Обеспечивает доску заказов свободными ячейками с учётом отложенного пополнения.
     /// </summary>
     /// <remarks>
@@ -143,7 +198,8 @@ public class OrderManager
         refillCleared = false;
         var count = _context.Orders.Count(x => x.PlayerId == playerId);
         var player = _context.Players.First(x => x.Id == playerId);
-        if (count >= BoardSize)
+        var boardSize = GetPlayerBoardSize(playerId);
+        if (count >= boardSize)
         {
             if (player.NextOrderRefillAt != null)
             {
@@ -170,9 +226,9 @@ public class OrderManager
             .Select(x => (x.NeighborId, x.ResourceTypeId))
             .ToList();
 
-        while (count < BoardSize)
+        while (count < boardSize)
         {
-            var calcInfo = CreateOrder(playerId, villageLevel, boardOrders, player.FriendNeighborId);
+            var calcInfo = CreateOrder(playerId, villageLevel, boardOrders, player.FriendNeighborId, boardSize);
             created.Add(calcInfo);
             count++;
             ordersCreated++;
@@ -299,6 +355,8 @@ public class OrderManager
     /// Задержка на пополнение доски накапливается: уступка отодвигает <see cref="Data.Entities.Player.NextOrderRefillAt"/>
     /// на <see cref="OrderRefillDelaySeconds"/> вперёд от уже выставленного момента (если он ещё в будущем), а не выставляет
     /// его заново от текущего времени – поэтому сдать всю доску разом и тут же получить новую нельзя.
+    /// С <see cref="FreeConcessionLevel"/> уровня «Ямской избы» одна уступка в сутки задержки не даёт вовсе
+    /// (см. <see cref="IsFreeConcessionAvailable(int)"/>).
     /// </remarks>
     /// <param name="playerId">Идентификатор игрока.</param>
     /// <param name="orderId">Идентификатор заказа, от которого игрок отказывается.</param>
@@ -317,8 +375,16 @@ public class OrderManager
 
         var player = _context.Players.First(x => x.Id == playerId);
         var now = DateTimeHelper.GetNowDate();
-        var baseline = player.NextOrderRefillAt is { } existingRefillAt && existingRefillAt > now ? existingRefillAt : now;
-        player.NextOrderRefillAt = baseline.AddSeconds(OrderRefillDelaySeconds);
+        if (IsFreeConcessionAvailable(playerId, player, now))
+        {
+            player.LastFreeConcessionAt = now;
+        }
+        else
+        {
+            var baseline = player.NextOrderRefillAt is { } existingRefillAt && existingRefillAt > now ? existingRefillAt : now;
+            player.NextOrderRefillAt = baseline.AddSeconds(OrderRefillDelaySeconds);
+        }
+
         _context.SaveChanges();
 
         EnsureOrderBoard(playerId);
@@ -490,7 +556,7 @@ public class OrderManager
             .ToArray();
     }
 
-    private CalculateInfo CreateOrder(int playerId, int villageLevel, List<(int NeighborId, int ResourceTypeId)> boardOrders, int? friendNeighborId)
+    private CalculateInfo CreateOrder(int playerId, int villageLevel, List<(int NeighborId, int ResourceTypeId)> boardOrders, int? friendNeighborId, int boardSize)
     {
         var neighbors = _villageLevelCalculator.GetOpenNeighbors(villageLevel);
         var producible = GetProducibleResourceTypeIds(playerId);
@@ -499,7 +565,7 @@ public class OrderManager
             .Where(x => x.ResourceTypeId != 0 && producible.Contains(x.ResourceTypeId))
             .ToArray();
 
-        var friendHasFreeSlot = boardOrders.Count(x => x.NeighborId == friendNeighborId) < FriendBoardLimit;
+        var friendHasFreeSlot = boardOrders.Count(x => x.NeighborId == friendNeighborId) < GetFriendBoardLimit(boardSize);
         var distinctPairs = pairs
             .Where(x => (friendHasFreeSlot && x.Neighbor.Id == friendNeighborId) || boardOrders.All(y => y.ResourceTypeId != x.ResourceTypeId))
             .ToArray();
@@ -602,6 +668,58 @@ public class OrderManager
                     .ToArray(),
             })
             .ToArray();
+    }
+
+    /// <summary>
+    /// Считает размер доски заказов игрока по уровню его «Ямской избы».
+    /// </summary>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <returns>Число ячеек доски.</returns>
+    public int GetPlayerBoardSize(int playerId)
+    {
+        return GetBoardSize(GetPostHouseLevel(playerId));
+    }
+
+    /// <summary>
+    /// Проверяет, осталась ли у игрока бесплатная уступка в текущем окне.
+    /// </summary>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <returns><see langword="true"/>, если следующая уступка не отодвинет пополнение доски.</returns>
+    public bool IsFreeConcessionAvailable(int playerId)
+    {
+        var player = _context.Players.First(x => x.Id == playerId);
+        return IsFreeConcessionAvailable(playerId, player, DateTimeHelper.GetNowDate());
+    }
+
+    /// <summary>
+    /// Возвращает уровень «Ямской избы» игрока.
+    /// </summary>
+    /// <remarks>
+    /// Изба выдаётся бесплатно всем (см. <see cref="Core.DomikManager.SeedPostHouse"/>), поэтому её отсутствие – это
+    /// сбой данных, а не игровое состояние: доску в таком случае считаем по первому уровню, чтобы игрок не остался
+    /// вовсе без заказов.
+    /// </remarks>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <returns>Уровень избы, но не меньше первого.</returns>
+    private int GetPostHouseLevel(int playerId)
+    {
+        var level = _context.Domiks
+                        .Where(x => x.PlayerId == playerId && x.TypeId == Core.DomikManager.PostHouseTypeId)
+                        .Select(x => (int?)x.Level)
+                        .Max()
+                    ?? 0;
+
+        return Math.Max(level, 1);
+    }
+
+    private bool IsFreeConcessionAvailable(int playerId, Data.Entities.Player player, DateTime now)
+    {
+        if (GetPostHouseLevel(playerId) < FreeConcessionLevel)
+        {
+            return false;
+        }
+
+        return player.LastFreeConcessionAt is not { } lastAt || (now - lastAt).TotalSeconds >= FreeConcessionWindowSeconds;
     }
 
     public class OrderTier

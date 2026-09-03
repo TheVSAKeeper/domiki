@@ -20,7 +20,9 @@ import { AbstractSprite, MechanicSprite, NeighborSprite, ResourceSprite, WorkerS
 
 interface OrdersBoxProps {
     orders: OrderDto[];
-    errand: ErrandDto | null;
+    errands: ErrandDto[];
+    boardSize: number;
+    freeConcession: boolean;
     workers: WorkerDto[];
     reputation: NeighborReputationDto[];
     convoys: ConvoyDto[];
@@ -123,10 +125,11 @@ const ErrandCard = ({ errand, workers, now, onAccept, onCancel }: ErrandCardProp
     );
 };
 
-export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resourceTypes, resources, domikTypes, villageProfiles, village, villageLevel, now, onComplete, onCancel, onAcceptErrand, onCancelErrand, onBuyFromConvoy, onSetFriend, onSetVillageProfile }: OrdersBoxProps) => {
+export const OrdersBox = ({ orders, errands, boardSize, freeConcession, workers, reputation, convoys, resourceTypes, resources, domikTypes, villageProfiles, village, villageLevel, now, onComplete, onCancel, onAcceptErrand, onCancelErrand, onBuyFromConvoy, onSetFriend, onSetVillageProfile }: OrdersBoxProps) => {
     const [errandModalId, setErrandModalId] = useState<number | null>(null);
     const [profileModalNeighborId, setProfileModalNeighborId] = useState<number | null>(null);
     const profileModalNeighbor = profileModalNeighborId == null ? null : reputation.find(item => item.neighborId === profileModalNeighborId) ?? null;
+    const modalErrand = errandModalId == null ? null : errands.find(item => item.id === errandModalId && item.acceptDate == null) ?? null;
     const profileModalBuildings = profileModalNeighbor == null ? [] : getVillageProfileState(villageProfiles, domikTypes, profileModalNeighbor, villageLevel?.level ?? 0, village?.profileNeighborId ?? null, village?.profileChangeAvailableDate ?? null, now).buildings;
     return (
         <section className="orders-panel pixel-panel">
@@ -138,8 +141,8 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                     <h3 className="panel-title orders-hero-title">Заказы от соседей</h3>
                     <p className="orders-hero-sub sec-hero-sub">Из окрестных выселок шлют весточки – сделайте, что просят, и заслужите доброе имя.</p>
                 </div>
-                <div className="orders-hero-stat sec-hero-stat" title="Весточек на столе">
-                    <span className="orders-hero-stat-num sec-hero-stat-num">{orders.length}</span>
+                <div className="orders-hero-stat sec-hero-stat" title={`Весточек на столе: ${orders.length} из ${boardSize}`}>
+                    <span className="orders-hero-stat-num sec-hero-stat-num">{orders.length}<span className="orders-hero-stat-of">/{boardSize}</span></span>
                     <span className="orders-hero-stat-label sec-hero-stat-label">весточек на столе</span>
                 </div>
             </SectionHero>
@@ -292,10 +295,11 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                         })}
                     </div>
                 </div>}
-            {errand != null &&
-                <ErrandCard errand={errand} workers={workers} now={now}
+            {errands.map(errand => (
+                <ErrandCard key={errand.id} errand={errand} workers={workers} now={now}
                     onAccept={() => setErrandModalId(errand.id)}
-                    onCancel={() => { void onCancelErrand(errand.id); }} />}
+                    onCancel={() => { void onCancelErrand(errand.id); }} />
+            ))}
             {orders.length === 0
                 ? <div className="orders-empty">
                     <MechanicSprite logicName="orders" size={48} aria-hidden="true" />
@@ -348,18 +352,20 @@ export const OrdersBox = ({ orders, errand, workers, reputation, convoys, resour
                                         Сдать заказ
                                     </ActionButton>
                                     <ActionButton className="btn-game btn-ghost"
-                                        title="Заказ уйдёт в другую деревню – без обиды, но и без награды. Новый спрос появится не сразу."
+                                        title={freeConcession
+                                            ? 'Заказ уйдёт в другую деревню – без обиды и без награды. Сегодня ямщик отвезёт отказ даром: новый спрос придёт без задержки.'
+                                            : 'Заказ уйдёт в другую деревню – без обиды, но и без награды. Новый спрос появится не сразу.'}
                                         onClick={() => onCancel(order.id)}>
-                                        Уступить
+                                        Уступить{freeConcession && <span className="order-free-mark"> даром</span>}
                                     </ActionButton>
                                 </div>
                             </div>
                         );
                     })}
                 </div>}
-            {errand != null && errandModalId === errand.id && errand.acceptDate == null &&
-                <ErrandAcceptModal errand={errand} workers={workers} now={now}
-                    neighborPoints={reputation.find(item => item.neighborId === errand.neighborId)?.points ?? 0}
+            {modalErrand != null &&
+                <ErrandAcceptModal errand={modalErrand} workers={workers} now={now}
+                    neighborPoints={reputation.find(item => item.neighborId === modalErrand.neighborId)?.points ?? 0}
                     onConfirm={onAcceptErrand}
                     onClose={() => setErrandModalId(null)} />}
             {profileModalNeighborId != null && profileModalNeighbor != null &&

@@ -71,6 +71,7 @@ internal sealed class SimulationRun
         AddResource(1, DomikManager.StartingCoins);
         AddStartingDomik(StartingBarracksTypeId);
         AddStartingDomik(StartingClayMineTypeId);
+        AddStartingDomik(DomikManager.PostHouseTypeId);
         EnsureWorkers();
         _state.CurrentWeatherTypeId = PickWeatherType().Id;
         ObserveVillageLevel();
@@ -323,7 +324,7 @@ internal sealed class SimulationRun
 
     private void EnsureOrderBoard()
     {
-        while (_state.Orders.Count < OrderManager.BoardSize)
+        while (_state.Orders.Count < OrderManager.GetBoardSize(GetPostHouseLevel()))
         {
             var openNeighbors = _data.Neighbors.Where(x => x.UnlockLevel <= GetVillageLevel()).ToArray();
             if (openNeighbors.Length == 0)
@@ -1153,7 +1154,7 @@ internal sealed class SimulationRun
 
     private int GetVillageLevel()
     {
-        var buildings = _state.Domiks.Sum(x => x.Level);
+        var buildings = _state.Domiks.Where(x => x.Type.Id != DomikManager.PostHouseTypeId).Sum(x => x.Level);
         var residents = GetCapacity();
         var reputationMilestones = _state.Reputation.Values.Sum(x => x / VillageLevelCalculator.ReputationPointsPerMilestone);
         return VillageLevelCalculator.ComputeLevel(buildings, residents, reputationMilestones, 0);
@@ -1287,6 +1288,11 @@ internal sealed class SimulationRun
     private int GetScoutHutLevel()
     {
         return _state.Domiks.Where(x => x.Type.LogicName == "scout_hut").Select(x => x.Level).DefaultIfEmpty().Max();
+    }
+
+    private int GetPostHouseLevel()
+    {
+        return Math.Max(1, _state.Domiks.Where(x => x.Type.LogicName == "post_house").Select(x => x.Level).DefaultIfEmpty().Max());
     }
 
     private List<SimWorker> GetFreeWorkers()

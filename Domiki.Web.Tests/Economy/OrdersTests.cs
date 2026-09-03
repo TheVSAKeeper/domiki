@@ -301,7 +301,7 @@ public sealed class OrdersTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.True);
-            Assert.That(orders, Has.Count.EqualTo(OrderManager.BoardSize));
+            Assert.That(orders, Has.Count.EqualTo(OrderManager.BoardSizeBase));
             Assert.That(calcInfo.PushTitle, Is.EqualTo("Новый заказ на доске"));
             Assert.That(calcInfo.PushBody, Is.Not.Null.And.Not.Empty);
             Assert.That(calcInfo.PushTag, Is.EqualTo(PushSender.OrderTag));

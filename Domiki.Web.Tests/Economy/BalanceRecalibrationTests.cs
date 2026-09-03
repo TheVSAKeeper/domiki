@@ -113,7 +113,7 @@ public sealed class BalanceRecalibrationTests
 
     /// <summary>
     /// Стоимость улучшения до заданного уровня в монетах одинакова для всех обычных построек (кроме золотой шахты, рынка и
-    /// построек 9–11).
+    /// домов механик – построек 9–11 и 20).
     /// </summary>
     /// <param name="level">Целевой уровень постройки.</param>
     /// <param name="expectedCoins">Ожидаемая стоимость улучшения в монетах.</param>
@@ -131,7 +131,7 @@ public sealed class BalanceRecalibrationTests
                 continue;
             }
 
-            if (type.Id is DomikIds.MarketYard or DomikIds.Gathering or DomikIds.ScoutHut)
+            if (type.Id is DomikIds.MarketYard or DomikIds.Gathering or DomikIds.ScoutHut or DomikIds.PostHouse)
             {
                 continue;
             }

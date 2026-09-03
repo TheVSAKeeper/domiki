@@ -22,7 +22,7 @@ interface WorkersBoxProps {
     domiks: DomikDto[];
     receipts: ReceiptDto[];
     expeditions: ExpeditionStateDto | null;
-    errand: ErrandDto | null;
+    errands: ErrandDto[];
     incident: IncidentDto | null;
     domikIncident: DomikIncidentDto | null;
     cloaks: CloakStateDto;
@@ -190,7 +190,7 @@ const LarderRuleRow = ({ resourceType, stock, rule, onSetFoodRule }: LarderRuleR
     );
 };
 
-export const WorkersBox = ({ workers, domikTypes, domiks, receipts, expeditions, errand, incident, domikIncident, cloaks, sickTypes, resourceTypes, resources, villageLevel, tavernLevel, larder, onSetFoodRule, now }: WorkersBoxProps) => {
+export const WorkersBox = ({ workers, domikTypes, domiks, receipts, expeditions, errands, incident, domikIncident, cloaks, sickTypes, resourceTypes, resources, villageLevel, tavernLevel, larder, onSetFoodRule, now }: WorkersBoxProps) => {
     const [hover, setHover] = useState<{ worker: WorkerDto; rect: DOMRect } | null>(null);
     const [detailsRef, detailsTop, detailsHidden] = useFlyoutTop<HTMLDivElement>(hover?.rect ?? null);
     const [larderOpen, setLarderOpen] = useState(false);
@@ -360,6 +360,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, receipts, expeditions,
                             return expedition == null ? null : build('вернётся', remainingSeconds(expedition.finishDate, now));
                         }
                         if (stateKey === 'errand') {
+                            const errand = errands.find(item => item.workerIds.includes(worker.id));
                             return errand?.finishDate == null ? null : build('вернётся', remainingSeconds(errand.finishDate, now));
                         }
                         if (stateKey === 'incidentMissing') {

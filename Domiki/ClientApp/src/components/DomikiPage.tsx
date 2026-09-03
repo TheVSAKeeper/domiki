@@ -71,7 +71,7 @@ export const DomikiPage = () => {
     useEffect(() => { perfCommitProbe(); });
 
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, errand, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, staleSince, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, orderBoardSize, orderFreeConcession, errands, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, staleSince, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
         useGameData();
 
     const [recapOpen, setRecapOpen] = useState(false);
@@ -316,7 +316,7 @@ export const DomikiPage = () => {
     const cancelErrandAction = (errandId: number) => runAction(async () => {
         await cancelErrandApi(errandId);
         scheduleReload();
-    }, errand?.acceptDate == null ? 'Поручение отклонено' : 'Поручение отозвано');
+    }, errands.find(item => item.id === errandId)?.acceptDate == null ? 'Поручение отклонено' : 'Поручение отозвано');
 
     const startIncidentSearchAction = (incidentId: number, clueId: number, workerIds: number[]) => runAction(async () => {
         await startIncidentSearchApi(incidentId, clueId, workerIds);
@@ -420,7 +420,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'orders', label: 'Заказы', icon: <MechanicSprite logicName="orders" size={32} className="game-tab-ico" aria-hidden="true" />, visible: true,
-            node: () => <OrdersBox orders={orders} errand={errand} workers={workers} reputation={reputation} convoys={convoys} resourceTypes={resourceTypes} resources={resources} now={now}
+            node: () => <OrdersBox orders={orders} errands={errands} boardSize={orderBoardSize} freeConcession={orderFreeConcession} workers={workers} reputation={reputation} convoys={convoys} resourceTypes={resourceTypes} resources={resources} now={now}
                 domikTypes={domikTypes} villageProfiles={villageProfiles} village={village} villageLevel={villageLevel}
                 onComplete={completeOrder} onCancel={cancelOrder} onAcceptErrand={acceptErrandAction} onCancelErrand={cancelErrandAction}
                 onBuyFromConvoy={buyFromConvoyAction} onSetFriend={setFriendNeighborAction} onSetVillageProfile={setVillageProfileAction} />,
@@ -448,7 +448,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'workers', label: 'Трудяги', icon: <MechanicSprite logicName="workers" size={32} className="game-tab-ico" aria-hidden="true" />, visible: true,
-            node: () => <WorkersBox workers={workers} domikTypes={domikTypes} domiks={domiks} receipts={receipts} expeditions={expeditions} errand={errand} incident={incident} domikIncident={domikIncident} cloaks={cloaks} sickTypes={sickTypes} resourceTypes={resourceTypes} resources={resources} villageLevel={villageLevel} tavernLevel={tavernLevel} larder={larder} onSetFoodRule={setFoodRuleAction} now={now} />,
+            node: () => <WorkersBox workers={workers} domikTypes={domikTypes} domiks={domiks} receipts={receipts} expeditions={expeditions} errands={errands} incident={incident} domikIncident={domikIncident} cloaks={cloaks} sickTypes={sickTypes} resourceTypes={resourceTypes} resources={resources} villageLevel={villageLevel} tavernLevel={tavernLevel} larder={larder} onSetFoodRule={setFoodRuleAction} now={now} />,
         },
         {
             key: 'journal', label: 'Журнал', icon: <AbstractSprite logicName="journal" size={32} className="game-tab-ico" aria-hidden="true" />, visible: true,

@@ -72,7 +72,7 @@ public sealed class FriendNeighborTests
         for (var i = 0; i < refillCycles; i++)
         {
             var friendOrders = player.Orders().Count(x => x.Neighbor.Id == NeighborIds.Glinischi);
-            Assert.That(friendOrders, Is.LessThanOrEqualTo(OrderManager.FriendBoardLimit));
+            Assert.That(friendOrders, Is.LessThanOrEqualTo(OrderManager.GetFriendBoardLimit(OrderManager.BoardSizeBase)));
             ClearOrders(player.Id);
         }
     }

@@ -37,7 +37,7 @@ public sealed class DomiksTests
         var afterResources = player.Resources();
         var domiks = player.Domiks();
         var domiksCount = domiks.Count();
-        Assert.That(domiksCount, Is.EqualTo(4));
+        Assert.That(domiksCount, Is.EqualTo(5));
         var level = domiks.First().Level;
         Assert.That(level, Is.EqualTo(1));
 
@@ -95,7 +95,7 @@ public sealed class DomiksTests
 
             var domiks = player.Domiks();
             var domiksCount = domiks.Count();
-            Assert.That(domiksCount, Is.EqualTo(3), "iterarion number " + i);
+            Assert.That(domiksCount, Is.EqualTo(4), "iterarion number " + i);
         }
     }
 

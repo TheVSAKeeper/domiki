@@ -4,7 +4,7 @@
 /// Поручение соседа – квест-оффер, оплачиваемый временем трудяг.
 /// </summary>
 /// <remarks>
-/// Собирается в <see cref="Economy.ErrandManager.Get"/> и отдаётся на клиент как <see cref="Dto.ErrandDto"/>.
+/// Собирается в <see cref="Economy.ErrandManager.GetAll"/> и отдаётся на клиент как <see cref="Dto.ErrandDto"/>.
 /// </remarks>
 public class Errand
 {

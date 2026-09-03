@@ -254,6 +254,7 @@ public class RelocationManager
         var carriedGold = Math.Min(GoldCarryCap, GetResourceValue(playerId, GoldResourceTypeId));
 
         BurnVillage(playerId);
+        _domikManager.SeedPostHouse(playerId);
         CarryArtel(playerId);
         HalveReputation(playerId);
 

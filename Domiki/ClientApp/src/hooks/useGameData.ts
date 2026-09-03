@@ -50,7 +50,9 @@ export interface GameData {
     receipts: ReceiptDto[];
     resources: ResourceDto[];
     orders: OrderDto[];
-    errand: ErrandDto | null;
+    orderBoardSize: number;
+    orderFreeConcession: boolean;
+    errands: ErrandDto[];
     incident: IncidentDto | null;
     domikIncident: DomikIncidentDto | null;
     reputation: NeighborReputationDto[];
@@ -145,7 +147,9 @@ export function useGameData(): GameData {
     const [receipts, setReceipts] = useState<ReceiptDto[]>([]);
     const [resources, setResources] = useState<ResourceDto[]>([]);
     const [orders, setOrders] = useState<OrderDto[]>([]);
-    const [errand, setErrand] = useState<ErrandDto | null>(null);
+    const [errands, setErrands] = useState<ErrandDto[]>([]);
+    const [orderBoardSize, setOrderBoardSize] = useState(0);
+    const [orderFreeConcession, setOrderFreeConcession] = useState(false);
     const [incident, setIncident] = useState<IncidentDto | null>(null);
     const [domikIncident, setDomikIncident] = useState<DomikIncidentDto | null>(null);
     const [reputation, setReputation] = useState<NeighborReputationDto[]>([]);
@@ -186,7 +190,7 @@ export function useGameData(): GameData {
     const relocationRef = useRef(relocation);
     const eventsRef = useRef<RecapEventDto[] | undefined>(undefined);
     const tolokaRef = useRef(toloka);
-    const errandRef = useRef(errand);
+    const errandsRef = useRef(errands);
     const incidentRef = useRef(incident);
     const domikIncidentRef = useRef(domikIncident);
     const convoysRef = useRef(convoys);
@@ -227,8 +231,8 @@ export function useGameData(): GameData {
     }, [convoys]);
 
     useEffect(() => {
-        errandRef.current = errand;
-    }, [errand]);
+        errandsRef.current = errands;
+    }, [errands]);
 
     useEffect(() => {
         incidentRef.current = incident;
@@ -280,7 +284,9 @@ export function useGameData(): GameData {
         setPurchaseDomikTypes(state.purchaseAvailableDomiks);
         setResources(state.resources);
         setOrders(state.orders);
-        setErrand(state.errand);
+        setOrderBoardSize(state.orderBoardSize);
+        setOrderFreeConcession(state.orderFreeConcession);
+        setErrands(state.errands);
         setIncident(state.incident);
         setDomikIncident(state.domikIncident);
         setReputation(state.reputation);
@@ -477,7 +483,9 @@ export function useGameData(): GameData {
                 setDomiks(state.domiks);
                 setResources(state.resources);
                 setOrders(state.orders);
-                setErrand(state.errand);
+                setOrderBoardSize(state.orderBoardSize);
+                setOrderFreeConcession(state.orderFreeConcession);
+                setErrands(state.errands);
                 setIncident(state.incident);
                 setDomikIncident(state.domikIncident);
                 setReputation(state.reputation);
@@ -621,9 +629,12 @@ export function useGameData(): GameData {
             }
         }
 
-        const errand = errandRef.current;
-        const errandDeadline = errand == null ? null : errand.acceptDate == null ? errand.expireDate : errand.finishDate;
-        if (errand != null && errandDeadline != null) {
+        for (const errand of errandsRef.current) {
+            const errandDeadline = errand.acceptDate == null ? errand.expireDate : errand.finishDate;
+            if (errandDeadline == null) {
+                continue;
+            }
+
             const key = `errand:${errand.id}:${errandDeadline}`;
             if (!reloadedFinishDeadlinesRef.current.has(key) && remainingSeconds(errandDeadline, now) <= 0) {
                 reloadedFinishDeadlinesRef.current.add(key);
@@ -686,7 +697,9 @@ export function useGameData(): GameData {
         receipts,
         resources,
         orders,
-        errand,
+        orderBoardSize,
+        orderFreeConcession,
+        errands,
         incident,
         domikIncident,
         reputation,

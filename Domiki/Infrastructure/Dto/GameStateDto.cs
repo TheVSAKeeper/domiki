@@ -55,9 +55,27 @@ public sealed record GameStateDto
     /// Активные заказы на доске заказов игрока.
     /// </summary>
     /// <remarks>
-    /// Не более <see cref="Economy.OrderManager.BoardSize"/> одновременно.
+    /// Не более <see cref="OrderBoardSize"/> одновременно.
     /// </remarks>
     public required OrderDto[] Orders { get; init; }
+
+    /// <summary>
+    /// Сколько ячеек на доске заказов – по уровню «Ямской избы» игрока.
+    /// </summary>
+    /// <remarks>
+    /// От <see cref="Economy.OrderManager.BoardSizeBase"/> до <see cref="Economy.OrderManager.BoardSizeMax"/>
+    /// (см. <see cref="Economy.OrderManager.GetBoardSize(int)"/>).
+    /// </remarks>
+    public required int OrderBoardSize { get; init; }
+
+    /// <summary>
+    /// Осталась ли у игрока бесплатная уступка – та, что не отодвигает пополнение доски.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="false"/> у изб ниже <see cref="Economy.OrderManager.FreeConcessionLevel"/> уровня и пока не
+    /// закончилось суточное окно (см. <see cref="Economy.OrderManager.IsFreeConcessionAvailable(int)"/>).
+    /// </remarks>
+    public required bool OrderFreeConcession { get; init; }
 
     /// <summary>
     /// Репутация игрока у всех соседей.
@@ -65,12 +83,13 @@ public sealed record GameStateDto
     public required NeighborReputationDto[] Reputation { get; init; }
 
     /// <summary>
-    /// Активное поручение соседа – оффер или принятое.
+    /// Незавершённые поручения соседей – офферы и принятые.
     /// </summary>
     /// <remarks>
-    /// <see langword="null"/> – у игрока нет незавершённого поручения (см. <see cref="Economy.ErrandManager.Get"/>).
+    /// Пусто, если поручений нет; больше одного – с четвёртого уровня «Ямской избы»
+    /// (см. <see cref="Economy.ErrandManager.GetAll"/>).
     /// </remarks>
-    public ErrandDto? Errand { get; init; }
+    public required ErrandDto[] Errands { get; init; }
 
     /// <summary>
     /// Активное происшествие с пропавшим в походе трудягой.

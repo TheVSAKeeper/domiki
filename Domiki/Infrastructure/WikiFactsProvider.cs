@@ -143,7 +143,12 @@ public sealed class WikiFactsProvider
             ["milestoneTenthRoad"] = Int(WorkerMilestoneManager.TenthRoadThreshold),
             ["milestoneMonthDays"] = Int(WorkerMilestoneManager.MonthInBarracksDays),
 
-            ["orderBoardSize"] = Int(OrderManager.BoardSize),
+            ["orderBoardSizeBase"] = Int(OrderManager.BoardSizeBase),
+            ["orderBoardSizeMax"] = Int(OrderManager.BoardSizeMax),
+            ["orderFourthSlotLevel"] = Int(OrderManager.FourthSlotLevel),
+            ["orderFifthSlotLevel"] = Int(OrderManager.FifthSlotLevel),
+            ["orderFreeConcessionLevel"] = Int(OrderManager.FreeConcessionLevel),
+            ["errandSecondLevel"] = Int(ErrandManager.SecondErrandLevel),
             ["orderMinQuantity"] = Int(OrderManager.MinQuantity),
             ["orderTier1Hours"] = Int(Hours(OrderManager.Tiers[0].DurationSeconds)),
             ["orderTier1Multiplier"] = Dec(OrderManager.Tiers[0].DemandMultiplier),

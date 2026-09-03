@@ -66,6 +66,11 @@ public static class DomikIds
     /// Изба старосты.
     /// </summary>
     public const int ElderHouse = 19;
+
+    /// <summary>
+    /// Ямская изба – дом слоя соседей.
+    /// </summary>
+    public const int PostHouse = 20;
 }
 
 /// <summary>
@@ -75,6 +80,12 @@ public static class StartingDomikIds
 {
     public const int Barrack = 1;
     public const int ClayMine = 2;
+
+    /// <summary>
+    /// Ямская изба выдаётся игроку бесплатно, но в тестах её номер уводят в девятую сотню: иначе постройки, которые
+    /// тест ставит сам, съехали бы с привычных 3, 4, 5 (см. <c>TestPlayer.Create</c>).
+    /// </summary>
+    public const int PostHouse = 900;
 }
 
 public static class DecorIds

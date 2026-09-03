@@ -4,6 +4,7 @@ using Domiki.Web.Economy;
 using Domiki.Web.Infrastructure;
 using Domiki.Web.Reference;
 using Domiki.Web.Workers;
+using Microsoft.EntityFrameworkCore;
 using Domik = Domiki.Web.Core.Models.Domik;
 using DomikType = Domiki.Web.Core.Models.DomikType;
 using Manufacture = Domiki.Web.Core.Models.Manufacture;
@@ -23,6 +24,7 @@ public sealed class TestPlayer
     public static TestPlayer Create(bool muteFtue = true)
     {
         var id = App.Act<DomikManager, int>(m => m.GetPlayerId($"testUser_{App.RunId}_{Guid.NewGuid()}"));
+        MovePostHouseAside(id);
         if (muteFtue)
         {
             MuteFtue(id);
@@ -54,7 +56,7 @@ public sealed class TestPlayer
     public TestPlayer WithDomik(int typeId, int level = 1)
     {
         using var scope = App.Scope();
-        var nextId = (scope.Context.Domiks.Where(x => x.PlayerId == Id).Max(x => (int?)x.Id) ?? 0) + 1;
+        var nextId = (scope.Context.Domiks.Where(x => x.PlayerId == Id && x.Id < StartingDomikIds.PostHouse).Max(x => (int?)x.Id) ?? 0) + 1;
         scope.Context.Domiks.Add(new()
         {
             PlayerId = Id,
@@ -169,6 +171,19 @@ public sealed class TestPlayer
     public Manufacture Manufacture(int domikId)
     {
         return Domiks().First(x => x.Id == domikId).Manufactures.Single();
+    }
+
+    public TestPlayer MovePostHouseAside()
+    {
+        MovePostHouseAside(Id);
+        return this;
+    }
+
+    private static void MovePostHouseAside(int playerId)
+    {
+        using var scope = App.Scope();
+        scope.Context.Database.ExecuteSql($"UPDATE domiks SET id = {StartingDomikIds.PostHouse} WHERE player_id = {playerId} AND type_id = {DomikManager.PostHouseTypeId}");
+        scope.Commit();
     }
 
     private static void MuteFtue(int playerId)

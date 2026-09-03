@@ -1,4 +1,5 @@
 ﻿using Domiki.Web.Core.Models;
+using Domiki.Web.Core;
 using Domiki.Web.Data;
 using Domiki.Web.Economy.Models;
 using Domiki.Web.Reference;
@@ -46,7 +47,7 @@ public class VillageLevelCalculator
             .Where(x => x.Id == playerId)
             .Select(x => x.VisitsSinceBigGift)
             .Single();
-        var buildings = _context.Domiks.Where(x => x.PlayerId == playerId).Sum(x => x.Level);
+        var buildings = _context.Domiks.Where(x => x.PlayerId == playerId && x.TypeId != DomikManager.PostHouseTypeId).Sum(x => x.Level);
         var residents = _workerManager.GetCapacity(playerId);
         var reputation = _context.NeighborReputations
             .Where(x => x.PlayerId == playerId)

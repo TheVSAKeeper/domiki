@@ -135,6 +135,15 @@ public class Player
     public DateTime? NextOrderRefillAt { get; set; }
 
     /// <summary>
+    /// Момент, когда игрок последний раз уступил заказ бесплатно – без сдвига пополнения доски.
+    /// </summary>
+    /// <remarks>
+    /// Бесплатная уступка даётся раз в сутки скользящим окном и только с третьего уровня «Ямской избы»
+    /// (см. <see cref="Economy.OrderManager.CancelOrder"/>). <see langword="null"/> – бесплатной уступкой ещё не пользовались.
+    /// </remarks>
+    public DateTime? LastFreeConcessionAt { get; set; }
+
+    /// <summary>
     /// Сосед, с которым деревня нынче водит дружбу.
     /// </summary>
     /// <remarks>

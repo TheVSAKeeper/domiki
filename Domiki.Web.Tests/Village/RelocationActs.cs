@@ -15,7 +15,7 @@ public static class RelocationActs
     public static TestPlayer Relocate(this TestPlayer p, int valleyId = 1, string? villageName = null)
     {
         App.Act<RelocationManager>(m => m.Relocate(p.Id, valleyId, villageName));
-        return p;
+        return p.MovePostHouseAside();
     }
 
     public static RelocationPlan Plan(this TestPlayer p)

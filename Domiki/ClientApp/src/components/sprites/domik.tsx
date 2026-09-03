@@ -11,6 +11,7 @@ import LumberMillSprite from '../../assets/domikTypes/lumber_mill.svg?react';
 import MarketSprite from '../../assets/domikTypes/market.svg?react';
 import MarketYardSprite from '../../assets/domikTypes/market_yard.svg?react';
 import MillSprite from '../../assets/domikTypes/mill.svg?react';
+import PostHouseSprite from '../../assets/domikTypes/post_house.svg?react';
 import PotterySprite from '../../assets/domikTypes/pottery.svg?react';
 import BakerySprite from '../../assets/domikTypes/bakery.svg?react';
 import ScoutHutSprite from '../../assets/domikTypes/scout_hut.svg?react';
@@ -36,6 +37,7 @@ const domikSprites: Record<string, SpriteComponent> = {
     market: MarketSprite,
     market_yard: MarketYardSprite,
     mill: MillSprite,
+    post_house: PostHouseSprite,
     pottery: PotterySprite,
     scout_hut: ScoutHutSprite,
     sheepfold: SheepfoldSprite,

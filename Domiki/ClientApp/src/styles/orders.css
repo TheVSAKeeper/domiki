@@ -231,6 +231,15 @@
     font-variant-numeric: tabular-nums;
 }
 
+.orders-hero-stat-of {
+    font-size: 14px;
+    opacity: .72;
+}
+
+.order-free-mark {
+    color: #e8b83a;
+}
+
 .orders-hero-stat-label {
     margin-top: 5px;
     max-width: 9ch;
