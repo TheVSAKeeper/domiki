@@ -27,12 +27,20 @@ public class GameCommandController : GameControllerBase
     /// <remarks>
     /// Заменяет цепочку из отдельных запросов: один лок строки игрока, одна транзакция, один снимок в ответе.
     /// Отвергнутая команда не роняет остальные – её итог приходит отдельной записью с текстом для игрока.
+    /// Пачка от чужого игрока отбивается целиком и до применения: на общем устройстве очередь намерений переживает
+    /// смену учётной записи, и без этой сверки они уехали бы в чужую деревню.
     /// </remarks>
+    /// <exception cref="BusinessException">Пачка называет игрока, отличного от текущей сессии.</exception>
     [HttpPost]
     [Route("/Domiki/ApplyCommands")]
     public GameCommandBatchResultDto ApplyCommands([FromBody] GameCommandBatchDto batch)
     {
         var playerId = GetPlayerId();
+        if (batch.PlayerId is int declaredPlayerId && declaredPlayerId != playerId)
+        {
+            throw new BusinessException("Эти действия начаты под другой учётной записью, деревня их не приняла");
+        }
+
         var results = _batch.Apply(playerId, batch.Commands);
 
         return new() { Results = results, State = _projector.Project(playerId) };

@@ -34,6 +34,16 @@ public sealed record GameCommandDto
 public sealed record GameCommandBatchDto
 {
     /// <summary>
+    /// Игрок, у которого эти намерения родились, по его же снимку состояния.
+    /// </summary>
+    /// <remarks>
+    /// На общем устройстве очередь намерений одного игрока переживает вход другого, поэтому пачка называет своего
+    /// хозяина и отбивается целиком, если он разошёлся с текущей сессией. Старый клиент поля не шлёт, и тогда проверка
+    /// не делается: <c>null</c> значит «не знаю», а не «любой».
+    /// </remarks>
+    public int? PlayerId { get; init; }
+
+    /// <summary>
     /// Команды в том порядке, в каком их сделал игрок.
     /// </summary>
     public required GameCommandDto[] Commands { get; init; }

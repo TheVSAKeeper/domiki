@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import type { QueuedIntent } from '../types/api';
-import { apiGet, ApiError, apiPost, enqueueCommand, flushCommands, OfflineError, setCommandsSink, setReadOnlyMode } from './api';
+import { apiGet, ApiError, apiPost, enqueueCommand, flushCommands, OfflineError, setCommandPlayerId, setCommandsSink, setReadOnlyMode } from './api';
 
 vi.mock('./auth', () => ({
     authService: { signIn: vi.fn() },
@@ -170,6 +170,40 @@ describe('api', () => {
         expect(seen.at(-1)).toEqual([]);
     });
 
+    it('пачка называет игрока, чей снимок сейчас на экране', async () => {
+        mockCommands([{ commandId: '', status: 'Applied', error: null }]);
+        setCommandPlayerId(42);
+
+        try {
+            const queued = enqueueCommand({ kind: 'UpgradeDomik', args: { domikId: 7 } });
+            await flushCommands();
+            await queued;
+        } finally {
+            setCommandPlayerId(null);
+        }
+
+        expect(sentBatch(0).playerId).toBe(42);
+    });
+
+    it('намерение уходит с тем игроком, при котором его поставили в очередь', async () => {
+        mockCommands([{ commandId: '', status: 'Applied', error: null }]);
+        setCommandPlayerId(42);
+
+        try {
+            const first = enqueueCommand({ kind: 'UpgradeDomik', args: { domikId: 1 } });
+            setCommandPlayerId(7);
+            const second = enqueueCommand({ kind: 'UpgradeDomik', args: { domikId: 2 } });
+            await flushCommands();
+            await Promise.all([first, second]);
+        } finally {
+            setCommandPlayerId(null);
+        }
+
+        expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+        expect(sentBatch(0).playerId).toBe(42);
+        expect(sentBatch(1).playerId).toBe(7);
+    });
+
     it('два одинаковых намерения остаются двумя командами со своими идентификаторами', async () => {
         mockCommands([
             { commandId: '', status: 'Applied', error: null },
@@ -266,6 +300,11 @@ function fetchCalls(): [string, RequestInit][] {
 function sentCommands(callIndex: number): { commandId: string; kind: string }[] {
     const body = fetchCalls()[callIndex]?.[1].body;
     return (JSON.parse(typeof body === 'string' ? body : '{"commands":[]}') as { commands: { commandId: string; kind: string }[] }).commands;
+}
+
+function sentBatch(callIndex: number): { playerId: number | null } {
+    const body = fetchCalls()[callIndex]?.[1].body;
+    return JSON.parse(typeof body === 'string' ? body : '{"playerId":null}') as { playerId: number | null };
 }
 
 function mockCommands(results: { commandId: string; status: string; error: string | null }[]): void {

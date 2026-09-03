@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { acceptLot as acceptLotApi, apiGet, ApiError, enqueueCommand, buyDecor as buyDecorApi, buyFromConvoy as buyFromConvoyApi, buyPerk as buyPerkApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, postLot as postLotApi, relocate as relocateApi, setFoodRule as setFoodRuleApi, setManufactureMeasure as setManufactureMeasureApi, setResourceReserve as setResourceReserveApi, setVillage as setVillageApi, startExpedition as startExpeditionApi, voteToloka as voteTolokaApi } from '../services/api';
-import { OfflineError, setCommandsSink, setReadOnlyMode, setStateSink } from '../services/api';
+import { OfflineError, setCommandPlayerId, setCommandsSink, setReadOnlyMode, setStateSink } from '../services/api';
 import { useToast } from '../services/toastContext';
 import {
     domikTypeSchema,
@@ -340,6 +340,10 @@ export function useGameData(): GameData {
         setCommandsSink(intents => setPendingIntents(intents));
         return () => setCommandsSink(null);
     }, []);
+
+    useEffect(() => {
+        setCommandPlayerId(serverState?.playerId ?? null);
+    }, [serverState]);
 
     const predicted = useMemo(
         () => serverState == null || pendingIntents.length === 0 ? null : predictState(serverState, pendingIntents),

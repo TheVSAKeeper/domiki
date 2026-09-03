@@ -184,6 +184,7 @@ interface QueuedCommand {
     commandId: string;
     command: GameCommand;
     queuedAtMs: number;
+    playerId: number | null;
     resolve: () => void;
     reject: (error: Error) => void;
 }
@@ -198,6 +199,12 @@ let commandsSink: ((intents: QueuedIntent[]) => void) | null = null;
 
 export function setCommandsSink(sink: ((intents: QueuedIntent[]) => void) | null): void {
     commandsSink = sink;
+}
+
+let commandPlayerId: number | null = null;
+
+export function setCommandPlayerId(playerId: number | null): void {
+    commandPlayerId = playerId;
 }
 
 function notifyCommands(): void {
@@ -222,7 +229,7 @@ export function enqueueCommand(command: GameCommand): Promise<void> {
         reject = rejectPromise;
     });
 
-    queue.push({ commandId: newCommandId(), command, queuedAtMs: Date.now(), resolve, reject });
+    queue.push({ commandId: newCommandId(), command, queuedAtMs: Date.now(), playerId: commandPlayerId, resolve, reject });
     notifyCommands();
     if (!sending && flushTimer == null) {
         flushTimer = setTimeout(() => {
@@ -247,23 +254,36 @@ export function flushCommands(): Promise<void> {
 
 async function drainQueue(): Promise<void> {
     while (queue.length > 0) {
-        const batch = queue.splice(0, MAX_COMMANDS_PER_BATCH);
+        const head = queue[0];
+        if (head == null) {
+            return;
+        }
+
+        let size = 0;
+        while (size < queue.length && size < MAX_COMMANDS_PER_BATCH && queue[size]?.playerId === head.playerId) {
+            size += 1;
+        }
+
+        const batch = queue.splice(0, size);
         inFlight = batch;
         sending = true;
         try {
-            await sendCommands(batch);
+            await sendCommands(batch, head.playerId);
         } finally {
             sending = false;
         }
     }
 }
 
-async function sendCommands(batch: QueuedCommand[]): Promise<void> {
+async function sendCommands(batch: QueuedCommand[], playerId: number | null): Promise<void> {
     if (batch.length === 0) {
         return;
     }
 
-    const body = { commands: batch.map(item => ({ commandId: item.commandId, kind: item.command.kind, args: item.command.args })) };
+    const body = {
+        playerId,
+        commands: batch.map(item => ({ commandId: item.commandId, kind: item.command.kind, args: item.command.args })),
+    };
     const finishBatch = (): void => {
         inFlight = [];
         notifyCommands();

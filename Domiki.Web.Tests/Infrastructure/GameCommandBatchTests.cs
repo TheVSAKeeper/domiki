@@ -183,6 +183,50 @@ public sealed class GameCommandBatchTests
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
 
+    /// <summary>
+    /// Пачка, начатая под другой учётной записью, отбивается целиком и не трогает деревню текущей сессии.
+    /// </summary>
+    [Test]
+    public async Task BatchFromForeignPlayerIsRefusedTest()
+    {
+        var client = App.Client();
+        await client.PostAsync("/authentication/demo", null);
+        var playerId = await ReadPlayerId(client);
+        GrantResources(playerId);
+
+        var domikId = CreateUpgradableDomik(playerId);
+
+        var response = await Send(client, [Upgrade(domikId)], playerId + 1);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+            Assert.That(DomikLevel(playerId, domikId), Is.EqualTo(1));
+        }
+    }
+
+    /// <summary>
+    /// Пачка, назвавшая своего игрока, применяется как обычно.
+    /// </summary>
+    [Test]
+    public async Task BatchWithOwnPlayerIdAppliesTest()
+    {
+        var client = App.Client();
+        await client.PostAsync("/authentication/demo", null);
+        var playerId = await ReadPlayerId(client);
+        GrantResources(playerId);
+
+        var domikId = CreateUpgradableDomik(playerId);
+
+        var response = await Send(client, [Upgrade(domikId)], playerId);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(DomikLevel(playerId, domikId), Is.EqualTo(2));
+        }
+    }
+
     private sealed record Command(Guid CommandId, string Kind, object Args);
 
     private static Command Upgrade(int domikId) => new(Guid.NewGuid(), "UpgradeDomik", new { domikId });
@@ -199,8 +243,8 @@ public sealed class GameCommandBatchTests
         return JsonDocument.Parse(await response.Content.ReadAsStringAsync());
     }
 
-    private static Task<HttpResponseMessage> Send(HttpClient client, Command[] commands) =>
-        client.PostAsJsonAsync("/Domiki/ApplyCommands", new { commands });
+    private static Task<HttpResponseMessage> Send(HttpClient client, Command[] commands, int? playerId = null) =>
+        client.PostAsJsonAsync("/Domiki/ApplyCommands", new { playerId, commands });
 
     private static int DomikLevel(int playerId, int domikId) =>
         App.Read(context => context.Domiks.Single(x => x.PlayerId == playerId && x.Id == domikId).Level);
