@@ -1,4 +1,5 @@
-﻿using Domiki.Web.Activities;
+﻿using System.Text.Json;
+using Domiki.Web.Activities;
 using Domiki.Web.Activities.Models;
 using Domiki.Web.Data.Entities;
 using Domiki.Web.Infrastructure;
@@ -155,9 +156,13 @@ public sealed class ExpeditionTests
     }
 
     /// <summary>
-    /// Завершение экспедиции выдаёт хотя бы часть лута, и каждый ресурс укладывается в диапазон таблицы добычи
+    /// Завершение экспедиции выдаёт хотя бы одну награду, и каждый выпавший ресурс укладывается в диапазон таблицы добычи
     /// (дерево/камень/глина до 210, инструменты до 15, мебель до 12 – трёхкратный запас на длительный поход).
     /// </summary>
+    /// <remarks>
+    /// Ненулевая сумма ресурсов здесь не утверждается: в таблице добычи есть декор, чертежи и рост черты, поэтому поход
+    /// законно возвращается без единого ресурса.
+    /// </remarks>
     [Test]
     public void FinishExpeditionGrantsLootWithinTableRangesTest()
     {
@@ -185,7 +190,7 @@ public sealed class ExpeditionTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(woodDelta + stoneDelta + clayDelta + toolDelta + furnitureDelta, Is.GreaterThan(0));
+            Assert.That(GrantedLootCount(player.Id), Is.GreaterThan(0));
             Assert.That(woodDelta, Is.InRange(0, 70 * 3));
             Assert.That(stoneDelta, Is.InRange(0, 70 * 3));
             Assert.That(clayDelta, Is.InRange(0, 70 * 3));
@@ -756,6 +761,15 @@ public sealed class ExpeditionTests
         using var scope = App.Scope();
         scope.Context.Players.Single(x => x.Id == playerId).ExpeditionsSincePity = value;
         scope.Commit();
+    }
+
+    private static int GrantedLootCount(int playerId)
+    {
+        var granted = App.Read(context => context.PlayerEvents
+            .Single(x => x.PlayerId == playerId && x.Type == PlayerEventType.ExpeditionReturned));
+
+        using var payload = JsonDocument.Parse(granted.Data);
+        return payload.RootElement.GetProperty("loot").GetArrayLength();
     }
 
     private static int EquipmentCost(int expeditionTypeId)
