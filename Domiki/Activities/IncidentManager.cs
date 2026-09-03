@@ -447,10 +447,8 @@ public class IncidentManager
         _context.SaveChanges();
 
         var searchEndDate = dbIncident.SearchEndDate.Value;
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
-            afterEventAction?.Invoke();
             _calculator.Remove(playerId, incidentId, CalculateTypes.Incident);
             _calculator.Insert(new()
             {
@@ -459,7 +457,7 @@ public class IncidentManager
                 Date = searchEndDate,
                 Type = CalculateTypes.Incident,
             });
-        };
+        });
     }
 
     /// <summary>

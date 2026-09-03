@@ -145,13 +145,11 @@ public class MarketManager
             Type = CalculateTypes.TradeLotExpire,
         };
 
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
-            afterEventAction?.Invoke();
             _calculator.Insert(calcInfo);
             _broker.Broadcast(GameStateScopes.Market);
-        };
+        });
     }
 
     public void AcceptLot(int buyerId, int lotId, DateTime date)
@@ -216,17 +214,15 @@ public class MarketManager
         _context.TradeLots.Remove(lot);
         _context.SaveChanges();
 
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
-            afterEventAction?.Invoke();
             _calculator.Remove(sellerId.Value, lotId, CalculateTypes.TradeLotExpire);
             _broker.Broadcast(GameStateScopes.Market);
             _broker.Publish(sellerId.Value, GameStateScopes.State);
             _pushSender.Notify(sellerId.Value, "Ярмарка: сделка завершена", isBuy
                 ? $"Заявку на ярмарке исполнили: {wantName} ×{wantValue} за {giveName} ×{giveValue}"
                 : $"Ваш лот на ярмарке купили: {giveName} ×{giveValue} за {wantName} ×{wantValue}", "/domiki-page", PushSender.MarketTag);
-        };
+        });
     }
 
     public void CancelLot(int playerId, int lotId, DateTime date)
@@ -242,13 +238,11 @@ public class MarketManager
         _context.TradeLots.Remove(lot);
         _context.SaveChanges();
 
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
-            afterEventAction?.Invoke();
             _calculator.Remove(playerId, lotId, CalculateTypes.TradeLotExpire);
             _broker.Broadcast(GameStateScopes.Market);
-        };
+        });
     }
 
     public bool FinishTradeLot(DateTime date, CalculateInfo calcInfo)

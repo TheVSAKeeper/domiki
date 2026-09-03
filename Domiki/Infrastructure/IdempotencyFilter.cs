@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace Domiki.Web.Infrastructure;
 
@@ -37,10 +35,6 @@ public class IdempotencyFilter : IAsyncActionFilter
     /// </remarks>
     public static readonly TimeSpan Retention = TimeSpan.FromHours(24);
 
-    private const string SavepointName = "idempotency";
-
-    private const string UniqueViolation = "23505";
-
     /// <summary>
     /// Пропускает действие только один раз на идентификатор команды.
     /// </summary>
@@ -69,13 +63,13 @@ public class IdempotencyFilter : IAsyncActionFilter
         var playerId = services.GetRequiredService<DomikManager>().GetPlayerId(userId);
 
         // TODO: отметка не помнит, каким действием была занята, поэтому тот же идентификатор на другом эндпоинте молча отобьётся успехом; хранить отпечаток маршрута, когда клиент начнёт присваивать идентификатор намерению, а не запросу (шаг 4 docs/offline-play.md)
-        if (dbContext.PlayerCommands.Any(x => x.PlayerId == playerId && x.CommandId == commandId))
+        if (PlayerCommandMarks.IsApplied(dbContext, playerId, commandId))
         {
             context.Result = new OkResult();
             return;
         }
 
-        if (!TryMark(services.GetRequiredService<UnitOfWork>(), dbContext, playerId, commandId))
+        if (!PlayerCommandMarks.TryMark(services.GetRequiredService<UnitOfWork>(), dbContext, playerId, commandId))
         {
             context.Result = new OkResult();
             return;
@@ -100,30 +94,5 @@ public class IdempotencyFilter : IAsyncActionFilter
         commandId = default;
         var header = request.Headers[HeaderName].ToString();
         return !string.IsNullOrEmpty(header) && Guid.TryParse(header, out commandId) && commandId != Guid.Empty;
-    }
-
-    private static bool TryMark(UnitOfWork uow, ApplicationDbContext dbContext, int playerId, Guid commandId)
-    {
-        var mark = new Data.Entities.PlayerCommand
-        {
-            PlayerId = playerId,
-            CommandId = commandId,
-            AppliedDate = DateTimeHelper.GetNowDate(),
-        };
-
-        dbContext.PlayerCommands.Add(mark);
-        uow.Transaction.CreateSavepoint(SavepointName);
-        try
-        {
-            dbContext.SaveChanges();
-            uow.Transaction.ReleaseSavepoint(SavepointName);
-            return true;
-        }
-        catch (DbUpdateException exception) when (exception.InnerException is PostgresException { SqlState: UniqueViolation })
-        {
-            uow.Transaction.RollbackToSavepoint(SavepointName);
-            dbContext.Entry(mark).State = EntityState.Detached;
-            return false;
-        }
     }
 }

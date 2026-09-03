@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { acceptLot as acceptLotApi, apiGet, ApiError, buyDecor as buyDecorApi, buyFromConvoy as buyFromConvoyApi, buyPerk as buyPerkApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, hurryManufacture as hurryManufactureApi, postLot as postLotApi, relocate as relocateApi, setFoodRule as setFoodRuleApi, setManufactureAutoRepeat as setManufactureAutoRepeatApi, setManufactureMeasure as setManufactureMeasureApi, setResourceReserve as setResourceReserveApi, setVillage as setVillageApi, startExpedition as startExpeditionApi, voteToloka as voteTolokaApi } from '../services/api';
+import { acceptLot as acceptLotApi, apiGet, ApiError, enqueueCommand, buyDecor as buyDecorApi, buyFromConvoy as buyFromConvoyApi, buyPerk as buyPerkApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, postLot as postLotApi, relocate as relocateApi, setFoodRule as setFoodRuleApi, setManufactureMeasure as setManufactureMeasureApi, setResourceReserve as setResourceReserveApi, setVillage as setVillageApi, startExpedition as startExpeditionApi, voteToloka as voteTolokaApi } from '../services/api';
 import { OfflineError, setReadOnlyMode, setStateSink } from '../services/api';
 import { useToast } from '../services/toastContext';
 import {
@@ -380,12 +380,12 @@ export function useGameData(): GameData {
     }, []);
 
     const hurryManufacture = useCallback(async (manufactureId: number) => {
-        await hurryManufactureApi(manufactureId);
+        await enqueueCommand({ kind: 'HurryManufacture', args: { manufactureId } });
         scheduleReload();
     }, [scheduleReload]);
 
     const setManufactureAutoRepeat = useCallback(async (manufactureId: number, autoRepeat: boolean) => {
-        await setManufactureAutoRepeatApi(manufactureId, autoRepeat);
+        await enqueueCommand({ kind: 'SetManufactureAutoRepeat', args: { manufactureId, autoRepeat } });
         scheduleReload();
     }, [scheduleReload]);
 

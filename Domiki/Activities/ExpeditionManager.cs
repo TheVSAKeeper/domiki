@@ -215,7 +215,7 @@ public class ExpeditionManager
             worker.ExpeditionId = expedition.Id;
         }
 
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
             _calculator.Insert(new()
             {
@@ -224,7 +224,7 @@ public class ExpeditionManager
                 Type = CalculateTypes.Expedition,
                 Date = expedition.FinishDate,
             });
-        };
+        });
     }
 
     public bool FinishExpedition(DateTime date, CalculateInfo calcInfo)
@@ -288,12 +288,7 @@ public class ExpeditionManager
         {
             (calcInfo.PushTitle, calcInfo.PushBody, calcInfo.PushTag) = (incidentCalcInfo.PushTitle, incidentCalcInfo.PushBody, incidentCalcInfo.PushTag);
 
-            var afterEventAction = _uow.AfterEventAction;
-            _uow.AfterEventAction = () =>
-            {
-                afterEventAction?.Invoke();
-                _calculator.Insert(incidentCalcInfo);
-            };
+            _uow.AddAfterEventAction(() => _calculator.Insert(incidentCalcInfo));
         }
 
         var heroWorker = assignedWorkers.Length > 0 ? assignedWorkers[dbExpedition.Id % assignedWorkers.Length].Name : null;

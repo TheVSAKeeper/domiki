@@ -16,7 +16,7 @@ namespace Domiki.Web.Village;
 /// Канон – GAMEDESIGN.md §3 Слой 4 «Престиж». Что едет, что едет частью и что сгорает – список неделимый, любое
 /// исключение открывает отмывание прогресса. Сброс обязан снять события игрока из планировщика: очередь
 /// <see cref="Calculator"/> живёт в памяти, и удалённые строки оставили бы висящие <see cref="CalculateInfo"/>,
-/// поэтому чистка идёт в <see cref="UnitOfWork.AfterEventAction"/>, то есть после коммита.
+/// поэтому чистка идёт в <see cref="UnitOfWork.AddAfterEventAction"/>, то есть после коммита.
 /// </remarks>
 public class RelocationManager
 {
@@ -286,15 +286,13 @@ public class RelocationManager
             knots,
         });
 
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
-            afterEventAction?.Invoke();
             foreach (var pending in pendingEvents)
             {
                 _calculator.Remove(playerId, pending.ObjectId, pending.Type);
             }
-        };
+        });
     }
 
     private string? GetBlockReason(int playerId, int level, int threshold, DateTime? cooldownUntil, DateTime date)

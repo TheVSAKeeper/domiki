@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { apiGet, ApiError, apiPost, OfflineError, setReadOnlyMode } from './api';
+import { apiGet, ApiError, apiPost, enqueueCommand, flushCommands, OfflineError, setReadOnlyMode } from './api';
 
 vi.mock('./auth', () => ({
     authService: { signIn: vi.fn() },
@@ -136,7 +136,135 @@ describe('api', () => {
         await expect(apiPost('Domiki/BuyDomik/1')).rejects.toBeInstanceOf(OfflineError);
         expect(globalThis.fetch).toHaveBeenCalledTimes(2);
     });
+    it('намерения одного тика уходят одной пачкой', async () => {
+        mockCommands([
+            { commandId: '', status: 'Applied', error: null },
+            { commandId: '', status: 'Applied', error: null },
+        ]);
+
+        const first = enqueueCommand({ kind: 'UpgradeDomik', args: { domikId: 1 } });
+        const second = enqueueCommand({ kind: 'UpgradeDomik', args: { domikId: 2 } });
+        await flushCommands();
+        await Promise.all([first, second]);
+
+        expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+        expect(sentCommands(0)).toHaveLength(2);
+    });
+
+    it('два одинаковых намерения остаются двумя командами со своими идентификаторами', async () => {
+        mockCommands([
+            { commandId: '', status: 'Applied', error: null },
+            { commandId: '', status: 'Applied', error: null },
+        ]);
+
+        const first = enqueueCommand({ kind: 'BuyDomik', args: { typeId: 3 } });
+        const second = enqueueCommand({ kind: 'BuyDomik', args: { typeId: 3 } });
+        await flushCommands();
+
+        await expect(Promise.all([first, second])).resolves.toEqual([undefined, undefined]);
+        const sent = sentCommands(0);
+        expect(sent).toHaveLength(2);
+        expect(sent[0]?.commandId).not.toBe(sent[1]?.commandId);
+    });
+
+    it('очередь длиннее серверного потолка уезжает несколькими пачками', async () => {
+        mockCommands(Array.from({ length: 50 }, () => ({ commandId: '', status: 'Applied', error: null })));
+
+        const queued = Array.from({ length: 51 }, (_, index) => enqueueCommand({ kind: 'UpgradeDomik', args: { domikId: index + 1 } }));
+        await flushCommands();
+        await Promise.allSettled(queued);
+
+        expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+        expect(sentCommands(0)).toHaveLength(50);
+        expect(sentCommands(1)).toHaveLength(1);
+    });
+
+    it('испорченный ответ на пачку повторяется теми же идентификаторами', async () => {
+        let call = 0;
+        globalThis.fetch = vi.fn().mockImplementation((_url: string, init: RequestInit) => {
+            call += 1;
+            const sent = typeof init.body === 'string'
+                ? (JSON.parse(init.body) as { commands: { commandId: string }[] }).commands
+                : [];
+            return Promise.resolve({
+                ok: true,
+                status: 200,
+                headers: new Headers(),
+                json: () => call === 1
+                    ? Promise.reject(new SyntaxError('Unexpected end of JSON input'))
+                    : Promise.resolve({ results: sent.map(item => ({ commandId: item.commandId, status: 'Duplicate', error: null })), state: null }),
+            });
+        });
+
+        const queued = enqueueCommand({ kind: 'BuyDomik', args: { typeId: 1 } });
+        await flushCommands();
+
+        await expect(queued).resolves.toBeUndefined();
+        expect(sentCommands(0)[0]?.commandId).toBe(sentCommands(1)[0]?.commandId);
+    });
+
+    it('отвергнутая команда бросает свой текст, соседняя остаётся применённой', async () => {
+        mockCommands([
+            { commandId: '', status: 'Rejected', error: 'Не хватает монет' },
+            { commandId: '', status: 'Applied', error: null },
+        ]);
+
+        const rejected = enqueueCommand({ kind: 'BuyDomik', args: { typeId: 1 } });
+        const applied = enqueueCommand({ kind: 'UpgradeDomik', args: { domikId: 1 } });
+        await flushCommands();
+
+        await expect(rejected).rejects.toThrow('Не хватает монет');
+        await expect(applied).resolves.toBeUndefined();
+    });
+
+    it('мутация мимо очереди сначала отправляет накопленные намерения', async () => {
+        mockCommands([{ commandId: '', status: 'Applied', error: null }]);
+
+        const queued = enqueueCommand({ kind: 'UpgradeDomik', args: { domikId: 1 } });
+        await apiPost('Domiki/CancelOrder/3');
+        await queued;
+
+        const urls = fetchCalls().map(([url]) => url);
+        expect(urls).toEqual(['Domiki/ApplyCommands', 'Domiki/CancelOrder/3']);
+    });
+
+    it('без связи намерение отбивается офлайн-ошибкой и в очередь не попадает', async () => {
+        setReadOnlyMode(true);
+        globalThis.fetch = vi.fn();
+
+        await expect(enqueueCommand({ kind: 'UpgradeDomik', args: { domikId: 1 } })).rejects.toBeInstanceOf(OfflineError);
+        await flushCommands();
+
+        expect(globalThis.fetch).not.toHaveBeenCalled();
+        setReadOnlyMode(false);
+    });
 });
+
+function fetchCalls(): [string, RequestInit][] {
+    return (globalThis.fetch as unknown as { mock: { calls: [string, RequestInit][] } }).mock.calls;
+}
+
+function sentCommands(callIndex: number): { commandId: string; kind: string }[] {
+    const body = fetchCalls()[callIndex]?.[1].body;
+    return (JSON.parse(typeof body === 'string' ? body : '{"commands":[]}') as { commands: { commandId: string; kind: string }[] }).commands;
+}
+
+function mockCommands(results: { commandId: string; status: string; error: string | null }[]): void {
+    globalThis.fetch = vi.fn().mockImplementation((_url: string, init: RequestInit) => {
+        const sent = typeof init.body === 'string'
+            ? (JSON.parse(init.body) as { commands?: { commandId: string }[] }).commands ?? []
+            : [];
+        return Promise.resolve({
+            ok: true,
+            status: 200,
+            headers: new Headers(),
+            json: () => Promise.resolve({
+                results: results.map((result, index) => ({ ...result, commandId: sent[index]?.commandId ?? result.commandId })),
+                state: null,
+            }),
+        });
+    });
+}
 
 function commandHeaders(): (string | undefined)[] {
     const calls = (globalThis.fetch as unknown as { mock: { calls: [string, RequestInit][] } }).mock.calls;

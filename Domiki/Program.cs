@@ -180,6 +180,8 @@ try
     builder.Services.AddScoped<PlayerEventManager>();
     builder.Services.AddScoped<GoalManager>();
     builder.Services.AddScoped<GameStateProjector>();
+    builder.Services.AddScoped<GameCommandRegistry>();
+    builder.Services.AddScoped<GameCommandBatch>();
     builder.Services.AddScoped<PushManager>();
     builder.Services.AddScoped<WikiFactsProvider>();
     builder.Services.AddSingleton<PushSender>();

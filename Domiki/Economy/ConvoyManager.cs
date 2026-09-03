@@ -206,12 +206,7 @@ public class ConvoyManager
         row.BoughtCount += count;
         _context.SaveChanges();
 
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
-        {
-            afterEventAction?.Invoke();
-            _broker.Publish(playerId, GameStateScopes.State);
-        };
+        _uow.AddAfterEventAction(() => _broker.Publish(playerId, GameStateScopes.State));
     }
 
     private static int GetLimit(int points)

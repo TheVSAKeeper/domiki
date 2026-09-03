@@ -30,7 +30,7 @@ public class WeatherManager
         EnsureWeatherSchedule(date);
         var dbPeriod = _context.WeatherPeriods.Single(x => x.StartDate <= date && date < x.EndDate);
 
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
             _calculator.Insert(new()
             {
@@ -39,7 +39,7 @@ public class WeatherManager
                 Date = dbPeriod.EndDate,
                 Type = CalculateTypes.WeatherRotation,
             });
-        };
+        });
 
         return true;
     }

@@ -165,15 +165,13 @@ public class HelpManager
             reducedSeconds,
         });
 
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
-            afterEventAction?.Invoke();
             _calculator.Reschedule(hostPlayerId, objectId, calculateType, newFinishDate);
             _broker.Publish(hostPlayerId, GameStateScopes.State);
             _pushSender.Notify(hostPlayerId, "Помощь в деревне", $"{guestVillageName} подсобила: {domikTypeName} освободится раньше", "/domiki-page", PushSender.HelpTag);
             _broker.Publish(guestPlayerId, GameStateScopes.State);
-        };
+        });
 
         return new()
         {

@@ -247,15 +247,13 @@ public class OrderManager
         player.NextOrderRefillAt = null;
         _context.SaveChanges();
 
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
-            afterEventAction?.Invoke();
             foreach (var calcInfo in created)
             {
                 _calculator.Insert(calcInfo);
             }
-        };
+        });
 
         return ordersCreated;
     }
@@ -271,10 +269,8 @@ public class OrderManager
             return;
         }
 
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
-            afterEventAction?.Invoke();
             _calculator.Remove(playerId, playerId, CalculateTypes.OrderRefill);
             _calculator.Insert(new()
             {
@@ -283,17 +279,12 @@ public class OrderManager
                 Date = refillAt.Value,
                 Type = CalculateTypes.OrderRefill,
             });
-        };
+        });
     }
 
     private void RemoveOrderRefillAfterCommit(int playerId)
     {
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
-        {
-            afterEventAction?.Invoke();
-            _calculator.Remove(playerId, playerId, CalculateTypes.OrderRefill);
-        };
+        _uow.AddAfterEventAction(() => _calculator.Remove(playerId, playerId, CalculateTypes.OrderRefill));
     }
 
     public IEnumerable<Order> GetOrders(int playerId)

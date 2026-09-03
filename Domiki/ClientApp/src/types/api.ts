@@ -759,6 +759,18 @@ export const gameStateSchema = z.object({
 });
 export type GameStateDto = z.infer<typeof gameStateSchema>;
 
+export const commandResultSchema = z.object({
+    commandId: z.string(),
+    status: z.string(),
+    error: z.string().nullable(),
+});
+
+export const commandBatchResultSchema = z.object({
+    results: z.array(commandResultSchema),
+    state: z.unknown(),
+});
+export type CommandBatchResultDto = z.infer<typeof commandBatchResultSchema>;
+
 export const wikiStateSchema = z.object({
     facts: z.record(z.string(), z.string()),
     domikTypes: domikTypeSchema.array(),

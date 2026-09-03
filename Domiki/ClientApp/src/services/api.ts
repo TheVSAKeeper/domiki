@@ -6,6 +6,7 @@ import {
     decorStateSchema,
     tolokaStateSchema,
     marketStateSchema,
+    commandBatchResultSchema,
     gameStateSchema,
     journalPageSchema,
     guestbookSchema,
@@ -36,6 +37,13 @@ export class ApiError extends Error {
     constructor(message: string) {
         super(message);
         this.name = 'ApiError';
+    }
+}
+
+export class MalformedResponseError extends ApiError {
+    constructor(message: string) {
+        super(message);
+        this.name = 'MalformedResponseError';
     }
 }
 
@@ -148,12 +156,12 @@ async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType
     try {
         json = await res.json();
     } catch {
-        throw new ApiError('Некорректный ответ сервера.');
+        throw new MalformedResponseError('Некорректный ответ сервера.');
     }
 
     const parsed = schema.safeParse(json);
     if (!parsed.success) {
-        throw new ApiError('Сервер вернул данные в неожиданном формате.');
+        throw new MalformedResponseError('Сервер вернул данные в неожиданном формате.');
     }
 
     return parsed.data;
@@ -168,7 +176,128 @@ export const getGameState = (signal?: AbortSignal): Promise<GameStateDto> =>
 export const getWikiState = (signal?: AbortSignal): Promise<WikiStateDto> =>
     apiGet('Domiki/GetWikiState', wikiStateSchema, signal);
 
+export type GameCommand =
+    | { kind: 'BuyDomik'; args: { typeId: number } }
+    | { kind: 'UpgradeDomik'; args: { domikId: number } }
+    | { kind: 'StartManufacture'; args: { domikId: number; receiptId: number; useOptional: boolean; autoRepeat: boolean; workerIds: number[] } }
+    | { kind: 'HurryManufacture'; args: { manufactureId: number } }
+    | { kind: 'SetManufactureAutoRepeat'; args: { manufactureId: number; autoRepeat: boolean } }
+    | { kind: 'CompleteOrder'; args: { orderId: number } };
+
+interface QueuedCommand {
+    commandId: string;
+    command: GameCommand;
+    resolve: () => void;
+    reject: (error: Error) => void;
+}
+
+const MAX_COMMANDS_PER_BATCH = 50;
+
+const queue: QueuedCommand[] = [];
+
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+
+let flushChain: Promise<void> = Promise.resolve();
+
+let sending = false;
+
+export function enqueueCommand(command: GameCommand): Promise<void> {
+    if (readOnly) {
+        return Promise.reject(new OfflineError('Без связи деревню можно только смотреть'));
+    }
+
+    let resolve!: () => void;
+    let reject!: (error: Error) => void;
+    const promise = new Promise<void>((resolvePromise, rejectPromise) => {
+        resolve = resolvePromise;
+        reject = rejectPromise;
+    });
+
+    queue.push({ commandId: newCommandId(), command, resolve, reject });
+    if (!sending && flushTimer == null) {
+        flushTimer = setTimeout(() => {
+            flushTimer = null;
+            void flushCommands();
+        }, 0);
+    }
+
+    return promise;
+}
+
+export function flushCommands(): Promise<void> {
+    if (flushTimer != null) {
+        clearTimeout(flushTimer);
+        flushTimer = null;
+    }
+
+    const next = flushChain.then(drainQueue, drainQueue);
+    flushChain = next.catch(() => undefined);
+    return next;
+}
+
+async function drainQueue(): Promise<void> {
+    while (queue.length > 0) {
+        const batch = queue.splice(0, MAX_COMMANDS_PER_BATCH);
+        sending = true;
+        try {
+            await sendCommands(batch);
+        } finally {
+            sending = false;
+        }
+    }
+}
+
+async function sendCommands(batch: QueuedCommand[]): Promise<void> {
+    if (batch.length === 0) {
+        return;
+    }
+
+    const body = { commands: batch.map(item => ({ commandId: item.commandId, kind: item.command.kind, args: item.command.args })) };
+    let answer;
+    try {
+        answer = await request('POST', 'Domiki/ApplyCommands', commandBatchResultSchema, undefined, body);
+    } catch (err) {
+        if (!(err instanceof OfflineError || err instanceof MalformedResponseError) || readOnly) {
+            settleFailed(batch, err);
+            return;
+        }
+
+        try {
+            await wait(COMMAND_RETRY_DELAY_MS);
+            answer = await request('POST', 'Domiki/ApplyCommands', commandBatchResultSchema, undefined, body);
+        } catch (retryErr) {
+            settleFailed(batch, retryErr);
+            return;
+        }
+    }
+
+    const state = gameStateSchema.safeParse(answer.state);
+    if (state.success) {
+        stateSink?.(state.data);
+    }
+
+    const results = new Map(answer.results.map(result => [result.commandId.toLowerCase(), result]));
+    for (const item of batch) {
+        const result = results.get(item.commandId.toLowerCase());
+        if (result == null) {
+            item.reject(new ApiError('Деревня не ответила про это действие, попробуйте ещё раз.'));
+        } else if (result.status === 'Rejected') {
+            item.reject(new ApiError(result.error ?? 'Действие не удалось.'));
+        } else {
+            item.resolve();
+        }
+    }
+}
+
+function settleFailed(batch: QueuedCommand[], err: unknown): void {
+    const error = err instanceof Error ? err : new ApiError('Неизвестная ошибка сервера.');
+    for (const item of batch) {
+        item.reject(error);
+    }
+}
+
 export async function apiPost(url: string, signal?: AbortSignal, body?: unknown): Promise<void> {
+    await flushCommands();
     const commandId = newCommandId();
     try {
         await request('POST', url, null, signal, body, commandId);

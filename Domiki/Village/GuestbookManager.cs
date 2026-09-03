@@ -153,13 +153,11 @@ public class GuestbookManager
             phraseId,
         });
 
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
-            afterEventAction?.Invoke();
             _broker.Publish(hostPlayerId, GameStateScopes.State);
             _pushSender.Notify(hostPlayerId, "Новая запись в книге гостей", $"В вашей книге гостей расписались: {guestVillageName}", "/domiki-page", PushSender.GuestbookTag);
-        };
+        });
     }
 
     /// <summary>

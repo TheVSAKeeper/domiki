@@ -452,7 +452,7 @@ public class DomikManager
             _context.Domiks.Add(new()
                 { PlayerId = playerId, TypeId = typeId, Level = 0, Id = nextId, UpgradeSeconds = domikLevel.UpgradeSeconds, UpgradeCalculateDate = date });
 
-            _uow.AfterEventAction = () =>
+            _uow.AddAfterEventAction(() =>
             {
                 _calculator.Insert(new()
                 {
@@ -461,7 +461,7 @@ public class DomikManager
                     Type = CalculateTypes.Domiks,
                     Date = date.AddSeconds(domikLevel.UpgradeSeconds),
                 });
-            };
+            });
         }
         else if (entry.Type != null && entry.NextCountGateLevel != null)
         {
@@ -497,7 +497,7 @@ public class DomikManager
         dbDomik.UpgradeSeconds = domikLevel.UpgradeSeconds;
         dbDomik.UpgradeCalculateDate = date;
 
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
             _calculator.Insert(new()
             {
@@ -506,7 +506,7 @@ public class DomikManager
                 Type = CalculateTypes.Domiks,
                 Date = date.AddSeconds(domikLevel.UpgradeSeconds),
             });
-        };
+        });
     }
 
     public IEnumerable<Resource> GetResources(int playerId)
@@ -561,12 +561,7 @@ public class DomikManager
                 if (incidentCalcInfo != null)
                 {
                     (calcInfo.PushTitle, calcInfo.PushBody, calcInfo.PushTag) = (incidentCalcInfo.PushTitle, incidentCalcInfo.PushBody, incidentCalcInfo.PushTag);
-                    var afterEventAction = _uow.AfterEventAction;
-                    _uow.AfterEventAction = () =>
-                    {
-                        afterEventAction?.Invoke();
-                        _calculator.Insert(incidentCalcInfo);
-                    };
+                    _uow.AddAfterEventAction(() => _calculator.Insert(incidentCalcInfo));
                 }
 
                 return true;
@@ -612,12 +607,7 @@ public class DomikManager
             Date = date,
         });
 
-        var previousAfterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
-        {
-            previousAfterEventAction?.Invoke();
-            _calculator.Remove(playerId, domikId, CalculateTypes.Domiks);
-        };
+        _uow.AddAfterEventAction(() => _calculator.Remove(playerId, domikId, CalculateTypes.Domiks));
     }
 
     public void StartManufacture(int playerId, int domikId, int receiptId, bool useOptional = false, int[]? workerIds = null, bool autoRepeat = false, int? measureResourceTypeId = null, int? measureValue = null)
@@ -806,7 +796,7 @@ public class DomikManager
             worker.ManufactureId = manufacture.Id;
         }
 
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
             _calculator.Insert(new()
             {
@@ -815,7 +805,7 @@ public class DomikManager
                 Type = CalculateTypes.Manufacture,
                 Date = manufacture.FinishDate,
             });
-        };
+        });
 
         _goalManager.OnManufactureStarted(playerId, receipt);
     }
@@ -1081,12 +1071,7 @@ public class DomikManager
             Date = date,
         });
 
-        var afterFinishAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
-        {
-            afterFinishAction?.Invoke();
-            _calculator.Remove(playerId, manufactureId, CalculateTypes.Manufacture);
-        };
+        _uow.AddAfterEventAction(() => _calculator.Remove(playerId, manufactureId, CalculateTypes.Manufacture));
     }
 
     public void SetManufactureAutoRepeat(int playerId, int manufactureId, bool autoRepeat)

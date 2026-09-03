@@ -289,10 +289,8 @@ public class TolokaManager
 
         _context.SaveChanges();
 
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
-            afterEventAction?.Invoke();
             _broker.Broadcast(GameStateScopes.Toloka);
 
             if (notifyRecipients != null)
@@ -302,7 +300,7 @@ public class TolokaManager
                     _pushSender.Notify(recipientId, "Толока завершена", $"Толока «{completedTolokaName}» завершена – бафф получен", "/domiki-page", PushSender.TolokaTag);
                 }
             }
-        };
+        });
     }
 
     /// <summary>
@@ -344,12 +342,7 @@ public class TolokaManager
         vote.CandidateTolokaTypeId = candidateTolokaTypeId;
         _context.SaveChanges();
 
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
-        {
-            afterEventAction?.Invoke();
-            _broker.Broadcast(GameStateScopes.Toloka);
-        };
+        _uow.AddAfterEventAction(() => _broker.Broadcast(GameStateScopes.Toloka));
     }
 
     /// <summary>

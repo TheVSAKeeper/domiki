@@ -35,6 +35,8 @@ const mappings: Record<string, ContractSchema> = {
     ExpeditionStateDto: { schemaName: 'expeditionStateSchema', shape: api.expeditionStateSchema.shape },
     ExpeditionTypeDto: { schemaName: 'expeditionTypeSchema', shape: api.expeditionTypeSchema.shape },
     FoodRuleDto: { schemaName: 'foodRuleSchema', shape: api.foodRuleSchema.shape },
+    GameCommandBatchResultDto: { schemaName: 'commandBatchResultSchema', shape: api.commandBatchResultSchema.shape },
+    GameCommandResultDto: { schemaName: 'commandResultSchema', shape: api.commandResultSchema.shape },
     GameStateDto: { schemaName: 'gameStateSchema', shape: api.gameStateSchema.shape },
     GoalsStateDto: { schemaName: 'goalsStateSchema', shape: api.goalsStateSchema.shape },
     GuestbookDto: { schemaName: 'guestbookSchema', shape: api.guestbookSchema.shape },
@@ -95,6 +97,8 @@ const mappings: Record<string, ContractSchema> = {
 };
 
 const skippedDtos: Record<string, string> = {
+    GameCommandDto: 'request payload ApplyCommands отправляется без zod-схемы',
+    GameCommandBatchDto: 'request payload ApplyCommands отправляется без zod-схемы',
     BuyFromConvoyDto: 'request payload BuyFromConvoy отправляется без zod-схемы',
     SetVillageDto: 'request payload SetVillage отправляется без zod-схемы',
     SetFriendNeighborDto: 'request payload SetFriendNeighbor отправляется без zod-схемы',

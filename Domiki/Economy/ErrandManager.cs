@@ -337,10 +337,8 @@ public class ErrandManager
         _context.SaveChanges();
 
         var finishDate = dbErrand.FinishDate.Value;
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
+        _uow.AddAfterEventAction(() =>
         {
-            afterEventAction?.Invoke();
             _calculator.Remove(playerId, errandId, CalculateTypes.Errand);
             _calculator.Insert(new()
             {
@@ -352,7 +350,7 @@ public class ErrandManager
                 PushBody = ErrandResolvedPushBody,
                 PushTag = PushSender.ErrandTag,
             });
-        };
+        });
     }
 
     /// <summary>
@@ -389,12 +387,7 @@ public class ErrandManager
             : Data.Entities.ErrandOutcome.Cancelled;
         _context.SaveChanges();
 
-        var afterEventAction = _uow.AfterEventAction;
-        _uow.AfterEventAction = () =>
-        {
-            afterEventAction?.Invoke();
-            _calculator.Remove(playerId, errandId, CalculateTypes.Errand);
-        };
+        _uow.AddAfterEventAction(() => _calculator.Remove(playerId, errandId, CalculateTypes.Errand));
     }
 
     /// <summary>

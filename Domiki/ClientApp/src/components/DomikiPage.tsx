@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import type { NeighborReputationDto } from '../types/api';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { acceptErrand as acceptErrandApi, apiPost, ApiError, cancelErrand as cancelErrandApi, cancelOrder as cancelOrderApi, completeOrder as completeOrderApi, setFriendNeighbor as setFriendNeighborApi, setVillageProfile as setVillageProfileApi, startIncidentSearch as startIncidentSearchApi } from '../services/api';
+import { acceptErrand as acceptErrandApi, ApiError, cancelErrand as cancelErrandApi, cancelOrder as cancelOrderApi, enqueueCommand, setFriendNeighbor as setFriendNeighborApi, setVillageProfile as setVillageProfileApi, startIncidentSearch as startIncidentSearchApi } from '../services/api';
+import type { GameCommand } from '../services/api';
 import { useToast } from '../services/toastContext';
 import { useGameData } from '../hooks/useGameData';
 import { GOLD_RESOURCE_TYPE_ID, computeSelectedDomikView, isWorkerFree } from '../utils/game';
@@ -165,9 +166,7 @@ export const DomikiPage = () => {
     const closeIdentity = () => setIdentity('dismissed');
 
     const actionBusy = useRef(false);
-    const runAction = async (action: () => Promise<void>, successMessage?: string): Promise<boolean> => {
-        if (actionBusy.current) return false;
-        actionBusy.current = true;
+    const reportAction = async (action: () => Promise<void>, successMessage?: string): Promise<boolean> => {
         try {
             await action();
             if (successMessage != null) {
@@ -180,29 +179,33 @@ export const DomikiPage = () => {
                 return false;
             }
             throw err;
+        }
+    };
+
+    const runAction = async (action: () => Promise<void>, successMessage?: string): Promise<boolean> => {
+        if (actionBusy.current) return false;
+        actionBusy.current = true;
+        try {
+            return await reportAction(action, successMessage);
         } finally {
             actionBusy.current = false;
         }
     };
 
+    const runCommand = (command: GameCommand, successMessage?: string): Promise<boolean> => reportAction(async () => {
+        await enqueueCommand(command);
+        scheduleReload();
+    }, successMessage);
+
     const buy = (typeId: number) => {
         const domikType = domikTypes.find(type => type.id === typeId);
-        return runAction(async () => {
-            await apiPost(`Domiki/BuyDomik/${typeId}`);
-            scheduleReload();
-        }, domikType == null ? 'Домик построен' : `«${domikType.name}» построен`);
+        return runCommand({ kind: 'BuyDomik', args: { typeId } }, domikType == null ? 'Домик построен' : `«${domikType.name}» построен`);
     };
 
-    const upgrade = (id: number) => runAction(async () => {
-        await apiPost(`Domiki/UpgradeDomik/${id}`);
-        scheduleReload();
-    }, 'Улучшение запущено');
+    const upgrade = (id: number) => runCommand({ kind: 'UpgradeDomik', args: { domikId: id } }, 'Улучшение запущено');
 
-    const startManufacture = (domikId: number, receiptId: number, useOptional: boolean, autoRepeat: boolean, workerIds?: number[]) => runAction(async () => {
-        const workerIdsQuery = (workerIds ?? []).map(id => `&workerIds=${id}`).join('');
-        await apiPost(`Domiki/StartManufacture/${domikId}/${receiptId}?useOptional=${String(useOptional)}&autoRepeat=${String(autoRepeat)}${workerIdsQuery}`);
-        scheduleReload();
-    }, 'Производство запущено');
+    const startManufacture = (domikId: number, receiptId: number, useOptional: boolean, autoRepeat: boolean, workerIds?: number[]) =>
+        runCommand({ kind: 'StartManufacture', args: { domikId, receiptId, useOptional, autoRepeat, workerIds: workerIds ?? [] } }, 'Производство запущено');
 
     const assignWorker = (workerId: number, domikId: number, point: AssignPoint) => {
         const worker = workers.find(item => item.id === workerId);
@@ -273,10 +276,7 @@ export const DomikiPage = () => {
         const successMessage = tierAhead == null || neighbor == null
             ? 'Заказ выполнен'
             : `В ${neighborPrepositionalName[neighbor.neighborLogicName] ?? neighbor.neighborName} ты теперь ${tierAhead.name}`;
-        return runAction(async () => {
-            await completeOrderApi(orderId);
-            scheduleReload();
-        }, successMessage);
+        return runCommand({ kind: 'CompleteOrder', args: { orderId } }, successMessage);
     };
 
     const cancelOrder = (orderId: number) => runAction(async () => {
