@@ -30,7 +30,7 @@
     flex-direction: column;
     width: min(640px, calc(100vw - 32px));
     max-height: calc(100vh - 32px);
-    max-height: calc(100dvh - 32px);
+    max-height: var(--modal-max-height);
     gap: 0;
     overflow: hidden;
     padding: 0;

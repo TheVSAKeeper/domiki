@@ -25,6 +25,7 @@
     --panel-pad-x: 18px;
     --panel-gap: 20px;
     --hero-pad-y: 14px;
+    --modal-max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
 }
 
 @media (max-width: 900px) {
