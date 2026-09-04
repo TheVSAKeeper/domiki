@@ -164,6 +164,23 @@ public sealed record GameStateDto
     public required ResourceReserveDto[] Reserves { get; init; }
 
     /// <summary>
+    /// Номер домика, помеченного задумкой – целью, на улучшение которой игрок копит.
+    /// </summary>
+    /// <remarks>
+    /// <see langword="null"/> – задумки нет. Со склада задумка ничего не списывает (§4.4 дизайна).
+    /// </remarks>
+    public int? IntentDomikId { get; init; }
+
+    /// <summary>
+    /// Припас, заповеданный от нарядов самой задумкой.
+    /// </summary>
+    /// <remarks>
+    /// Пусто, если задумки нет или заповедный ларь ещё не открыт (см. <see cref="Economy.ElderHouseManager.ReserveMinLevel"/>).
+    /// Складывается с ручной заповедью по правилу «строже из двух».
+    /// </remarks>
+    public required ResourceReserveDto[] IntentReserves { get; init; }
+
+    /// <summary>
     /// Справочник хворей, связанных с погодой.
     /// </summary>
     public required SickTypeDto[] SickTypes { get; init; }

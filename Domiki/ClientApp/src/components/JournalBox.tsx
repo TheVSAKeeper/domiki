@@ -177,7 +177,7 @@ const renderContent = (event: RecapEventDto, resourceTypes: ResourceTypeDto[], d
             body: (
                 <>
                     {domikType != null && <DomikSprite logicName={domikType.logicName} aria-hidden="true" />}
-                    <span className="journal-text">Наряд встал: {resourceType?.name ?? 'припас'} под заповедью.</span>
+                    <span className="journal-text">Наряд встал: {resourceType?.name ?? 'припас'} {data.intent === true ? 'заповедан под задумку' : 'под заповедью'}.</span>
                 </>
             ),
         };

@@ -276,6 +276,17 @@ public class Player
     public DateTime? LastRelocationDate { get; set; }
 
     /// <summary>
+    /// Номер задуманного к улучшению домика – <see cref="Domik.Id"/> в пределах этого игрока.
+    /// </summary>
+    /// <remarks>
+    /// Задумка разом одна: шапка и доска хозяйства ведут по ней недостачу, а с уровня <see cref="Economy.ElderHouseManager.ReserveMinLevel"/>
+    /// Избы старосты накопленное под цену уровня само заповедуется от нарядов (см. <see cref="Economy.ElderHouseManager.GetIntentReserves"/>).
+    /// Со склада при этом не уходит ни единицы – заказ, ярмарка и ручной старт смены берут всё, что видят.
+    /// <see langword="null"/> – задумки нет.
+    /// </remarks>
+    public int? IntentDomikId { get; set; }
+
+    /// <summary>
     /// Идентификатор внешнего аккаунта ASP.NET Identity (claim <c>NameIdentifier</c>), к которому привязан игрок.
     /// </summary>
     [MaxLength(450)]

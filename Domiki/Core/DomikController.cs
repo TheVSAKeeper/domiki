@@ -61,6 +61,18 @@ public class DomikController : GameControllerBase
         _domikManager.UpgradeDomik(playerId, id);
     }
 
+    /// <summary>
+    /// Помечает домик задумкой – целью, на улучшение которой игрок копит, – либо снимает пометку.
+    /// </summary>
+    /// <param name="domikId">Номер домика в пределах игрока; не задан – задумка снимается.</param>
+    [HttpPost]
+    [Route("/Domiki/SetUpgradeIntent")]
+    public void SetUpgradeIntent([FromQuery] int? domikId = null)
+    {
+        var playerId = GetPlayerId();
+        _domikManager.SetUpgradeIntent(playerId, domikId);
+    }
+
     [HttpPost]
     [Route("/Domiki/HurryDomik/{id}")]
     public void HurryDomik(int id)

@@ -29,6 +29,7 @@ interface HouseholdBoxProps {
     resourceTypes: ResourceTypeDto[];
     resources: ResourceDto[];
     reserves: ResourceReserveDto[];
+    intentReserves: ResourceReserveDto[];
     ledger: LedgerDto | null;
     now: number;
     onSetReserve: (resourceTypeId: number, reserve: number) => void;
@@ -179,6 +180,7 @@ interface ReserveBlockProps {
     resourceTypes: ResourceTypeDto[];
     resources: ResourceDto[];
     reserves: ResourceReserveDto[];
+    intentReserves: ResourceReserveDto[];
     shiftInputTypeIds: number[];
     onSetReserve: (resourceTypeId: number, reserve: number) => void;
 }
@@ -226,7 +228,7 @@ const ReserveRow = ({ resourceType, stock, reserve, onSetReserve }: ReserveRowPr
     );
 };
 
-const ReserveBlock = ({ resourceTypes, resources, reserves, shiftInputTypeIds, onSetReserve }: ReserveBlockProps) => {
+const ReserveBlock = ({ resourceTypes, resources, reserves, intentReserves, shiftInputTypeIds, onSetReserve }: ReserveBlockProps) => {
     const rowTypeIds = [...new Set([...reserves.map(item => item.resourceTypeId), ...shiftInputTypeIds])];
     const rows = rowTypeIds
         .flatMap(typeId => {
@@ -239,7 +241,14 @@ const ReserveBlock = ({ resourceTypes, resources, reserves, shiftInputTypeIds, o
         <div className="household-block">
             <span className="panel-label">Заповедный припас</span>
             <p className="household-reserve-lead">Заповеданное наряды не тронут – запас под заказ и толоку остаётся цел.</p>
-            {rows.length === 0 &&
+            {intentReserves.length > 0 &&
+                <p className="household-reserve-intent">
+                    Под задумку заповедано: {intentReserves
+                        .map(item => `${resourceTypes.find(type => type.id === item.resourceTypeId)?.name ?? `ресурс #${item.resourceTypeId}`} ×${item.reserve}`)
+                        .join(' · ')}. Наряды это не тронут; заказ, ярмарка и ручная смена берут со склада всё.
+                </p>
+            }
+            {rows.length === 0 && intentReserves.length === 0 &&
                 <p className="household-empty">Ничего не заповедано – наряды берут со склада всё, что нужно.</p>
             }
             {rows.length > 0 &&
@@ -256,7 +265,7 @@ const ReserveBlock = ({ resourceTypes, resources, reserves, shiftInputTypeIds, o
     );
 };
 
-export const HouseholdBox = ({ digest, resourceTypes, resources, reserves, ledger, now, onSetReserve, onSelectDomik, onOpenTab, onToggleRepeat }: HouseholdBoxProps) => {
+export const HouseholdBox = ({ digest, resourceTypes, resources, reserves, intentReserves, ledger, now, onSetReserve, onSelectDomik, onOpenTab, onToggleRepeat }: HouseholdBoxProps) => {
     const [blockedExpanded, setBlockedExpanded] = useState(false);
     const measureType = (typeId: number) => resourceTypes.find(type => type.id === typeId);
     const handsShort = digest.workersFree === 0 && digest.idleBuildings.length > 0;
@@ -424,7 +433,7 @@ export const HouseholdBox = ({ digest, resourceTypes, resources, reserves, ledge
             {ledger != null && <LedgerBlock ledger={ledger} resourceTypes={resourceTypes} />}
 
             {ledger != null && ledger.level >= RESERVE_MIN_LEVEL &&
-                <ReserveBlock resourceTypes={resourceTypes} resources={resources} reserves={reserves}
+                <ReserveBlock resourceTypes={resourceTypes} resources={resources} reserves={reserves} intentReserves={intentReserves}
                     shiftInputTypeIds={digest.standingShifts.flatMap(shift => shift.inputTypeIds)}
                     onSetReserve={onSetReserve} />
             }

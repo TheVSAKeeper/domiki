@@ -273,7 +273,9 @@ export const RecapModal = ({ awaySeconds, view, resourceTypes, domikTypes, decor
                                         ? `${resourceName} дошёл до ${stop.value ?? 0} – наряд снят`
                                         : stop.kind === 'goldCap'
                                             ? `Жила на сегодня выбрана: намыто ${stop.mined ?? 0} из ${stop.cap ?? 0} – наряд снят`
-                                            : `${resourceName} под заповедью – наряд встал`}
+                                            : stop.intent === true
+                                                ? `${resourceName} заповедан под задумку – наряд встал`
+                                                : `${resourceName} под заповедью – наряд встал`}
                                 </span>
                             </div>
                         );

@@ -741,6 +741,8 @@ export const gameStateSchema = z.object({
     larder: larderSchema,
     ledger: ledgerSchema.nullish(),
     reserves: z.array(resourceReserveSchema).optional().default([]),
+    intentDomikId: z.number().nullish(),
+    intentReserves: z.array(resourceReserveSchema).optional().default([]),
     sickTypes: sickTypeSchema.array(),
     purchaseAvailableDomiks: domikTypeSchema.array(),
     weather: weatherStateSchema,

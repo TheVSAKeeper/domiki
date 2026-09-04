@@ -29,13 +29,13 @@ const emptyDigest: HudDigest = {
 
 const NOW = Date.parse('2026-07-25T12:00:00.000Z');
 
-const renderBox = (digest: HudDigest, ledger: LedgerDto | null = null, reserves: ResourceReserveDto[] = []) => {
+const renderBox = (digest: HudDigest, ledger: LedgerDto | null = null, reserves: ResourceReserveDto[] = [], intentReserves: ResourceReserveDto[] = []) => {
     const onSelectDomik = vi.fn();
     const onOpenTab = vi.fn();
     const onToggleRepeat = vi.fn();
     const onSetReserve = vi.fn();
     render(<HouseholdBox digest={digest} resourceTypes={resourceTypes} resources={[{ typeId: 200, value: 240 }]}
-        reserves={reserves} ledger={ledger} now={NOW} onSetReserve={onSetReserve}
+        reserves={reserves} intentReserves={intentReserves} ledger={ledger} now={NOW} onSetReserve={onSetReserve}
         onSelectDomik={onSelectDomik} onOpenTab={onOpenTab} onToggleRepeat={onToggleRepeat} />);
     return { onSelectDomik, onOpenTab, onToggleRepeat, onSetReserve };
 };

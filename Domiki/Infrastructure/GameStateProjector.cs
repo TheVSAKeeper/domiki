@@ -111,6 +111,8 @@ public class GameStateProjector
             Larder = _tavernManager.GetRules(playerId).ToDto(),
             Ledger = _elderHouseManager.GetLedger(playerId)?.ToDto(),
             Reserves = _elderHouseManager.GetReserves(playerId).Select(x => x.ToDto()).ToArray(),
+            IntentDomikId = _domikManager.GetUpgradeIntent(playerId),
+            IntentReserves = _elderHouseManager.GetIntentReserves(playerId).Select(x => x.ToDto()).ToArray(),
             SickTypes = _resourceManager.GetSickTypes().Select(x => x.ToDto()).ToArray(),
             PurchaseAvailableDomiks = _domikManager.GetPurchaseAvailableDomiks(playerId).Select(x => x.Type.ToDto(x.AvailableCount, blueprints.FirstOrDefault(b => b.DomikTypeId == x.Type.Id)?.Id, x.NextCountGateLevel)).ToArray(),
             Weather = _weatherManager.GetWeather(now).ToDto(),

@@ -110,6 +110,48 @@ export function canAffordUpgrade(domik: DomikDto, domikType: DomikTypeDto, resou
     return nextLevel != null && hasResourcesFor(nextLevel.resources, resources);
 }
 
+export interface UpgradeIntentView {
+    domikId: number;
+    domikType: DomikTypeDto;
+    nextLevel: number;
+    resources: ResourceDto[];
+    shortfall: ResourceDto[];
+    ready: boolean;
+}
+
+export function computeUpgradeIntentView(
+    intentDomikId: number | null,
+    domiks: DomikDto[],
+    domikTypes: DomikTypeDto[],
+    resources: ResourceDto[],
+): UpgradeIntentView | null {
+    if (intentDomikId == null) {
+        return null;
+    }
+
+    const domik = domiks.find(x => x.id === intentDomikId);
+    const domikType = domikTypes.find(x => x.id === domik?.typeId);
+    if (domik == null || domikType == null || domik.level === 0 || domik.finishDate != null) {
+        return null;
+    }
+
+    const nextLevel = nextUpgradeLevel(domikType, domik.level);
+    if (nextLevel == null || domik.level >= domikType.maxLevel) {
+        return null;
+    }
+
+    const shortfall = resourceShortfall(nextLevel.resources, resources);
+
+    return {
+        domikId: domik.id,
+        domikType,
+        nextLevel: domik.level + 1,
+        resources: nextLevel.resources,
+        shortfall,
+        ready: shortfall.length === 0,
+    };
+}
+
 export function residentsGain(residents: number, residentsCap: number, bedsDelta: number): number {
     return Math.max(0, Math.min(residentsCap, residents + bedsDelta) - residents);
 }

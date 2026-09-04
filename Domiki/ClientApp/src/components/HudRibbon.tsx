@@ -2,17 +2,20 @@ import type { ReactNode } from 'react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import HomeIcon from 'pixelarticons/svg/home.svg?react';
 import type { HudDigest } from '../utils/hud';
+import type { UpgradeIntentView } from '../utils/game';
 import { pluralRu } from '../utils/plural';
-import { MechanicSprite, NeighborSprite } from './sprites';
+import { DomikSprite, MechanicSprite, NeighborSprite } from './sprites';
 
 interface HudRibbonProps {
     digest: HudDigest;
     onOpenTab: (tab: string) => void;
+    intent: UpgradeIntentView | null;
+    onSelectDomik: (domikId: number) => void;
 }
 
 const RIBBON_LIMIT = 2;
 
-export const HudRibbon = ({ digest, onOpenTab }: HudRibbonProps) => {
+export const HudRibbon = ({ digest, onOpenTab, intent, onSelectDomik }: HudRibbonProps) => {
     const items: { key: string; text: string; tab: string; node: ReactNode }[] = [];
 
     if (digest.soonestOrder != null) {
@@ -64,6 +67,22 @@ export const HudRibbon = ({ digest, onOpenTab }: HudRibbonProps) => {
                     <HomeIcon className="hud-ribbon-ico" aria-hidden="true" />
                     <b>{digest.idleDomiks}</b>
                     <span className="hud-ribbon-label">в простое</span>
+                </button>
+            ),
+        });
+    }
+
+    if (intent?.ready === true) {
+        items.push({
+            key: 'intent',
+            text: `${intent.domikType.name}: всё собрано`,
+            tab: 'board',
+            node: (
+                <button type="button" className="hud-ribbon-item"
+                    onClick={() => { onSelectDomik(intent.domikId); }}
+                    title={`Всё для задумки собрано: «${intent.domikType.name}» ждёт улучшения`}>
+                    <DomikSprite logicName={intent.domikType.logicName} className="hud-ribbon-ico" aria-hidden="true" />
+                    <span className="hud-ribbon-label">задумка собрана</span>
                 </button>
             ),
         });

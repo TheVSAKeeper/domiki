@@ -393,6 +393,16 @@ button.household-more-row {
     color: rgba(51, 41, 26, .78);
 }
 
+.household-reserve-intent {
+    margin: 0;
+    padding: 6px 8px;
+    border-left: 3px solid var(--pine);
+    font-size: 12px;
+    line-height: 1.5;
+    color: rgba(51, 41, 26, .9);
+    background: rgba(93, 122, 74, .1);
+}
+
 .household-reserve-row {
     gap: 10px;
 }

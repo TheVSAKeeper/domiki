@@ -1,6 +1,7 @@
 import { useReducer, useState } from 'react';
 import type { Dispatch, KeyboardEvent, Ref } from 'react';
 import ArrowUpIcon from 'pixelarticons/svg/arrow-up.svg?react';
+import BookmarkIcon from 'pixelarticons/svg/bookmark.svg?react';
 import BriefcaseIcon from 'pixelarticons/svg/briefcase.svg?react';
 import ChevronDownIcon from 'pixelarticons/svg/chevron-down.svg?react';
 import ClockIcon from 'pixelarticons/svg/clock.svg?react';
@@ -417,9 +418,11 @@ interface SelectedDomikPanelProps {
     onToggleManufactureRepeat: (manufactureId: number, next: boolean) => void;
     elderHouseLevel: number;
     onSetManufactureMeasure: (manufactureId: number, resourceTypeId: number | null, value: number | null) => void;
+    intentDomikId: number | null;
+    onSetUpgradeIntent: (domikId: number | null) => void;
 }
 
-export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, receipts, blueprints, workers, goals, villageLevel, currentWeather, sickTypes, now, goldValue, goldType, goldVein, plodderFree, displayName, mechanicTab, onOpenTab, onClose, onUpgrade, onHurryDomik, onStartManufacture, onHurryManufacture, onToggleManufactureRepeat, elderHouseLevel, onSetManufactureMeasure, predictedManufactureIds }: SelectedDomikPanelProps) => {
+export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, receipts, blueprints, workers, goals, villageLevel, currentWeather, sickTypes, now, goldValue, goldType, goldVein, plodderFree, displayName, mechanicTab, onOpenTab, onClose, onUpgrade, onHurryDomik, onStartManufacture, onHurryManufacture, onToggleManufactureRepeat, elderHouseLevel, onSetManufactureMeasure, predictedManufactureIds, intentDomikId, onSetUpgradeIntent }: SelectedDomikPanelProps) => {
     const [ui, dispatch] = useReducer(receiptUiReducer, initialReceiptUiState);
     const [tab, setTab] = useState<PanelView>('work');
     const [tabbedDomikId, setTabbedDomikId] = useState(selected?.domik.id);
@@ -639,6 +642,22 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
                                 <ArrowUpIcon className="btn-ico" aria-hidden="true" />
                                 Улучшить
                             </ActionButton>
+                            {(!selected.upgrade.hasResources || intentDomikId === selected.domik.id) &&
+                            <div className="upgrade-intent">
+                                <p className="hint upgrade-intent-line">
+                                    {intentDomikId === selected.domik.id
+                                        ? selected.upgrade.hasResources
+                                            ? 'Всё собрано – можно улучшать.'
+                                            : `Осталось собрать: ${formatShortfall(selected.upgrade.resources)}.`
+                                        : 'Задумка ведёт недостачу в шапке, а с заповедным ларём в Избе старосты наряды не тронут припас, отложенный под неё.'}
+                                </p>
+                                <ActionButton className="btn-game btn-ghost"
+                                    onClick={() => onSetUpgradeIntent(intentDomikId === selected.domik.id ? null : selected.domik.id)}>
+                                    <BookmarkIcon className="btn-ico" aria-hidden="true" />
+                                    {intentDomikId === selected.domik.id ? 'Передумать' : 'Задумать улучшение'}
+                                </ActionButton>
+                            </div>
+                            }
                         </div>
                     }
                     {activeView === 'grow' && selected.domik.finishDate != null &&

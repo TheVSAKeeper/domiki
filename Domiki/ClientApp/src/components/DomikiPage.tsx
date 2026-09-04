@@ -7,7 +7,7 @@ import { acceptErrand as acceptErrandApi, ApiError, cancelErrand as cancelErrand
 import type { GameCommand } from '../services/api';
 import { useToast } from '../services/toastContext';
 import { useGameData } from '../hooks/useGameData';
-import { GOLD_RESOURCE_TYPE_ID, computeSelectedDomikView, isWorkerFree } from '../utils/game';
+import { GOLD_RESOURCE_TYPE_ID, computeSelectedDomikView, computeUpgradeIntentView, isWorkerFree } from '../utils/game';
 import { buildAssignTarget, buildAssignTargets } from '../utils/assign';
 import { computeHudDigest } from '../utils/hud';
 import type { DomikSortMode, GoldVeinContext } from '../utils/game';
@@ -73,7 +73,7 @@ export const DomikiPage = () => {
     useEffect(() => { perfCommitProbe(); });
 
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, orderBoardSize, orderFreeConcession, errands, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, staleSince, pendingCount, offlineOutcomes, clearOfflineOutcomes, predictedManufactureIds, waitingOrderIds, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, orderBoardSize, orderFreeConcession, errands, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, intentDomikId, intentReserves, sickTypes, purchaseDomikTypes, now, loading, staleSince, pendingCount, offlineOutcomes, clearOfflineOutcomes, predictedManufactureIds, waitingOrderIds, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, setUpgradeIntent, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
         useGameData();
 
     const [recapOpen, setRecapOpen] = useState(false);
@@ -117,6 +117,10 @@ export const DomikiPage = () => {
     const selected = useMemo(
         () => computeSelectedDomikView(selectedDomikId, domiks, domikTypes, receipts, resources, now),
         [selectedDomikId, domiks, domikTypes, receipts, resources, now],
+    );
+    const upgradeIntent = useMemo(
+        () => computeUpgradeIntentView(intentDomikId, domiks, domikTypes, resources),
+        [intentDomikId, domiks, domikTypes, resources],
     );
     const domikDisplayName = useMemo(() => buildDomikNamer(domiks), [domiks]);
     const tavernLevel = useMemo(() => Math.max(0, ...domiks
@@ -384,6 +388,8 @@ export const DomikiPage = () => {
         resourceTypeId == null ? 'Мера снята' : 'Мера назначена',
     );
 
+    const setUpgradeIntentAction = (domikId: number | null) => runAction(() => setUpgradeIntent(domikId), domikId == null ? 'Задумка снята' : 'Задумано – староста будет вести счёт');
+
     const setResourceReserveAction = (resourceTypeId: number, reserve: number) => runAction(() => setResourceReserve(resourceTypeId, reserve));
 
     const buyFromConvoyAction = (neighborId: number, resourceTypeId: number, count: number) =>
@@ -420,6 +426,8 @@ export const DomikiPage = () => {
         setSelectedDomikId(id);
     };
 
+    const pendingPanelScroll = useRef(false);
+
     const scrollToSelectedDomikPanel = () => {
         const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         const panel = selectedDomikPanelRef.current;
@@ -430,9 +438,24 @@ export const DomikiPage = () => {
         }
     };
 
+    useEffect(() => {
+        if (routeTab != null || !pendingPanelScroll.current) {
+            return;
+        }
+
+        pendingPanelScroll.current = false;
+        scrollToSelectedDomikPanel();
+    });
+
     const selectDomikFromBoard = (id: number) => {
         selectDomik(id);
-        scrollToSelectedDomikPanel();
+        if (routeTab == null) {
+            scrollToSelectedDomikPanel();
+            return;
+        }
+
+        pendingPanelScroll.current = true;
+        openTab(BOARD_TAB_KEY);
     };
 
     const gameTabs: GameTab[] = [
@@ -446,7 +469,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'household', label: 'Хозяйство', icon: <AbstractSprite logicName="household" size={32} className="game-tab-ico" aria-hidden="true" />, visible: true,
-            node: () => <HouseholdBox digest={hudDigest} resourceTypes={resourceTypes} resources={resources} reserves={reserves} ledger={ledger} now={now}
+            node: () => <HouseholdBox digest={hudDigest} resourceTypes={resourceTypes} resources={resources} reserves={reserves} intentReserves={intentReserves} ledger={ledger} now={now}
                 onSetReserve={setResourceReserveAction} onSelectDomik={selectDomikFromBoard} onOpenTab={openTab}
                 onToggleRepeat={toggleManufactureAutoRepeat} />,
         },
@@ -522,7 +545,7 @@ export const DomikiPage = () => {
             <PerfZone id="шапка">
             <VillageHud resources={resources} resourceTypes={resourceTypes} domikTypes={domikTypes} plodder={plodder} digest={hudDigest}
                 villageLevel={villageLevel} weather={weather} now={now} onStickyOffsetChange={setHudStickyOffset} villageProfile={villageProfile}
-                onOpenTab={openTab} compact={!onBoard} />
+                onOpenTab={openTab} compact={!onBoard} intent={upgradeIntent} onSelectDomik={selectDomikFromBoard} />
             </PerfZone>
             {strayTab && <Navigate to="/domiki-page" replace />}
             <GameTabsNav tabs={visibleGameTabs} activeKey={activeGameTab?.key ?? BOARD_TAB_KEY} />
@@ -597,7 +620,8 @@ export const DomikiPage = () => {
                         onClose={() => setSelectedDomikId(null)} onUpgrade={upgrade} onHurryDomik={hurryDomikAction}
                         onStartManufacture={startManufacture} onHurryManufacture={hurryManufactureAction}
                         elderHouseLevel={ledger?.level ?? 0}
-                        onToggleManufactureRepeat={toggleManufactureAutoRepeat} onSetManufactureMeasure={setManufactureMeasureAction} />
+                        onToggleManufactureRepeat={toggleManufactureAutoRepeat} onSetManufactureMeasure={setManufactureMeasureAction}
+                        intentDomikId={intentDomikId} onSetUpgradeIntent={setUpgradeIntentAction} />
                 </PerfZone>
             </div>
             {assign.dragging && heldWorker != null &&

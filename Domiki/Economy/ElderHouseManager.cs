@@ -280,6 +280,69 @@ public class ElderHouseManager
     }
 
     /// <summary>
+    /// Возвращает припас, заповеданный от нарядов задумкой игрока (§4.4 дизайна).
+    /// </summary>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <returns>По каждому ресурсу цены следующего уровня – <c>min(запас, цена)</c>, то есть уже накопленная часть; пустой массив, если задумки нет.</returns>
+    /// <remarks>
+    /// Заповедь копилки растёт вместе с накоплением и никогда не превышает цену уровня, поэтому припас сверх нужного наряды берут свободно.
+    /// Доступна с уровня <see cref="ReserveMinLevel"/> Избы старосты – ступень продаёт именно то, что копилка защищает себя сама.
+    /// </remarks>
+    public ResourceReserve[] GetIntentReserves(int playerId)
+    {
+        if (GetLevel(playerId) < ReserveMinLevel)
+        {
+            return [];
+        }
+
+        var intentDomikId = _context.Players.Where(x => x.Id == playerId).Select(x => x.IntentDomikId).FirstOrDefault();
+        if (intentDomikId == null)
+        {
+            return [];
+        }
+
+        var dbDomik = _context.Domiks.Local.FirstOrDefault(x => x.PlayerId == playerId && x.Id == intentDomikId.Value)
+                      ?? _context.Domiks.FirstOrDefault(x => x.PlayerId == playerId && x.Id == intentDomikId.Value);
+
+        var domikType = dbDomik == null ? null : _resourceManager.GetDomikTypes().FirstOrDefault(x => x.Id == dbDomik.TypeId);
+        var domikLevel = domikType?.Levels.FirstOrDefault(x => x.Value == dbDomik!.Level + 1);
+        if (domikLevel == null)
+        {
+            return [];
+        }
+
+        return domikLevel.Resources
+            .Where(x => x.Value > 0)
+            .GroupBy(x => x.Type.Id)
+            .Select(x => new ResourceReserve { ResourceTypeId = x.Key, Reserve = Math.Min(GetStock(playerId, x.Key), x.Sum(resource => resource.Value)) })
+            .Where(x => x.Reserve > 0)
+            .OrderBy(x => x.ResourceTypeId)
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Отвечает, чем именно удержан припас: копилкой задумки или меткой, поставленной своей рукой.
+    /// </summary>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <param name="resourceTypeId">Тип ресурса, на котором встал наряд.</param>
+    /// <returns><see langword="true"/> – заповедь задумки строже ручной, и наряду стоит объяснить остановку копилкой.</returns>
+    public bool IsIntentHold(int playerId, int resourceTypeId)
+    {
+        var intent = GetIntentReserves(playerId).FirstOrDefault(x => x.ResourceTypeId == resourceTypeId)?.Reserve ?? 0;
+        if (intent == 0)
+        {
+            return false;
+        }
+
+        var manual = _context.PlayerResourceReserves
+            .Where(x => x.PlayerId == playerId && x.ResourceTypeId == resourceTypeId)
+            .Select(x => (int?)x.Reserve)
+            .FirstOrDefault() ?? 0;
+
+        return intent > manual;
+    }
+
+    /// <summary>
     /// Заповедует припас от нарядов либо снимает заповедь нулём.
     /// </summary>
     /// <param name="playerId">Идентификатор игрока.</param>
@@ -346,6 +409,11 @@ public class ElderHouseManager
         var reserves = _context.PlayerResourceReserves
             .Where(x => x.PlayerId == playerId && x.Reserve > 0)
             .ToDictionary(x => x.ResourceTypeId, x => x.Reserve);
+
+        foreach (var intent in GetIntentReserves(playerId))
+        {
+            reserves[intent.ResourceTypeId] = Math.Max(reserves.GetValueOrDefault(intent.ResourceTypeId), intent.Reserve);
+        }
 
         if (reserves.Count == 0)
         {

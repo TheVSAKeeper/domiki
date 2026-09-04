@@ -497,6 +497,12 @@ public class DomikManager
         dbDomik.UpgradeSeconds = domikLevel.UpgradeSeconds;
         dbDomik.UpgradeCalculateDate = date;
 
+        var dbPlayer = _context.Players.Single(x => x.Id == playerId);
+        if (dbPlayer.IntentDomikId == id)
+        {
+            dbPlayer.IntentDomikId = null;
+        }
+
         _uow.AddAfterEventAction(() =>
         {
             _calculator.Insert(new()
@@ -507,6 +513,59 @@ public class DomikManager
                 Date = date.AddSeconds(domikLevel.UpgradeSeconds),
             });
         });
+    }
+
+    /// <summary>
+    /// Возвращает номер домика, помеченного задумкой.
+    /// </summary>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <returns>Номер домика в пределах игрока либо <see langword="null"/>, если задумки нет.</returns>
+    public int? GetUpgradeIntent(int playerId)
+    {
+        return _context.Players.Where(x => x.Id == playerId).Select(x => x.IntentDomikId).FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Помечает домик задумкой – целью, на улучшение которой игрок копит, – либо снимает пометку.
+    /// </summary>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <param name="domikId">Номер домика в пределах игрока; <see langword="null"/> снимает задумку.</param>
+    /// <remarks>
+    /// Задумка разом одна и ничего со склада не списывает: она ведёт недостачу в шапке, а при избе <see cref="Economy.ElderHouseManager.ReserveMinLevel"/>
+    /// уровня заповедует накопленное от нарядов (§4.4 дизайна).
+    /// </remarks>
+    /// <exception cref="BusinessException">Домика нет, он ещё строится, уже улучшается или дорос до предела.</exception>
+    public void SetUpgradeIntent(int playerId, int? domikId)
+    {
+        _playerResourceManager.LockDbPlayerRow(playerId);
+        var dbPlayer = _context.Players.Single(x => x.Id == playerId);
+
+        if (domikId == null)
+        {
+            dbPlayer.IntentDomikId = null;
+            return;
+        }
+
+        var dbDomik = _context.Domiks.FirstOrDefault(x => x.PlayerId == playerId && x.Id == domikId.Value)
+                      ?? throw new BusinessException("Такой постройки во дворе нет");
+
+        if (dbDomik.Level == 0)
+        {
+            throw new BusinessException("Постройка ещё возводится");
+        }
+
+        if (dbDomik.UpgradeSeconds != null)
+        {
+            throw new BusinessException("Домик уже улучшается");
+        }
+
+        var domikType = _resourceManager.GetDomikTypes().First(x => x.Id == dbDomik.TypeId);
+        if (dbDomik.Level >= domikType.MaxLevel)
+        {
+            throw new BusinessException("Максимальный уровень");
+        }
+
+        dbPlayer.IntentDomikId = dbDomik.Id;
     }
 
     public IEnumerable<Resource> GetResources(int playerId)
@@ -975,8 +1034,11 @@ public class DomikManager
                         : recept.InputResources;
                     if (_elderHouseManager.GetHeldResourceTypeId(playerId, manufactureInputs) is int heldResourceTypeId)
                     {
-                        _playerEventManager.Record(playerId, PlayerEventType.ManufactureReserveHeld, new { domikId, domikTypeId = dbDomik.TypeId, receiptId, resourceTypeId = heldResourceTypeId });
-                        repeatStopBody = $"«{manufactureDomikName}»: наряд остановлен, чтобы сохранить заповедный припас.";
+                        var intentHold = _elderHouseManager.IsIntentHold(playerId, heldResourceTypeId);
+                        _playerEventManager.Record(playerId, PlayerEventType.ManufactureReserveHeld, new { domikId, domikTypeId = dbDomik.TypeId, receiptId, resourceTypeId = heldResourceTypeId, intent = intentHold });
+                        repeatStopBody = intentHold
+                            ? $"«{manufactureDomikName}»: наряд остановлен, чтобы сберечь припас под задумку."
+                            : $"«{manufactureDomikName}»: наряд остановлен, чтобы сохранить заповедный припас.";
                     }
                     else if (GetGoldVeinRemaining(playerId, dbDomik, recept, date, date.AddSeconds(dbManufacture.DurationSeconds)) <= 0)
                     {

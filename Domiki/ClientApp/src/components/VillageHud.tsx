@@ -4,7 +4,7 @@ import ChevronUpIcon from 'pixelarticons/svg/chevron-up.svg?react';
 import HomeIcon from 'pixelarticons/svg/home.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
 import type { DomikTypeDto, PlodderCount, ResourceDto, ResourceTypeDto, VillageLevelDto, WeatherStateDto } from '../types/api';
-import { COIN_RESOURCE_TYPE_ID, GOLD_RESOURCE_TYPE_ID, weatherEffects } from '../utils/game';
+import { COIN_RESOURCE_TYPE_ID, GOLD_RESOURCE_TYPE_ID, weatherEffects, type UpgradeIntentView } from '../utils/game';
 import type { HudDigest } from '../utils/hud';
 import { pluralRu } from '../utils/plural';
 import { termLore } from '../utils/termLore';
@@ -29,6 +29,8 @@ interface VillageHudProps {
     villageProfile?: { logicName: string; name: string; buildings: string[] } | null;
     compact: boolean;
     onOpenTab: (tab: string) => void;
+    intent: UpgradeIntentView | null;
+    onSelectDomik: (domikId: number) => void;
 }
 
 const hoursLeft = (finishDate: string, now: number) => Math.max(1, Math.ceil(remainingSeconds(finishDate, now) / 3600));
@@ -41,7 +43,7 @@ const WeatherEffectChip = ({ domikType, delta }: { domikType: DomikTypeDto; delt
     </span>
 );
 
-export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, digest, villageLevel, weather, now, onStickyOffsetChange, villageProfile, compact, onOpenTab }: VillageHudProps) => {
+export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, digest, villageLevel, weather, now, onStickyOffsetChange, villageProfile, compact, onOpenTab, intent, onSelectDomik }: VillageHudProps) => {
     const hudRef = useRef<HTMLDivElement>(null);
     const [flyout, setFlyout] = useState<'weather' | 'level' | null>(null);
     const levelFlyout = flyout === 'level';
@@ -90,6 +92,9 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
     const goldValue = resources.find(r => r.typeId === GOLD_RESOURCE_TYPE_ID)?.value;
     const currentWeather = weather?.current ?? null;
     const nextGoal = villageLevel?.unlocks.find((unlock): unlock is typeof unlock & { level: number } => !unlock.unlocked && unlock.level != null);
+    const intentShortfallText = intent == null ? '' : intent.shortfall
+        .map(item => `${resourceTypes.find(type => type.id === item.typeId)?.name ?? `ресурс #${item.typeId}`} ×${item.value}`)
+        .join(', ');
     const effectChips = currentWeather == null ? [] : weatherEffects(currentWeather.effects, domikTypes);
     const villageProfileBuildingsText = villageProfile == null ? '' : villageProfile.buildings.join(' и ');
     const weatherLeftHours = currentWeather != null ? hoursLeft(currentWeather.endDate, now) : 0;
@@ -132,7 +137,7 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                                 </div>
                             </>}
 
-                        <HudRibbon digest={digest} onOpenTab={onOpenTab} />
+                        <HudRibbon digest={digest} onOpenTab={onOpenTab} intent={intent} onSelectDomik={onSelectDomik} />
                     </div>
 
                     <div className="hud-right">
@@ -203,6 +208,18 @@ export const VillageHud = ({ resources, resourceTypes, domikTypes, plodder, dige
                             <span className="vlf-stat"><TermTip term="neighbor_milestones" className="vlf-stat-label">Вехи соседей</TermTip><span className="vlf-stat-value">{villageLevel?.reputation}</span></span>
                             <span className="vlf-stat"><span className="vlf-stat-label">Уют</span><span className="vlf-stat-value">{villageLevel?.comfort}</span></span>
                         </div>
+                        {intent != null &&
+                            <button type="button" className="vlf-intent"
+                                onClick={() => { onSelectDomik(intent.domikId); }}
+                                title={intent.ready ? 'Всё для задумки собрано' : `Осталось собрать: ${intentShortfallText}`}>
+                                <div className="vlf-intent-head">
+                                    <DomikSprite logicName={intent.domikType.logicName} className="vlf-ico" aria-hidden="true" />
+                                    <span className="vlf-goal-name">Задумка: {intent.domikType.name}, {intent.nextLevel}-й ур.</span>
+                                </div>
+                                <span className="vlf-intent-left">
+                                    {intent.ready ? 'всё собрано' : `осталось: ${intentShortfallText}`}
+                                </span>
+                            </button>}
                         {villageLevel != null && nextGoal != null &&
                             <div className="vlf-goal">
                                 <div className="vlf-goal-head">

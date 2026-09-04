@@ -268,6 +268,7 @@ public class RelocationManager
         dbPlayer.ProfileNeighborId = null;
         dbPlayer.ProfileChangedDate = null;
         dbPlayer.NextOrderRefillAt = null;
+        dbPlayer.IntentDomikId = null;
 
         _playerResourceManager.GrantResource(playerId, CoinResourceTypeId, _perkManager.GetStartingCoins(playerId));
         _playerResourceManager.GrantResource(playerId, GoldResourceTypeId, carriedGold);

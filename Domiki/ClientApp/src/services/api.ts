@@ -536,6 +536,9 @@ export const setManufactureMeasure = (manufactureId: number, resourceTypeId: num
         ? `Domiki/SetManufactureMeasure/${manufactureId}`
         : `Domiki/SetManufactureMeasure/${manufactureId}?resourceTypeId=${resourceTypeId}&value=${value}`, signal);
 
+export const setUpgradeIntent = (domikId: number | null, signal?: AbortSignal): Promise<void> =>
+    apiPost(domikId == null ? 'Domiki/SetUpgradeIntent' : `Domiki/SetUpgradeIntent?domikId=${domikId}`, signal);
+
 export const setResourceReserve = (resourceTypeId: number, reserve: number, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/SetResourceReserve/${resourceTypeId}?reserve=${reserve}`, signal);
 
