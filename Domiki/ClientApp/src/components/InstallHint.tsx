@@ -49,11 +49,12 @@ export const InstallHint = () => {
     };
 
     return (
-        <button type="button" className="nav-link install-hint"
+        <button type="button" className="nav-link nav-util install-hint"
             title="Поставить «Домики» на домашний экран"
+            aria-label="Поставить «Домики» на домашний экран"
             onClick={() => void install()}>
             <DownloadIcon className="nav-ico" aria-hidden="true" />
-            На экран
+            <span className="nav-text">На экран</span>
         </button>
     );
 };

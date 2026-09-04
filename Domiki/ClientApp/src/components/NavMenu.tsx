@@ -29,27 +29,27 @@ export const NavMenu = () => {
                     </button>
                     <ul className={'nav-links' + (open ? ' nav-links-open' : '')}>
                         <li>
-                            <Link className="nav-link" to="/" onClick={close}>
+                            <Link className="nav-link" to="/" title="Главная" onClick={close}>
                                 <HomeIcon className="nav-ico" aria-hidden="true" />
-                                Главная
+                                <span className="nav-text">Главная</span>
                             </Link>
                         </li>
                         <li>
-                            <Link className="nav-link" to="/domiki-page" onClick={close}>
+                            <Link className="nav-link" to="/domiki-page" title="Домики" onClick={close}>
                                 <MechanicSprite logicName="domiki" size={24} className="nav-ico" aria-hidden="true" />
-                                Домики
+                                <span className="nav-text">Домики</span>
                             </Link>
                         </li>
                         <li>
-                            <Link className="nav-link" to="/world" onClick={close}>
+                            <Link className="nav-link" to="/world" title="Мир" onClick={close}>
                                 <MechanicSprite logicName="world" size={24} className="nav-ico" aria-hidden="true" />
-                                Мир
+                                <span className="nav-text">Мир</span>
                             </Link>
                         </li>
                         <li>
-                            <Link className="nav-link" to="/wiki" onClick={close}>
+                            <Link className="nav-link" to="/wiki" title="Справочник" onClick={close}>
                                 <MechanicSprite logicName="wiki" size={24} className="nav-ico" aria-hidden="true" />
-                                Справочник
+                                <span className="nav-text">Справочник</span>
                             </Link>
                         </li>
                         <li>

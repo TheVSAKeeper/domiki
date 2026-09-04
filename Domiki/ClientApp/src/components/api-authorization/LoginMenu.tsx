@@ -47,13 +47,13 @@ export const LoginMenu = () => {
                 <li>
                     <button type="button" className="nav-cta" onClick={loginDemo}>
                         <PlayIcon className="nav-ico" aria-hidden="true" />
-                        Играть демо
+                        <span className="nav-text">Играть демо</span>
                     </button>
                 </li>
                 <li>
-                    <a className="nav-link" href="/authentication/login">
+                    <a className="nav-link" href="/authentication/login" title="Войти">
                         <LoginIcon className="nav-ico" aria-hidden="true" />
-                        Войти
+                        <span className="nav-text">Войти</span>
                     </a>
                 </li>
             </>
@@ -63,15 +63,15 @@ export const LoginMenu = () => {
     return (
         <>
             <li>
-                <span className="nav-user">
+                <span className="nav-user" title={userName ?? undefined}>
                     <UserIcon className="nav-ico" aria-hidden="true" />
-                    {userName}
+                    <span className="nav-text">{userName}</span>
                 </span>
             </li>
             <li>
-                <a className="nav-link" href="/authentication/logout" onClick={event => { event.preventDefault(); authService.signOut(); }}>
+                <a className="nav-link" href="/authentication/logout" title="Выйти" onClick={event => { event.preventDefault(); authService.signOut(); }}>
                     <LogoutIcon className="nav-ico" aria-hidden="true" />
-                    Выйти
+                    <span className="nav-text">Выйти</span>
                 </a>
             </li>
         </>

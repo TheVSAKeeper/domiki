@@ -10,9 +10,9 @@ export const ChangelogLink = ({ onNavigate }: { onNavigate?: () => void }) => {
 
     return (
         <Link className="nav-link changelog-chip" to="/vestnik" onClick={onNavigate}
-            aria-label="Сельский вестник – история изменений">
+            title="Сельский вестник" aria-label="Сельский вестник – история изменений">
             <MechanicSprite logicName="vestnik" size={24} className="nav-ico" aria-hidden="true" />
-            Вестник
+            <span className="nav-text">Вестник</span>
             {unread && <span className="hud-news-dot" aria-hidden="true" />}
         </Link>
     );

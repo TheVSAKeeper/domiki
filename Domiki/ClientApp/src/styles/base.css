@@ -47,7 +47,7 @@ code {
     }
 
 .site-header {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
 }
 
 .topnav {
@@ -243,6 +243,90 @@ code {
     width: 24px;
     height: 24px;
     padding: 6px 10px;
+}
+
+@media (min-width: 576px) {
+    .topnav-inner {
+        flex-wrap: nowrap;
+        gap: 12px;
+        padding: 6px 16px;
+    }
+
+    .nav-links {
+        flex-wrap: nowrap;
+        gap: 12px;
+        min-width: 0;
+    }
+
+    .nav-links > li {
+        min-width: 0;
+    }
+
+    .nav-link {
+        padding: 4px;
+        white-space: nowrap;
+    }
+
+    .nav-util .nav-text {
+        display: none;
+    }
+
+    .nav-user {
+        max-width: 176px;
+        min-width: 0;
+        padding: 6px 10px 4px;
+    }
+
+    .nav-user .nav-text {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .nav-cta {
+        padding: 6px 12px;
+    }
+
+    .nav-village .crest-badge {
+        width: 30px;
+        height: 30px;
+    }
+
+    .nav-village .crest-ico {
+        width: 18px;
+        height: 18px;
+    }
+
+    .nav-village .village-identity {
+        flex: 0 1 auto;
+        min-width: 0;
+    }
+
+    .nav-village .village-name {
+        -webkit-line-clamp: 1;
+        max-width: 160px;
+        padding: 6px 10px 4px;
+        font-size: 11px;
+    }
+}
+
+@media (min-width: 576px) and (max-width: 1160px) {
+    .nav-link .nav-text {
+        display: none;
+    }
+
+    .nav-user {
+        max-width: none;
+        padding: 6px;
+    }
+
+    .nav-user .nav-text {
+        display: none;
+    }
+
+    .nav-village .village-name {
+        max-width: 140px;
+    }
 }
 
 @media (max-width: 575px) {
