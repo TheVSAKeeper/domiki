@@ -175,6 +175,9 @@ export const DomikiPage = () => {
             }
             return true;
         } catch (err) {
+            if (err instanceof QueuedOutcomeError) {
+                return false;
+            }
             if (err instanceof ApiError) {
                 toast.error(err.message);
                 return false;
@@ -340,10 +343,22 @@ export const DomikiPage = () => {
         scheduleReload();
     }, 'Поиски начались');
 
-    const hurryManufactureAction = (manufactureId: number) => runAction(() => hurryManufacture(manufactureId), 'Производство ускорено');
+    const hurrying = useRef(new Set<number>());
 
-    const toggleManufactureAutoRepeat = (manufactureId: number, next: boolean) => runAction(
-        () => setManufactureAutoRepeat(manufactureId, next),
+    const hurryManufactureAction = (manufactureId: number) => {
+        if (hurrying.current.has(manufactureId)) {
+            return Promise.resolve(false);
+        }
+
+        hurrying.current.add(manufactureId);
+        return runDetached(
+            hurryManufacture(manufactureId).finally(() => hurrying.current.delete(manufactureId)),
+            'Производство ускорено',
+        );
+    };
+
+    const toggleManufactureAutoRepeat = (manufactureId: number, next: boolean) => runDetached(
+        setManufactureAutoRepeat(manufactureId, next),
         next ? 'Наряд поставлен' : 'Наряда нет',
     );
 
