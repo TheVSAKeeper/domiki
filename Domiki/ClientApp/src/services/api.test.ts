@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import type { QueuedIntent } from '../types/api';
-import { apiGet, ApiError, apiPost, enqueueCommand, flushCommands, OfflineError, setCommandPlayerId, setCommandsSink, setReadOnlyMode } from './api';
+import type { QueuedCommandDto, QueuedIntent } from '../types/api';
+import { apiGet, ApiError, apiPost, dropQueue, enqueueCommand, flushCommands, OfflineError, restoreCommands, setCommandFailureSink, setCommandPlayerId, setCommandsSink, setReadOnlyMode } from './api';
+import { loadCommands, saveCommands } from './offlineSnapshot';
 
 vi.mock('./auth', () => ({
     authService: { signIn: vi.fn() },
@@ -9,6 +10,8 @@ vi.mock('./auth', () => ({
 
 vi.mock('./offlineSnapshot', () => ({
     clearSnapshot: vi.fn().mockResolvedValue(undefined),
+    saveCommands: vi.fn().mockResolvedValue(undefined),
+    loadCommands: vi.fn().mockResolvedValue([]),
 }));
 
 function mockFetch(body: unknown, init: { ok?: boolean; status?: number } = {}) {
@@ -24,6 +27,8 @@ function mockFetch(body: unknown, init: { ok?: boolean; status?: number } = {}) 
 describe('api', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(loadCommands).mockResolvedValue([]);
+        dropQueue();
     });
 
     it('apiPost резолвится в undefined на пустое тело 200-ответа', async () => {
@@ -281,15 +286,111 @@ describe('api', () => {
         expect(urls).toEqual(['Domiki/ApplyCommands', 'Domiki/CancelOrder/3']);
     });
 
-    it('без связи намерение отбивается офлайн-ошибкой и в очередь не попадает', async () => {
+    it('без связи мутация мимо очереди по-прежнему отбивается офлайн-ошибкой', async () => {
         setReadOnlyMode(true);
         globalThis.fetch = vi.fn();
 
-        await expect(enqueueCommand({ kind: 'UpgradeDomik', args: { domikId: 1 } })).rejects.toBeInstanceOf(OfflineError);
+        try {
+            await expect(apiPost('Domiki/CancelOrder/3')).rejects.toBeInstanceOf(OfflineError);
+        } finally {
+            setReadOnlyMode(false);
+        }
+
+        expect(globalThis.fetch).not.toHaveBeenCalled();
+    });
+
+    it('без связи намерение остаётся в очереди и уходит, когда связь вернулась', async () => {
+        globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+        const queued = enqueueCommand({ kind: 'UpgradeDomik', args: { domikId: 8 } });
+        await flushCommands();
+
+        expect(saveCommands).toHaveBeenLastCalledWith([expect.objectContaining({ command: { kind: 'UpgradeDomik', args: { domikId: 8 } } })]);
+
+        mockCommands([{ commandId: '', status: 'Applied', error: null }]);
+        await flushCommands();
+
+        await expect(queued).resolves.toBeUndefined();
+        expect(sentCommands(0)).toHaveLength(1);
+    });
+
+    it('намерение старше офлайн-горизонта отбивается своим текстом и в сеть не уходит', async () => {
+        globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+        const queued = enqueueCommand({ kind: 'UpgradeDomik', args: { domikId: 9 } });
+        await flushCommands();
+
+        const later = Date.now() + 7 * 60 * 60 * 1000;
+        const clock = vi.spyOn(Date, 'now').mockReturnValue(later);
+        mockCommands([{ commandId: '', status: 'Applied', error: null }]);
+
+        try {
+            await flushCommands();
+            await expect(queued).rejects.toThrow('слишком долго ждало связи');
+        } finally {
+            clock.mockRestore();
+        }
+
+        expect(globalThis.fetch).not.toHaveBeenCalled();
+    });
+
+    it('очередь, пережившая перезагрузку, уходит одной пачкой и называет своего игрока', async () => {
+        vi.mocked(loadCommands).mockResolvedValueOnce([
+            { commandId: 'c1', command: { kind: 'UpgradeDomik', args: { domikId: 1 } }, queuedAtMs: Date.now(), playerId: 42 },
+            { commandId: 'c2', command: { kind: 'BuyDomik', args: { typeId: 2 } }, queuedAtMs: Date.now(), playerId: 42 },
+        ]);
+        mockCommands([
+            { commandId: '', status: 'Applied', error: null },
+            { commandId: '', status: 'Rejected', error: 'Не хватает монет' },
+        ]);
+        const failures: string[] = [];
+        setCommandFailureSink(message => failures.push(message));
+
+        try {
+            await restoreCommands();
+            await flushCommands();
+        } finally {
+            setCommandFailureSink(null);
+        }
+
+        expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+        expect(sentCommands(0).map(item => item.commandId)).toEqual(['c1', 'c2']);
+        expect(sentBatch(0).playerId).toBe(42);
+        expect(failures).toEqual(['Не хватает монет']);
+    });
+
+    it('намерение, поставленное во время восстановления, не вытесняет очередь с диска', async () => {
+        setCommandPlayerId(null);
+        let release!: (stored: QueuedCommandDto[]) => void;
+        vi.mocked(loadCommands).mockReturnValueOnce(new Promise<QueuedCommandDto[]>(resolve => {
+            release = resolve;
+        }));
+        mockCommands([
+            { commandId: '', status: 'Applied', error: null },
+            { commandId: '', status: 'Applied', error: null },
+        ]);
+
+        const restoring = restoreCommands();
+        void enqueueCommand({ kind: 'BuyDomik', args: { typeId: 7 } });
+        release([{ commandId: 'c1', command: { kind: 'UpgradeDomik', args: { domikId: 1 } }, queuedAtMs: Date.now(), playerId: null }]);
+        await restoring;
+        await flushCommands();
+
+        expect(sentCommands(0).map(item => item.kind)).toEqual(['UpgradeDomik', 'BuyDomik']);
+    });
+
+    it('очистка очереди при смене учётной записи отменяет запоздавшее восстановление', async () => {
+        let release!: (stored: QueuedCommandDto[]) => void;
+        vi.mocked(loadCommands).mockReturnValueOnce(new Promise<QueuedCommandDto[]>(resolve => {
+            release = resolve;
+        }));
+        mockCommands([{ commandId: '', status: 'Applied', error: null }]);
+
+        const restoring = restoreCommands();
+        dropQueue();
+        release([{ commandId: 'c1', command: { kind: 'UpgradeDomik', args: { domikId: 1 } }, queuedAtMs: Date.now(), playerId: 42 }]);
+        await restoring;
         await flushCommands();
 
         expect(globalThis.fetch).not.toHaveBeenCalled();
-        setReadOnlyMode(false);
     });
 });
 

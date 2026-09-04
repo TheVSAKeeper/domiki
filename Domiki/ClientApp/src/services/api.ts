@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { reportServerVersion } from './appVersion';
 import { authService } from './auth';
-import { clearSnapshot } from './offlineSnapshot';
+import { clearSnapshot, loadCommands, saveCommands } from './offlineSnapshot';
 import {
     decorStateSchema,
     tolokaStateSchema,
@@ -68,6 +68,18 @@ const WITH_STATE_HEADER = 'X-With-State';
 
 const COMMAND_RETRY_DELAY_MS = 600;
 
+const COMMAND_HORIZON_MS = 6 * 60 * 60 * 1000;
+
+const COMMAND_RESEND_DELAYS_MS = [2000, 5000, 15000, 30000, 60000];
+
+const EXPIRED_COMMAND_MESSAGE = 'Это дело слишком долго ждало связи – деревня уже живёт своим чередом. Начните заново.';
+
+function assertWritable(): void {
+    if (readOnly) {
+        throw new OfflineError('Без связи деревню можно только смотреть');
+    }
+}
+
 let stateSink: ((state: GameStateDto) => void) | null = null;
 
 export function setStateSink(sink: ((state: GameStateDto) => void) | null): void {
@@ -99,10 +111,6 @@ async function sinkState(res: Response): Promise<void> {
 }
 
 async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType<T> | null, signal?: AbortSignal, body?: unknown, commandId?: string): Promise<T> {
-    if (readOnly && method === 'POST') {
-        throw new OfflineError('Без связи деревню можно только смотреть');
-    }
-
     let res: Response;
     try {
         const headers: Record<string, string> = {};
@@ -135,6 +143,7 @@ async function request<T>(method: 'GET' | 'POST', url: string, schema: z.ZodType
     reportServerVersion(res.headers.get('X-App-Version'));
 
     if (res.status === 401) {
+        dropQueue();
         void clearSnapshot();
         authService.signIn();
         return new Promise<T>(() => {});
@@ -185,8 +194,8 @@ interface QueuedCommand {
     command: GameCommand;
     queuedAtMs: number;
     playerId: number | null;
-    resolve: () => void;
-    reject: (error: Error) => void;
+    resolve: (() => void) | null;
+    reject: ((error: Error) => void) | null;
 }
 
 const MAX_COMMANDS_PER_BATCH = 50;
@@ -207,8 +216,118 @@ export function setCommandPlayerId(playerId: number | null): void {
     commandPlayerId = playerId;
 }
 
+let failureSink: ((message: string) => void) | null = null;
+
+export function setCommandFailureSink(sink: ((message: string) => void) | null): void {
+    failureSink = sink;
+}
+
 function notifyCommands(): void {
     commandsSink?.([...inFlight, ...queue].map(item => ({ command: item.command, queuedAtMs: item.queuedAtMs })));
+}
+
+function queueChanged(): void {
+    notifyCommands();
+    void saveCommands([...inFlight, ...queue].map(item => ({
+        commandId: item.commandId,
+        command: item.command,
+        queuedAtMs: item.queuedAtMs,
+        playerId: item.playerId,
+    })));
+}
+
+function settle(item: QueuedCommand, error: Error | null): void {
+    if (error == null) {
+        item.resolve?.();
+        return;
+    }
+
+    if (item.reject != null) {
+        item.reject(error);
+        return;
+    }
+
+    failureSink?.(error.message);
+}
+
+let resendTimer: ReturnType<typeof setTimeout> | null = null;
+
+let resendAttempt = 0;
+
+function scheduleResend(): void {
+    if (resendTimer != null) {
+        return;
+    }
+
+    const delay = COMMAND_RESEND_DELAYS_MS[Math.min(resendAttempt, COMMAND_RESEND_DELAYS_MS.length - 1)] ?? 60000;
+    resendAttempt += 1;
+    resendTimer = setTimeout(() => {
+        resendTimer = null;
+        void flushCommands();
+    }, delay);
+}
+
+function clearResend(): void {
+    if (resendTimer != null) {
+        clearTimeout(resendTimer);
+        resendTimer = null;
+    }
+
+    resendAttempt = 0;
+}
+
+function dropExpired(): void {
+    const deadline = Date.now() - COMMAND_HORIZON_MS;
+    const expired = queue.filter(item => item.queuedAtMs < deadline);
+    if (expired.length === 0) {
+        return;
+    }
+
+    const kept = queue.filter(item => item.queuedAtMs >= deadline);
+    queue.length = 0;
+    queue.push(...kept);
+    queueChanged();
+    for (const item of expired) {
+        settle(item, new ApiError(EXPIRED_COMMAND_MESSAGE));
+    }
+}
+
+let restored = false;
+
+let queueEpoch = 0;
+
+export function dropQueue(): void {
+    queue.length = 0;
+    inFlight = [];
+    restored = false;
+    queueEpoch += 1;
+    clearResend();
+    notifyCommands();
+    void saveCommands([]);
+}
+
+export async function restoreCommands(): Promise<void> {
+    if (restored) {
+        return;
+    }
+
+    restored = true;
+    const epoch = queueEpoch;
+    const stored = await loadCommands();
+    if (epoch !== queueEpoch) {
+        return;
+    }
+
+    const known = new Set([...inFlight, ...queue].map(item => item.commandId));
+    const missing = stored.filter(item => !known.has(item.commandId));
+    if (missing.length === 0) {
+        return;
+    }
+
+    queue.unshift(...missing.map(item => ({ ...item, resolve: null, reject: null })));
+    queueChanged();
+    dropExpired();
+    void flushCommands();
 }
 
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -218,10 +337,6 @@ let flushChain: Promise<void> = Promise.resolve();
 let sending = false;
 
 export function enqueueCommand(command: GameCommand): Promise<void> {
-    if (readOnly) {
-        return Promise.reject(new OfflineError('Без связи деревню можно только смотреть'));
-    }
-
     let resolve!: () => void;
     let reject!: (error: Error) => void;
     const promise = new Promise<void>((resolvePromise, rejectPromise) => {
@@ -230,7 +345,7 @@ export function enqueueCommand(command: GameCommand): Promise<void> {
     });
 
     queue.push({ commandId: newCommandId(), command, queuedAtMs: Date.now(), playerId: commandPlayerId, resolve, reject });
-    notifyCommands();
+    queueChanged();
     if (!sending && flushTimer == null) {
         flushTimer = setTimeout(() => {
             flushTimer = null;
@@ -253,6 +368,7 @@ export function flushCommands(): Promise<void> {
 }
 
 async function drainQueue(): Promise<void> {
+    dropExpired();
     while (queue.length > 0) {
         const head = queue[0];
         if (head == null) {
@@ -267,49 +383,55 @@ async function drainQueue(): Promise<void> {
         const batch = queue.splice(0, size);
         inFlight = batch;
         sending = true;
+        let delivered: boolean;
         try {
-            await sendCommands(batch, head.playerId);
+            delivered = await sendCommands(batch, head.playerId);
         } finally {
             sending = false;
         }
+
+        if (!delivered) {
+            return;
+        }
+
+        dropExpired();
     }
 }
 
-async function sendCommands(batch: QueuedCommand[], playerId: number | null): Promise<void> {
+async function sendCommands(batch: QueuedCommand[], playerId: number | null): Promise<boolean> {
     if (batch.length === 0) {
-        return;
+        return true;
     }
 
     const body = {
         playerId,
         commands: batch.map(item => ({ commandId: item.commandId, kind: item.command.kind, args: item.command.args })),
     };
-    const finishBatch = (): void => {
-        inFlight = [];
-        notifyCommands();
-    };
 
+    const epoch = queueEpoch;
     let answer;
     try {
         answer = await request('POST', 'Domiki/ApplyCommands', commandBatchResultSchema, undefined, body);
     } catch (err) {
-        if (!(err instanceof OfflineError || err instanceof MalformedResponseError) || readOnly) {
-            finishBatch();
-            settleFailed(batch, err);
-            return;
+        if (!(err instanceof OfflineError || err instanceof MalformedResponseError)) {
+            return failBatch(batch, err, epoch);
         }
 
         try {
             await wait(COMMAND_RETRY_DELAY_MS);
             answer = await request('POST', 'Domiki/ApplyCommands', commandBatchResultSchema, undefined, body);
         } catch (retryErr) {
-            finishBatch();
-            settleFailed(batch, retryErr);
-            return;
+            return failBatch(batch, retryErr, epoch);
         }
     }
 
-    finishBatch();
+    if (epoch !== queueEpoch) {
+        return true;
+    }
+
+    inFlight = [];
+    clearResend();
+    queueChanged();
 
     const state = gameStateSchema.safeParse(answer.state);
     if (state.success) {
@@ -320,23 +442,48 @@ async function sendCommands(batch: QueuedCommand[], playerId: number | null): Pr
     for (const item of batch) {
         const result = results.get(item.commandId.toLowerCase());
         if (result == null) {
-            item.reject(new ApiError('Деревня не ответила про это действие, попробуйте ещё раз.'));
+            settle(item, new ApiError('Деревня не ответила про это действие, попробуйте ещё раз.'));
         } else if (result.status === 'Rejected') {
-            item.reject(new ApiError(result.error ?? 'Действие не удалось.'));
+            settle(item, new ApiError(result.error ?? 'Действие не удалось.'));
         } else {
-            item.resolve();
+            settle(item, null);
         }
     }
+
+    return true;
 }
 
-function settleFailed(batch: QueuedCommand[], err: unknown): void {
+function failBatch(batch: QueuedCommand[], err: unknown, epoch: number): boolean {
+    if (epoch !== queueEpoch) {
+        return true;
+    }
+
+    inFlight = [];
+    if (err instanceof OfflineError) {
+        queue.unshift(...batch);
+        notifyCommands();
+        scheduleResend();
+        return false;
+    }
+
+    queueChanged();
     const error = err instanceof Error ? err : new ApiError('Неизвестная ошибка сервера.');
     for (const item of batch) {
-        item.reject(error);
+        settle(item, error);
     }
+
+    return true;
+}
+
+if (typeof window !== 'undefined') {
+    window.addEventListener('online', () => {
+        clearResend();
+        void flushCommands();
+    });
 }
 
 export async function apiPost(url: string, signal?: AbortSignal, body?: unknown): Promise<void> {
+    assertWritable();
     await flushCommands();
     const commandId = newCommandId();
     try {
@@ -406,8 +553,10 @@ export const leaveGuestbookEntry = (hostPlayerId: number, phraseId: number, sign
 export const getGuestbook = (signal?: AbortSignal): Promise<GuestbookDto> =>
     apiGet('Domiki/GetGuestbook', guestbookSchema, signal);
 
-export const helpVillage = (hostPlayerId: number, signal?: AbortSignal): Promise<HelpResultDto> =>
-    request('POST', `Domiki/HelpVillage/${hostPlayerId}`, helpResultSchema, signal);
+export const helpVillage = async (hostPlayerId: number, signal?: AbortSignal): Promise<HelpResultDto> => {
+    assertWritable();
+    return request('POST', `Domiki/HelpVillage/${hostPlayerId}`, helpResultSchema, signal);
+};
 
 export const startExpedition = (expeditionTypeId: number, workerIds?: number[], provisions?: boolean, signal?: AbortSignal): Promise<void> => {
     const query = [
@@ -471,8 +620,12 @@ export const buyPerk = (perkType: number, signal?: AbortSignal): Promise<void> =
 export const getPushPublicKey = (signal?: AbortSignal): Promise<string> =>
     apiGet('Push/PublicKey', z.string(), signal);
 
-export const subscribePush = (subscription: { endpoint: string; p256dh: string; auth: string }, signal?: AbortSignal): Promise<void> =>
-    request('POST', 'Push/Subscribe', null, signal, subscription);
+export const subscribePush = async (subscription: { endpoint: string; p256dh: string; auth: string }, signal?: AbortSignal): Promise<void> => {
+    assertWritable();
+    await request('POST', 'Push/Subscribe', null, signal, subscription);
+};
 
-export const unsubscribePush = (endpoint: string, signal?: AbortSignal): Promise<void> =>
-    request('POST', 'Push/Unsubscribe', null, signal, { endpoint });
+export const unsubscribePush = async (endpoint: string, signal?: AbortSignal): Promise<void> => {
+    assertWritable();
+    await request('POST', 'Push/Unsubscribe', null, signal, { endpoint });
+};

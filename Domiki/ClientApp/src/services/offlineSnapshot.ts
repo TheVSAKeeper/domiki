@@ -1,12 +1,15 @@
 import { z } from 'zod';
-import { gameStateSchema, type GameStateDto } from '../types/api';
+import { gameStateSchema, queuedCommandSchema, type GameStateDto, type QueuedCommandDto } from '../types/api';
 
 const DB_NAME = 'domiki-offline';
 const STORE_NAME = 'snapshot';
 const RECORD_KEY = 'game-state';
 const FACTS_KEY = 'wiki-facts';
+const COMMANDS_KEY = 'commands';
 
 const factsSchema = z.record(z.string(), z.string());
+
+const commandsSchema = z.array(queuedCommandSchema);
 
 const LEGACY_BOARD_SIZE = 3;
 
@@ -158,7 +161,32 @@ export async function loadWikiFacts(): Promise<Readonly<Record<string, string>>>
     return parsed.success ? parsed.data : {};
 }
 
+export async function saveCommands(commands: readonly QueuedCommandDto[]): Promise<void> {
+    if (commands.length === 0) {
+        await withStore('readwrite', store => store.delete(COMMANDS_KEY));
+        return;
+    }
+
+    await withStore('readwrite', store => store.put([...commands], COMMANDS_KEY));
+}
+
+export async function loadCommands(): Promise<QueuedCommandDto[]> {
+    const stored = await withStore<unknown>('readonly', store => store.get(COMMANDS_KEY) as IDBRequest<unknown>);
+    if (stored == null) {
+        return [];
+    }
+
+    const parsed = commandsSchema.safeParse(stored);
+    if (!parsed.success) {
+        await withStore('readwrite', store => store.delete(COMMANDS_KEY));
+        return [];
+    }
+
+    return parsed.data;
+}
+
 export async function clearSnapshot(): Promise<void> {
     await withStore('readwrite', store => store.delete(RECORD_KEY));
     await withStore('readwrite', store => store.delete(FACTS_KEY));
+    await withStore('readwrite', store => store.delete(COMMANDS_KEY));
 }

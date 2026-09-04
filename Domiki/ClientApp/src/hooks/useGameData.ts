@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { acceptLot as acceptLotApi, apiGet, ApiError, enqueueCommand, buyDecor as buyDecorApi, buyFromConvoy as buyFromConvoyApi, buyPerk as buyPerkApi, cancelLot as cancelLotApi, contributeToloka as contributeTolokaApi, getDecor, getGameState, getMarket, getToloka, getVillage, hurryDomik as hurryDomikApi, postLot as postLotApi, relocate as relocateApi, setFoodRule as setFoodRuleApi, setManufactureMeasure as setManufactureMeasureApi, setResourceReserve as setResourceReserveApi, setVillage as setVillageApi, startExpedition as startExpeditionApi, voteToloka as voteTolokaApi } from '../services/api';
-import { OfflineError, setCommandPlayerId, setCommandsSink, setReadOnlyMode, setStateSink } from '../services/api';
+import { flushCommands, OfflineError, restoreCommands, setCommandFailureSink, setCommandPlayerId, setCommandsSink, setReadOnlyMode, setStateSink } from '../services/api';
 import { useToast } from '../services/toastContext';
 import {
     domikTypeSchema,
@@ -101,6 +101,7 @@ export interface GameData {
     relocate: (valleyId: number, villageName: string | null) => Promise<void>;
     buyPerk: (perkType: number) => Promise<void>;
     predictedManufactureIds: number[];
+    pendingCount: number;
     waitingOrderIds: number[];
     staleSince: number | null;
     recap: RecapDto | null;
@@ -339,6 +340,15 @@ export function useGameData(): GameData {
     useEffect(() => {
         setCommandsSink(intents => setPendingIntents(intents));
         return () => setCommandsSink(null);
+    }, []);
+
+    useEffect(() => {
+        setCommandFailureSink(message => toast.error(message));
+        return () => setCommandFailureSink(null);
+    }, [toast]);
+
+    useEffect(() => {
+        void restoreCommands();
     }, []);
 
     useEffect(() => {
@@ -620,6 +630,7 @@ export function useGameData(): GameData {
 
     useEffect(() => {
         const handleOnline = () => {
+            void flushCommands();
             scheduleReload();
         };
 
@@ -790,6 +801,7 @@ export function useGameData(): GameData {
         relocate,
         buyPerk,
         predictedManufactureIds: predicted?.predictedManufactureIds ?? [],
+        pendingCount: pendingIntents.length,
         waitingOrderIds: predicted?.waitingOrderIds ?? [],
         staleSince,
         recap,

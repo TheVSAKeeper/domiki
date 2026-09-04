@@ -772,13 +772,23 @@ export const commandBatchResultSchema = z.object({
 });
 export type CommandBatchResultDto = z.infer<typeof commandBatchResultSchema>;
 
-export type GameCommand =
-    | { kind: 'BuyDomik'; args: { typeId: number } }
-    | { kind: 'UpgradeDomik'; args: { domikId: number } }
-    | { kind: 'StartManufacture'; args: { domikId: number; receiptId: number; useOptional: boolean; autoRepeat: boolean; workerIds: number[] } }
-    | { kind: 'HurryManufacture'; args: { manufactureId: number } }
-    | { kind: 'SetManufactureAutoRepeat'; args: { manufactureId: number; autoRepeat: boolean } }
-    | { kind: 'CompleteOrder'; args: { orderId: number } };
+export const gameCommandSchema = z.discriminatedUnion('kind', [
+    z.object({ kind: z.literal('BuyDomik'), args: z.object({ typeId: z.number() }) }),
+    z.object({ kind: z.literal('UpgradeDomik'), args: z.object({ domikId: z.number() }) }),
+    z.object({ kind: z.literal('StartManufacture'), args: z.object({ domikId: z.number(), receiptId: z.number(), useOptional: z.boolean(), autoRepeat: z.boolean(), workerIds: z.array(z.number()) }) }),
+    z.object({ kind: z.literal('HurryManufacture'), args: z.object({ manufactureId: z.number() }) }),
+    z.object({ kind: z.literal('SetManufactureAutoRepeat'), args: z.object({ manufactureId: z.number(), autoRepeat: z.boolean() }) }),
+    z.object({ kind: z.literal('CompleteOrder'), args: z.object({ orderId: z.number() }) }),
+]);
+export type GameCommand = z.infer<typeof gameCommandSchema>;
+
+export const queuedCommandSchema = z.object({
+    commandId: z.string(),
+    command: gameCommandSchema,
+    queuedAtMs: z.number(),
+    playerId: z.number().nullable(),
+});
+export type QueuedCommandDto = z.infer<typeof queuedCommandSchema>;
 
 export interface QueuedIntent {
     command: GameCommand;

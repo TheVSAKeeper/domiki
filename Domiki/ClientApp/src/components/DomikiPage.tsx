@@ -72,7 +72,7 @@ export const DomikiPage = () => {
     useEffect(() => { perfCommitProbe(); });
 
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, orderBoardSize, orderFreeConcession, errands, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, staleSince, predictedManufactureIds, waitingOrderIds, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, orderBoardSize, orderFreeConcession, errands, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, staleSince, pendingCount, predictedManufactureIds, waitingOrderIds, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
         useGameData();
 
     const [recapOpen, setRecapOpen] = useState(false);
@@ -192,8 +192,8 @@ export const DomikiPage = () => {
         }
     };
 
-    const runCommand = (command: GameCommand, successMessage?: string): Promise<boolean> => {
-        void enqueueCommand(command)
+    const runDetached = (work: Promise<void>, successMessage?: string): Promise<boolean> => {
+        void work
             .then(() => {
                 if (successMessage != null) {
                     toast.success(successMessage);
@@ -207,6 +207,9 @@ export const DomikiPage = () => {
 
         return Promise.resolve(true);
     };
+
+    const runCommand = (command: GameCommand, successMessage?: string): Promise<boolean> =>
+        runDetached(enqueueCommand(command), successMessage);
 
     const buy = (typeId: number) => {
         const domikType = domikTypes.find(type => type.id === typeId);
@@ -489,7 +492,7 @@ export const DomikiPage = () => {
                     <PixelLoader label="Загрузка деревни…" />
                 </div>
             }
-            <OfflineBanner staleSince={staleSince} />
+            <OfflineBanner staleSince={staleSince} pendingCount={pendingCount} />
             {villageSlot != null && createPortal(
                 <h1 className="village-title">
                     <button type="button" className="village-identity" title="Настроить деревню" onClick={openIdentity}>
