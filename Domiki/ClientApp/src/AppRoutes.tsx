@@ -6,6 +6,7 @@ import { PerfZone } from './components/PerfZone';
 const Home = lazy(() => import('./components/Home').then(({ Home }) => ({ default: Home })));
 const DomikiPage = lazy(() => import('./components/DomikiPage').then(({ DomikiPage }) => ({ default: DomikiPage })));
 const Wiki = lazy(() => import('./components/Wiki').then(({ Wiki }) => ({ default: Wiki })));
+const ChangelogPage = lazy(() => import('./components/ChangelogPage').then(({ ChangelogPage }) => ({ default: ChangelogPage })));
 const WorldPage = lazy(() => import('./components/WorldPage').then(({ WorldPage }) => ({ default: WorldPage })));
 
 const lazyPage = (page: ReactNode) => <Suspense fallback={<PixelLoader label="Загрузка…" />}>{page}</Suspense>;
@@ -31,6 +32,10 @@ const AppRoutes: AppRouteConfig[] = [
         path: '/wiki',
         element: lazyPage(<Wiki />),
         requireAuth: true,
+    },
+    {
+        path: '/vestnik',
+        element: lazyPage(<ChangelogPage />),
     },
     {
         path: '/world',

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import MenuIcon from 'pixelarticons/svg/menu.svg?react';
 import HomeIcon from 'pixelarticons/svg/home.svg?react';
 import { LoginMenu } from './api-authorization/LoginMenu';
-import { ChangelogButton } from './ChangelogButton';
+import { ChangelogLink } from './ChangelogLink';
 import { InstallHint } from './InstallHint';
 import { PushToggle } from './PushToggle';
 import { MechanicSprite } from './sprites';
@@ -53,7 +53,7 @@ export const NavMenu = () => {
                             </Link>
                         </li>
                         <li>
-                            <ChangelogButton onOpen={close} />
+                            <ChangelogLink onNavigate={close} />
                         </li>
                         <li>
                             <PushToggle />

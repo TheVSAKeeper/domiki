@@ -126,6 +126,20 @@ code {
     flex-shrink: 0;
 }
 
+.changelog-chip {
+    position: relative;
+}
+
+.hud-news-dot {
+    position: absolute;
+    top: 0;
+    right: -4px;
+    width: 9px;
+    height: 9px;
+    background: var(--roof);
+    border: 2px solid var(--ink);
+}
+
 .nav-user {
     display: inline-flex;
     align-items: center;

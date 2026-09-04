@@ -1,98 +1,32 @@
-.changelog-chip {
-    position: relative;
-}
-
-.nav-link.changelog-chip {
-    font: inherit;
-    font-weight: 600;
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-.nav-link.changelog-chip .hud-news-dot {
-    top: 0;
-    right: -4px;
-}
-
-.hud-news-dot {
-    position: absolute;
-    top: 4px;
-    right: 6px;
-    width: 9px;
-    height: 9px;
-    background: var(--roof);
-    border: 2px solid var(--ink);
-}
-
-.changelog-modal {
+.changelog-page {
     display: flex;
     flex-direction: column;
-    width: min(640px, calc(100vw - 32px));
-    max-height: calc(100vh - 32px);
-    max-height: var(--modal-max-height);
-    gap: 0;
-    overflow: hidden;
-    padding: 0;
-    box-shadow: inset 0 -4px 0 var(--plank-dark);
-}
-
-.changelog-scroll {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    gap: 14px;
-    min-height: 0;
-    overflow: auto;
-    padding: 14px 18px 18px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--pine) var(--plank-dark);
-}
-
-.changelog-scroll::-webkit-scrollbar {
-    width: 10px;
-}
-
-.changelog-scroll::-webkit-scrollbar-track {
-    background: var(--plank-dark);
-    border-left: 2px solid var(--ink);
-}
-
-.changelog-scroll::-webkit-scrollbar-thumb {
-    background: var(--pine);
-    border: 2px solid var(--ink);
-}
-
-dialog.changelog-modal {
-    margin: auto;
+    gap: var(--panel-gap);
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 0 56px;
     color: var(--ink);
 }
 
-dialog.changelog-modal:not([open]) {
-    display: none;
-}
-
-dialog.changelog-modal::backdrop {
-    background: rgba(51, 41, 26, .42);
+.changelog-intro {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: var(--panel-pad-y) var(--panel-pad-x);
 }
 
 .changelog-head {
-    position: relative;
-    z-index: 2;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 16px 18px 14px;
-    background:
-        radial-gradient(120% 140% at 50% -20%, rgba(231, 168, 59, .28), transparent 60%),
-        linear-gradient(180deg, var(--plank), var(--plank-dark));
-    border-bottom: 3px solid var(--ink);
-    box-shadow: 0 3px 0 var(--plank), 0 5px 0 var(--ink);
+    flex-direction: column;
+    gap: 4px;
 }
 
-.changelog-modal-title {
+.changelog-page-title {
     margin: 0;
+    font-family: var(--pixel);
+    font-size: clamp(18px, 5vw, 26px);
+    font-weight: 700;
 }
 
 .changelog-subtitle {
@@ -101,39 +35,37 @@ dialog.changelog-modal::backdrop {
     color: var(--ink-muted);
 }
 
-.changelog-close {
-    display: inline-flex;
+.changelog-status {
+    display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: center;
-    padding: 6px;
-    color: var(--ink);
-    background: var(--plank);
+    justify-content: space-between;
+    gap: 10px 12px;
+    width: 100%;
+    padding: var(--panel-pad-y) var(--panel-pad-x);
+    background: linear-gradient(0deg, var(--plank), var(--plank-dark));
     border: 2px solid var(--ink);
-    cursor: pointer;
-    transition: background .12s, color .12s;
 }
 
-.changelog-close:hover {
-    color: var(--pine);
-    background: var(--plank-dark);
-}
-
-.changelog-close:active {
-    box-shadow: inset 0 3px 0 rgba(51, 41, 26, .25);
+.changelog-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--panel-gap);
 }
 
 .changelog-month {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    padding: var(--panel-pad-y) var(--panel-pad-x);
 }
 
 .changelog-month-title {
     position: sticky;
-    top: -14px;
+    top: 0;
     z-index: 1;
-    margin: 0 -18px 6px;
-    padding: 6px 18px;
+    margin: calc(var(--panel-pad-y) * -1) calc(var(--panel-pad-x) * -1) 6px;
+    padding: 8px var(--panel-pad-x);
     font-size: 10px;
     letter-spacing: .08em;
     text-transform: uppercase;
@@ -241,19 +173,6 @@ dialog.changelog-modal::backdrop {
     content: '– ';
 }
 
-.changelog-foot {
-    position: relative;
-    z-index: 2;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px 12px;
-    padding: 12px 18px 14px;
-    background: linear-gradient(0deg, var(--plank), var(--plank-dark));
-    border-top: 2px solid var(--ink);
-}
-
 .changelog-version {
     display: flex;
     flex-direction: column;
@@ -314,11 +233,11 @@ dialog.changelog-modal::backdrop {
 }
 
 @media (max-width: 520px) {
-    .changelog-modal {
-        width: calc(100vw - 16px);
+    .changelog-page {
+        padding: 16px 0 40px;
     }
 
-    .changelog-foot {
+    .changelog-status {
         flex-direction: column;
         align-items: stretch;
     }

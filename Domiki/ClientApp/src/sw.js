@@ -5,6 +5,7 @@ const spaRoutes = [
     /^\/$/,
     /^\/domiki-page(\/[^/]*)?$/,
     /^\/wiki$/,
+    /^\/vestnik$/,
     /^\/world$/,
 ];
 
