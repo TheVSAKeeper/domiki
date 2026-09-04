@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { reportServerVersion } from './appVersion';
 import { authService } from './auth';
+import { EXPIRED_COMMAND_TEXT } from '../utils/offlineOutcomeTexts';
 import { clearSnapshot, loadCommands, saveCommands } from './offlineSnapshot';
 import {
     decorStateSchema,
@@ -22,6 +23,7 @@ import {
     type GameCommand,
     type GameStateDto,
     type QueuedIntent,
+    type OfflineOutcome,
     type JournalPageDto,
     type GuestbookDto,
     type HelpResultDto,
@@ -56,6 +58,13 @@ export class OfflineError extends ApiError {
     }
 }
 
+export class QueuedOutcomeError extends ApiError {
+    constructor(message: string) {
+        super(message);
+        this.name = 'QueuedOutcomeError';
+    }
+}
+
 let readOnly = false;
 
 export function setReadOnlyMode(value: boolean): void {
@@ -72,7 +81,7 @@ const COMMAND_HORIZON_MS = 6 * 60 * 60 * 1000;
 
 const COMMAND_RESEND_DELAYS_MS = [2000, 5000, 15000, 30000, 60000];
 
-const EXPIRED_COMMAND_MESSAGE = 'Это дело слишком долго ждало связи – деревня уже живёт своим чередом. Начните заново.';
+const OUTCOME_PANEL_THRESHOLD_MS = 5000;
 
 function assertWritable(): void {
     if (readOnly) {
@@ -187,7 +196,7 @@ export const getGameState = (signal?: AbortSignal): Promise<GameStateDto> =>
 export const getWikiState = (signal?: AbortSignal): Promise<WikiStateDto> =>
     apiGet('Domiki/GetWikiState', wikiStateSchema, signal);
 
-export type { GameCommand, QueuedIntent } from '../types/api';
+export type { GameCommand, OfflineOutcome, QueuedIntent } from '../types/api';
 
 interface QueuedCommand {
     commandId: string;
@@ -216,9 +225,9 @@ export function setCommandPlayerId(playerId: number | null): void {
     commandPlayerId = playerId;
 }
 
-let failureSink: ((message: string) => void) | null = null;
+let failureSink: ((outcome: OfflineOutcome) => void) | null = null;
 
-export function setCommandFailureSink(sink: ((message: string) => void) | null): void {
+export function setCommandFailureSink(sink: ((outcome: OfflineOutcome) => void) | null): void {
     failureSink = sink;
 }
 
@@ -242,12 +251,13 @@ function settle(item: QueuedCommand, error: Error | null): void {
         return;
     }
 
-    if (item.reject != null) {
-        item.reject(error);
+    if (Date.now() - item.queuedAtMs >= OUTCOME_PANEL_THRESHOLD_MS || item.reject == null) {
+        failureSink?.({ kind: item.command.kind, reason: error.message });
+        item.reject?.(new QueuedOutcomeError(error.message));
         return;
     }
 
-    failureSink?.(error.message);
+    item.reject(error);
 }
 
 let resendTimer: ReturnType<typeof setTimeout> | null = null;
@@ -288,7 +298,7 @@ function dropExpired(): void {
     queue.push(...kept);
     queueChanged();
     for (const item of expired) {
-        settle(item, new ApiError(EXPIRED_COMMAND_MESSAGE));
+        settle(item, new ApiError(EXPIRED_COMMAND_TEXT));
     }
 }
 

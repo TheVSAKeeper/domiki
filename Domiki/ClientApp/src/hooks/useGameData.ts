@@ -18,6 +18,7 @@ import {
     type ExpeditionStateDto,
     type GameStateDto,
     type QueuedIntent,
+    type OfflineOutcome,
     type GoalsStateDto,
     type MarketStateDto,
     type NeighborReputationDto,
@@ -102,6 +103,8 @@ export interface GameData {
     buyPerk: (perkType: number) => Promise<void>;
     predictedManufactureIds: number[];
     pendingCount: number;
+    offlineOutcomes: OfflineOutcome[];
+    clearOfflineOutcomes: () => void;
     waitingOrderIds: number[];
     staleSince: number | null;
     recap: RecapDto | null;
@@ -184,6 +187,7 @@ export function useGameData(): GameData {
     const [events, setEvents] = useState<RecapEventDto[]>([]);
     const [serverState, setServerState] = useState<GameStateDto | null>(null);
     const [pendingIntents, setPendingIntents] = useState<QueuedIntent[]>([]);
+    const [offlineOutcomes, setOfflineOutcomes] = useState<OfflineOutcome[]>([]);
     const [staleSince, setStaleSince] = useState<number | null>(null);
     const [now, setNow] = useState(() => Date.now());
     const [loading, setLoading] = useState(true);
@@ -343,9 +347,11 @@ export function useGameData(): GameData {
     }, []);
 
     useEffect(() => {
-        setCommandFailureSink(message => toast.error(message));
+        setCommandFailureSink(outcome => {
+            setOfflineOutcomes(previous => [...previous, outcome]);
+        });
         return () => setCommandFailureSink(null);
-    }, [toast]);
+    }, []);
 
     useEffect(() => {
         void restoreCommands();
@@ -495,6 +501,8 @@ export function useGameData(): GameData {
     }, [scheduleReload]);
 
     const clearRecap = useCallback(() => setRecap(null), []);
+
+    const clearOfflineOutcomes = useCallback(() => setOfflineOutcomes([]), []);
 
     const buyDecor = useCallback(async (decorTypeId: number) => {
         await buyDecorApi(decorTypeId);
@@ -802,6 +810,8 @@ export function useGameData(): GameData {
         buyPerk,
         predictedManufactureIds: predicted?.predictedManufactureIds ?? [],
         pendingCount: pendingIntents.length,
+        offlineOutcomes,
+        clearOfflineOutcomes,
         waitingOrderIds: predicted?.waitingOrderIds ?? [],
         staleSince,
         recap,

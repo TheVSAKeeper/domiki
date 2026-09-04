@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
 import type { NeighborReputationDto } from '../types/api';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { acceptErrand as acceptErrandApi, ApiError, cancelErrand as cancelErrandApi, cancelOrder as cancelOrderApi, enqueueCommand, setFriendNeighbor as setFriendNeighborApi, setVillageProfile as setVillageProfileApi, startIncidentSearch as startIncidentSearchApi } from '../services/api';
+import { acceptErrand as acceptErrandApi, ApiError, cancelErrand as cancelErrandApi, cancelOrder as cancelOrderApi, enqueueCommand, QueuedOutcomeError, setFriendNeighbor as setFriendNeighborApi, setVillageProfile as setVillageProfileApi, startIncidentSearch as startIncidentSearchApi } from '../services/api';
 import type { GameCommand } from '../services/api';
 import { useToast } from '../services/toastContext';
 import { useGameData } from '../hooks/useGameData';
@@ -46,6 +46,7 @@ import { GuestbookBox } from './GuestbookBox';
 import { RelocationBox } from './RelocationBox';
 import { ShopBox } from './ShopBox';
 import { RecapModal } from './RecapModal';
+import { OfflineOutcomesModal } from './OfflineOutcomesModal';
 import { AbstractSprite, MechanicSprite } from './sprites';
 import { OfflineBanner } from './OfflineBanner';
 import { PixelLoader } from './PixelLoader';
@@ -72,7 +73,7 @@ export const DomikiPage = () => {
     useEffect(() => { perfCommitProbe(); });
 
     const toast = useToast();
-    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, orderBoardSize, orderFreeConcession, errands, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, staleSince, pendingCount, predictedManufactureIds, waitingOrderIds, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
+    const { domiks, domikTypes, resourceTypes, receipts, resources, orders, orderBoardSize, orderFreeConcession, errands, incident, domikIncident, reputation, blueprints, village, villageLevel, goldMinedToday, villageProfiles, relocation, weather, expeditions, decor, toloka, market, convoys, goals, workers, cloaks, larder, ledger, reserves, sickTypes, purchaseDomikTypes, now, loading, staleSince, pendingCount, offlineOutcomes, clearOfflineOutcomes, predictedManufactureIds, waitingOrderIds, scheduleReload, refreshPurchaseTypes, setVillage, hurryManufacture, setManufactureAutoRepeat, setManufactureMeasure, setResourceReserve, hurryDomik, startExpedition, buyDecor, setFoodRule, contributeToloka, voteToloka, postLot, acceptLot, cancelLot, buyFromConvoy, relocate, buyPerk, recap, clearRecap, events } =
         useGameData();
 
     const [recapOpen, setRecapOpen] = useState(false);
@@ -201,7 +202,9 @@ export const DomikiPage = () => {
                 scheduleReload();
             })
             .catch((err: unknown) => {
-                toast.error(err instanceof ApiError ? err.message : 'Деревня не приняла действие, попробуйте ещё раз.');
+                if (!(err instanceof QueuedOutcomeError)) {
+                    toast.error(err instanceof ApiError ? err.message : 'Деревня не приняла действие, попробуйте ещё раз.');
+                }
                 scheduleReload();
             });
 
@@ -528,6 +531,9 @@ export const DomikiPage = () => {
                     toloka={toloka}
                     onClose={clearRecap}
                 />
+            }
+            {offlineOutcomes.length > 0 &&
+                <OfflineOutcomesModal outcomes={offlineOutcomes} onClose={clearOfflineOutcomes} />
             }
             {onBoard && <>
             <PerfZone id="двор">

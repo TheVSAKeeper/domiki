@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import type { QueuedCommandDto, QueuedIntent } from '../types/api';
-import { apiGet, ApiError, apiPost, dropQueue, enqueueCommand, flushCommands, OfflineError, restoreCommands, setCommandFailureSink, setCommandPlayerId, setCommandsSink, setReadOnlyMode } from './api';
+import { apiGet, ApiError, apiPost, dropQueue, enqueueCommand, flushCommands, OfflineError, QueuedOutcomeError, restoreCommands, setCommandFailureSink, setCommandPlayerId, setCommandsSink, setReadOnlyMode } from './api';
 import { loadCommands, saveCommands } from './offlineSnapshot';
 
 vi.mock('./auth', () => ({
@@ -324,7 +324,7 @@ describe('api', () => {
 
         try {
             await flushCommands();
-            await expect(queued).rejects.toThrow('слишком долго ждало связи');
+            await expect(queued).rejects.toThrow('ждало связи слишком долго');
         } finally {
             clock.mockRestore();
         }
@@ -342,7 +342,7 @@ describe('api', () => {
             { commandId: '', status: 'Rejected', error: 'Не хватает монет' },
         ]);
         const failures: string[] = [];
-        setCommandFailureSink(message => failures.push(message));
+        setCommandFailureSink(outcome => failures.push(outcome.reason));
 
         try {
             await restoreCommands();
@@ -355,6 +355,24 @@ describe('api', () => {
         expect(sentCommands(0).map(item => item.commandId)).toEqual(['c1', 'c2']);
         expect(sentBatch(0).playerId).toBe(42);
         expect(failures).toEqual(['Не хватает монет']);
+    });
+
+    it('отказ по делу, дождавшемуся связи, уходит в панель исходов, а не в отклонение кнопки', async () => {
+        mockCommands([{ commandId: '', status: 'Rejected', error: 'Не хватает монет' }]);
+        const outcomes: { kind: string; reason: string }[] = [];
+        setCommandFailureSink(outcome => outcomes.push(outcome));
+        const queued = enqueueCommand({ kind: 'BuyDomik', args: { typeId: 3 } });
+        const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 60_000);
+
+        try {
+            await flushCommands();
+            await expect(queued).rejects.toBeInstanceOf(QueuedOutcomeError);
+        } finally {
+            clock.mockRestore();
+            setCommandFailureSink(null);
+        }
+
+        expect(outcomes).toEqual([{ kind: 'BuyDomik', reason: 'Не хватает монет' }]);
     });
 
     it('намерение, поставленное во время восстановления, не вытесняет очередь с диска', async () => {

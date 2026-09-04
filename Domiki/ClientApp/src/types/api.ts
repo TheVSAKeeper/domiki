@@ -795,6 +795,11 @@ export interface QueuedIntent {
     queuedAtMs: number;
 }
 
+export interface OfflineOutcome {
+    kind: GameCommand['kind'];
+    reason: string;
+}
+
 export const wikiStateSchema = z.object({
     facts: z.record(z.string(), z.string()),
     domikTypes: domikTypeSchema.array(),
