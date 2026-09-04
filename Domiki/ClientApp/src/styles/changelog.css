@@ -122,27 +122,82 @@ dialog.changelog-modal::backdrop {
     box-shadow: inset 0 3px 0 rgba(51, 41, 26, .25);
 }
 
-.changelog-issue {
-    padding-bottom: 14px;
-    padding-left: 10px;
-    border-bottom: 2px dashed rgba(51, 41, 26, .3);
-    border-left: 3px solid transparent;
+.changelog-month {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
-.changelog-issue:last-of-type {
-    padding-bottom: 0;
-    border-bottom: none;
+.changelog-month-title {
+    position: sticky;
+    top: -14px;
+    z-index: 1;
+    margin: 0 -18px 6px;
+    padding: 6px 18px;
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: var(--plank);
+    border-bottom: 2px solid rgba(51, 41, 26, .18);
+}
+
+.changelog-issue {
+    padding-left: 10px;
+    border-left: 3px solid transparent;
 }
 
 .changelog-issue[data-fresh='true'] {
     border-left-color: var(--coin);
 }
 
-.changelog-issue-head {
+.changelog-issue[data-open='true'] {
+    padding-bottom: 12px;
+    border-bottom: 2px dashed rgba(51, 41, 26, .3);
+}
+
+.changelog-issue-heading {
+    margin: 0;
+    font-size: inherit;
+}
+
+.changelog-issue-toggle {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 4px;
+    width: 100%;
+    min-height: 40px;
+    padding: 4px 0;
+    text-align: left;
+    color: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.changelog-issue-toggle:hover .changelog-title {
+    color: var(--pine);
+}
+
+.changelog-chevron {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    color: var(--ink-muted);
+    transition: transform .12s steps(2);
+}
+
+.changelog-issue[data-open='true'] .changelog-chevron {
+    transform: rotate(90deg);
+}
+
+.changelog-issue-body {
+    padding-top: 6px;
+}
+
+.changelog-issue-toggle .changelog-date {
+    margin-left: auto;
+    flex: none;
 }
 
 .changelog-date {
@@ -163,7 +218,7 @@ dialog.changelog-modal::backdrop {
 }
 
 .changelog-title {
-    margin: 0 0 4px;
+    margin: 0;
 }
 
 .changelog-lore {

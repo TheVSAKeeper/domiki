@@ -1,5 +1,7 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import CloseIcon from 'pixelarticons/svg/close.svg?react';
+import ChevronRightIcon from 'pixelarticons/svg/chevron-right.svg?react';
+import type { ChangelogEntry } from '../constants/changelog';
 import { CHANGELOG } from '../constants/changelog';
 import { applyUpdate, checkForUpdate, loadedBuildId, useUpdateAvailable } from '../services/appVersion';
 
@@ -20,6 +22,39 @@ const checkNotes: Record<CheckState, string> = {
 
 const dateFormatter = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
 
+const dayFormatter = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' });
+
+const monthFormatter = new Intl.DateTimeFormat('ru-RU', { month: 'long', year: 'numeric' });
+
+const monthLabel = (date: string): string => {
+    const text = monthFormatter.format(new Date(date)).replace(' г.', '');
+    return text.charAt(0).toUpperCase() + text.slice(1);
+};
+
+interface ChangelogMonth {
+    key: string;
+    label: string;
+    entries: ChangelogEntry[];
+}
+
+const buildMonths = (): ChangelogMonth[] => {
+    const byMonth = new Map<string, ChangelogEntry[]>();
+    for (const entry of [...CHANGELOG].reverse()) {
+        const key = entry.date.slice(0, 7);
+        const bucket = byMonth.get(key);
+        if (bucket == null) {
+            byMonth.set(key, [entry]);
+        } else {
+            bucket.push(entry);
+        }
+    }
+
+    return [...byMonth.entries()].flatMap(([key, entries]) => {
+        const first = entries[0];
+        return first == null ? [] : [{ key, label: monthLabel(first.date), entries }];
+    });
+};
+
 export const ChangelogModal = ({ lastSeenId, onClose }: ChangelogModalProps) => {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [checkState, setCheckState] = useState<CheckState>('idle');
@@ -32,10 +67,26 @@ export const ChangelogModal = ({ lastSeenId, onClose }: ChangelogModalProps) => 
         }
     }, []);
 
-    const entries = [...CHANGELOG].reverse();
+    const months = useMemo(() => buildMonths(), []);
     const markFresh = lastSeenId > 0;
-    const latest = entries[0];
+    const latest = months[0]?.entries[0];
     const buildId = loadedBuildId();
+
+    const [openIds, setOpenIds] = useState<ReadonlySet<number>>(() => {
+        const unread = CHANGELOG.filter(entry => lastSeenId > 0 && entry.id > lastSeenId).map(entry => entry.id);
+        const newest = CHANGELOG.reduce((max, entry) => Math.max(max, entry.id), 0);
+        return new Set(unread.length > 0 ? unread : [newest]);
+    });
+
+    const toggle = (id: number) => {
+        setOpenIds(previous => {
+            const next = new Set(previous);
+            if (!next.delete(id)) {
+                next.add(id);
+            }
+            return next;
+        });
+    };
 
     const runCheck = async () => {
         setCheckState('checking');
@@ -59,18 +110,34 @@ export const ChangelogModal = ({ lastSeenId, onClose }: ChangelogModalProps) => 
                 </button>
             </div>
             <div className="changelog-scroll">
-                {entries.map(entry => (
-                    <article key={entry.id} className="changelog-issue" data-fresh={markFresh && entry.id > lastSeenId}>
-                        <div className="changelog-issue-head">
-                            <span className="changelog-date">Выпуск от {dateFormatter.format(new Date(entry.date))}</span>
-                            {markFresh && entry.id > lastSeenId && <span className="changelog-fresh">новое</span>}
-                        </div>
-                        <h3 className="changelog-title">{entry.title}</h3>
-                        <p className="changelog-lore">{entry.lore}</p>
-                        <ul className="changelog-items">
-                            {entry.items.map(item => <li key={item}>{item}</li>)}
-                        </ul>
-                    </article>
+                {months.map(month => (
+                    <section key={month.key} className="changelog-month">
+                        <h3 className="changelog-month-title">{month.label}</h3>
+                        {month.entries.map(entry => {
+                            const expanded = openIds.has(entry.id);
+                            const fresh = markFresh && entry.id > lastSeenId;
+                            return (
+                                <article key={entry.id} className="changelog-issue" data-fresh={fresh} data-open={expanded}>
+                                    <h4 className="changelog-issue-heading">
+                                        <button type="button" className="changelog-issue-toggle" aria-expanded={expanded} onClick={() => { toggle(entry.id); }}>
+                                            <ChevronRightIcon className="changelog-chevron" aria-hidden="true" />
+                                            <span className="changelog-title">{entry.title}</span>
+                                            {fresh && <span className="changelog-fresh">новое</span>}
+                                            <span className="changelog-date">{dayFormatter.format(new Date(entry.date))}</span>
+                                        </button>
+                                    </h4>
+                                    {expanded &&
+                                        <div className="changelog-issue-body">
+                                            <p className="changelog-lore">{entry.lore}</p>
+                                            <ul className="changelog-items">
+                                                {entry.items.map(item => <li key={item}>{item}</li>)}
+                                            </ul>
+                                        </div>
+                                    }
+                                </article>
+                            );
+                        })}
+                    </section>
                 ))}
             </div>
             <div className="changelog-foot">
