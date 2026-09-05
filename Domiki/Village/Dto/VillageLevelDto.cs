@@ -28,8 +28,9 @@ public sealed record VillageLevelDto
     /// Потолок вместимости артели: выше него койки уже не считаются.
     /// </summary>
     /// <remarks>
-    /// Равен <see cref="Workers.WorkerManager.MaxCapacity"/>; <see cref="Residents"/> в него упирается на хвосте
-    /// лестницы Артельных изб. Число живёт только здесь – клиент показывает потолок из этого поля.
+    /// Равен <see cref="Workers.WorkerManager.MaxCapacity"/> – полной лестнице Артельных изб: отстроенный двор доходит до него
+    /// ровно, а режется им только «Запасная койка» сверх лестницы. Число живёт только здесь – клиент показывает потолок
+    /// из этого поля.
     /// </remarks>
     public required int ResidentsCap { get; init; }
 

@@ -29,6 +29,7 @@ internal sealed class SimulationRun
     private const int StallWarningSeconds = 24 * 60 * 60;
     private const int BuyResourceCoinReserveMultiplier = 20;
     private const int StartingBarracksTypeId = 2;
+    private const string BarracksLogicName = "barracks";
     private const int StartingClayMineTypeId = 5;
 
     private readonly SimulationData _data;
@@ -1150,6 +1151,11 @@ internal sealed class SimulationRun
                 Trait = _data.Traits[_random.Next(_data.Traits.Length)],
             });
         }
+
+        if (GetBedCount() >= WorkerManager.MaxCapacity)
+        {
+            _result.WorkerCapReachedSeconds ??= _now;
+        }
     }
 
     private int GetVillageLevel()
@@ -1168,8 +1174,12 @@ internal sealed class SimulationRun
 
     private int GetCapacity()
     {
-        var beds = _state.Domiks.Where(x => x.Level > 0).Sum(x => GetCapacity(x.Type, GetDomikLevel(x)));
-        return Math.Min(WorkerManager.MaxCapacity, beds);
+        return Math.Min(WorkerManager.MaxCapacity, GetBedCount());
+    }
+
+    private int GetBedCount()
+    {
+        return _state.Domiks.Where(x => x.Level > 0).Sum(x => GetCapacity(x.Type, GetDomikLevel(x)));
     }
 
     private bool IsCountGateOpen(int domikTypeId, int ordinal, int villageLevel)
@@ -1257,6 +1267,12 @@ internal sealed class SimulationRun
         }
 
         _result.TotalWorkerSeconds = _state.TotalWorkerSeconds;
+        var barracks = _state.Domiks.Where(x => x.Level > 0 && x.Type.LogicName == BarracksLogicName).ToArray();
+        _result.BarracksCount = barracks.Length;
+        _result.BarracksLevelSum = barracks.Sum(x => x.Level);
+        _result.BedCount = GetBedCount();
+        _result.WorkerCapacity = GetCapacity();
+        _result.WorkerCount = _state.Workers.Count;
     }
 
     private bool RequiresBlueprint(DomikType type)

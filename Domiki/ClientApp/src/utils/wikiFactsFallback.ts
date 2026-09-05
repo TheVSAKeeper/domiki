@@ -181,7 +181,7 @@ export const wikiFactsFallback: Readonly<Record<string, string>> = {
     weatherWindForge: '−25',
     weatherWindLumberMill: '+25',
     weatherWindMill: '+50',
-    workerCap: '35',
+    workerCap: '40',
     workerSkillMaxPercent: '15',
     zealStartCharges: '24',
     zealX4Threshold: '16',

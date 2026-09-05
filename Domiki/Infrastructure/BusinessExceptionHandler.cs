@@ -2,7 +2,7 @@
 
 namespace Domiki.Web.Infrastructure;
 
-public class BusinessExceptionHandler(IProblemDetailsService problemDetailsService) : IExceptionHandler
+public class BusinessExceptionHandler(IProblemDetailsService problemDetailsService, ILogger<BusinessExceptionHandler> logger) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {
@@ -11,6 +11,7 @@ public class BusinessExceptionHandler(IProblemDetailsService problemDetailsServi
             return false;
         }
 
+        logger.LogInformation("Бизнес-отказ {Path}: {Message}", httpContext.Request.Path, exception.Message);
         httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
 
         return await problemDetailsService.TryWriteAsync(new ProblemDetailsContext

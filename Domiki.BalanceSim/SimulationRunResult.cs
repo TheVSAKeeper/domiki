@@ -27,4 +27,34 @@ public sealed class SimulationRunResult
     public long TotalWorkerSeconds { get; set; }
     public int ManufactureStartCount { get; set; }
     public int ClampFireCount { get; set; }
+
+    /// <summary>
+    /// Число Артельных изб на конец прогона.
+    /// </summary>
+    public int BarracksCount { get; set; }
+
+    /// <summary>
+    /// Сумма уровней Артельных изб на конец прогона.
+    /// </summary>
+    public int BarracksLevelSum { get; set; }
+
+    /// <summary>
+    /// Число коек всех построек на конец прогона – до ограничения капом <see cref="Domiki.Web.Workers.WorkerManager.MaxCapacity"/>.
+    /// </summary>
+    public int BedCount { get; set; }
+
+    /// <summary>
+    /// Вместимость артели на конец прогона – койки после ограничения капом.
+    /// </summary>
+    public int WorkerCapacity { get; set; }
+
+    /// <summary>
+    /// Число трудяг на конец прогона.
+    /// </summary>
+    public int WorkerCount { get; set; }
+
+    /// <summary>
+    /// Секунда прогона, на которой койки впервые достигли капа; <c>null</c>, если кап так и не сработал.
+    /// </summary>
+    public int? WorkerCapReachedSeconds { get; set; }
 }

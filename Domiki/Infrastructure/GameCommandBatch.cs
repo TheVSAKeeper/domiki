@@ -34,12 +34,14 @@ public class GameCommandBatch
     private readonly UnitOfWork _uow;
     private readonly ApplicationDbContext _context;
     private readonly GameCommandRegistry _registry;
+    private readonly ILogger<GameCommandBatch> _logger;
 
-    public GameCommandBatch(UnitOfWork uow, ApplicationDbContext context, GameCommandRegistry registry)
+    public GameCommandBatch(UnitOfWork uow, ApplicationDbContext context, GameCommandRegistry registry, ILogger<GameCommandBatch> logger)
     {
         _uow = uow;
         _context = context;
         _registry = registry;
+        _logger = logger;
     }
 
     /// <summary>
@@ -95,6 +97,7 @@ public class GameCommandBatch
         }
         catch (BusinessException exception)
         {
+            _logger.LogInformation("Бизнес-отказ {Kind}: {Message}", command.Kind, exception.Message);
             Undo(savepoint, afterEventActionCount);
             return Result(command, GameCommandStatus.Rejected, exception.Message);
         }

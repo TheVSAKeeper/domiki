@@ -1,6 +1,7 @@
 ﻿using Domiki.Web.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Text;
 using System.Text.Json;
 
@@ -25,7 +26,7 @@ public sealed class BusinessExceptionHandlerTests
         context.RequestServices = provider;
         context.Request.Headers.Accept = "application/json";
 
-        var handled = await new BusinessExceptionHandler(provider.GetRequiredService<IProblemDetailsService>())
+        var handled = await new BusinessExceptionHandler(provider.GetRequiredService<IProblemDetailsService>(), NullLogger<BusinessExceptionHandler>.Instance)
             .TryHandleAsync(context, new BusinessException("Не хватает монет"), CancellationToken.None);
 
         using (Assert.EnterMultipleScope())
@@ -54,7 +55,7 @@ public sealed class BusinessExceptionHandlerTests
         services.AddLogging();
         var provider = services.BuildServiceProvider();
 
-        var handled = await new BusinessExceptionHandler(provider.GetRequiredService<IProblemDetailsService>())
+        var handled = await new BusinessExceptionHandler(provider.GetRequiredService<IProblemDetailsService>(), NullLogger<BusinessExceptionHandler>.Instance)
             .TryHandleAsync(new DefaultHttpContext(), new InvalidOperationException("boom"), CancellationToken.None);
 
         Assert.That(handled, Is.False);

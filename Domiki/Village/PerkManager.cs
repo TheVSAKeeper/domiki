@@ -45,7 +45,7 @@ public class PerkManager
         {
             Type = RelocationPerkType.Liftings,
             Name = "Подъёмные",
-            Description = "Артель уходит не с пустым кошелём: в казне новой деревни сразу лишние 500 монет.",
+            Description = $"Артель уходит не с пустым кошелём: в казне новой деревни сразу лишние {LiftingsCoinsPerStep} монет.",
             Costs = [2, 4, 6],
             Level = 0,
         },
@@ -61,7 +61,7 @@ public class PerkManager
         {
             Type = RelocationPerkType.SpareBunk,
             Name = "Запасная койка",
-            Description = "В обозе едет лишняя койка: пока артельные избы не достроены, во дворе работает на одного трудягу больше. Отстроенная деревня и без неё упирается в свои тридцать пять.",
+            Description = $"В обозе едет лишняя койка: пока артельные избы не достроены, во дворе работает на одного трудягу больше. Отстроенная деревня и без неё упирается в свои {Workers.WorkerManager.MaxCapacity}.",
             Costs = [6, 12],
             Level = 0,
         },

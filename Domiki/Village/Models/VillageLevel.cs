@@ -30,8 +30,8 @@ public class VillageLevel
     /// Потолок вместимости артели: выше него койки уже не считаются.
     /// </summary>
     /// <remarks>
-    /// Равен <see cref="Workers.WorkerManager.MaxCapacity"/>; <see cref="Residents"/> в него упирается на хвосте
-    /// лестницы Артельных изб (GAMEDESIGN.md §4.4).
+    /// Равен <see cref="Workers.WorkerManager.MaxCapacity"/> – полной лестнице Артельных изб: отстроенный двор доходит до него
+    /// ровно, а режется им только «Запасная койка» сверх лестницы (GAMEDESIGN.md §4.4).
     /// </remarks>
     public int ResidentsCap { get; set; }
 

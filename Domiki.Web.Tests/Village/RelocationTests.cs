@@ -515,7 +515,8 @@ public sealed class RelocationTests
     }
 
     /// <summary>
-    /// Запасная койка добавляет жителя деревне, но общий потолок артели в 35 трудяг не двигает.
+    /// Запасная койка добавляет жителя деревне, но общий потолок артели <see cref="WorkerManager.MaxCapacity"/> не двигает:
+    /// на восьми избах пятого уровня она упирается в него.
     /// </summary>
     [Test]
     public void SpareBunkAddsBedWithinArtelCapTest()

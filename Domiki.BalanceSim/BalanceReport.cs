@@ -1,4 +1,5 @@
 ﻿using Domiki.Web.Reference;
+using Domiki.Web.Workers;
 using System.Globalization;
 using System.Text;
 
@@ -67,6 +68,8 @@ public sealed class BalanceReport
         }
 
         output.AppendLine($"Трудяги: простой {FormatPercent(Median(runs.Select(x => x.IdleShare)))}; отдых {FormatPercent(Median(runs.Select(x => x.RestShare)))}.");
+        output.AppendLine($"Артель на конец: изб {MedianInt(runs.Select(x => x.BarracksCount))}, сумма уровней {MedianInt(runs.Select(x => x.BarracksLevelSum))}, койки {MedianInt(runs.Select(x => x.BedCount))}, вместимость {MedianInt(runs.Select(x => x.WorkerCapacity))}, трудяг {MedianInt(runs.Select(x => x.WorkerCount))}.");
+        output.AppendLine($"Кап трудяг {WorkerManager.MaxCapacity}, ч: {FormatTime(MedianTime(runs.Select(x => x.WorkerCapReachedSeconds ?? -1)))}.");
         output.AppendLine("Финальные стоки");
         output.AppendLine("  Ресурс                      Кол-во  Монетный эквивалент");
         foreach (var resourceType in _data.ResourceTypes)
