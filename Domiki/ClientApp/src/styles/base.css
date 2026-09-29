@@ -253,9 +253,9 @@ code {
     }
 
     .nav-links {
+        flex: none;
         flex-wrap: nowrap;
         gap: 12px;
-        min-width: 0;
     }
 
     .nav-links > li {
@@ -297,6 +297,8 @@ code {
         height: 18px;
     }
 
+    .nav-village,
+    .nav-village .village-title,
     .nav-village .village-identity {
         flex: 0 1 auto;
         min-width: 0;
@@ -304,7 +306,7 @@ code {
 
     .nav-village .village-name {
         -webkit-line-clamp: 1;
-        max-width: 160px;
+        max-width: none;
         padding: 6px 10px 4px;
         font-size: 11px;
     }
@@ -322,10 +324,6 @@ code {
 
     .nav-user .nav-text {
         display: none;
-    }
-
-    .nav-village .village-name {
-        max-width: 140px;
     }
 }
 

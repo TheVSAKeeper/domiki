@@ -286,8 +286,8 @@
 }
 
 .weather-capsule-name {
-    display: none;
     font-weight: 700;
+    white-space: nowrap;
 }
 
 .wf-head {

@@ -7,21 +7,28 @@
 
 .game-tabs {
     display: flex;
+    margin-top: 20px;
+    scroll-margin-top: 80px;
+}
+
+.game-tabs-list {
+    display: flex;
+    flex: 1 1 auto;
     flex-wrap: nowrap;
     gap: 6px;
-    margin-top: 20px;
-    padding-bottom: 8px;
+    min-width: 0;
+    margin: 0;
+    padding: 0 0 8px;
+    list-style: none;
     overflow-x: auto;
     scrollbar-width: none;
-    scroll-margin-top: 80px;
     cursor: grab;
 }
 
-.game-tabs::-webkit-scrollbar {
+.game-tabs-list::-webkit-scrollbar {
     display: none;
 }
 
-.game-tabs-list,
 .game-tabs-item {
     display: contents;
 }
@@ -34,39 +41,43 @@
     .game-tabs-affordance-left,
     .game-tabs-affordance-right {
         display: grid;
-        position: sticky;
-        z-index: 2;
         flex: none;
-        width: 26px;
-        align-self: stretch;
+        width: 22px;
+        padding-bottom: 8px;
         align-items: center;
         font-family: var(--pixel);
         font-size: 16px;
         font-weight: 700;
         color: var(--ink);
-        text-shadow: 1px 0 0 var(--plank), -1px 0 0 var(--plank), 0 1px 0 var(--plank), 0 -1px 0 var(--plank), 1px 1px 0 var(--plank), -1px -1px 0 var(--plank);
         pointer-events: none;
         opacity: 0;
         transition: opacity .15s;
     }
 
     .game-tabs-affordance-left {
-        left: 0;
-        margin-right: -26px;
         justify-items: start;
-        padding-left: 2px;
     }
 
     .game-tabs-affordance-right {
-        right: 0;
-        margin-left: -26px;
         justify-items: end;
-        padding-right: 2px;
     }
 
     .game-tabs-overflow-left .game-tabs-affordance-left,
     .game-tabs-overflow-right .game-tabs-affordance-right {
         opacity: 1;
+    }
+}
+
+@media (min-width: 1024px) {
+    .game-tabs-list {
+        flex-wrap: wrap;
+        overflow-x: visible;
+        cursor: auto;
+    }
+
+    .game-tabs-affordance-left,
+    .game-tabs-affordance-right {
+        display: none;
     }
 }
 
@@ -1396,22 +1407,20 @@
         border-top: 3px solid var(--ink);
     }
 
+    .game-tabs-list {
+        padding-bottom: 0;
+    }
+
     .game-tabs-affordance-right {
         display: grid;
-        position: sticky;
-        right: -10px;
-        z-index: 2;
         flex: none;
-        width: 24px;
-        margin-left: -24px;
-        align-self: stretch;
+        width: 20px;
+        margin: 0 -10px 0 4px;
         place-items: center;
         font-family: var(--pixel);
         font-size: 20px;
         font-weight: 700;
         color: var(--ink);
-        background: linear-gradient(90deg, rgba(251, 243, 223, .35), var(--plank) 45%);
-        box-shadow: -20px 0 18px 14px var(--plank);
         pointer-events: none;
         opacity: 0;
         transition: opacity .15s;

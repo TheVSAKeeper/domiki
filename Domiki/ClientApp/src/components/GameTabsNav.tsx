@@ -18,6 +18,7 @@ interface GameTabsNavProps {
 
 export const GameTabsNav = ({ tabs, activeKey }: GameTabsNavProps) => {
     const gameTabsRef = useRef<HTMLElement>(null);
+    const listRef = useRef<HTMLUListElement>(null);
     const dragRef = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
     const [tabsOverflow, setTabsOverflow] = useState({ left: false, right: false });
 
@@ -29,7 +30,7 @@ export const GameTabsNav = ({ tabs, activeKey }: GameTabsNavProps) => {
     useElementHeightVar(gameTabsRef, '--game-tabs-height');
 
     useEffect(() => {
-        const tabsEl = gameTabsRef.current;
+        const tabsEl = listRef.current;
         if (tabsEl == null) {
             return;
         }
@@ -49,29 +50,29 @@ export const GameTabsNav = ({ tabs, activeKey }: GameTabsNavProps) => {
     }, [navTabs.length]);
 
     useEffect(() => {
-        const tabsEl = gameTabsRef.current;
+        const tabsEl = listRef.current;
         const active = tabsEl?.querySelector<HTMLElement>(`#game-tab-${activeKey}`);
         if (tabsEl == null || active == null) {
             return;
         }
 
-        const left = active.offsetLeft;
+        const left = active.getBoundingClientRect().left - tabsEl.getBoundingClientRect().left + tabsEl.scrollLeft;
         const right = left + active.offsetWidth;
         if (left < tabsEl.scrollLeft || right > tabsEl.scrollLeft + tabsEl.clientWidth) {
             tabsEl.scrollLeft = Math.max(0, left - 12);
         }
-    }, [activeKey]);
+    }, [activeKey, navTabs.length]);
 
     const beginDrag = (event: ReactPointerEvent<HTMLElement>) => {
-        const tabsEl = gameTabsRef.current;
-        if (tabsEl == null || event.pointerType === 'touch' || event.button !== 0) {
+        const tabsEl = listRef.current;
+        if (tabsEl == null || event.pointerType === 'touch' || event.button !== 0 || tabsEl.scrollWidth <= tabsEl.clientWidth) {
             return;
         }
         dragRef.current = { active: true, startX: event.clientX, startScroll: tabsEl.scrollLeft, moved: false };
     };
 
     const moveDrag = (event: ReactPointerEvent<HTMLElement>) => {
-        const tabsEl = gameTabsRef.current;
+        const tabsEl = listRef.current;
         const drag = dragRef.current;
         if (tabsEl == null || !drag.active) {
             return;
@@ -89,8 +90,8 @@ export const GameTabsNav = ({ tabs, activeKey }: GameTabsNavProps) => {
 
     const endDrag = () => {
         dragRef.current.active = false;
-        if (gameTabsRef.current != null) {
-            gameTabsRef.current.style.cursor = '';
+        if (listRef.current != null) {
+            listRef.current.style.cursor = '';
         }
     };
 
@@ -104,11 +105,11 @@ export const GameTabsNav = ({ tabs, activeKey }: GameTabsNavProps) => {
 
     return (
         <nav className={'game-tabs' + (tabsOverflow.left ? ' game-tabs-overflow-left' : '') + (tabsOverflow.right ? ' game-tabs-overflow-right' : '')}
-            ref={gameTabsRef} aria-label="Разделы деревни"
-            onPointerDown={beginDrag} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag}
-            onClickCapture={suppressDragClick}>
+            ref={gameTabsRef} aria-label="Разделы деревни">
             <span className="game-tabs-affordance game-tabs-affordance-left" aria-hidden="true">‹</span>
-            <ul className="game-tabs-list">
+            <ul className="game-tabs-list" ref={listRef}
+                onPointerDown={beginDrag} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={endDrag}
+                onClickCapture={suppressDragClick}>
                 {navTabs.map(tab => {
                     const active = tab.key === activeKey;
                     return (

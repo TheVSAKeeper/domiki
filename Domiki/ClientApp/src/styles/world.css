@@ -529,15 +529,82 @@
     }
 
     .world-map {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-rows: minmax(0, 1fr) auto;
+        gap: 6px;
         height: 62vh;
         min-height: 400px;
+    }
+
+    .world-map-svg {
+        grid-column: 1 / -1;
+        overflow: hidden;
+    }
+
+    .wm-hint {
+        position: static;
+        align-self: center;
+        justify-self: start;
+    }
+
+    .world-map-ctrl {
+        position: static;
+        flex-direction: row;
     }
 }
 
 @media (max-width: 575px) {
-    .world-head {
-        align-items: flex-start;
-        flex-direction: column;
+    .world-page .world-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 14px;
+    }
+
+    .world-head > div {
+        display: contents;
+    }
+
+    .world-head .wiki-title {
+        margin: 0;
+    }
+
+    .world-head .btn-game {
+        grid-column: 2;
+        grid-row: 1;
+        margin-top: 0;
+    }
+
+    .world-head-stats {
+        grid-column: 1 / -1;
+        gap: 6px;
+        margin-top: 0;
+    }
+
+    .world-page .wiki-section {
+        margin-top: 10px;
+    }
+
+    .world-tabs {
+        gap: 6px;
+        padding: 6px;
+    }
+
+    .world-tab {
+        font-size: 12px;
+    }
+
+    .world-tab.icon-chip-btn {
+        gap: 6px;
+        padding-right: 10px;
+    }
+
+    .world-tab.icon-chip-btn > .world-tab-ico {
+        width: 20px;
+        height: 20px;
+        padding: 6px 7px;
     }
 
     .world-row {
@@ -559,9 +626,7 @@
     }
 
     .wm-hint {
-        right: 14px;
-        bottom: 14px;
-        left: 14px;
-        text-align: center;
+        padding: 4px 7px;
+        font-size: 11px;
     }
 }
