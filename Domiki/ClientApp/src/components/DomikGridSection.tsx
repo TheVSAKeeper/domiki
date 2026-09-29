@@ -293,7 +293,7 @@ export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, reso
                             <button key={domik.id} type="button" data-assign-domik={domik.id}
                                 className={'plot' + (plotState.kind === 'upgradeable' ? ' plot-callout' : '') + (selectedDomikId === domik.id ? ' plot-selected' : '') + assignClass}
                                 data-weather-effect={cardWeather == null ? undefined : cardWeather.buff ? 'buff' : 'nerf'}
-                                aria-label={`${displayName}, уровень ${domik.level}, ${cardStatus}${busyCrew.length > 0 ? `, трудяг ${busyCrew.length}` : ''}${cardWeather == null ? '' : weatherMarkSpeech(cardWeather)}`}
+                                aria-label={`${displayName}, уровень ${domik.level}, ${cardStatus}${busyCrew.length > 0 ? `, трудяг ${busyCrew.length}` : ''}${cardWeather == null ? '' : weatherMarkSpeech(cardWeather)}${assignTarget?.reason != null ? `, ${assignTarget.reason}` : ''}`}
                                 aria-pressed={selectedDomikId === domik.id}
                                 onClick={event => {
                                     if (assign.active) {
@@ -304,7 +304,7 @@ export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, reso
                                 }}>
                                 <span className="plot-head">
                                     <span className="plot-name">{displayName}</span>
-                                    <span className="plot-marks">
+                                    <span className="plot-marks" aria-hidden="true">
                                         <span className="plot-level" title={`Уровень ${domik.level}`}>{domik.level}</span>
                                         {cardWeather != null && <WeatherMark key={cardWeather.weatherLogicName} mark={cardWeather} />}
                                     </span>
@@ -312,7 +312,7 @@ export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, reso
                                 <span className="plot-yard">
                                     <AnimatedDomikSprite mode="levelup" className="plot-sprite" logicName={domikType.logicName} level={domik.level} working={hasManufacture} intensity={intensity} />
                                     {crew.length > 0 &&
-                                        <span className="plot-crew" title={`Трудяг на работе: ${busyCrew.length}`}>
+                                        <span className="plot-crew" title={`Трудяг на работе: ${busyCrew.length}`} aria-hidden="true">
                                             {crew.map(worker =>
                                                 <span key={worker.id} className="plot-crew-face">
                                                     <WorkerSprite name={worker.name} state="working" data-size="32" aria-hidden="true" />
@@ -328,7 +328,7 @@ export const DomikGridSection = ({ domiks, domikTypes, receipts, resources, reso
                                     className={'plot-progress plot-progress-' + plotState.kind + (progress == null ? ' plot-progress-empty' : '')}
                                     value={progress ?? 0} max={100} />
                                 {assignTarget != null && assignTarget.reason != null
-                                    ? <span className="plot-sign plot-sign-refuse">{assignTarget.reason}</span>
+                                    ? <span className="plot-sign plot-sign-refuse" aria-hidden="true">{assignTarget.reason}</span>
                                     : <PlotSign {...plotState} />
                                 }
                             </button>

@@ -114,7 +114,7 @@ public sealed record WorkerDto
     /// </summary>
     /// <value>Момент в UTC.</value>
     /// <remarks>
-    /// <see langword="null"/> – трудяга не отдыхает. Выставляется по накоплению <see cref="Core.DomikManager.FatigueThresholdSeconds"/> секунд
+    /// <see langword="null"/> – трудяга не отдыхает, в том числе когда срок уже прошёл: в модели он остаётся, в DTO не уходит. Выставляется по накоплению <see cref="Core.DomikManager.FatigueThresholdSeconds"/> секунд
     /// работы (см. <see cref="Core.DomikManager.FinishManufacture"/>).
     /// </remarks>
     public DateTime? RestUntil { get; init; }
@@ -124,7 +124,7 @@ public sealed record WorkerDto
     /// </summary>
     /// <value>Момент в UTC.</value>
     /// <remarks>
-    /// <see langword="null"/> – трудяга не болен. Шанс при завершении производства выводится из величины погодного бонуса,
+    /// <see langword="null"/> – трудяга не болен, в том числе когда срок уже прошёл: в модели он остаётся ради иммунитета после болезни, в DTO не уходит. Шанс при завершении производства выводится из величины погодного бонуса,
     /// а плащ может его снизить (см. <see cref="Core.DomikManager.FinishManufacture"/>).
     /// </remarks>
     public DateTime? SickUntil { get; init; }

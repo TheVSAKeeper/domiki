@@ -573,9 +573,9 @@ export const DomikiPage = () => {
             {offlineOutcomes.length > 0 &&
                 <OfflineOutcomesModal outcomes={offlineOutcomes} onClose={clearOfflineOutcomes} />
             }
-            {onBoard && <>
+            {onBoard && !loading && <>
             <PerfZone id="двор">
-            <VillageYard domiks={domiks} domikTypes={domikTypes} decor={decor} workers={workers}
+            <VillageYard domiks={domiks} domikTypes={domikTypes} decor={decor} workers={workers} now={now}
                 villageLevel={villageLevel} currentWeather={currentWeather} selectedDomikId={selectedDomikId}
                 displayName={domik => {
                     const domikType = domikTypes.find(type => type.id === domik.typeId);

@@ -38,7 +38,7 @@ export const TolokaBox = ({ toloka, resourceTypes, resources, now, onContribute,
                     <MechanicSprite logicName="toloka" size={40} aria-hidden="true" />
                 </div>
                 <div className="toloka-hero-text">
-                    <h3 className="panel-title toloka-hero-title">Толока</h3>
+                    <h2 className="panel-title toloka-hero-title">Толока</h2>
                     <p className="toloka-hero-sub sec-hero-sub">Всем миром строим «{active.name}» – скидываемся в общий котёл. Достроим – по всей округе праздник, и всякая работа спорится веселее.</p>
                 </div>
                 <div className="toloka-hero-stat sec-hero-stat">

@@ -42,6 +42,25 @@ public sealed class GameStreamTests
         }
     }
 
+    /// <summary>
+    /// Поток отдаёт первый ping сразу при подписке, а не через 15 секунд простоя: заголовки уходят с первым событием,
+    /// и без него EventSource.onopen у клиента запаздывал бы на весь интервал.
+    /// </summary>
+    [Test]
+    public async Task StreamSendsPingRightAfterSubscribeTest()
+    {
+        const int waitSeconds = 5;
+        var client = App.Client();
+        await client.PostAsync("/authentication/demo", null);
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(waitSeconds));
+
+        using var response = await client.GetAsync("/Domiki/Stream", HttpCompletionOption.ResponseHeadersRead, timeout.Token);
+        using var reader = new StreamReader(await response.Content.ReadAsStreamAsync(timeout.Token));
+        var firstLine = await reader.ReadLineAsync(timeout.Token);
+
+        Assert.That(firstLine, Is.EqualTo("event: ping"));
+    }
+
     private static GameStreamController DemoStreamController(out HttpContext httpContext)
     {
         var demoUserName = App.Services.GetRequiredService<IConfiguration>()["Demo:UserName"]!;

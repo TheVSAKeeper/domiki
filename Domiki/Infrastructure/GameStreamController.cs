@@ -41,6 +41,8 @@ public class GameStreamController : ControllerBase
     private async IAsyncEnumerable<SseItem<string>> StreamScopes(int playerId, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         using var subscription = _broker.Subscribe(playerId);
+        yield return new SseItem<string>(string.Empty, "ping");
+
         while (!cancellationToken.IsCancellationRequested)
         {
             bool canRead;

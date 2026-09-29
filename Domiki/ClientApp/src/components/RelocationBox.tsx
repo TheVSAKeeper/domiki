@@ -78,7 +78,7 @@ export const RelocationBox = ({ relocation, villageName, onRelocate, onBuyPerk }
             <SectionHero className="relocation-hero">
                 <span className="relocation-hero-emblem sec-hero-emblem" aria-hidden="true"><AbstractSprite logicName="prestige_new_valley" /></span>
                 <div className="relocation-hero-text">
-                    <h3 className="relocation-hero-title panel-title">Переезд в новую долину</h3>
+                    <h2 className="relocation-hero-title panel-title">Переезд в новую долину</h2>
                     <p className="relocation-hero-valley">Нынче стоим в долине {relocation.valleyName}</p>
                     <p className="relocation-hero-sub sec-hero-sub">
                         Всё, что здесь умели, уже поставлено, а за перевалом земля не пахана.
@@ -117,10 +117,10 @@ export const RelocationBox = ({ relocation, villageName, onRelocate, onBuyPerk }
             </div>
 
             <div className="relocation-ladder">
-                <h4 className="relocation-section-title panel-title">
+                <h3 className="relocation-section-title panel-title">
                     <MechanicSprite logicName="obzhitost" size={24} className="relocation-section-ico" aria-hidden="true" />
                     Узелки памяти: {knots}
-                </h4>
+                </h3>
                 <div className="relocation-perks">
                     {relocation.perks.map(perk => {
                         const nextCost = perk.costs[perk.level];
@@ -152,10 +152,10 @@ export const RelocationBox = ({ relocation, villageName, onRelocate, onBuyPerk }
             </div>
 
             <div className="relocation-post">
-                <h4 className="relocation-section-title panel-title">
+                <h3 className="relocation-section-title panel-title">
                     <AbstractSprite logicName="prestige_new_valley" size={24} className="relocation-section-ico" aria-hidden="true" />
                     Памятный столб
-                </h4>
+                </h3>
                 <p className="relocation-post-sub">Деревни, что были</p>
                 {post == null && <PixelLoader label="Загрузка столба…" />}
                 {post != null &&

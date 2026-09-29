@@ -7,6 +7,8 @@ public static class WorkerDtoExtensions
 {
     public static WorkerDto ToDto(this Worker worker)
     {
+        var now = DateTimeHelper.GetNowDate();
+
         return new()
         {
             Id = worker.Id,
@@ -23,8 +25,8 @@ public static class WorkerDtoExtensions
             ErrandId = worker.ErrandId,
             IncidentId = worker.IncidentId,
             WorkedSeconds = worker.WorkedSeconds,
-            RestUntil = DateTimeHelper.AsUtc(worker.RestUntil),
-            SickUntil = DateTimeHelper.AsUtc(worker.SickUntil),
+            RestUntil = worker.RestUntil > now ? DateTimeHelper.AsUtc(worker.RestUntil) : null,
+            SickUntil = worker.SickUntil > now ? DateTimeHelper.AsUtc(worker.SickUntil) : null,
             SickTypeId = worker.SickTypeId,
             IsAway = worker.IsAway,
             Skills = worker.Skills.Select(x => new WorkerSkillDto

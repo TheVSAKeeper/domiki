@@ -627,7 +627,7 @@ export const JournalBox = ({ events, resourceTypes, domikTypes, decorTypes, neig
             <SectionHero className="journal-hero">
                 <span className="journal-hero-emblem sec-hero-emblem" aria-hidden="true"><AbstractSprite logicName="journal" size={40} /></span>
                 <div className="journal-hero-text">
-                    <h3 className="journal-hero-title panel-title">Журнал</h3>
+                    <h2 className="journal-hero-title panel-title">Журнал</h2>
                     <p className="journal-hero-sub sec-hero-sub">Летопись двора: что ни день – то новое дело.</p>
                 </div>
                 {(totalCount ?? entries.length) > 0 &&

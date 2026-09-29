@@ -51,7 +51,7 @@ export const GoalCard = ({ goals, resourceTypes }: GoalCardProps) => {
                     <AbstractSprite logicName="elder_order" size={32} className="goal-emblem-ico" aria-hidden="true" />
                 </div>
                 <div className="goal-hero-text">
-                    <h3 className="goal-title"><TermTip term="elder_order">Наказ старосты</TermTip></h3>
+                    <h2 className="goal-title"><TermTip term="elder_order">Наказ старосты</TermTip></h2>
                     <p className="goal-quest">{goals.active.name}</p>
                 </div>
                 <div className="goal-stat" title="Наказ по счёту">

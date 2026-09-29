@@ -35,7 +35,7 @@ export const DecorBox =({ decor, resourceTypes, resources, reputations, onBuy }:
                     <MechanicSprite logicName="decor" size={40} aria-hidden="true" />
                 </div>
                 <div className="decor-hero-text">
-                    <h3 className="panel-title decor-hero-title">Декор</h3>
+                    <h2 className="panel-title decor-hero-title">Декор</h2>
                     <p className="decor-hero-sub sec-hero-sub">Обустраивайте деревню – уют ускоряет отдых трудяг и растит обжитость.</p>
                 </div>
                 <div className="decor-hero-comfort sec-hero-stat">

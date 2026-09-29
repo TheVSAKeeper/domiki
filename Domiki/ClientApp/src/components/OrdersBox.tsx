@@ -95,7 +95,7 @@ const ErrandCard = ({ errand, workers, now, onAccept, onCancel }: ErrandCardProp
                 </span>
             </div>
             <span className={'errand-badge' + (accepted ? ' errand-badge-accepted' : '')}>{accepted ? 'Идут поиски' : 'Поручение'}</span>
-            <h4 className="errand-title">{template.title}</h4>
+            <h3 className="errand-title">{template.title}</h3>
             {accepted
                 ? <>
                     {clue != null && <p className="errand-clue-chip">{clue.label}</p>}
@@ -139,7 +139,7 @@ export const OrdersBox = ({ orders, errands, boardSize, freeConcession, waitingO
                     <MechanicSprite logicName="orders" size={40} aria-hidden="true" />
                 </div>
                 <div className="orders-hero-text">
-                    <h3 className="panel-title orders-hero-title">Заказы от соседей</h3>
+                    <h2 className="panel-title orders-hero-title">Заказы от соседей</h2>
                     <p className="orders-hero-sub sec-hero-sub">Из окрестных выселок шлют весточки – сделайте, что просят, и заслужите доброе имя.</p>
                 </div>
                 <div className="orders-hero-stat sec-hero-stat" title={`Весточек на столе: ${orders.length} из ${boardSize}`}>
@@ -150,7 +150,7 @@ export const OrdersBox = ({ orders, errands, boardSize, freeConcession, waitingO
             {reputation.length > 0 &&
                 <div className="standing-board">
                     <div className="standing-board-head">
-                        <h4 className="standing-board-title"><MechanicSprite logicName="friendship" size={24} aria-hidden="true" />Доброе имя по выселкам</h4>
+                        <h3 className="standing-board-title"><MechanicSprite logicName="friendship" size={24} aria-hidden="true" />Доброе имя по выселкам</h3>
                         <p className="standing-board-hint">Крепко завязан узелок у соседа, с которым деревня водит дружбу – его заказы приходят чаще. Дружить можно с одним, передумать – в любой день.</p>
                     </div>
                     <div className="standing-list">
@@ -244,7 +244,7 @@ export const OrdersBox = ({ orders, errands, boardSize, freeConcession, waitingO
             {convoys.length > 0 &&
                 <div className="convoy-board">
                     <div className="convoy-board-head">
-                        <h4 className="convoy-board-title"><MechanicSprite logicName="convoy" size={24} aria-hidden="true" />Обозы</h4>
+                        <h3 className="convoy-board-title"><MechanicSprite logicName="convoy" size={24} aria-hidden="true" />Обозы</h3>
                         <p className="convoy-board-hint">Сосед пригоняет обоз со своим товаром. Уступит немного и не задёшево – зато сразу и без хлопот; новый обоз придёт через сутки после первой покупки.</p>
                     </div>
                     <div className="convoy-list">

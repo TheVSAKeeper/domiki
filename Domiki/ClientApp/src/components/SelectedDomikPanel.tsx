@@ -555,7 +555,7 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
                             level={selected.domik.level} working={runningManufactures > 0}
                             data-motion={crestIntensity === 'normal' ? undefined : crestIntensity} aria-hidden="true" />
                         <div className="panel-ident">
-                        <h3 className="panel-title">
+                        <h2 className="panel-title">
                             {displayName(selected.domik.typeId, selected.domik.id, selected.domikType.name, selected.domikType.logicName)}
                             {crestLore != null &&
                                 <TermTip term={selected.domikType.logicName} gloss={crestLore}
@@ -563,7 +563,7 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
                                     <InfoBoxIcon className="term-tip-ico" aria-hidden="true" />
                                 </TermTip>
                             }
-                        </h3>
+                        </h2>
                         <div className="panel-level" aria-label={`Уровень ${selected.domik.level} из ${selected.domikType.maxLevel}`}>
                             <span className="panel-level-value">ур. {selected.domik.level}</span>
                             <span className="panel-notches" aria-hidden="true">

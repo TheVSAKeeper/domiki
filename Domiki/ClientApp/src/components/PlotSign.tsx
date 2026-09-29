@@ -14,7 +14,7 @@ export interface PlotState {
 }
 
 export const PlotSign = ({ kind, label, output, timer, slots, repeat }: PlotState) => (
-    <span className={'plot-sign plot-sign-' + kind}>
+    <span className={'plot-sign plot-sign-' + kind} aria-hidden="true">
         <span className="plot-sign-what">
             {output != null &&
                 <ResourceSprite logicName={output} size={24} className="plot-sign-ico" aria-hidden="true" />

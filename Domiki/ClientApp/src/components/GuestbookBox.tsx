@@ -39,7 +39,7 @@ export const GuestbookBox = ({ now }: GuestbookBoxProps) => {
             <SectionHero className="guestbook-hero">
                 <span className="guestbook-hero-emblem sec-hero-emblem" aria-hidden="true"><MechanicSprite logicName="guestbook" /></span>
                 <div className="guestbook-hero-text">
-                    <h3 className="guestbook-hero-title panel-title">Книга гостей</h3>
+                    <h2 className="guestbook-hero-title panel-title">Книга гостей</h2>
                     <p className="guestbook-hero-sub">Гостей за сезон: {guestbook?.visitsThisSeason ?? 0}</p>
                 </div>
             </SectionHero>

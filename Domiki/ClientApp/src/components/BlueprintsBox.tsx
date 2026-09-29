@@ -104,7 +104,7 @@ export const BlueprintsBox = ({ blueprints, domikTypes, decorTypes, reputations,
                     <MechanicSprite logicName="blueprints" size={40} aria-hidden="true" />
                 </div>
                 <div className="bp-hero-text">
-                    <h3 className="panel-title bp-hero-title">Вехи соседей</h3>
+                    <h2 className="panel-title bp-hero-title">Вехи соседей</h2>
                     <p className="bp-hero-sub sec-hero-sub">Растёт доброе имя – и на каждой вехе сосед делится заветным: чертежом стройки да убранством для двора.</p>
                 </div>
                 <div className="bp-hero-stat sec-hero-stat" title="Открыто вех">

@@ -49,14 +49,14 @@
 
 .worker-rail-tally {
     font-size: 11px;
-    color: var(--ink-muted);
+    color: #776b54;
 }
 
 .worker-rail-skill-of {
     min-height: 15px;
     margin: 0;
     font-size: 10px;
-    color: var(--ink-muted);
+    color: #776b54;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;

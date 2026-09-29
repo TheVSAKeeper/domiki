@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { DecorStateDto, DomikDto, DomikTypeDto, VillageLevelDto, WeatherPeriodDto, WorkerDto } from '../types/api';
-import { workIntensity } from '../utils/game';
+import { isWorkerFree, workIntensity } from '../utils/game';
 import { weatherMark, weatherMarkSpeech } from '../utils/weather';
 import { hashString } from '../utils/worldMap';
 import { layoutYard, yardRowBaseY, type YardGreen, type YardSpot } from '../utils/yardMap';
@@ -123,6 +123,7 @@ interface VillageYardProps {
     domikTypes: DomikTypeDto[];
     decor: DecorStateDto | null;
     workers: WorkerDto[] | null;
+    now: number;
     villageLevel: VillageLevelDto | null;
     currentWeather: WeatherPeriodDto | null;
     selectedDomikId: number | null;
@@ -145,9 +146,9 @@ const busyFolkForSpot = (spot: YardSpot, workers: WorkerDto[]): FolkPlacement[] 
         .map((worker, index) => ({ ...(positions[index] ?? positions[0] ?? { x: spot.x, y: spot.y }), name: worker.name }));
 };
 
-const freeFolkPlacements = (workers: WorkerDto[], spots: YardSpot[], domikTypes: DomikTypeDto[], firstPathY: number): FolkPlacement[] => {
+const freeFolkPlacements = (workers: WorkerDto[], now: number, spots: YardSpot[], domikTypes: DomikTypeDto[], firstPathY: number): FolkPlacement[] => {
     const free = workers
-        .filter(worker => worker.manufactureId == null && worker.expeditionId == null && worker.errandId == null && worker.restUntil == null && worker.sickUntil == null)
+        .filter(worker => isWorkerFree(worker, now))
         .slice(0, FOLK_CAP);
     const barracksSpot = spots.find(spot => domikTypes.find(type => type.id === spot.domik.typeId)?.logicName === 'barracks');
     return free.map((worker, index) => barracksSpot != null
@@ -185,7 +186,7 @@ const pathTailY = (points: string | undefined, fallback: number) => {
     return Number(parts[parts.length - 1]?.split(',')[1] ?? fallback);
 };
 
-export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, currentWeather, selectedDomikId, displayName, onSelect, recapPending, onOpenRecap, activeExpeditionNames, friendNeighbor }: VillageYardProps) => {
+export const VillageYard = ({ domiks, domikTypes, decor, workers, now, villageLevel, currentWeather, selectedDomikId, displayName, onSelect, recapPending, onOpenRecap, activeExpeditionNames, friendNeighbor }: VillageYardProps) => {
     const [collapsed, setCollapsed] = useState<boolean>(() => localStorage.getItem('domiki.yard.collapsed') === '1');
     const [sheepPhase, setSheepPhase] = useState(0);
     const [visible, setVisible] = useState(true);
@@ -235,7 +236,7 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
     const firstPathY = pathHeadY(layout.paths[0], layout.height / 2);
     const lastPathY = pathTailY(layout.paths[layout.paths.length - 1], layout.height / 2);
     const busyFolk = layout.spots.flatMap(spot => busyFolkForSpot(spot, workerList));
-    const freeFolk = freeFolkPlacements(workerList, layout.spots, domikTypes, firstPathY);
+    const freeFolk = freeFolkPlacements(workerList, now, layout.spots, domikTypes, firstPathY);
 
     const scene: SceneItem[] = [];
 
@@ -275,6 +276,7 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
                             onSelect(spot.domik.id);
                         }
                     }}>
+                    <rect x={spot.x - 44} y={spot.y - 60} width={88} height={88} fill="none" pointerEvents="all" />
                     <DomikSprite logicName={domikType.logicName} level={spot.domik.level}
                         working={(spot.domik.manufactures?.length ?? 0) > 0}
                         data-motion={intensity === 'normal' ? undefined : intensity}
@@ -375,7 +377,7 @@ export const VillageYard = ({ domiks, domikTypes, decor, workers, villageLevel, 
     return (
         <section className="yard pixel-panel">
             <header className="yard-head">
-                <h3 className="yard-title panel-title">Мой двор</h3>
+                <h2 className="yard-title panel-title">Мой двор</h2>
                 <button type="button" className="yard-toggle" aria-expanded={!collapsed} onClick={toggle}>
                     {collapsed ? 'Показать' : 'Свернуть'}
                 </button>

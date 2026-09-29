@@ -11,15 +11,36 @@ const InstallWaitMs = 8000;
 const CheckTimeoutMs = 8000;
 const listeners = new Set<() => void>();
 
+export function buildIdOf(root: ParentNode): string | null {
+    const script = root.querySelector<HTMLScriptElement>('script[type="module"][src]');
+    const match = script == null ? null : /\/assets\/index-([A-Za-z0-9_-]+)\.js/.exec(script.getAttribute('src') ?? '');
+    return match?.[1] ?? null;
+}
+
 export function loadedBuildId(): string | null {
     if (loadedId !== undefined) {
         return loadedId;
     }
 
-    const script = document.querySelector<HTMLScriptElement>('script[type="module"][src]');
-    const match = script == null ? null : /\/assets\/index-([A-Za-z0-9_-]+)\.js/.exec(script.getAttribute('src') ?? '');
-    loadedId = match?.[1] ?? null;
+    loadedId = buildIdOf(document);
     return loadedId;
+}
+
+export function needsReloadOnControllerChange(hadController: boolean, loaded: string | null, workerBuild: string | null): boolean {
+    return hadController || loaded == null || loaded !== workerBuild;
+}
+
+async function workerBuildId(): Promise<string | null> {
+    try {
+        const response = await fetch('/index.html');
+        if (!response.ok) {
+            return null;
+        }
+
+        return buildIdOf(new DOMParser().parseFromString(await response.text(), 'text/html'));
+    } catch {
+        return null;
+    }
 }
 
 function announceUpdate(worker: ServiceWorker | null): void {
@@ -152,13 +173,23 @@ export async function registerServiceWorker(): Promise<void> {
         return;
     }
 
+    let hadController = navigator.serviceWorker.controller != null;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (reloading) {
             return;
         }
 
         reloading = true;
-        location.reload();
+        const workerBuild = hadController ? Promise.resolve(null) : workerBuildId();
+        void workerBuild.then(build => {
+            if (needsReloadOnControllerChange(hadController, loadedBuildId(), build)) {
+                location.reload();
+                return;
+            }
+
+            hadController = true;
+            reloading = false;
+        });
     });
 
     let active: ServiceWorkerRegistration;

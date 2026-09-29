@@ -55,7 +55,7 @@ export const IncidentCard = ({ incident, workers, now, onStartSearch }: Incident
             <section className="incident-card goal-card pixel-panel">
                 <div className="goal-hero incident-hero">
                     <div className="goal-emblem"><AbstractSprite logicName="incident" size={32} className="goal-emblem-ico" aria-hidden="true" /></div>
-                    <div className="goal-hero-text"><span className="errand-badge">Происшествие</span><h3 className="goal-title">{template.title}</h3></div>
+                    <div className="goal-hero-text"><span className="errand-badge">Происшествие</span><h2 className="goal-title">{template.title}</h2></div>
                 </div>
                 <p className="incident-clue"><b>{clue.label}</b><span>{incidentText(clue.detail, workerName, workerGender)}</span></p>
                 <ProgressBar value={Math.min(Math.max(now - start, 0), end - start)} max={end - start} label={formatDuration(Math.max(remainingSeconds(incident.searchEndDate, now), 0))} />
@@ -72,7 +72,7 @@ export const IncidentCard = ({ incident, workers, now, onStartSearch }: Incident
         <section className="incident-card goal-card pixel-panel">
             <div className="goal-hero incident-hero">
                 <div className="goal-emblem"><AbstractSprite logicName="incident" size={32} className="goal-emblem-ico" aria-hidden="true" /></div>
-                <div className="goal-hero-text"><span className="errand-badge">Происшествие</span><h3 className="goal-title">{template.title}</h3></div>
+                <div className="goal-hero-text"><span className="errand-badge">Происшествие</span><h2 className="goal-title">{template.title}</h2></div>
             </div>
             <p className="incident-hook">{incidentText(template.hook, workerName, workerGender)}</p>
             <span className="incident-return">Вернётся {genderForm(workerGender, 'сам', 'сама')} к {timeLabel(incident.autoReturnDate)}</span>

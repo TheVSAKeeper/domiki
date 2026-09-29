@@ -96,7 +96,7 @@ export const ExpeditionsBox = ({ expeditions, resourceTypes, decorTypes, resourc
                     <MechanicSprite logicName="expeditions" size={40} aria-hidden="true" />
                 </div>
                 <div className="expeditions-hero-text">
-                    <h3 className="panel-title expeditions-hero-title">Экспедиции</h3>
+                    <h2 className="panel-title expeditions-hero-title">Экспедиции</h2>
                     <p className="expeditions-hero-sub sec-hero-sub">Снаряжайте отряды в дорогу – трудяги приносят ресурсы, декор и редкие находки.</p>
                 </div>
                 <div className="expeditions-hero-stat sec-hero-stat" title="Отрядов в походе из максимума">

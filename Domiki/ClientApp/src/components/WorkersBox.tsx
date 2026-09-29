@@ -273,7 +273,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, receipts, expeditions,
                 <SectionHero className="workers-hero">
                     <span className="workers-hero-emblem sec-hero-emblem"><MechanicSprite logicName="workers" size={40} aria-hidden="true" /></span>
                     <div className="workers-hero-text">
-                        <h3 className="panel-title workers-hero-title">Трудяги</h3>
+                        <h2 className="panel-title workers-hero-title">Трудяги</h2>
                         {workers.length > 0 &&
                             <div className="workers-tally">
                                 <span className="workers-tally-total">{workers.length}</span>
@@ -342,7 +342,7 @@ export const WorkersBox = ({ workers, domikTypes, domiks, receipts, expeditions,
                         : stateKey === 'resting' && isSick
                             ? sickName
                             : stateLabels[stateKey];
-                    const restTitle = worker.restUntil == null
+                    const restTitle = worker.restUntil == null || restingSeconds <= 0
                         ? undefined
                         : `${isSick ? sickName : 'Отдыхает'} до ${new Date(worker.restUntil).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} (${formatDuration(restingSeconds)})`;
                     const timer = (() => {

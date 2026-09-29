@@ -289,7 +289,7 @@ export const HouseholdBox = ({ digest, resourceTypes, resources, reserves, inten
             <SectionHero className="household-hero">
                 <span className="household-hero-emblem sec-hero-emblem" aria-hidden="true"><AbstractSprite logicName="household" size={40} /></span>
                 <div className="household-hero-text">
-                    <h3 className="panel-title household-hero-title">Хозяйство</h3>
+                    <h2 className="panel-title household-hero-title">Хозяйство</h2>
                     <p className="household-hero-sub sec-hero-sub">Здесь видно, что в деревне просит рук – а дела правятся на дворе.</p>
                 </div>
                 <div className="household-hero-stat sec-hero-stat" data-calm={handsNeeded === 0 ? 'true' : 'false'} title="Построек, что просят рук">

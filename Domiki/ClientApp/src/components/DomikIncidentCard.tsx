@@ -53,7 +53,7 @@ export const DomikIncidentCard = ({ incident, workers, domikTypes, now, onStartS
             <section className="incident-card goal-card pixel-panel">
                 <div className="goal-hero incident-hero">
                     <div className="goal-emblem">{domikType != null && <DomikSprite logicName={domikType.logicName} className="goal-emblem-ico" aria-hidden="true" />}</div>
-                    <div className="goal-hero-text"><span className="errand-badge">Происшествие</span><h3 className="goal-title">{template.title}</h3></div>
+                    <div className="goal-hero-text"><span className="errand-badge">Происшествие</span><h2 className="goal-title">{template.title}</h2></div>
                 </div>
                 <p className="incident-clue"><b>{clue.label}</b><span>{domikIncidentText(clue.detail, domikName, '', undefined)}</span></p>
                 <ProgressBar value={Math.min(Math.max(now - start, 0), end - start)} max={end - start} label={formatDuration(Math.max(remainingSeconds(incident.searchEndDate, now), 0))} />
@@ -70,7 +70,7 @@ export const DomikIncidentCard = ({ incident, workers, domikTypes, now, onStartS
         <section className="incident-card goal-card pixel-panel">
             <div className="goal-hero incident-hero">
                 <div className="goal-emblem">{domikType != null && <DomikSprite logicName={domikType.logicName} className="goal-emblem-ico" aria-hidden="true" />}</div>
-                <div className="goal-hero-text"><span className="errand-badge">Происшествие</span><h3 className="goal-title">{template.title}</h3></div>
+                <div className="goal-hero-text"><span className="errand-badge">Происшествие</span><h2 className="goal-title">{template.title}</h2></div>
             </div>
             <p className="incident-hook">{domikIncidentText(template.hook, domikName, '', undefined)}</p>
             <span className="incident-return">Разгадается сама к {timeLabel(incident.autoResolveDate)}</span>

@@ -1,5 +1,6 @@
 ﻿using Domiki.Web.Infrastructure;
 using Domiki.Web.Workers;
+using Domiki.Web.Workers.Dto;
 
 namespace Domiki.Web.Tests;
 
@@ -606,5 +607,49 @@ public sealed class WorkerTests
             Assert.That(worker.WorkedSeconds, Is.Zero);
             Assert.That(worker.RestUntil, Is.Null);
         }
+    }
+
+    /// <summary>
+    /// Снимок игры отдаёт сроки отдыха и болезни трудяги, только пока они не прошли: прошедший срок уходит в снимок
+    /// пустым, а в БД остаётся как был – по нему считается иммунитет после болезни.
+    /// </summary>
+    /// <param name="offsetHours">Сдвиг сроков от текущего момента в часах.</param>
+    /// <param name="inSnapshot">Сроки видны в снимке.</param>
+    [TestCase(-1, false)]
+    [TestCase(1, true)]
+    public void GameStateHidesPastRestAndSickDeadlinesTest(int offsetHours, bool inSnapshot)
+    {
+        var player = TestPlayer.Create();
+
+        var workerId = player.Workers().Single().Id;
+        var deadline = DateTimeHelper.GetNowDate().AddHours(offsetHours);
+        player.SetWorkerRest(workerId, deadline)
+            .SetWorkerSick(workerId, deadline);
+
+        var snapshot = player.SnapshotWorker(workerId);
+        var stored = player.Workers().Single();
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(snapshot.RestUntil, Is.EqualTo(inSnapshot ? deadline : (DateTime?)null));
+            Assert.That(snapshot.SickUntil, Is.EqualTo(inSnapshot ? deadline : (DateTime?)null));
+            Assert.That(stored.RestUntil, Is.EqualTo(deadline));
+            Assert.That(stored.SickUntil, Is.EqualTo(deadline));
+        }
+    }
+}
+
+file static class WorkerTestsActs
+{
+    public static TestPlayer SetWorkerSick(this TestPlayer p, int workerId, DateTime sickUntil)
+    {
+        using var scope = App.Scope();
+        scope.Context.Workers.Single(x => x.Id == workerId).SickUntil = sickUntil;
+        scope.Commit();
+        return p;
+    }
+
+    public static WorkerDto SnapshotWorker(this TestPlayer p, int workerId)
+    {
+        return App.Act<GameStateProjector, WorkerDto>(m => m.Project(p.Id).Workers.Single(x => x.Id == workerId));
     }
 }
