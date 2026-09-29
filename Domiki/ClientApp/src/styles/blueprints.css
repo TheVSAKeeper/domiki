@@ -72,7 +72,7 @@
 
 .bp-hero-stat-of {
     font-size: 13px;
-    color: rgba(251, 243, 223, .75);
+    color: var(--plank);
 }
 
 .bp-hero-stat-label {
@@ -252,7 +252,7 @@
     right: 1px;
     width: 14px;
     height: 14px;
-    color: var(--roof);
+    color: var(--roof-ink);
 }
 
 .veha-goal {
@@ -264,7 +264,7 @@
 }
 
 .veha-cue {
-    color: rgba(51, 41, 26, .5);
+    color: var(--ink-muted);
     text-transform: lowercase;
 }
 

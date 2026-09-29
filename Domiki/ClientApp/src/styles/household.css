@@ -56,7 +56,7 @@
     padding: 7px 16px 6px;
     text-align: center;
     color: #fffaec;
-    background: var(--roof);
+    background: var(--roof-ink);
     border: 3px solid var(--ink);
     clip-path: var(--cut);
     box-shadow: inset 0 -4px 0 rgba(51, 41, 26, .28);
@@ -174,12 +174,12 @@ button.household-row {
 }
 
 .household-row-lack {
-    color: var(--roof);
+    color: var(--roof-ink);
     font-weight: 700;
 }
 
 .household-row-urgent {
-    color: var(--roof);
+    color: var(--roof-ink);
     font-weight: 700;
 }
 
@@ -325,7 +325,7 @@ button.household-row {
     display: block;
     margin-top: 2px;
     font-size: 12px;
-    color: var(--roof);
+    color: var(--roof-ink);
     font-weight: 700;
 }
 
@@ -383,7 +383,7 @@ button.household-more-row {
     }
 
     .household-ledger-flow[data-sign="spend"] {
-        color: var(--roof);
+        color: var(--roof-ink);
     }
 
 .household-reserve-lead {

@@ -58,7 +58,7 @@
 .stock-rail-tally {
     margin-left: auto;
     font-size: 11px;
-    color: #776b54;
+    color: var(--ink-muted);
     font-variant-numeric: tabular-nums;
 }
 

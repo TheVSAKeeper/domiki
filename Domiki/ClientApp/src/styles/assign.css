@@ -49,14 +49,14 @@
 
 .worker-rail-tally {
     font-size: 11px;
-    color: #776b54;
+    color: var(--ink-muted);
 }
 
 .worker-rail-skill-of {
     min-height: 15px;
     margin: 0;
     font-size: 10px;
-    color: #776b54;
+    color: var(--ink-muted);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -428,7 +428,7 @@ body.assign-active .actions-scrim {
 }
 
 .assign-menu-block {
-    color: var(--roof);
+    color: var(--roof-ink);
 }
 
 @media (max-width: 900px) {
@@ -610,7 +610,7 @@ body.assign-active .actions-scrim {
     }
 
     .rail-card-trait--slow {
-        background: var(--roof);
+        background: var(--roof-ink);
     }
 
     .rail-card-name {

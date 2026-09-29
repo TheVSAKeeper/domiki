@@ -474,7 +474,7 @@
     font-variant-numeric: tabular-nums;
 }
 
-.recap-band-trophy[data-tone="exp"] .tr-num { color: var(--roof); }
+.recap-band-trophy[data-tone="exp"] .tr-num { color: var(--roof-ink); }
 .recap-band-trophy[data-tone="toloka"] .tr-num { color: var(--coin); }
 
 .tr-cap {

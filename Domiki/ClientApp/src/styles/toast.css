@@ -17,7 +17,7 @@
     line-height: 1.4;
     text-align: left;
     color: var(--plank);
-    background: var(--roof);
+    background: var(--roof-ink);
     border: 3px solid var(--ink);
     clip-path: var(--cut);
     cursor: pointer;

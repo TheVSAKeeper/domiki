@@ -149,7 +149,7 @@
 
 .wiki-chain-where {
     font-size: 11px;
-    color: var(--roof);
+    color: var(--roof-ink-deep);
     text-transform: uppercase;
     letter-spacing: .04em;
     text-align: center;
@@ -159,7 +159,7 @@
     align-self: center;
     font-size: 26px;
     font-weight: 700;
-    color: var(--roof);
+    color: var(--roof-ink);
     padding-top: 20px;
 }
 
@@ -240,7 +240,7 @@ button.wiki-res-cell {
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: .05em;
-        color: var(--roof);
+        color: var(--roof-ink);
         padding-top: 1px;
     }
 
@@ -404,7 +404,7 @@ button.wiki-res-cell {
 .wiki-arrow {
     font-family: var(--pixel);
     font-size: 12px;
-    color: var(--roof);
+    color: var(--roof-ink);
 }
 
 .wiki-recipe-opt {
@@ -618,8 +618,11 @@ button.wiki-res-cell {
 .wiki-convoy-row-locked {
     grid-template-columns: max-content minmax(0, 1fr);
     grid-template-areas: "neighbor items";
-    opacity: .6;
 }
+
+    .wiki-convoy-row-locked .wiki-convoy-name {
+        color: var(--ink-muted);
+    }
 
 .wiki-convoy-name {
     display: inline-flex;
@@ -644,7 +647,7 @@ button.wiki-res-cell {
     align-items: center;
     gap: 4px;
     font-size: 12px;
-    color: var(--roof);
+    color: var(--roof-ink);
 }
 
 @media (max-width: 720px) {
@@ -727,7 +730,7 @@ button.wiki-res-cell {
     align-items: center;
     flex-shrink: 0;
     gap: 4px;
-    color: var(--roof);
+    color: var(--roof-ink);
     font-family: var(--pixel);
     font-size: 9px;
     line-height: 1.4;
@@ -738,8 +741,8 @@ button.wiki-res-cell {
     height: 16px;
 }
 
-.unlock-list-done {
-    opacity: .7;
+.unlock-list-done .unlock-description {
+    color: var(--ink-muted);
 }
 
 .unlock-row-done {
@@ -754,7 +757,7 @@ button.wiki-res-cell {
     padding: 5px 0;
     border-top: 2px dashed color-mix(in srgb, var(--roof) 45%, transparent);
     border-bottom: 2px dashed color-mix(in srgb, var(--roof) 45%, transparent);
-    color: var(--roof);
+    color: var(--roof-ink);
     font-family: var(--pixel);
     font-size: 10px;
     text-align: center;

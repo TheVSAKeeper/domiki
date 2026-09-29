@@ -415,7 +415,6 @@
 
 .shop-card--locked {
     filter: grayscale(.7);
-    opacity: .82;
 }
 
 .shop-card-badge {
@@ -441,7 +440,7 @@
     }
 
 .shop-card-badge--locked {
-    color: var(--roof);
+    color: var(--roof-ink);
     background: var(--plank);
 }
 
@@ -468,7 +467,7 @@
     font-size: 12px;
     font-weight: 600;
     line-height: 1.3;
-    color: var(--roof);
+    color: var(--roof-ink-deep);
 }
 
 .shop-card-lack {
@@ -477,7 +476,7 @@
     gap: 6px;
     font-size: 12px;
     font-weight: 600;
-    color: var(--roof);
+    color: var(--roof-ink);
 }
 
     .shop-card-lack img {
@@ -517,7 +516,7 @@
     font-family: var(--pixel);
     font-size: 9px;
     line-height: 1.3;
-    color: var(--roof);
+    color: var(--roof-ink-deep);
 }
 
     .shop-need-head img {
@@ -548,7 +547,7 @@
 .shop-need-qty {
     font-family: var(--pixel);
     font-size: 9px;
-    color: var(--roof);
+    color: var(--roof-ink-deep);
 }
 
 .shop-need-arrow {
@@ -851,7 +850,7 @@
 
 .plot-sign-upgradeable {
     color: var(--plank);
-    background: var(--roof);
+    background: var(--roof-ink);
 }
 
 .plot-sign-idle {
@@ -1036,7 +1035,7 @@
 }
 
 .panel-status-item--full {
-    color: var(--roof);
+    color: var(--roof-ink);
 }
 
 .panel-status-ico {
@@ -1241,7 +1240,7 @@
     margin: 10px 0 0;
     font-size: 13px;
     font-weight: 600;
-    color: var(--roof);
+    color: var(--roof-ink);
 }
 
     .note-warn img {
@@ -1362,7 +1361,7 @@
 }
 
 .hurry-btn-price--short {
-    color: var(--roof);
+    color: var(--roof-ink);
 }
 
 .hurry-btn-label {
@@ -1378,7 +1377,7 @@
 }
 
 .btn-game.hurry-btn:disabled .hurry-btn-price--short {
-    color: var(--roof);
+    color: var(--roof-ink);
 }
 
 

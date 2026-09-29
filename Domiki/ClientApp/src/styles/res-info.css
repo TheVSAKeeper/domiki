@@ -52,7 +52,7 @@
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: .05em;
-        color: var(--roof);
+        color: var(--roof-ink);
         padding-top: 1px;
     }
 

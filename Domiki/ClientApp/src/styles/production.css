@@ -89,7 +89,7 @@
 .receipt-lack {
     font-size: 11px;
     font-weight: 700;
-    color: var(--roof);
+    color: var(--roof-ink);
 }
 
 .receipt-blocked {
@@ -254,7 +254,7 @@
 }
 
 .resource-lack .resource-value {
-    color: var(--roof);
+    color: var(--roof-ink-deep);
 }
 
 .receipt-optional {

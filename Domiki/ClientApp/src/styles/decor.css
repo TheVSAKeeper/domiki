@@ -199,7 +199,7 @@
     gap: 6px;
     font-size: 12px;
     font-weight: 700;
-    color: var(--roof);
+    color: var(--roof-ink);
 }
 
 .decor-gate-ico {
@@ -254,7 +254,7 @@
 .decor-gate-requirement {
     font-size: 12px;
     font-weight: 700;
-    color: var(--roof);
+    color: var(--roof-ink);
 }
 
 .decor-card-exclusive {

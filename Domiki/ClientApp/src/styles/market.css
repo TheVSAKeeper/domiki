@@ -356,7 +356,7 @@
 
 .trade-deal-bad {
     color: var(--plank);
-    background: var(--roof);
+    background: var(--roof-ink);
 }
 
 .market-stall-foot {
