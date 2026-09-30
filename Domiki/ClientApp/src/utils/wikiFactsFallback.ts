@@ -74,6 +74,8 @@ export const wikiFactsFallback: Readonly<Record<string, string>> = {
     guestbookUnlockLevel: '20',
     helpRewardCoins: '5',
     helpUnlockLevel: '20',
+    hurryMinMinutes: '15',
+    hurryTailHours: '6',
     incidentAutoReturnHours: '48',
     incidentChancePercent: '12',
     incidentClueHours: '2, 4 или 8',

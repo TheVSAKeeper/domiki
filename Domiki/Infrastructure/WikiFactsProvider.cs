@@ -218,6 +218,9 @@ public sealed class WikiFactsProvider
             ["zealStartCharges"] = Int(DomikManager.ZealStartCharges),
             ["zealX4Threshold"] = Int(DomikManager.ZealX4Threshold),
 
+            ["hurryTailHours"] = Int(Hours(DomikManager.InstaFinishMaxSeconds)),
+            ["hurryMinMinutes"] = Int(Minutes(DomikManager.InstaFinishMinSeconds)),
+
             ["weatherPeriodHours"] = Int(Hours(WeatherManager.WeatherPeriodSeconds)),
             ["weatherWeightClear"] = Int(weatherTypes["clear"].RotationWeight),
             ["weatherWeightRain"] = Int(weatherTypes["rain"].RotationWeight),

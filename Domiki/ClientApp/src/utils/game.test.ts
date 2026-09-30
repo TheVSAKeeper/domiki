@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ResourceDto, WorkerDto } from '../types/api';
-import { canAffordUpgrade, computeReceiptView, goldVeinView, isWorkerFree, manufactureProgressPercent, progressPercent, residentsGain, resourceShortfall, resourceSourceMap, sortDomiks, tradeDeal, tradeRatio, weatherEffects, workIntensity, zealApplies, zealMultiplier } from './game';
+import { canAffordUpgrade, computeReceiptView, goldVeinView, instaFinishBlock, instaFinishCost, isWorkerFree, manufactureProgressPercent, progressPercent, residentsGain, resourceShortfall, resourceSourceMap, sortDomiks, tradeDeal, tradeRatio, weatherEffects, workIntensity, zealApplies, zealMultiplier } from './game';
 import type { WorkIntensity } from './game';
 
 describe('resourceShortfall', () => {
@@ -429,5 +429,31 @@ describe('weatherEffects', () => {
             [{ domikTypeId: 3, outputPercent: 125 }, { domikTypeId: 1, outputPercent: 125 }, { domikTypeId: 2, outputPercent: 50 }],
             types,
         ).map(row => row.domikType.id)).toEqual([2, 1, 3]);
+    });
+});
+
+describe('instaFinishCost', () => {
+    it.each([
+        { remaining: 3600, plodders: 1, cost: 1 },
+        { remaining: 1200, plodders: 1, cost: 1 },
+        { remaining: 3600, plodders: 5, cost: 5 },
+        { remaining: 1800, plodders: 5, cost: 3 },
+        { remaining: 900, plodders: 5, cost: 2 },
+        { remaining: 21600, plodders: 5, cost: 30 },
+        { remaining: 4320, plodders: 5, cost: 6 },
+        { remaining: 21600, plodders: 1, cost: 6 },
+    ])('charges $cost gold for $remaining s with $plodders plodders', ({ remaining, plodders, cost }) => {
+        expect(instaFinishBlock(remaining)).toBeNull();
+        expect(instaFinishCost(remaining, plodders)).toBe(cost);
+    });
+
+    it.each([
+        { remaining: 600, block: 'tooSoon' },
+        { remaining: 300, block: 'tooSoon' },
+        { remaining: 60, block: 'tooSoon' },
+        { remaining: 899, block: 'tooSoon' },
+        { remaining: 21601, block: 'tooFar' },
+    ])('refuses $remaining s as $block', ({ remaining, block }) => {
+        expect(instaFinishBlock(remaining)).toBe(block);
     });
 });

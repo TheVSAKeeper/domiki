@@ -89,12 +89,19 @@ public class DomikController : GameControllerBase
         _domikManager.StartManufacture(playerId, domikId, receiptId, useOptional, workerIds, autoRepeat);
     }
 
+    /// <summary>
+    /// Завершает смену немедленно за золото.
+    /// </summary>
+    /// <param name="manufactureId">Идентификатор смены.</param>
+    /// <param name="confirmed">
+    /// Игрок подтвердил цену выше <see cref="DomikManager.InstaFinishConfirmGold"/>; без параметра считается неподтверждённой.
+    /// </param>
     [HttpPost]
     [Route("/Domiki/HurryManufacture/{manufactureId}")]
-    public void HurryManufacture(int manufactureId)
+    public void HurryManufacture(int manufactureId, [FromQuery] bool confirmed = false)
     {
         var playerId = GetPlayerId();
-        _domikManager.HurryManufacture(playerId, manufactureId);
+        _domikManager.HurryManufacture(playerId, manufactureId, confirmed);
     }
 
     [HttpPost]

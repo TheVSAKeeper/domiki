@@ -778,7 +778,7 @@ export const gameCommandSchema = z.discriminatedUnion('kind', [
     z.object({ kind: z.literal('BuyDomik'), args: z.object({ typeId: z.number() }) }),
     z.object({ kind: z.literal('UpgradeDomik'), args: z.object({ domikId: z.number() }) }),
     z.object({ kind: z.literal('StartManufacture'), args: z.object({ domikId: z.number(), receiptId: z.number(), useOptional: z.boolean(), autoRepeat: z.boolean(), workerIds: z.array(z.number()) }) }),
-    z.object({ kind: z.literal('HurryManufacture'), args: z.object({ manufactureId: z.number() }) }),
+    z.object({ kind: z.literal('HurryManufacture'), args: z.object({ manufactureId: z.number(), confirmed: z.boolean().optional() }) }),
     z.object({ kind: z.literal('SetManufactureAutoRepeat'), args: z.object({ manufactureId: z.number(), autoRepeat: z.boolean() }) }),
     z.object({ kind: z.literal('CompleteOrder'), args: z.object({ orderId: z.number() }) }),
 ]);

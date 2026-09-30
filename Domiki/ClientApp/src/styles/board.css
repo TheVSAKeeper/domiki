@@ -1380,6 +1380,15 @@
     color: var(--roof-ink);
 }
 
+.hurry-btn-reason {
+    margin: 4px 0 0;
+    font-family: 'Golos Text', 'Segoe UI', sans-serif;
+    font-size: 12px;
+    font-style: italic;
+    line-height: 1.45;
+    color: rgba(51, 41, 26, .75);
+}
+
 
 .mech-title {
     display: flex;

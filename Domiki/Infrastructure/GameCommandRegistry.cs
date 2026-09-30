@@ -30,7 +30,7 @@ public class GameCommandRegistry
                 GetBool(args, "useOptional"),
                 GetIntArray(args, "workerIds"),
                 GetBool(args, "autoRepeat")),
-            ["HurryManufacture"] = (playerId, args) => domikManager.HurryManufacture(playerId, GetInt(args, "manufactureId")),
+            ["HurryManufacture"] = (playerId, args) => domikManager.HurryManufacture(playerId, GetInt(args, "manufactureId"), GetBool(args, "confirmed")),
             ["SetManufactureAutoRepeat"] = (playerId, args) => domikManager.SetManufactureAutoRepeat(playerId, GetInt(args, "manufactureId"), GetRequiredBool(args, "autoRepeat")),
             ["CompleteOrder"] = (playerId, args) => orderManager.CompleteOrder(playerId, GetInt(args, "orderId")),
         };

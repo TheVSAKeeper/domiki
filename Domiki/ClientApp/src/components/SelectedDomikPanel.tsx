@@ -413,7 +413,7 @@ interface SelectedDomikPanelProps {
     onUpgrade: (id: number) => void;
     onHurryDomik: (id: number) => void;
     onStartManufacture: (domikId: number, receiptId: number, useOptional: boolean, autoRepeat: boolean, workerIds?: number[]) => Promise<boolean>;
-    onHurryManufacture: (manufactureId: number) => void;
+    onHurryManufacture: (manufactureId: number, confirmed: boolean) => void;
     predictedManufactureIds: number[];
     onToggleManufactureRepeat: (manufactureId: number, next: boolean) => void;
     elderHouseLevel: number;
@@ -663,7 +663,7 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
                     {activeView === 'grow' && selected.domik.finishDate != null &&
                         <div className="panel-block">
                             <ProgressBar value={progressPercent(selected.domik.finishDate, selected.domik.upgradeSeconds ?? 0, now)} max={100} label={selected.remainingText ?? ''} />
-                            <HurryButton finishDate={selected.domik.finishDate} now={now} goldValue={goldValue} goldType={goldType}
+                            <HurryButton finishDate={selected.domik.finishDate} now={now} plodderCount={1} goldValue={goldValue} goldType={goldType}
                                 remainingText={selected.remainingText ?? ''} onHurry={() => { onHurryDomik(selected.domik.id); }} />
                         </div>
                     }

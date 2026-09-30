@@ -76,10 +76,32 @@ public class DomikManager
     /// </summary>
     public const double MinDurationShare = 0.6;
 
+    /// <summary>
+    /// Сколько трудяго-секунд оплачивает один золотой при ускорении.
+    /// </summary>
+    public const int InstaFinishSecondsPerGold = 3600;
+
+    /// <summary>
+    /// Наибольший остаток в секундах, при котором дело ещё можно поторопить (6 ч).
+    /// </summary>
+    public const int InstaFinishMaxSeconds = 6 * 3600;
+
+    /// <summary>
+    /// Наименьший остаток в секундах, при котором дело ещё можно поторопить (15 мин).
+    /// </summary>
+    public const int InstaFinishMinSeconds = 15 * 60;
+
+    /// <summary>
+    /// Наибольшая цена ускорения в золоте, которую сервер списывает без подтверждения игрока.
+    /// </summary>
+    /// <remarks>
+    /// Зеркало на клиенте – <c>INSTA_FINISH_CONFIRM_GOLD</c> в <c>ClientApp/src/utils/game.ts</c>: выше этой цены
+    /// <c>HurryButton</c> переспрашивает «Точно?» и шлёт <c>confirmed</c>.
+    /// </remarks>
+    public const int InstaFinishConfirmGold = 6;
+
     private const int CrestIconCount = 8;
     private const int CrestColorCount = 8;
-    private const int InstaFinishSecondsPerGold = 3600;
-    private const int InstaFinishMaxGold = 6;
     private const int GoldResourceTypeId = 5;
     private const int StartingBarracksTypeId = 2;
     private const int StartingClayMineTypeId = 5;
@@ -649,7 +671,7 @@ public class DomikManager
         }
 
         var finishDate = dbDomik.UpgradeCalculateDate.Value.AddSeconds((int)dbDomik.UpgradeSeconds);
-        var cost = GetInstaFinishCost(finishDate, date);
+        var cost = GetInstaFinishCost(finishDate, date, 1);
         if (cost <= 0)
         {
             return;
@@ -1091,7 +1113,21 @@ public class DomikManager
         return false;
     }
 
-    public void HurryManufacture(int playerId, int manufactureId)
+    /// <summary>
+    /// Завершает смену немедленно за золото.
+    /// </summary>
+    /// <remarks>
+    /// Цену считает <see cref="GetInstaFinishCost"/>. Дороже <see cref="InstaFinishConfirmGold"/> смена торопится только
+    /// с подтверждением: старый клиент и намерения из офлайн-очереди, записанные до появления «Точно?», поля не несут и
+    /// получают отказ вместо списания, которого игрок не видел.
+    /// </remarks>
+    /// <param name="playerId">Идентификатор игрока.</param>
+    /// <param name="manufactureId">Идентификатор смены.</param>
+    /// <param name="confirmed">Игрок подтвердил цену выше <see cref="InstaFinishConfirmGold"/>.</param>
+    /// <exception cref="BusinessException">
+    /// Смены нет, остаток вне окна ускорения, жила выбрана, цена не подтверждена либо не хватает золота.
+    /// </exception>
+    public void HurryManufacture(int playerId, int manufactureId, bool confirmed)
     {
         var date = DateTimeHelper.GetNowDate();
         _playerResourceManager.LockDbPlayerRow(playerId);
@@ -1102,7 +1138,7 @@ public class DomikManager
             throw new BusinessException("Эта смена уже закончилась");
         }
 
-        var cost = GetInstaFinishCost(dbManufacture.FinishDate, date);
+        var cost = GetInstaFinishCost(dbManufacture.FinishDate, date, dbManufacture.PlodderCount);
         if (cost <= 0)
         {
             return;
@@ -1113,6 +1149,11 @@ public class DomikManager
         if (GetGoldVeinBlockReason(playerId, dbHurriedDomik, hurriedReceipt, date, date, dbManufacture.Id) is string hurryBlockReason)
         {
             throw new BusinessException(hurryBlockReason);
+        }
+
+        if (cost > InstaFinishConfirmGold && !confirmed)
+        {
+            throw new BusinessException($"Поторопить дорого, золото ×{cost} – обнови страницу и подтверди цену");
         }
 
         WriteOffGold(playerId, cost);
@@ -1218,7 +1259,19 @@ public class DomikManager
         skill.Uses++;
     }
 
-    private int GetInstaFinishCost(DateTime finishDate, DateTime date)
+    /// <summary>
+    /// Считает цену ускорения в золоте: золотой за каждый начатый трудяго-час оставшейся работы.
+    /// </summary>
+    /// <remarks>
+    /// Торопить можно только хвост: остаток от <see cref="InstaFinishMinSeconds"/> до <see cref="InstaFinishMaxSeconds"/>
+    /// включительно, вне окна бросается <see cref="BusinessException"/>. Зеркало на клиенте – <c>instaFinishCost</c> в
+    /// <c>ClientApp/src/utils/game.ts</c>, таблицу случаев держат оба теста.
+    /// </remarks>
+    /// <param name="finishDate">Когда дело закончится само.</param>
+    /// <param name="date">Текущий момент.</param>
+    /// <param name="plodderCount">Сколько трудяг занято делом; стройка и улучшение домика считаются за одного.</param>
+    /// <returns>Цена в золоте; 0, если дело уже закончилось.</returns>
+    public static int GetInstaFinishCost(DateTime finishDate, DateTime date, int plodderCount)
     {
         var remaining = (finishDate - date).TotalSeconds;
         if (remaining <= 0)
@@ -1226,13 +1279,17 @@ public class DomikManager
             return 0;
         }
 
-        var cost = (int)Math.Ceiling(remaining / InstaFinishSecondsPerGold);
-        if (cost > InstaFinishMaxGold)
+        if (remaining > InstaFinishMaxSeconds)
         {
-            throw new BusinessException("До конца ещё далеко");
+            throw new BusinessException($"До конца ещё далеко – поторопить можно только в последние {InstaFinishMaxSeconds / 3600} ч");
         }
 
-        return cost;
+        if (remaining < InstaFinishMinSeconds)
+        {
+            throw new BusinessException($"До конца меньше {InstaFinishMinSeconds / 60} минут – дождись, золото тут ни к чему");
+        }
+
+        return (int)Math.Ceiling(remaining * Math.Max(1, plodderCount) / InstaFinishSecondsPerGold);
     }
 
     private void WriteOffGold(int playerId, int cost)

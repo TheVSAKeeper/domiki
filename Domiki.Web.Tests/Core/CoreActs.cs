@@ -31,9 +31,9 @@ public static class CoreActs
         return p;
     }
 
-    public static TestPlayer HurryManufacture(this TestPlayer p, int manufactureId)
+    public static TestPlayer HurryManufacture(this TestPlayer p, int manufactureId, bool confirmed = false)
     {
-        App.Act<DomikManager>(m => m.HurryManufacture(p.Id, manufactureId));
+        App.Act<DomikManager>(m => m.HurryManufacture(p.Id, manufactureId, confirmed));
         return p;
     }
 

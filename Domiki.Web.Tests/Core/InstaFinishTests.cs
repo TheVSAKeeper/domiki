@@ -1,4 +1,6 @@
-﻿using Domiki.Web.Infrastructure;
+﻿using System.Text.Json;
+using Domiki.Web.Core;
+using Domiki.Web.Infrastructure;
 
 namespace Domiki.Web.Tests;
 
@@ -44,7 +46,7 @@ public sealed class InstaFinishTests
     }
 
     /// <summary>
-    /// Нельзя ускорить домик, который сейчас не улучшается, – бросает ошибку «Домик не улучшается».
+    /// Нельзя ускорить домик, который сейчас не улучшается, – бросает ошибку «Улучшение уже закончилось».
     /// </summary>
     [Test]
     public void HurryDomikNotUpgradingThrowsTest()
@@ -53,7 +55,7 @@ public sealed class InstaFinishTests
 
         var ex = Throws.Business(() => player.HurryDomik(StartingDomikIds.Barrack));
 
-        Assert.That(ex.Message, Is.EqualTo("Домик не улучшается"));
+        Assert.That(ex.Message, Is.EqualTo("Улучшение уже закончилось"));
     }
 
     /// <summary>
@@ -104,8 +106,34 @@ public sealed class InstaFinishTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex.Message, Is.EqualTo("До конца ещё далеко"));
+            Assert.That(ex.Message, Is.EqualTo("До конца ещё далеко – поторопить можно только в последние 6 ч"));
             Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(10));
+            Assert.That(player.Domiks().Single(x => x.Id == StartingDomikIds.ClayMine).Manufactures.Single().Id, Is.EqualTo(manufactureId));
+        }
+    }
+
+    /// <summary>
+    /// Производство, которому до конца меньше 15 минут, поторопить нельзя: отказ не списывает золото и не завершает
+    /// производство.
+    /// </summary>
+    /// <param name="remainingSeconds">Сколько секунд осталось до завершения.</param>
+    [TestCase(14 * 60)]
+    [TestCase(5 * 60)]
+    [TestCase(60)]
+    public void HurryManufactureBelowWindowThrowsTest(int remainingSeconds)
+    {
+        const int startGold = 10;
+
+        var player = CreatePlayerWithManufacture(out var manufactureId);
+        player.WithResource(ResourceIds.Gold, startGold);
+        SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddSeconds(remainingSeconds));
+
+        var ex = Throws.Business(() => player.HurryManufacture(manufactureId));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ex.Message, Is.EqualTo("До конца меньше 15 минут – дождись, золото тут ни к чему"));
+            Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(startGold));
             Assert.That(player.Domiks().Single(x => x.Id == StartingDomikIds.ClayMine).Manufactures.Single().Id, Is.EqualTo(manufactureId));
         }
     }
@@ -119,7 +147,7 @@ public sealed class InstaFinishTests
     {
         var player = CreatePlayerWithManufacture(out var manufactureId);
         player.WithResource(ResourceIds.Gold, 1);
-        SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddMinutes(10), 200);
+        SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddMinutes(20), 200);
 
         player.HurryManufacture(manufactureId);
 
@@ -140,31 +168,138 @@ public sealed class InstaFinishTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex.Message, Is.EqualTo("Недостаточно Золото"));
+            Assert.That(ex.Message, Does.StartWith("Не хватает: Золото ×"));
             Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(1));
             Assert.That(player.Domiks().Single(x => x.Id == StartingDomikIds.ClayMine).Manufactures.Single().Id, Is.EqualTo(manufactureId));
         }
     }
 
     /// <summary>
-    /// Стоимость ускорения производства в золоте округляется вверх по оставшемуся времени, а не считается дробно.
+    /// Стоимость ускорения производства – золотой за трудяго-час оставшейся работы с округлением вверх по всей смене:
+    /// толпа из 5 трудяг за час до конца платит 5, за полчаса – 3, артель за 6 ч – 30.
     /// </summary>
     /// <param name="remainingSeconds">Сколько секунд осталось до завершения.</param>
+    /// <param name="plodderCount">Сколько трудяг занято сменой.</param>
     /// <param name="expectedCost">Ожидаемая стоимость ускорения в золоте.</param>
-    [TestCase(40 * 60, 1)]
-    [TestCase(3 * 3600 + 60, 4)]
-    [TestCase(6 * 3600, 6)]
-    public void HurryManufactureCostCeilsRemainingTimeTest(int remainingSeconds, int expectedCost)
+    [TestCase(3600, 1, 1)]
+    [TestCase(1200, 1, 1)]
+    [TestCase(3600, 5, 5)]
+    [TestCase(1800, 5, 3)]
+    [TestCase(901, 5, 2)]
+    [TestCase(21600, 5, 30)]
+    [TestCase(4320, 5, 6)]
+    [TestCase(21600, 1, 6)]
+    public void HurryManufactureCostCeilsRemainingTimeTest(int remainingSeconds, int plodderCount, int expectedCost)
     {
-        const int startGold = 6;
+        const int startGold = 30;
 
         var player = CreatePlayerWithManufacture(out var manufactureId);
         player.WithResource(ResourceIds.Gold, startGold);
-        SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddSeconds(remainingSeconds));
+        SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddSeconds(remainingSeconds), plodderCount: plodderCount);
 
-        player.HurryManufacture(manufactureId);
+        player.HurryManufacture(manufactureId, confirmed: true);
 
         Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(startGold - expectedCost));
+    }
+
+    /// <summary>
+    /// Смену дороже 6 золотых сервер торопит только с подтверждением: без него отказ не списывает золото и не завершает
+    /// смену, с ним списывается полная цена; ровно 6 золотых проходят без подтверждения. Толпа из 5 трудяг за 72 мин до
+    /// конца платит 6, за 73 мин – 7.
+    /// </summary>
+    /// <param name="remainingSeconds">Сколько секунд осталось до завершения.</param>
+    /// <param name="confirmed">Подтвердил ли игрок цену.</param>
+    /// <param name="allowed">Торопится ли смена.</param>
+    /// <param name="cost">Цена ускорения в золоте.</param>
+    [TestCase(4320, false, true, 6)]
+    [TestCase(4380, false, false, 7)]
+    [TestCase(4380, true, true, 7)]
+    public void HurryManufactureConfirmThresholdTest(int remainingSeconds, bool confirmed, bool allowed, int cost)
+    {
+        const int startGold = 30;
+        const int plodderCount = 5;
+
+        var player = CreatePlayerWithManufacture(out var manufactureId);
+        player.WithResource(ResourceIds.Gold, startGold);
+        SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddSeconds(remainingSeconds), plodderCount: plodderCount);
+
+        if (allowed)
+        {
+            player.HurryManufacture(manufactureId, confirmed);
+
+            Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(startGold - cost));
+            return;
+        }
+
+        var ex = Throws.Business(() => player.HurryManufacture(manufactureId, confirmed));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ex.Message, Is.EqualTo($"Поторопить дорого, золото ×{cost} – обнови страницу и подтверди цену"));
+            Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(startGold));
+            Assert.That(player.Domiks().Single(x => x.Id == StartingDomikIds.ClayMine).Manufactures.Single().Id, Is.EqualTo(manufactureId));
+        }
+    }
+
+    /// <summary>
+    /// Команда пачки «Поторопить» без поля confirmed – намерение старого клиента или из офлайн-очереди – считается
+    /// неподтверждённой: смену за 7 золотых она не торопит, а с confirmed: true торопит.
+    /// </summary>
+    /// <param name="confirmed">Значение поля confirmed; <see langword="null"/> – поля в команде нет.</param>
+    /// <param name="allowed">Торопится ли смена.</param>
+    [TestCase(null, false)]
+    [TestCase(false, false)]
+    [TestCase(true, true)]
+    public void HurryManufactureCommandConfirmedFieldTest(bool? confirmed, bool allowed)
+    {
+        const int startGold = 30;
+        const int plodderCount = 5;
+        const int cost = 7;
+
+        var player = CreatePlayerWithManufacture(out var manufactureId);
+        player.WithResource(ResourceIds.Gold, startGold);
+        SetManufactureFinish(manufactureId, DateTimeHelper.GetNowDate().AddSeconds(4380), plodderCount: plodderCount);
+
+        object args = confirmed == null ? new { manufactureId } : new { manufactureId, confirmed };
+        var hurry = () => player.HurryManufactureCommand(args);
+
+        if (allowed)
+        {
+            hurry();
+
+            Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(startGold - cost));
+            return;
+        }
+
+        Throws.Business(hurry);
+
+        Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(startGold));
+    }
+
+    /// <summary>
+    /// Окно ускорения включает обе границы: ровно 15 минут и ровно 6 часов до конца торопить можно, на секунду за ними –
+    /// нельзя.
+    /// </summary>
+    /// <param name="remainingSeconds">Сколько секунд осталось до завершения.</param>
+    /// <param name="allowed">Можно ли поторопить.</param>
+    [TestCase(15 * 60, true)]
+    [TestCase(15 * 60 - 1, false)]
+    [TestCase(6 * 3600, true)]
+    [TestCase(6 * 3600 + 1, false)]
+    public void InstaFinishWindowBoundsTest(int remainingSeconds, bool allowed)
+    {
+        var now = DateTimeHelper.GetNowDate();
+
+        var cost = () => DomikManager.GetInstaFinishCost(now.AddSeconds(remainingSeconds), now, 1);
+
+        if (allowed)
+        {
+            Assert.That(cost(), Is.Positive);
+        }
+        else
+        {
+            Assert.Throws<BusinessException>(() => cost());
+        }
     }
 
     private static TestPlayer CreatePlayerWithManufacture(out int manufactureId)
@@ -179,7 +314,7 @@ public sealed class InstaFinishTests
         return player;
     }
 
-    private static void SetManufactureFinish(int manufactureId, DateTime finishDate, int? outputPercent = null)
+    private static void SetManufactureFinish(int manufactureId, DateTime finishDate, int? outputPercent = null, int? plodderCount = null)
     {
         using var scope = App.Scope();
         var manufacture = scope.Context.Manufactures.Single(x => x.Id == manufactureId);
@@ -187,6 +322,11 @@ public sealed class InstaFinishTests
         if (outputPercent != null)
         {
             manufacture.OutputPercent = outputPercent.Value;
+        }
+
+        if (plodderCount != null)
+        {
+            manufacture.PlodderCount = plodderCount.Value;
         }
 
         scope.Commit();
@@ -200,4 +340,10 @@ public sealed class InstaFinishTests
         domik.UpgradeCalculateDate = finishDate.AddSeconds(-domik.UpgradeSeconds!.Value);
         scope.Commit();
     }
+}
+
+file static class InstaFinishTestsActs
+{
+    public static void HurryManufactureCommand(this TestPlayer p, object args) =>
+        App.Act<GameCommandRegistry>(r => r.Execute(p.Id, "HurryManufacture", JsonSerializer.SerializeToElement(args)));
 }

@@ -20,7 +20,7 @@ interface ManufactureBoxProps {
     measureUnlocked?: boolean;
     keyResourceTypeIds?: number[];
     pending?: boolean;
-    onHurry: (manufactureId: number) => void;
+    onHurry: (manufactureId: number, confirmed: boolean) => void;
     onToggleAutoRepeat: (manufactureId: number, next: boolean) => void;
     onSetMeasure?: (manufactureId: number, resourceTypeId: number | null, value: number | null) => void;
 }
@@ -68,8 +68,8 @@ export const ManufactureBox = ({ manufacture, receipt, now, remainingText, goldV
     return (
         <div className="manufacture-box">
             {head}
-            <HurryButton finishDate={manufacture.finishDate} now={now} goldValue={goldValue} goldType={goldType}
-                remainingText={remainingText} onHurry={() => { onHurry(manufacture.id); }} />
+            <HurryButton finishDate={manufacture.finishDate} now={now} plodderCount={manufacture.plodderCount} goldValue={goldValue} goldType={goldType}
+                remainingText={remainingText} onHurry={confirmed => { onHurry(manufacture.id, confirmed); }} />
             <div className={'manufacture-repeat' + (manufacture.autoRepeat ? ' manufacture-repeat-on' : '')}>
                 <button type="button" className="manufacture-repeat-toggle"
                     aria-expanded={repeatExpanded}

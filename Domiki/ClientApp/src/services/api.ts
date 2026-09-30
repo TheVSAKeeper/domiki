@@ -525,8 +525,8 @@ export const cancelErrand = (errandId: number, signal?: AbortSignal): Promise<vo
 export const startIncidentSearch = (incidentId: number, clueId: number, workerIds: number[], signal?: AbortSignal): Promise<void> =>
     apiPost('Domiki/StartIncidentSearch', signal, { incidentId, clueId, workerIds });
 
-export const hurryManufacture = (manufactureId: number, signal?: AbortSignal): Promise<void> =>
-    apiPost(`Domiki/HurryManufacture/${manufactureId}`, signal);
+export const hurryManufacture = (manufactureId: number, confirmed: boolean, signal?: AbortSignal): Promise<void> =>
+    apiPost(`Domiki/HurryManufacture/${manufactureId}?confirmed=${String(confirmed)}`, signal);
 
 export const setManufactureAutoRepeat = (manufactureId: number, autoRepeat: boolean, signal?: AbortSignal): Promise<void> =>
     apiPost(`Domiki/SetManufactureAutoRepeat/${manufactureId}?autoRepeat=${String(autoRepeat)}`, signal);

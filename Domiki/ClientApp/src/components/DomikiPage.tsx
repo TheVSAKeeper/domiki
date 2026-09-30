@@ -349,14 +349,14 @@ export const DomikiPage = () => {
 
     const hurrying = useRef(new Set<number>());
 
-    const hurryManufactureAction = (manufactureId: number) => {
+    const hurryManufactureAction = (manufactureId: number, confirmed: boolean) => {
         if (hurrying.current.has(manufactureId)) {
             return Promise.resolve(false);
         }
 
         hurrying.current.add(manufactureId);
         return runDetached(
-            hurryManufacture(manufactureId).finally(() => hurrying.current.delete(manufactureId)),
+            hurryManufacture(manufactureId, confirmed).finally(() => hurrying.current.delete(manufactureId)),
             'Производство ускорено',
         );
     };

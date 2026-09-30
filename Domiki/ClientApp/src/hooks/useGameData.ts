@@ -87,7 +87,7 @@ export interface GameData {
     scheduleReload: () => void;
     refreshPurchaseTypes: () => Promise<void>;
     setVillage: (name: string, crestIcon: number, crestColor: number) => Promise<void>;
-    hurryManufacture: (manufactureId: number) => Promise<void>;
+    hurryManufacture: (manufactureId: number, confirmed: boolean) => Promise<void>;
     setManufactureAutoRepeat: (manufactureId: number, autoRepeat: boolean) => Promise<void>;
     setManufactureMeasure: (manufactureId: number, resourceTypeId: number | null, value: number | null) => Promise<void>;
     setUpgradeIntent: (domikId: number | null) => Promise<void>;
@@ -423,8 +423,8 @@ export function useGameData(): GameData {
         setVillageState(await getVillage());
     }, []);
 
-    const hurryManufacture = useCallback(async (manufactureId: number) => {
-        await enqueueCommand({ kind: 'HurryManufacture', args: { manufactureId } });
+    const hurryManufacture = useCallback(async (manufactureId: number, confirmed: boolean) => {
+        await enqueueCommand({ kind: 'HurryManufacture', args: { manufactureId, confirmed } });
         scheduleReload();
     }, [scheduleReload]);
 

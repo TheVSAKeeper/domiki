@@ -3,7 +3,9 @@ import { ZEAL_MAX_RECIPE_SECONDS, ZEAL_X4_THRESHOLD } from './manufactureDuratio
 import { formatDuration, remainingSeconds } from './time';
 
 export const INSTA_FINISH_SECONDS_PER_GOLD = 3600;
-export const INSTA_FINISH_MAX_GOLD = 6;
+export const INSTA_FINISH_MAX_SECONDS = 6 * 3600;
+export const INSTA_FINISH_MIN_SECONDS = 15 * 60;
+export const INSTA_FINISH_CONFIRM_GOLD = 6;
 export const GOLD_RESOURCE_TYPE_ID = 5;
 export const COIN_RESOURCE_TYPE_ID = 1;
 export const SICK_MIN_VILLAGE_LEVEL = 15;
@@ -271,13 +273,16 @@ export function manufactureProgressPercent(manufacture: ManufactureDto, now: num
     return progressPercent(manufacture.finishDate, manufacture.durationSeconds, now);
 }
 
-export function instaFinishCost(finishDate: string, now: number): number {
-    return Math.ceil(remainingSeconds(finishDate, now) / INSTA_FINISH_SECONDS_PER_GOLD);
+export function instaFinishCost(remaining: number, plodderCount: number): number {
+    return remaining <= 0 ? 0 : Math.ceil(remaining * Math.max(1, plodderCount) / INSTA_FINISH_SECONDS_PER_GOLD);
 }
 
-export function canInstaFinish(finishDate: string, now: number): boolean {
-    const remaining = remainingSeconds(finishDate, now);
-    return remaining > 0 && remaining <= INSTA_FINISH_SECONDS_PER_GOLD * INSTA_FINISH_MAX_GOLD;
+export type InstaFinishBlock = 'tooFar' | 'tooSoon' | null;
+
+export function instaFinishBlock(remaining: number): InstaFinishBlock {
+    if (remaining > INSTA_FINISH_MAX_SECONDS) return 'tooFar';
+    if (remaining < INSTA_FINISH_MIN_SECONDS) return 'tooSoon';
+    return null;
 }
 
 export type DomikStatus = 'upgradeReady' | 'upgrading' | 'producing' | 'idle';
