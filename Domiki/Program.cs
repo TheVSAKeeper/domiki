@@ -119,9 +119,10 @@ try
     builder.Services.AddRateLimiter(options =>
     {
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-        // TODO: раздел вычисляется по X-Forwarded-For, поэтому подделка заголовка обходит лимит; переводить на счётчик по учётной записи или на защиту уровня Angie, когда демо-вход начнут ломать целенаправленно
+        // TODO: раздел – последний адрес X-Forwarded-For, его дописывает Angie ($proxy_add_x_forwarded_for), первые клиент подделывает;
+        // верно, пока Angie – единственный прокси перед приложением. Появится второй прокси (CDN, балансировщик) – переходить на ForwardedHeaders с KnownProxies
         options.AddPolicy(AuthenticationController.DemoLoginRateLimitPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
-            context.Request.Headers["X-Forwarded-For"].FirstOrDefault()?.Split(',')[0].Trim()
+            context.Request.Headers["X-Forwarded-For"].LastOrDefault()?.Split(',')[^1].Trim()
                 ?? context.Connection.RemoteIpAddress?.ToString()
                 ?? "unknown",
             _ => new FixedWindowRateLimiterOptions
@@ -220,14 +221,6 @@ try
     using (var scope = app.Services.CreateScope())
     {
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        // TODO: транзитный шим, приводит колонки __EFMigrationsHistory к snake_case на уже существующих БД; убрать после перехода прода и dev на naming convention
-        dbContext.Database.ExecuteSqlRaw(@"
-            DO $$ BEGIN
-              IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = '__EFMigrationsHistory' AND column_name = 'MigrationId') THEN
-                ALTER TABLE ""__EFMigrationsHistory"" RENAME COLUMN ""MigrationId"" TO migration_id;
-                ALTER TABLE ""__EFMigrationsHistory"" RENAME COLUMN ""ProductVersion"" TO product_version;
-              END IF;
-            END $$;");
         dbContext.Database.Migrate();
 
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
