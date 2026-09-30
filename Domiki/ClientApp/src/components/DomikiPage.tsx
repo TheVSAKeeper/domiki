@@ -24,6 +24,7 @@ import { neighborPrepositionalName, profileGenitiveName } from '../utils/profile
 import { reputationTierAhead } from '../utils/reputationTiers';
 import { GameTabsNav } from './GameTabsNav';
 import { BOARD_TAB_KEY, tabPath } from '../utils/gameTabs';
+import { yardDecorFill } from '../utils/yardMap';
 import { VillageIdentityModal } from './VillageIdentityModal';
 import { VillageHud } from './VillageHud';
 import { DomikGridSection } from './DomikGridSection';
@@ -123,6 +124,8 @@ export const DomikiPage = () => {
         [intentDomikId, domiks, domikTypes, resources],
     );
     const domikDisplayName = useMemo(() => buildDomikNamer(domiks), [domiks]);
+    const decorOwned = decor?.owned;
+    const yardFill = useMemo(() => yardDecorFill(domiks, decorOwned ?? []), [domiks, decorOwned]);
     const tavernLevel = useMemo(() => Math.max(0, ...domiks
         .filter(domik => domikTypes.find(type => type.id === domik.typeId)?.logicName === 'tavern')
         .map(domik => domik.level)), [domiks, domikTypes]);
@@ -490,7 +493,7 @@ export const DomikiPage = () => {
         },
         {
             key: 'decor', label: 'Декор', icon: <MechanicSprite logicName="decor" size={32} className="game-tab-ico" aria-hidden="true" />, visible: decor != null,
-            node: () => <DecorBox decor={decor} resourceTypes={resourceTypes} resources={resources} reputations={reputation} onBuy={buyDecorAction} />,
+            node: () => <DecorBox decor={decor} resourceTypes={resourceTypes} resources={resources} reputations={reputation} yardFill={yardFill} onBuy={buyDecorAction} />,
         },
         {
             key: 'toloka', label: 'Толока', icon: <MechanicSprite logicName="toloka" size={32} className="game-tab-ico" aria-hidden="true" />, visible: toloka != null,

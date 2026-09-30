@@ -217,13 +217,26 @@ const scatterGreens = (seed: number, count: number, width: number, height: numbe
     return greens;
 };
 
-export const layoutYard = (domiks: DomikDto[], owned: PlayerDecorDto[], level: number): YardLayout => {
+const placeYard = (domiks: DomikDto[], owned: PlayerDecorDto[]) => {
     const width = YARD_W;
     const rowCount = yardRowCount(domiks.length);
     const height = yardHeight(rowCount);
     const rows = Array.from({ length: rowCount }, (_, row) => buildRowPath(row, width));
     const spots = buildSpots(domiks, rows, width);
     const decors = buildDecors(owned, rows, width, height, spots);
+    return { width, rowCount, height, rows, spots, decors };
+};
+
+export interface YardDecorFill { placed: number; total: number; capacity: number; }
+
+export const yardDecorFill = (domiks: DomikDto[], owned: PlayerDecorDto[]): YardDecorFill => ({
+    placed: placeYard(domiks, owned).decors.length,
+    total: owned.reduce((sum, item) => sum + item.count, 0),
+    capacity: yardRowCount(domiks.length) * DECOR_PER_ROW,
+});
+
+export const layoutYard = (domiks: DomikDto[], owned: PlayerDecorDto[], level: number): YardLayout => {
+    const { width, rowCount, height, rows, spots, decors } = placeYard(domiks, owned);
     const tier = villageTier(level);
     const greenScale = rowCount;
     const trees = scatterGreens(TREE_SEED, (8 + tier * 5) * greenScale, width, height, rows, spots, decors, 52, 80, 40, 3);

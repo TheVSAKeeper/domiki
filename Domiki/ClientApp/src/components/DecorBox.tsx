@@ -2,6 +2,7 @@ import PlusIcon from 'pixelarticons/svg/plus-box.svg?react';
 import LockIcon from 'pixelarticons/svg/lock.svg?react';
 import type { DecorStateDto, DecorTypeDto, NeighborReputationDto, PlayerDecorDto, ResourceDto, ResourceTypeDto } from '../types/api';
 import { hasResourcesFor } from '../utils/game';
+import type { YardDecorFill } from '../utils/yardMap';
 import { SectionHero } from './SectionHero';
 import { ProgressBar } from './ProgressBar';
 import { ResourcesBox } from './ResourcesBox';
@@ -13,14 +14,26 @@ interface DecorBoxProps {
     resourceTypes: ResourceTypeDto[];
     resources: ResourceDto[];
     reputations: NeighborReputationDto[];
+    yardFill: YardDecorFill;
     onBuy: (decorTypeId: number) => void;
 }
 
-export const DecorBox =({ decor, resourceTypes, resources, reputations, onBuy }: DecorBoxProps) => {
+const yardFillNote = ({ placed, total, capacity }: YardDecorFill) => {
+    if (placed < total) {
+        return 'Двор заставлен: лишние украшения в уют засчитаны, но во дворе их не видно. Места прибавится, когда встанет новый ряд построек.';
+    }
+    if (placed === capacity) {
+        return 'Двор заставлен: новые украшения засчитаются в уют, но во дворе их видно не будет. Места прибавится, когда встанет новый ряд построек.';
+    }
+    return null;
+};
+
+export const DecorBox =({ decor, resourceTypes, resources, reputations, yardFill, onBuy }: DecorBoxProps) => {
     if (decor == null) {
         return null;
     }
 
+    const yardNote = yardFillNote(yardFill);
     const ordinaryPurchasable = decor.types.filter(x => x.isPurchasable && x.maxCount == null);
     const mastersPurchasable = decor.types.filter((type): type is DecorTypeDto & { maxCount: number } => type.isPurchasable && type.maxCount != null);
     const mastersOwned = mastersPurchasable.filter(type => (decor.owned.find(x => x.decorTypeId === type.id)?.count ?? 0) >= type.maxCount).length;
@@ -43,6 +56,15 @@ export const DecorBox =({ decor, resourceTypes, resources, reputations, onBuy }:
                     <span className="decor-hero-comfort-label sec-hero-stat-label">уюта в деревне</span>
                 </div>
             </SectionHero>
+            {yardNote != null &&
+                <div className="decor-yard">
+                    <div className="decor-yard-count">
+                        <span className="decor-yard-label">Во дворе {yardFill.placed} из {yardFill.total}</span>
+                        <ProgressBar className="decor-yard-meter" value={yardFill.placed} max={yardFill.total} done={yardFill.placed === yardFill.total} />
+                    </div>
+                    <p className="decor-yard-note">{yardNote}</p>
+                </div>
+            }
             <div className="decor-grid">
                 {ordinaryPurchasable.map(type => {
                     const owned = decor.owned.find(x => x.decorTypeId === type.id)?.count ?? 0;

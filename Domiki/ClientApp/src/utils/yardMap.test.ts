@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { layoutYard, yardHeight, yardRowCount } from './yardMap';
+import { layoutYard, yardDecorFill, yardHeight, yardRowCount } from './yardMap';
 import type { DomikDto, PlayerDecorDto } from '../types/api';
 
 const domik = (id: number): DomikDto => ({
@@ -79,6 +79,20 @@ describe('yardMap', () => {
                 expect(Math.hypot(item.x - other.x, item.y - other.y)).toBeGreaterThanOrEqual(32);
             }
         }
+    });
+
+    it.each([
+        { domiks: 0, counts: [], placed: 0, total: 0, capacity: 16 },
+        { domiks: 8, counts: [4, 3], placed: 7, total: 7, capacity: 16 },
+        { domiks: 8, counts: [10, 6], placed: 16, total: 16, capacity: 16 },
+        { domiks: 8, counts: [20, 20], placed: 16, total: 40, capacity: 16 },
+        { domiks: 9, counts: [20, 20], placed: 32, total: 40, capacity: 32 },
+    ])('счётчик двора: $domiks построек, куплено $total – во дворе $placed из $capacity мест', ({ domiks, counts, placed, total, capacity }) => {
+        const owned = counts.map((count, index) => decor(index + 1, count));
+        const buildings = Array.from({ length: domiks }, (_, index) => domik(index + 1));
+        const fill = yardDecorFill(buildings, owned);
+        expect(fill).toEqual({ placed, total, capacity });
+        expect(fill.placed).toBe(layoutYard(buildings, owned, 30).decors.length);
     });
 
     it('раскладка не зависит от порядка входа', () => {
