@@ -38,7 +38,7 @@ public class GameCommandController : GameControllerBase
         var playerId = GetPlayerId();
         if (batch.PlayerId is int declaredPlayerId && declaredPlayerId != playerId)
         {
-            throw new BusinessException("Эти действия начаты под другой учётной записью, деревня их не приняла");
+            throw new BusinessException("Эти дела начаты из другой деревни – здесь их не выполнить");
         }
 
         var results = _batch.Apply(playerId, batch.Commands);

@@ -131,7 +131,7 @@ public sealed class GuestbookTests
 
         var ex = Throws.Business(() => guest.LeaveEntry(host, 1, DateTimeHelper.GetNowDate()));
 
-        Assert.That(ex.Message, Is.EqualTo("Сначала назовите свою деревню"));
+        Assert.That(ex.Message, Is.EqualTo("Сначала дай имя своей деревне"));
     }
 
     /// <summary>
@@ -164,7 +164,7 @@ public sealed class GuestbookTests
 
         var ex = Throws.Business(() => guest.LeaveEntry(host, 2, date));
 
-        Assert.That(ex.Message, Is.EqualTo("Вы уже оставили запись сегодня"));
+        Assert.That(ex.Message, Is.EqualTo("Сегодня запись уже оставлена – приходи завтра"));
     }
 
     /// <summary>

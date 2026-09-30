@@ -43,9 +43,11 @@ public class PlayerResourceManager
         foreach (var group in resources.GroupBy(x => x.Type.Id))
         {
             var dbResource = dbResources.FirstOrDefault(x => x.TypeId == group.Key);
-            if (dbResource == null || dbResource.Value < group.Sum(x => x.Value))
+            var need = group.Sum(x => x.Value);
+            var have = dbResource?.Value ?? 0;
+            if (have < need)
             {
-                throw new BusinessException("Недостаточно " + GetResourceName(group.First(), resourceTypes));
+                throw new BusinessException($"Не хватает: {GetResourceName(group.First(), resourceTypes)} ×{need - have}");
             }
         }
 
@@ -104,6 +106,6 @@ public class PlayerResourceManager
 
     private string GetResourceName(Resource resource, ResourceType[] resourceTypes)
     {
-        return resource.Type.Name ?? resourceTypes.First(x => x.Id == resource.Type.Id).Name ?? "ресурса";
+        return resource.Type.Name ?? resourceTypes.First(x => x.Id == resource.Type.Id).Name ?? "ресурс";
     }
 }

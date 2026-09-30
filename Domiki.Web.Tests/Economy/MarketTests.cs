@@ -279,7 +279,7 @@ public sealed class MarketTests
         player.PostLot(ResourceIds.Clay, 1, ResourceIds.Gold, 1);
 
         var ex = Throws.Business(() => player.PostLot(ResourceIds.Clay, 1, ResourceIds.Gold, 1));
-        Assert.That(ex.Message, Is.EqualTo("Все места на прилавке заняты – улучшите Торговый двор"));
+        Assert.That(ex.Message, Is.EqualTo("Все места на прилавке заняты – сними лот или улучши Торговый двор"));
     }
 
     /// <summary>
@@ -542,7 +542,7 @@ public sealed class MarketTests
         player.PostBuyLot(1, ResourceIds.Brick, 1);
 
         var ex = Throws.Business(() => player.PostBuyLot(1, ResourceIds.Brick, 1));
-        Assert.That(ex.Message, Is.EqualTo("Все места на прилавке заняты – улучшите Торговый двор"));
+        Assert.That(ex.Message, Is.EqualTo("Все места на прилавке заняты – сними лот или улучши Торговый двор"));
     }
 
     /// <summary>

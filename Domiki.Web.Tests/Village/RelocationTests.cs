@@ -459,7 +459,7 @@ public sealed class RelocationTests
         var poor = TestPlayer.Create();
 
         var noKnots = Throws.Business(() => poor.BuyPerk(RelocationPerkType.LongHabit));
-        Assert.That(noKnots.Message, Is.EqualTo($"Нужно {longHabit.Costs[0]} узелков памяти, есть 0"));
+        Assert.That(noKnots.Message, Is.EqualTo($"Не хватает узелков памяти: нужно {longHabit.Costs[0]}, есть 0"));
 
         var rich = TestPlayer.Create().WithKnots(longHabit.Costs.Sum() + longHabit.Costs[^1]);
         foreach (var _ in longHabit.Costs)

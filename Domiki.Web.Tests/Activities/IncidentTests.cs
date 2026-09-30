@@ -34,9 +34,9 @@ public sealed class IncidentTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(manufacture.Message, Is.EqualTo("Трудяга недоступен"));
-            Assert.That(expedition.Message, Is.EqualTo("Трудяга недоступен"));
-            Assert.That(search.Message, Is.EqualTo("Трудяга занят"));
+            Assert.That(manufacture.Message, Is.EqualTo("Кто-то из выбранных трудяг уже не свободен – выбери других"));
+            Assert.That(expedition.Message, Is.EqualTo("Кто-то из выбранных трудяг уже не свободен – выбери других"));
+            Assert.That(search.Message, Is.EqualTo("Кто-то из выбранных трудяг уже при деле – выбери других"));
         }
     }
 
@@ -114,8 +114,8 @@ public sealed class IncidentTests
     /// </summary>
     /// <param name="occupyWorker">Занимает трудягу игрока; false оставляет его свободным для проверки чужого id.</param>
     /// <param name="expectedMessage">Ожидаемый текст ошибки.</param>
-    [TestCase(true, "Трудяга занят")]
-    [TestCase(false, "Трудяга недоступен")]
+    [TestCase(true, "Кто-то из выбранных трудяг уже при деле – выбери других")]
+    [TestCase(false, "Кто-то из выбранных трудяг уже не свободен – выбери других")]
     public void StartSearchRejectsBusyAndForeignWorkerTest(bool occupyWorker, string expectedMessage)
     {
         var player = TestPlayer.Create()
@@ -481,7 +481,7 @@ public sealed class IncidentTests
     {
         yield return new TestCaseData(
                 new Func<TestPlayer, int[], int>((_, _) => int.MaxValue),
-                "Происшествие не найдено")
+                "Это происшествие уже разрешилось")
             .SetName("UnknownIncident");
 
         yield return new TestCaseData(
@@ -493,7 +493,7 @@ public sealed class IncidentTests
                     var otherWorkerId = other.Workers()[0].Id;
                     return CreateIncident(other, otherWorkerId, ExpeditionTypeIds.ShortScout, 0, DateTimeHelper.GetNowDate());
                 }),
-                "Происшествие не найдено")
+                "Это происшествие уже разрешилось")
             .SetName("ForeignIncident");
 
         yield return new TestCaseData(

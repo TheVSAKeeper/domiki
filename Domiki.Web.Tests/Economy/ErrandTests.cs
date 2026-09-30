@@ -250,7 +250,7 @@ public sealed class ErrandTests
         var errandId = player.LastErrandId();
 
         var ex = Throws.Business(() => player.AcceptErrand(errandId, 0, [workerIds[0]]));
-        Assert.That(ex.Message, Is.EqualTo("Трудяга занят"));
+        Assert.That(ex.Message, Is.EqualTo("Кто-то из выбранных трудяг уже при деле – выбери других"));
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ public sealed class ErrandTests
         player.AcceptErrand(offer!.ObjectId, 0, [workerIds[0]]);
 
         var ex = Throws.Business(() => player.StartManufacture(player.DomikId(DomikIds.ClayMine), ReceiptIds.ClayDig, [workerIds[0]]));
-        Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
+        Assert.That(ex.Message, Is.EqualTo("Кто-то из выбранных трудяг уже не свободен – выбери других"));
     }
 
     /// <summary>
@@ -443,7 +443,7 @@ public sealed class ErrandTests
     {
         yield return new TestCaseData(
                 new Func<TestPlayer, int[], int>((_, _) => 987654),
-                "Поручение не найдено")
+                "Этого поручения уже нет на доске")
             .SetName("UnknownErrand");
 
         yield return new TestCaseData(
@@ -454,7 +454,7 @@ public sealed class ErrandTests
 
                     return other.LastErrandId();
                 }),
-                "Поручение не найдено")
+                "Этого поручения уже нет на доске")
             .SetName("ForeignErrand");
 
         yield return new TestCaseData(
@@ -474,7 +474,7 @@ public sealed class ErrandTests
                     player.WithErrand(NeighborIds.Zarechye, expireDate: DateTimeHelper.GetNowDate().AddSeconds(-1));
                     return player.LastErrandId();
                 }),
-                "Предложение истекло")
+                "Срок поручения вышел – сосед не дождался")
             .SetName("ExpiredOffer");
 
         yield return new TestCaseData(
@@ -485,7 +485,7 @@ public sealed class ErrandTests
                     player.CancelErrand(errandId);
                     return errandId;
                 }),
-                "Поручение не найдено")
+                "Этого поручения уже нет на доске")
             .SetName("CancelledOffer");
     }
 

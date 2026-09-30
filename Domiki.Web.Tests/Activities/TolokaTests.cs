@@ -162,7 +162,7 @@ public sealed class TolokaTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex.Message, Does.StartWith("Недостаточно "));
+            Assert.That(ex.Message, Does.StartWith("Не хватает: "));
             Assert.That(ActiveStonePosition().Collected, Is.Zero);
         }
     }
@@ -500,7 +500,7 @@ public sealed class TolokaTests
 
         var ex = Throws.Business(() => player.Contribute(10));
 
-        Assert.That(ex.Message, Is.EqualTo("Позиция уже собрана"));
+        Assert.That(ex.Message, Is.EqualTo("Этого на толоку уже натаскали сполна – погляди, чего ещё не хватает"));
     }
 
     /// <summary>

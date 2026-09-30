@@ -391,7 +391,7 @@ public class IncidentManager
         var dbIncident = _context.Incidents.FirstOrDefault(x => x.Id == incidentId && x.PlayerId == playerId && x.ResolvedDate == null);
         if (dbIncident == null)
         {
-            throw new BusinessException("Происшествие не найдено");
+            throw new BusinessException("Это происшествие уже разрешилось");
         }
 
         if (dbIncident.SearchEndDate != null)
@@ -422,13 +422,13 @@ public class IncidentManager
         var workers = _context.Workers.Where(x => workerIds.Contains(x.Id)).ToArray();
         if (workers.Length != workerIds.Length || workers.Any(x => x.PlayerId != playerId))
         {
-            throw new BusinessException("Трудяга недоступен");
+            throw new BusinessException("Кто-то из выбранных трудяг уже не свободен – выбери других");
         }
 
         var now = DateTimeHelper.GetNowDate();
         if (workers.Any(x => !WorkerManager.IsFree(x, now)))
         {
-            throw new BusinessException("Трудяга занят");
+            throw new BusinessException("Кто-то из выбранных трудяг уже при деле – выбери других");
         }
 
         var availableIds = _workerManager.GetAvailableWorkers(playerId, workers, now).Select(x => x.Id).ToHashSet();

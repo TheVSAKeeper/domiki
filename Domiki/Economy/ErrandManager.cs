@@ -274,7 +274,7 @@ public class ErrandManager
         var dbErrand = _context.Errands.FirstOrDefault(x => x.Id == errandId && x.PlayerId == playerId && x.ResolvedDate == null);
         if (dbErrand == null)
         {
-            throw new BusinessException("Поручение не найдено");
+            throw new BusinessException("Этого поручения уже нет на доске");
         }
 
         if (dbErrand.AcceptDate != null)
@@ -285,7 +285,7 @@ public class ErrandManager
         var now = DateTimeHelper.GetNowDate();
         if (now >= dbErrand.ExpireDate)
         {
-            throw new BusinessException("Предложение истекло");
+            throw new BusinessException("Срок поручения вышел – сосед не дождался");
         }
 
         if (clueId < 0 || clueId >= ClueDurationHours.Length)
@@ -311,12 +311,12 @@ public class ErrandManager
         var workers = _context.Workers.Where(x => workerIds.Contains(x.Id)).ToArray();
         if (workers.Length != workerIds.Length || workers.Any(x => x.PlayerId != playerId))
         {
-            throw new BusinessException("Трудяга недоступен");
+            throw new BusinessException("Кто-то из выбранных трудяг уже не свободен – выбери других");
         }
 
         if (workers.Any(x => !WorkerManager.IsFree(x, now)))
         {
-            throw new BusinessException("Трудяга занят");
+            throw new BusinessException("Кто-то из выбранных трудяг уже при деле – выбери других");
         }
 
         var availableIds = _workerManager.GetAvailableWorkers(playerId, workers, now).Select(x => x.Id).ToHashSet();
@@ -371,7 +371,7 @@ public class ErrandManager
         var dbErrand = _context.Errands.FirstOrDefault(x => x.Id == errandId && x.PlayerId == playerId && x.ResolvedDate == null);
         if (dbErrand == null)
         {
-            throw new BusinessException("Поручение не найдено");
+            throw new BusinessException("Этого поручения уже нет на доске");
         }
 
         var workers = _context.Workers.Where(x => x.ErrandId == dbErrand.Id).ToArray();

@@ -86,7 +86,7 @@ public class HelpManager
         var guest = _context.Players.Single(x => x.Id == guestPlayerId);
         if (guest.VillageName == null)
         {
-            throw new BusinessException("Сначала назовите свою деревню");
+            throw new BusinessException("Сначала дай имя своей деревне");
         }
 
         if (_villageLevelCalculator.GetLevel(guestPlayerId).Level < HelpUnlockLevel)
@@ -104,7 +104,7 @@ public class HelpManager
         var guestLastHelpDate = _context.Players.AsNoTracking().Where(x => x.Id == guestPlayerId).Select(x => x.LastHelpDate).Single();
         if (guestLastHelpDate.HasValue && DateOnly.FromDateTime(guestLastHelpDate.Value) == day)
         {
-            throw new BusinessException("Вы уже подсобили сегодня");
+            throw new BusinessException("Сегодня подмога уже отдана – приходи завтра");
         }
 
         var hostCaps = _context.Players.AsNoTracking()
@@ -118,13 +118,13 @@ public class HelpManager
 
         if (helpsReceivedToday >= HostHelpCapPerDay)
         {
-            throw new BusinessException("Этой деревне сегодня уже подсобили");
+            throw new BusinessException("Этой деревне на сегодня уже подсобили – загляни к другой");
         }
 
         var candidate = GetActiveWorkCandidates(hostPlayerId, date).OrderByDescending(x => x.FinishDate).FirstOrDefault();
         if (candidate == null)
         {
-            throw new BusinessException("Сейчас у деревни нет активных работ");
+            throw new BusinessException("Подсобить не в чем – у этой деревни сейчас ни стройки, ни смены");
         }
 
         var reducedSeconds = (int)Math.Ceiling((candidate.FinishDate - date).TotalSeconds * HelpReducePercent / 100.0);

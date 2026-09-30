@@ -417,7 +417,7 @@ public sealed class ExpeditionTests
         StartExpedition(player, ShortScoutId);
 
         var ex = Throws.Business(() => StartExpedition(player, ShortScoutId));
-        Assert.That(ex.Message, Is.EqualTo("Все отряды в походе – улучшите Сторожку"));
+        Assert.That(ex.Message, Is.EqualTo("Все отряды в походе – дождись возвращения или улучши Сторожку"));
     }
 
     /// <summary>
@@ -440,7 +440,7 @@ public sealed class ExpeditionTests
 
         var ex = Throws.Business(() => StartExpedition(player, ShortScoutId, [workerIds[0], workerIds[1]]));
 
-        Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
+        Assert.That(ex.Message, Is.EqualTo("Кто-то из выбранных трудяг уже не свободен – выбери других"));
     }
 
     /// <summary>
@@ -509,7 +509,7 @@ public sealed class ExpeditionTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex.Message, Is.EqualTo("Недостаточно Золото"));
+            Assert.That(ex.Message, Is.EqualTo("Не хватает: Золото ×1"));
             Assert.That(player.Expeditions().Active, Is.Empty);
             Assert.That(player.Workers().All(x => x.ExpeditionId == null), Is.True);
             Assert.That(player.Resource(ResourceIds.Board), Is.EqualTo(2));
@@ -517,21 +517,22 @@ public sealed class ExpeditionTests
     }
 
     /// <summary>
-    /// Без достаточного количества досок на снаряжение экспедиция не стартует, трудяги остаются свободны, а золото не
-    /// тратится.
+    /// Без достаточного количества досок на снаряжение экспедиция не стартует, отказ называет недостачу (нужно минус есть),
+    /// трудяги остаются свободны, а золото не тратится.
     /// </summary>
     [Test]
     public void StartExpeditionWithoutEnoughPlanksThrowsAndKeepsStateTest()
     {
         var player = TestPlayer.Create()
             .WithDomiks(DomikIds.Barrack, 2)
-            .WithResource(ResourceIds.Gold, 1);
+            .WithResource(ResourceIds.Gold, 1)
+            .WithResource(ResourceIds.Board, 1);
 
         var ex = Throws.Business(() => StartExpedition(player, ShortScoutId));
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex.Message, Is.EqualTo("Недостаточно Доска"));
+            Assert.That(ex.Message, Is.EqualTo("Не хватает: Доска ×1"));
             Assert.That(player.Expeditions().Active, Is.Empty);
             Assert.That(player.Workers().All(x => x.ExpeditionId == null), Is.True);
             Assert.That(player.Resource(ResourceIds.Gold), Is.EqualTo(1));
@@ -590,7 +591,7 @@ public sealed class ExpeditionTests
         StartExpedition(player, ShortScoutId);
 
         var ex = Throws.Business(() => player.StartManufacture(4, ReceiptIds.ClayDig));
-        Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
+        Assert.That(ex.Message, Is.EqualTo("Не хватает свободных трудяг"));
     }
 
     /// <summary>
@@ -693,7 +694,7 @@ public sealed class ExpeditionTests
                 player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, [workerIds[0]]);
                 player.StartManufacture(5, ReceiptIds.ClayDig, [workerIds[1]]);
             }
-        }), "Недостаточно трудяг").SetName("BusyWithManufacture");
+        }), "Не хватает свободных трудяг").SetName("BusyWithManufacture");
 
         yield return new TestCaseData(new Action<TestPlayer, int[]>((player, workerIds) =>
         {
@@ -709,13 +710,13 @@ public sealed class ExpeditionTests
             }
 
             player.SetWorkerRest(workerIds[1], DateTimeHelper.GetNowDate().AddHours(1));
-        }), "Недостаточно трудяг").SetName("RestingAndBusy");
+        }), "Не хватает свободных трудяг").SetName("RestingAndBusy");
 
         yield return new TestCaseData(new Action<TestPlayer, int[]>((player, _) =>
         {
             SetScoutHutLevel(player.Id, 2);
             StartExpedition(player, ShortScoutId);
-        }), "Недостаточно трудяг").SetName("BusyWithOtherExpedition");
+        }), "Не хватает свободных трудяг").SetName("BusyWithOtherExpedition");
     }
 
     private static TestPlayer StartExpedition(TestPlayer player, int expeditionTypeId, int[]? workerIds = null)

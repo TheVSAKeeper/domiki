@@ -142,7 +142,7 @@ public sealed class UpgradeIntentTests
         var player = TestPlayer.Create()
             .WithDomik(DomikIds.ClayMine, 0);
 
-        Assert.That(Throws.Business(() => player.SetUpgradeIntent(buildingDomikId)).Message, Does.Contain("возводится"));
+        Assert.That(Throws.Business(() => player.SetUpgradeIntent(buildingDomikId)).Message, Does.Contain("не достроена"));
     }
 
     /// <summary>

@@ -109,7 +109,7 @@ public class GuestbookManager
         var guest = _context.Players.Single(x => x.Id == guestPlayerId);
         if (guest.VillageName == null)
         {
-            throw new BusinessException("Сначала назовите свою деревню");
+            throw new BusinessException("Сначала дай имя своей деревне");
         }
 
         var guestVillageName = guest.VillageName;
@@ -128,7 +128,7 @@ public class GuestbookManager
         var entry = _context.GuestbookEntries.FirstOrDefault(x => x.HostPlayerId == hostPlayerId && x.GuestPlayerId == guestPlayerId && x.Day == day);
         if (entry?.PhraseId != null)
         {
-            throw new BusinessException("Вы уже оставили запись сегодня");
+            throw new BusinessException("Сегодня запись уже оставлена – приходи завтра");
         }
 
         if (entry == null)

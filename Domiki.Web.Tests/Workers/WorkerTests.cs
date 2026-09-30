@@ -227,7 +227,7 @@ public sealed class WorkerTests
     }
 
     /// <summary>
-    /// Уже занятого производством трудягу нельзя выбрать вручную повторно, ошибка «Трудяга недоступен».
+    /// Уже занятого производством трудягу нельзя выбрать вручную повторно, ошибка «Кто-то из выбранных трудяг уже не свободен – выбери других».
     /// </summary>
     [Test]
     public void ManualSelectionWithBusyWorkerThrowsTest()
@@ -243,7 +243,7 @@ public sealed class WorkerTests
         }
 
         var ex = Throws.Business(() => player.StartManufacture(4, ReceiptIds.ClayDig, [busyWorkerId]));
-        Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
+        Assert.That(ex.Message, Is.EqualTo("Кто-то из выбранных трудяг уже не свободен – выбери других"));
     }
 
     /// <summary>
@@ -268,7 +268,7 @@ public sealed class WorkerTests
     }
 
     /// <summary>
-    /// Трудягу другого игрока нельзя выбрать вручную, попытка падает ошибкой «Трудяга недоступен».
+    /// Трудягу другого игрока нельзя выбрать вручную, попытка падает ошибкой «Кто-то из выбранных трудяг уже не свободен – выбери других».
     /// </summary>
     [Test]
     public void ManualSelectionWithForeignWorkerThrowsTest()
@@ -278,11 +278,11 @@ public sealed class WorkerTests
         var foreignWorkerId = other.Workers().Single().Id;
 
         var ex = Throws.Business(() => player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, [foreignWorkerId]));
-        Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
+        Assert.That(ex.Message, Is.EqualTo("Кто-то из выбранных трудяг уже не свободен – выбери других"));
     }
 
     /// <summary>
-    /// Отдыхающего трудягу нельзя выбрать вручную, ошибка «Трудяга недоступен».
+    /// Отдыхающего трудягу нельзя выбрать вручную, ошибка «Кто-то из выбранных трудяг уже не свободен – выбери других».
     /// </summary>
     [Test]
     public void ManualSelectionWithRestingWorkerThrowsTest()
@@ -294,7 +294,7 @@ public sealed class WorkerTests
         player.SetWorkerRest(restingWorkerId, DateTimeHelper.GetNowDate().AddHours(1));
 
         var ex = Throws.Business(() => player.StartManufacture(StartingDomikIds.ClayMine, ReceiptIds.ClayDig, [restingWorkerId]));
-        Assert.That(ex.Message, Is.EqualTo("Трудяга недоступен"));
+        Assert.That(ex.Message, Is.EqualTo("Кто-то из выбранных трудяг уже не свободен – выбери других"));
     }
 
     /// <summary>
@@ -359,7 +359,7 @@ public sealed class WorkerTests
     }
 
     /// <summary>
-    /// Без свободных трудяг запуск производства запрещён ошибкой «Недостаточно трудяг».
+    /// Без свободных трудяг запуск производства запрещён ошибкой «Не хватает свободных трудяг».
     /// </summary>
     [Test]
     public void StartManufactureWithoutFreeWorkersThrowsTest()
@@ -373,7 +373,7 @@ public sealed class WorkerTests
         }
 
         var ex = Throws.Business(() => player.StartManufacture(3, ReceiptIds.ClayDig));
-        Assert.That(ex.Message, Is.EqualTo("Недостаточно трудяг"));
+        Assert.That(ex.Message, Is.EqualTo("Не хватает свободных трудяг"));
     }
 
     /// <summary>

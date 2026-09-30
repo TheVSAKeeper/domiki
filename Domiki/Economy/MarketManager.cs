@@ -101,7 +101,7 @@ public class MarketManager
 
         if (_context.TradeLots.Count(x => x.SellerId == playerId && x.ExpireDate > date) >= level + 1)
         {
-            throw new BusinessException("Все места на прилавке заняты – улучшите Торговый двор");
+            throw new BusinessException("Все места на прилавке заняты – сними лот или улучши Торговый двор");
         }
 
         var commission = ComputeCommission(level, giveResourceTypeId, giveValue);
@@ -161,7 +161,7 @@ public class MarketManager
 
         if (sellerId == null)
         {
-            throw new BusinessException("Лот не найден");
+            throw new BusinessException("Этого лота уже нет на прилавке");
         }
 
         if (buyerId == sellerId.Value)
@@ -231,7 +231,7 @@ public class MarketManager
         var lot = LockTradeLot(lotId);
         if (lot == null || lot.SellerId != playerId)
         {
-            throw new BusinessException("Лот не найден");
+            throw new BusinessException("Этого лота уже нет на прилавке");
         }
 
         _playerResourceManager.GrantResource(playerId, lot.GiveResourceTypeId, lot.GiveValue);

@@ -164,7 +164,7 @@ public class PerkManager
         var dbPlayer = _context.Players.Single(x => x.Id == playerId);
         if (dbPlayer.MemoryKnots < cost)
         {
-            throw new BusinessException($"Нужно {cost} узелков памяти, есть {dbPlayer.MemoryKnots}");
+            throw new BusinessException($"Не хватает узелков памяти: нужно {cost}, есть {dbPlayer.MemoryKnots}");
         }
 
         dbPlayer.MemoryKnots -= cost;

@@ -194,7 +194,7 @@ public class WorkerManager
         var occupied = workers.Where(x => !IsFree(x, now)).ToArray();
         return occupied.Length > 0 && occupied.All(x => x.RestUntil > now)
             ? RestingWorkersMessage
-            : "Недостаточно трудяг";
+            : "Не хватает свободных трудяг";
     }
 
     private string GetWorkerName(HashSet<string> usedNames, int ordinal)

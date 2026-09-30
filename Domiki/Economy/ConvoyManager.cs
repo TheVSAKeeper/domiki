@@ -179,10 +179,12 @@ public class ConvoyManager
             row.BoughtCount = 0;
         }
 
-        var limit = GetLimit(points);
-        if (row.BoughtCount + count > limit)
+        var left = GetLimit(points) - row.BoughtCount;
+        if (count > left)
         {
-            throw new BusinessException("Обоз на сегодня распродан – приходи завтра");
+            throw new BusinessException(left > 0
+                ? $"Обоз отдаст сегодня только {left} – бери меньше или приходи завтра"
+                : "Обоз на сегодня распродан – приходи завтра");
         }
 
         try

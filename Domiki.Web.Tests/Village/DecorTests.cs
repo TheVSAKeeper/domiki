@@ -10,7 +10,7 @@ public sealed class DecorTests
     private const int RestSeconds = 2 * 3600;
 
     /// <summary>
-    /// Без достаточного количества ресурсов покупка декора падает с ошибкой «Недостаточно...», а владение и уют не меняются.
+    /// Без достаточного количества ресурсов покупка декора падает с ошибкой «Не хватает: ...», а владение и уют не меняются.
     /// </summary>
     [Test]
     public void BuyDecorWithoutResourcesThrowsAndDoesNotChangeOwnedTest()
@@ -19,7 +19,7 @@ public sealed class DecorTests
 
         var ex = Throws.Business(() => player.BuyDecor(DecorIds.Fence));
 
-        Assert.That(ex.Message, Does.StartWith("Недостаточно "));
+        Assert.That(ex.Message, Does.StartWith("Не хватает: "));
         var decor = player.Decor();
         using (Assert.EnterMultipleScope())
         {
@@ -213,7 +213,7 @@ public sealed class DecorTests
 
         var ex = Throws.Business(() => player.BuyDecor(decorTypeId));
 
-        Assert.That(ex.Message, Is.EqualTo($"Сначала поставьте: {requiredDecorName}"));
+        Assert.That(ex.Message, Is.EqualTo($"Сначала поставь: {requiredDecorName}"));
     }
 
     /// <summary>

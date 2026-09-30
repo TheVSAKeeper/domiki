@@ -119,7 +119,7 @@ public class ExpeditionManager
 
         if (_context.Expeditions.Count(x => x.PlayerId == playerId) >= GetScoutHutLevel(playerId))
         {
-            throw new BusinessException("Все отряды в походе – улучшите Сторожку");
+            throw new BusinessException("Все отряды в походе – дождись возвращения или улучши Сторожку");
         }
 
         var workers = _workerManager.EnsureWorkers(playerId);
@@ -148,7 +148,7 @@ public class ExpeditionManager
 
             var freeById = freeWorkers.ToDictionary(x => x.Id);
             selectedWorkers = workerIds.Select(id =>
-                    freeById.TryGetValue(id, out var w) ? w : throw new BusinessException("Трудяга недоступен"))
+                    freeById.TryGetValue(id, out var w) ? w : throw new BusinessException("Кто-то из выбранных трудяг уже не свободен – выбери других"))
                 .ToArray();
         }
 

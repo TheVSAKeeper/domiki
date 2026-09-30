@@ -168,7 +168,7 @@ public sealed class HelpVillageTests
 
         var ex = Throws.Business(() => guest.Help(host, DateTimeHelper.GetNowDate()));
 
-        Assert.That(ex.Message, Is.EqualTo("Сначала назовите свою деревню"));
+        Assert.That(ex.Message, Is.EqualTo("Сначала дай имя своей деревне"));
     }
 
     /// <summary>
@@ -211,7 +211,7 @@ public sealed class HelpVillageTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex.Message, Is.EqualTo("Вы уже подсобили сегодня"));
+            Assert.That(ex.Message, Is.EqualTo("Сегодня подмога уже отдана – приходи завтра"));
             Assert.That(DomikUpgradeCalculateDate(host, StartingDomikIds.Barrack), Is.EqualTo(date));
         }
     }
@@ -240,7 +240,7 @@ public sealed class HelpVillageTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex.Message, Is.EqualTo("Этой деревне сегодня уже подсобили"));
+            Assert.That(ex.Message, Is.EqualTo("Этой деревне на сегодня уже подсобили – загляни к другой"));
             Assert.That(DomikUpgradeCalculateDate(host, StartingDomikIds.Barrack), Is.EqualTo(date));
         }
     }
@@ -260,7 +260,7 @@ public sealed class HelpVillageTests
 
         var ex = Throws.Business(() => guest.Help(host, DateTimeHelper.GetNowDate()));
 
-        Assert.That(ex.Message, Is.EqualTo("Сейчас у деревни нет активных работ"));
+        Assert.That(ex.Message, Is.EqualTo("Подсобить не в чем – у этой деревни сейчас ни стройки, ни смены"));
     }
 
     /// <summary>

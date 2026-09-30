@@ -104,7 +104,7 @@ public class GameCommandBatch
         catch (InvalidOperationException)
         {
             Undo(savepoint, afterEventActionCount);
-            return Result(command, GameCommandStatus.Rejected, "Этого в деревне уже нет, обновите страницу");
+            return Result(command, GameCommandStatus.Rejected, "Этого в деревне уже нет – обнови страницу");
         }
     }
 

@@ -309,7 +309,7 @@ public class DomikManager
 
         if (_context.Players.Any(x => x.Id != playerId && x.VillageName == villageName))
         {
-            throw new BusinessException("Имя деревни занято");
+            throw new BusinessException("Такое имя уже занято – придумай другое");
         }
 
         var dbPlayer = _context.Players.Single(x => x.Id == playerId);
@@ -323,7 +323,7 @@ public class DomikManager
         }
         catch (DbUpdateException ex) when (IsVillageNameUniqueViolation(ex))
         {
-            throw new BusinessException("Имя деревни занято");
+            throw new BusinessException("Такое имя уже занято – придумай другое");
         }
     }
 
@@ -433,7 +433,7 @@ public class DomikManager
             var domikType = entry.Type;
             if (!_villageLevelCalculator.CanBuyDomik(playerId, domikType))
             {
-                throw new BusinessException($"Откроется при обжитости {domikType.UnlockLevel}");
+                throw new BusinessException($"Откроется на обжитости {domikType.UnlockLevel}");
             }
 
             _blueprintManager.EnsureBlueprints(playerId);
@@ -465,11 +465,11 @@ public class DomikManager
         }
         else if (entry.Type != null && entry.NextCountGateLevel != null)
         {
-            throw new BusinessException($"Постройка «{entry.Type.Name}» откроется при обжитости {entry.NextCountGateLevel}");
+            throw new BusinessException($"Постройка «{entry.Type.Name}» откроется на обжитости {entry.NextCountGateLevel}");
         }
         else
         {
-            throw new BusinessException("Превышено максимальное количество");
+            throw new BusinessException("Больше таких построек не поставить");
         }
     }
 
@@ -483,7 +483,7 @@ public class DomikManager
         var domikType = _resourceManager.GetDomikTypes().First(x => x.Id == dbDomik.TypeId);
         if (dbDomik.Level >= domikType.MaxLevel)
         {
-            throw new BusinessException("Максимальный уровень");
+            throw new BusinessException("Постройка уже на последнем уровне");
         }
 
         if (dbDomik.UpgradeSeconds != null)
@@ -551,7 +551,7 @@ public class DomikManager
 
         if (dbDomik.Level == 0)
         {
-            throw new BusinessException("Постройка ещё возводится");
+            throw new BusinessException("Постройка ещё не достроена");
         }
 
         if (dbDomik.UpgradeSeconds != null)
@@ -562,7 +562,7 @@ public class DomikManager
         var domikType = _resourceManager.GetDomikTypes().First(x => x.Id == dbDomik.TypeId);
         if (dbDomik.Level >= domikType.MaxLevel)
         {
-            throw new BusinessException("Максимальный уровень");
+            throw new BusinessException("Постройка уже на последнем уровне");
         }
 
         dbPlayer.IntentDomikId = dbDomik.Id;
@@ -645,7 +645,7 @@ public class DomikManager
 
         if (dbDomik.UpgradeSeconds == null || dbDomik.UpgradeCalculateDate == null)
         {
-            throw new BusinessException("Домик не улучшается");
+            throw new BusinessException("Улучшение уже закончилось");
         }
 
         var finishDate = dbDomik.UpgradeCalculateDate.Value.AddSeconds((int)dbDomik.UpgradeSeconds);
@@ -687,7 +687,7 @@ public class DomikManager
         var dbDomik = domiks.First(x => x.PlayerId == playerId && x.Id == domikId);
         if (dbDomik.Level == 0)
         {
-            throw new BusinessException("Домик ещё строится");
+            throw new BusinessException("Постройка ещё не достроена");
         }
 
         var domikType = domikTypes.First(x => x.Id == dbDomik.TypeId);
@@ -718,7 +718,7 @@ public class DomikManager
 
         if (domikLevel.MaxManufactureCount < currentManufactureCount + 1)
         {
-            throw new BusinessException("Максимальное количество одновременных производств");
+            throw new BusinessException("Все места в постройке заняты – дождись конца смены");
         }
 
         var writeOffResources = receipt.InputResources;
@@ -761,7 +761,7 @@ public class DomikManager
 
             var freeById = freeWorkers.ToDictionary(x => x.Id);
             selectedWorkers = workerIds.Select(id =>
-                    freeById.TryGetValue(id, out var w) ? w : throw new BusinessException("Трудяга недоступен"))
+                    freeById.TryGetValue(id, out var w) ? w : throw new BusinessException("Кто-то из выбранных трудяг уже не свободен – выбери других"))
                 .ToArray();
         }
 
@@ -1099,7 +1099,7 @@ public class DomikManager
         var dbManufacture = _context.Manufactures.SingleOrDefault(x => x.Id == manufactureId && x.DomikPlayerId == playerId);
         if (dbManufacture == null)
         {
-            throw new BusinessException("Производство не найдено");
+            throw new BusinessException("Эта смена уже закончилась");
         }
 
         var cost = GetInstaFinishCost(dbManufacture.FinishDate, date);
@@ -1136,7 +1136,7 @@ public class DomikManager
         var dbManufacture = _context.Manufactures.SingleOrDefault(x => x.Id == manufactureId && x.DomikPlayerId == playerId);
         if (dbManufacture == null)
         {
-            throw new BusinessException("Производство не найдено");
+            throw new BusinessException("Эта смена уже закончилась");
         }
 
         dbManufacture.AutoRepeat = autoRepeat;
@@ -1166,7 +1166,7 @@ public class DomikManager
         var dbManufacture = _context.Manufactures.SingleOrDefault(x => x.Id == manufactureId && x.DomikPlayerId == playerId);
         if (dbManufacture == null)
         {
-            throw new BusinessException("Производство не найдено");
+            throw new BusinessException("Эта смена уже закончилась");
         }
 
         if (resourceTypeId == null || value == null)
@@ -1183,7 +1183,7 @@ public class DomikManager
 
         if (!dbManufacture.AutoRepeat)
         {
-            throw new BusinessException("Мера ставится наряду: сперва поставьте наряд");
+            throw new BusinessException("Мера ставится только наряду – сперва поставь наряд");
         }
 
         if (_resourceManager.GetResourceTypes().All(x => x.Id != resourceTypeId.Value))
@@ -1294,18 +1294,18 @@ public class DomikManager
     {
         if (name.Length < 3 || name.Length > 24)
         {
-            throw new BusinessException("Имя деревни должно быть 3–24 символа");
+            throw new BusinessException("В имени деревни – от 3 до 24 знаков");
         }
 
         if (name.Any(x => !IsAllowedVillageNameChar(x)))
         {
-            throw new BusinessException("В имени деревни можно использовать буквы, цифры, пробел и дефис");
+            throw new BusinessException("В имени деревни годятся только буквы, цифры, пробел и дефис");
         }
 
         var lowerName = name.ToLowerInvariant();
         if (VillageNameForbiddenWords.Any(x => lowerName.Contains(x)))
         {
-            throw new BusinessException("Имя деревни содержит запрещённое слово");
+            throw new BusinessException("Такое имя не годится – придумай другое");
         }
     }
 

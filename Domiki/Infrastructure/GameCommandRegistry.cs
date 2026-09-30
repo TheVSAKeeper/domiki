@@ -56,7 +56,7 @@ public class GameCommandRegistry
     {
         if (!_handlers.TryGetValue(kind, out var handler))
         {
-            throw new BusinessException("Такое действие деревня больше не понимает, обновите страницу");
+            throw new BusinessException("Такое дело деревня больше не понимает – обнови страницу");
         }
 
         handler(playerId, args);

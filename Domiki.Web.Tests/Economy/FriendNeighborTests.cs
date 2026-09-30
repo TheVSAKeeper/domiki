@@ -14,7 +14,7 @@ public sealed class FriendNeighborTests
         var player = TestPlayer.Create();
 
         var ex = Throws.Business(() => player.SetFriendNeighbor(NeighborIds.Zarechye));
-        Assert.That(ex.Message, Is.EqualTo("С этой деревней вы пока не знакомы – дорога к ней откроется с ростом обжитости."));
+        Assert.That(ex.Message, Is.EqualTo("Эта деревня тебе пока незнакома – дорога к ней откроется с ростом обжитости"));
 
         player.SetFriendNeighbor(NeighborIds.Glinischi);
         Assert.That(player.Reputation().Single(x => x.IsFriend).Neighbor.Id, Is.EqualTo(NeighborIds.Glinischi));

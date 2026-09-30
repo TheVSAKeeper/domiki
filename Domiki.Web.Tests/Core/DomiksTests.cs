@@ -290,7 +290,7 @@ public sealed class DomiksTests
     }
 
     /// <summary>
-    /// Нельзя запустить производство на домике, который ещё строится (уровень 0), – прилетает ошибка «Домик ещё строится».
+    /// Нельзя запустить производство на домике, который ещё строится (уровень 0), – прилетает ошибка «Постройка ещё не достроена».
     /// </summary>
     [Test]
     public void StartManufactureOnUnbuiltDomikThrowsTest()
@@ -298,7 +298,7 @@ public sealed class DomiksTests
         var player = TestPlayer.Create();
         player.WithDomik(DomikIds.ClayMine, 0);
         var ex = Throws.Business(() => player.StartManufacture(3, ReceiptIds.ClayDig));
-        Assert.That(ex.Message, Is.EqualTo("Домик ещё строится"));
+        Assert.That(ex.Message, Is.EqualTo("Постройка ещё не достроена"));
     }
 
     /// <summary>

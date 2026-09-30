@@ -51,6 +51,28 @@ public sealed class ConvoyTests
     }
 
     /// <summary>
+    /// Запрос больше остатка суточного лимита отбивается с числом, которое обоз ещё отдаст, и ничего не списывает.
+    /// </summary>
+    [Test]
+    public void BuyOverRemainingLimitNamesRemainderTest()
+    {
+        var player = TestPlayer.Create()
+            .WithReputation(NeighborIds.Glinischi, ConvoyManager.AccessReputationThreshold)
+            .WithResource(ResourceIds.Coin, 1000);
+
+        player.BuyFromConvoy(NeighborIds.Glinischi, ResourceIds.Clay);
+        var coinBefore = player.Resource(ResourceIds.Coin);
+
+        var ex = Throws.Business(() => player.BuyFromConvoy(NeighborIds.Glinischi, ResourceIds.Clay, ConvoyManager.BaseLimit));
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(ex.Message, Is.EqualTo($"Обоз отдаст сегодня только {ConvoyManager.BaseLimit - 1} – бери меньше или приходи завтра"));
+            Assert.That(player.Resource(ResourceIds.Coin), Is.EqualTo(coinBefore));
+        }
+    }
+
+    /// <summary>
     /// По истечении суточного окна лимит обоза снова доступен.
     /// </summary>
     [Test]

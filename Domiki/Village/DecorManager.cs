@@ -73,7 +73,7 @@ public class DecorManager
 
             if (requiredCount < 1)
             {
-                throw new BusinessException($"Сначала поставьте: {required.Name}");
+                throw new BusinessException($"Сначала поставь: {required.Name}");
             }
         }
 

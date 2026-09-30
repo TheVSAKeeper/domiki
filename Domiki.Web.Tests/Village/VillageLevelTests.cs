@@ -67,7 +67,7 @@ public sealed class VillageLevelTests
         var player = TestPlayer.Create();
 
         var ex = Throws.Business(() => player.Buy(DomikIds.StoneMine));
-        Assert.That(ex.Message, Is.EqualTo("Откроется при обжитости 6"));
+        Assert.That(ex.Message, Is.EqualTo("Откроется на обжитости 6"));
 
         player.WithDomiks(DomikIds.Barrack, 2);
 

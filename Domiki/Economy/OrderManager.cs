@@ -316,12 +316,12 @@ public class OrderManager
         var dbOrder = _context.Orders.Include(x => x.Resources).FirstOrDefault(x => x.Id == orderId);
         if (dbOrder == null || dbOrder.PlayerId != playerId)
         {
-            throw new BusinessException("Заказ не найден");
+            throw new BusinessException("Этого заказа уже нет на доске – видно, сосед не дождался");
         }
 
         if (DateTimeHelper.GetNowDate() >= dbOrder.ExpireDate)
         {
-            throw new BusinessException("Заказ истёк");
+            throw new BusinessException("Срок заказа вышел – сосед не дождался");
         }
 
         var resourceTypes = _resourceManager.GetResourceTypes();
@@ -373,7 +373,7 @@ public class OrderManager
         var dbOrder = _context.Orders.FirstOrDefault(x => x.Id == orderId);
         if (dbOrder == null || dbOrder.PlayerId != playerId)
         {
-            throw new BusinessException("Этого заказа уже нет на доске – видно, сосед не дождался.");
+            throw new BusinessException("Этого заказа уже нет на доске – видно, сосед не дождался");
         }
 
         _context.Orders.Remove(dbOrder);
@@ -479,7 +479,7 @@ public class OrderManager
 
             if (!isOpen)
             {
-                throw new BusinessException("С этой деревней вы пока не знакомы – дорога к ней откроется с ростом обжитости.");
+                throw new BusinessException("Эта деревня тебе пока незнакома – дорога к ней откроется с ростом обжитости");
             }
         }
 

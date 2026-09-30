@@ -200,7 +200,7 @@ public class TolokaManager
         var remaining = position.Goal - position.Collected;
         if (remaining <= 0)
         {
-            throw new BusinessException("Позиция уже собрана");
+            throw new BusinessException("Этого на толоку уже натаскали сполна – погляди, чего ещё не хватает");
         }
 
         var accepted = Math.Min(amount, remaining);
@@ -504,7 +504,7 @@ public class TolokaManager
             }
         }
 
-        throw new BusinessException("Толока обновляется, повторите");
+        throw new BusinessException("Толока как раз сменяется – повтори чуть погодя");
     }
 
     private (int TolokaTypeId, DateTime BuffUntil)[] GetActiveBuffs(int playerId, DateTime date)

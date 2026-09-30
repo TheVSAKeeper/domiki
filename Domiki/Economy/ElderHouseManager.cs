@@ -353,7 +353,7 @@ public class ElderHouseManager
     {
         if (GetLevel(playerId) < ReserveMinLevel)
         {
-            throw new BusinessException("Заповедать припас некому: в Избе старосты нет заповедного ларя");
+            throw new BusinessException("Заповедать припас некуда: в Избе старосты нет заповедного ларя");
         }
 
         if (_resourceManager.GetResourceTypes().All(x => x.Id != resourceTypeId))

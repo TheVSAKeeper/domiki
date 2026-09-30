@@ -55,7 +55,7 @@ public sealed class CountGateTests
         var ex = Throws.Business(() => player.Buy(DomikIds.Barrack));
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(ex.Message, Is.EqualTo($"Постройка «Артельная изба» откроется при обжитости {nextGateLevel}"));
+            Assert.That(ex.Message, Is.EqualTo($"Постройка «Артельная изба» откроется на обжитости {nextGateLevel}"));
             Assert.That(player.Domiks().Count(x => x.Type.Id == DomikIds.Barrack), Is.EqualTo(ownedCount));
         }
     }
@@ -74,7 +74,7 @@ public sealed class CountGateTests
 
         SetVillageLevel(player, 11);
         var ex = Throws.Business(() => player.Buy(DomikIds.StoneMine));
-        Assert.That(ex.Message, Is.EqualTo("Постройка «Каменоломня» откроется при обжитости 12"));
+        Assert.That(ex.Message, Is.EqualTo("Постройка «Каменоломня» откроется на обжитости 12"));
 
         SetVillageLevel(player, 12);
         Assert.DoesNotThrow(() => player.Buy(DomikIds.StoneMine));
@@ -101,7 +101,7 @@ public sealed class CountGateTests
 
         var name = player.DomikTypes().First(x => x.Id == domikTypeId).Name;
         var ex = Throws.Business(() => player.Buy(domikTypeId));
-        Assert.That(ex.Message, Is.EqualTo($"Постройка «{name}» откроется при обжитости {gateLevel}"));
+        Assert.That(ex.Message, Is.EqualTo($"Постройка «{name}» откроется на обжитости {gateLevel}"));
     }
 
     /// <summary>
@@ -142,7 +142,7 @@ public sealed class CountGateTests
 
         SetVillageLevel(player, gateLevel - 1);
         var ex = Throws.Business(() => player.Buy(DomikIds.Barrack));
-        Assert.That(ex.Message, Is.EqualTo($"Постройка «Артельная изба» откроется при обжитости {gateLevel}"));
+        Assert.That(ex.Message, Is.EqualTo($"Постройка «Артельная изба» откроется на обжитости {gateLevel}"));
 
         SetVillageLevel(player, gateLevel);
         Assert.DoesNotThrow(() => player.Buy(DomikIds.Barrack));
