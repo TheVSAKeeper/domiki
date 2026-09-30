@@ -62,7 +62,7 @@ public class PushSender
     private readonly string? _subject;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<PushSender> _logger;
-    private readonly WebPushClient _webPushClient = new();
+    private readonly WebPushClient _webPushClient = new(PushEndpointGuard.CreateHttpClient());
 
     public PushSender(IConfiguration configuration, IServiceScopeFactory scopeFactory, ILogger<PushSender> logger)
     {
