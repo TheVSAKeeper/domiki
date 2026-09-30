@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Npgsql;
 
 namespace Domiki.Web.Tests;
@@ -101,6 +102,22 @@ public static class App
         var client = _factory!.CreateClient();
         client.DefaultRequestHeaders.Add("X-Forwarded-For", NextClientAddress());
         return client;
+    }
+
+    /// <summary>
+    /// Отдельный хост поверх конфигурации общего: те же БД, demo-вход и <see cref="TestCalculator"/>, плюс правки построителя.
+    /// Поднимается заново и стоит как второй старт приложения, поэтому только для настроек, которые у живого хоста
+    /// не меняются (web root). Фоновые службы в нём сняты – их уже крутит общий хост. Хост освобождает вызывающий.
+    /// </summary>
+    /// <param name="configure">Правки построителя поверх общей конфигурации.</param>
+    /// <returns>Фабрика отдельного хоста.</returns>
+    public static WebApplicationFactory<Program> Derive(Action<IWebHostBuilder> configure)
+    {
+        return _factory!.WithWebHostBuilder(builder =>
+        {
+            configure(builder);
+            builder.ConfigureServices(services => services.RemoveAll<IHostedService>());
+        });
     }
 
     private static string NextClientAddress()
