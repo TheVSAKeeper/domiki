@@ -891,7 +891,7 @@ internal sealed class SimulationRun
 
         if (manufacture.AutoRepeat)
         {
-            StartManufacture(manufacture.Domik, manufacture.Receipt, manufacture.UseOptional, manufacture.Workers);
+            StartManufacture(manufacture.Domik, manufacture.Receipt, manufacture.UseOptional, null);
         }
     }
 
