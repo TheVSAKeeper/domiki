@@ -1,6 +1,6 @@
-import type { DomikDto, DomikTypeDto, GameCommand, GameStateDto, ManufactureDto, QueuedIntent, ResourceDto, UpgradeLevelDto, WorkerDto } from '../types/api';
+import type { DomikDto, DomikTypeDto, GameCommand, GameStateDto, ManufactureDto, QueuedIntent, ReceiptDto, ResourceDto, UpgradeLevelDto, WorkerDto } from '../types/api';
 import { hasResourcesFor, isWorkerFree, workerFitness } from './game';
-import { computeManufactureDuration } from './manufactureDuration';
+import { computeManufactureDuration, type ManufactureDurationResult } from './manufactureDuration';
 
 export const SMART_AUTO_UNLOCK_LEVEL = 8;
 export const LONG_HABIT_PERK_TYPE = 2;
@@ -109,21 +109,12 @@ function startManufacture(
         return;
     }
 
-    const selected = selectWorkers(state, domikType, args.workerIds, receipt.plodderCount, nowSeconds * 1000);
-    if (selected == null) {
+    const plan = planManufacture(state, domikType, receipt, args.workerIds, nowSeconds * 1000);
+    if (plan == null) {
         return;
     }
 
-    const duration = computeManufactureDuration({
-        receiptDurationSeconds: receipt.durationSeconds,
-        traitDurationPercents: selected.map(worker => worker.traitDurationPercent),
-        skillBonusPercents: selected.map(worker => worker.skills.find(skill => skill.domikTypeId === domikType.id)?.bonusPercent ?? 0),
-        profilePercent: profilePercent(state, domikType.id),
-        perkPercent: perkPercent(state),
-        isMarketDomik: domikType.logicName === MARKET_DOMIK_LOGIC_NAME,
-        zealCharges: state.goals.zealCharges,
-    });
-
+    const { workers: selected, duration } = plan;
     const manufactureId = draft.nextManufactureId;
     draft.nextManufactureId -= 1;
 
@@ -240,14 +231,53 @@ function setAutoRepeat(draft: Draft, manufactureId: number, autoRepeat: boolean)
     };
 }
 
+export interface ManufactureContext {
+    workers: WorkerDto[];
+    village: Pick<GameStateDto['village'], 'profileNeighborId'> | null;
+    villageLevel: Pick<GameStateDto['villageLevel'], 'level'> | null;
+    villageProfiles: GameStateDto['villageProfiles'];
+    relocation: Pick<GameStateDto['relocation'], 'perks'> | null;
+    goals: Pick<GameStateDto['goals'], 'zealCharges'> | null;
+}
+
+export interface ManufacturePlan {
+    workers: WorkerDto[];
+    duration: ManufactureDurationResult;
+}
+
+export function planManufacture(
+    context: ManufactureContext,
+    domikType: DomikTypeDto,
+    receipt: ReceiptDto,
+    workerIds: number[],
+    nowMs: number,
+): ManufacturePlan | null {
+    const workers = selectWorkers(context, domikType, workerIds, receipt.plodderCount, nowMs);
+    if (workers == null) {
+        return null;
+    }
+
+    const duration = computeManufactureDuration({
+        receiptDurationSeconds: receipt.durationSeconds,
+        traitDurationPercents: workers.map(worker => worker.traitDurationPercent),
+        skillBonusPercents: workers.map(worker => worker.skills.find(skill => skill.domikTypeId === domikType.id)?.bonusPercent ?? 0),
+        profilePercent: profilePercent(context, domikType.id),
+        perkPercent: perkPercent(context),
+        isMarketDomik: domikType.logicName === MARKET_DOMIK_LOGIC_NAME,
+        zealCharges: context.goals?.zealCharges ?? 0,
+    });
+
+    return { workers, duration };
+}
+
 function selectWorkers(
-    state: GameStateDto,
+    context: ManufactureContext,
     domikType: DomikTypeDto,
     workerIds: number[],
     plodderCount: number,
     nowMs: number,
 ): WorkerDto[] | null {
-    const free = state.workers.filter(worker => isWorkerFree(worker, nowMs)).sort((left, right) => left.id - right.id);
+    const free = context.workers.filter(worker => isWorkerFree(worker, nowMs)).sort((left, right) => left.id - right.id);
     if (free.length < plodderCount) {
         return null;
     }
@@ -261,24 +291,24 @@ function selectWorkers(
         return chosen.every((worker): worker is WorkerDto => worker != null) ? chosen : null;
     }
 
-    const auto = state.villageLevel.level >= SMART_AUTO_UNLOCK_LEVEL
+    const auto = (context.villageLevel?.level ?? 0) >= SMART_AUTO_UNLOCK_LEVEL
         ? [...free].sort((left, right) => workerFitness(right, domikType.id) - workerFitness(left, domikType.id) || left.id - right.id)
         : free;
 
     return auto.slice(0, plodderCount);
 }
 
-function profilePercent(state: GameStateDto, domikTypeId: number): number {
-    const neighborId = state.village.profileNeighborId;
+function profilePercent(context: ManufactureContext, domikTypeId: number): number {
+    const neighborId = context.village?.profileNeighborId;
     if (neighborId == null) {
         return 100;
     }
 
-    return state.villageProfiles.find(x => x.neighborId === neighborId && x.domikTypeId === domikTypeId)?.durationPercent ?? 100;
+    return context.villageProfiles.find(x => x.neighborId === neighborId && x.domikTypeId === domikTypeId)?.durationPercent ?? 100;
 }
 
-function perkPercent(state: GameStateDto): number {
-    const level = state.relocation.perks.find(perk => perk.perkType === LONG_HABIT_PERK_TYPE)?.level ?? 0;
+function perkPercent(context: ManufactureContext): number {
+    const level = context.relocation?.perks.find(perk => perk.perkType === LONG_HABIT_PERK_TYPE)?.level ?? 0;
     return 100 - level * LONG_HABIT_DURATION_PERCENT_PER_STEP;
 }
 

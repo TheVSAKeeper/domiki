@@ -8,10 +8,11 @@ import ClockIcon from 'pixelarticons/svg/clock.svg?react';
 import CloseIcon from 'pixelarticons/svg/close.svg?react';
 import InfoBoxIcon from 'pixelarticons/svg/info-box.svg?react';
 import PlayIcon from 'pixelarticons/svg/play.svg?react';
-import type { BlueprintDto, DomikTypeDto, GoalsStateDto, ReceiptDto, ResourceDto, ResourceTypeDto, SelectedDomikView, SickTypeDto, VillageLevelDto, WeatherEffectDto, WeatherPeriodDto, WorkerDto } from '../types/api';
+import type { BlueprintDto, DomikTypeDto, GoalsStateDto, ReceiptDto, RelocationDto, ResourceDto, ResourceTypeDto, SelectedDomikView, SickTypeDto, VillageDto, VillageLevelDto, VillageProfileDto, WeatherEffectDto, WeatherPeriodDto, WorkerDto } from '../types/api';
 import type { DomikNamer } from '../utils/domikNames';
 import { PLODDER_MODIFICATOR_TYPE_ID, SICK_MIN_VILLAGE_LEVEL, computeReceiptView, goldVeinView, isWorkerFree, keyResourceTypeIds, progressPercent, residentsGain, resourceShortfall, workIntensity, workerFitness, type GoldVeinContext, type GoldVeinView } from '../utils/game';
 import { formatDuration, remainingSeconds } from '../utils/time';
+import { planManufacture, type ManufactureContext } from '../utils/optimistic';
 import { sickRiskPercent, sickTypeForWeather, weatherMark, weatherOutputChange } from '../utils/weather';
 import { domikLore } from '../utils/domikLore';
 import { pluralRu } from '../utils/plural';
@@ -107,25 +108,28 @@ interface ReceiptRowProps {
     runningManufactures: number;
     maxManufactures: number;
     goldVein: GoldVeinView | null;
+    manufactureContext: ManufactureContext;
     ui: { expanded: boolean; useOptional: boolean; autoRepeat: boolean; isManual: boolean; selectedWorkerIds: number[] };
     dispatch: Dispatch<ReceiptUiAction>;
     onStart: (domikId: number, receiptId: number, useOptional: boolean, autoRepeat: boolean, workerIds?: number[]) => Promise<boolean>;
     formatShortfall: (cost: { typeId: number; value: number }[]) => string;
 }
 
-const ReceiptRow = ({ receipt, blueprintLock, domikId, domikType, resources, resourceTypes, workers, goals, villageLevel, weatherEffect, sickName, now, plodderFree, atManufactureCap, runningManufactures, maxManufactures, goldVein, ui, dispatch, onStart, formatShortfall }: ReceiptRowProps) => {
+const ReceiptRow = ({ receipt, blueprintLock, domikId, domikType, resources, resourceTypes, workers, goals, villageLevel, weatherEffect, sickName, now, plodderFree, atManufactureCap, runningManufactures, maxManufactures, goldVein, manufactureContext, ui, dispatch, onStart, formatShortfall }: ReceiptRowProps) => {
     const { expanded, useOptional, autoRepeat, isManual, selectedWorkerIds } = ui;
     const hasOptional = receipt.optionalInputResources.length > 0;
     const optionalNames = receipt.optionalInputResources
         .map(item => `${resourceTypes.find(type => type.id === item.typeId)?.name ?? `ресурс #${item.typeId}`} ×${item.value}`)
         .join(', ');
-    const view = computeReceiptView(receipt, resources, plodderFree, hasOptional && useOptional, goals?.zealCharges, domikType);
     const freeWorkersForType = workers
         .flatMap(worker => isWorkerFree(worker, now) ? [{ worker, fitness: workerFitness(worker, domikType.id) }] : [])
         .sort((a, b) => b.fitness - a.fitness);
     const freeIdsForType = new Set(freeWorkersForType.map(({ worker }) => worker.id));
     const selectedIdSet = new Set(selectedWorkerIds);
     const validSelectedIds = selectedWorkerIds.filter(id => freeIdsForType.has(id));
+    const plannedWorkerIds = isManual && validSelectedIds.length === receipt.plodderCount ? validSelectedIds : [];
+    const plan = planManufacture(manufactureContext, domikType, receipt, plannedWorkerIds, now);
+    const view = computeReceiptView(receipt, resources, plodderFree, hasOptional && useOptional, goals?.zealCharges, domikType, plan?.duration);
     const missingResources = resourceShortfall(view.inputs, resources);
     const missingResourcesText = formatShortfall(view.inputs);
     const automaticWorkerShortfall = Math.max(0, receipt.plodderCount - plodderFree);
@@ -399,6 +403,9 @@ interface SelectedDomikPanelProps {
     workers: WorkerDto[];
     goals: GoalsStateDto | null;
     villageLevel: VillageLevelDto | null;
+    village: VillageDto | null;
+    villageProfiles: VillageProfileDto[];
+    relocation: RelocationDto | null;
     currentWeather: WeatherPeriodDto | null;
     sickTypes: SickTypeDto[];
     now: number;
@@ -422,7 +429,7 @@ interface SelectedDomikPanelProps {
     onSetUpgradeIntent: (domikId: number | null) => void;
 }
 
-export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, receipts, blueprints, workers, goals, villageLevel, currentWeather, sickTypes, now, goldValue, goldType, goldVein, plodderFree, displayName, mechanicTab, onOpenTab, onClose, onUpgrade, onHurryDomik, onStartManufacture, onHurryManufacture, onToggleManufactureRepeat, elderHouseLevel, onSetManufactureMeasure, predictedManufactureIds, intentDomikId, onSetUpgradeIntent }: SelectedDomikPanelProps) => {
+export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, receipts, blueprints, workers, goals, villageLevel, village, villageProfiles, relocation, currentWeather, sickTypes, now, goldValue, goldType, goldVein, plodderFree, displayName, mechanicTab, onOpenTab, onClose, onUpgrade, onHurryDomik, onStartManufacture, onHurryManufacture, onToggleManufactureRepeat, elderHouseLevel, onSetManufactureMeasure, predictedManufactureIds, intentDomikId, onSetUpgradeIntent }: SelectedDomikPanelProps) => {
     const [ui, dispatch] = useReducer(receiptUiReducer, initialReceiptUiState);
     const [tab, setTab] = useState<PanelView>('work');
     const [tabbedDomikId, setTabbedDomikId] = useState(selected?.domik.id);
@@ -501,6 +508,8 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
             : `Нужен чертёж «${blueprint.name}»: ${blueprint.neighborName}, доброе имя ${blueprint.currentReputation}/${blueprint.reputationThreshold}`;
     };
 
+    const manufactureContext: ManufactureContext = { workers, village, villageLevel, villageProfiles, relocation, goals };
+
     const readyReceipts: ReceiptDto[] = [];
     const blockedReceipts: ReceiptDto[] = [];
     for (const receipt of selected?.receipts ?? []) {
@@ -529,6 +538,7 @@ export const SelectedDomikPanel = ({ ref, selected, resources, resourceTypes, re
             runningManufactures={runningManufactures}
             maxManufactures={maxManufactures}
             goldVein={goldVeinView(receipt, view.domik, goldVein)}
+            manufactureContext={manufactureContext}
             ui={{
                 expanded: ui.expandedIds.has(receipt.id),
                 useOptional: ui.optionalIds.has(receipt.id),

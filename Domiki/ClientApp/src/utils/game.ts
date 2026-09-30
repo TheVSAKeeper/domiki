@@ -1,5 +1,5 @@
 import type { BlueprintDto, DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ReceiptView, ResourceDto, SelectedDomikView, UpgradeView, WorkerDto } from '../types/api';
-import { ZEAL_MAX_RECIPE_SECONDS, ZEAL_X4_THRESHOLD } from './manufactureDuration';
+import { ZEAL_MAX_RECIPE_SECONDS, ZEAL_X4_THRESHOLD, type ManufactureDurationResult } from './manufactureDuration';
 import { formatDuration, remainingSeconds } from './time';
 
 export const INSTA_FINISH_SECONDS_PER_GOLD = 3600;
@@ -224,9 +224,6 @@ export function zealApplies(receipt: ReceiptDto, domikType: DomikTypeDto): boole
     return receipt.durationSeconds <= ZEAL_MAX_RECIPE_SECONDS && domikType.logicName !== 'market';
 }
 
-// TODO: свести оценку на карточке рецепта к общей формуле computeManufactureDuration – сейчас она знает только
-// рвение, поэтому обещает больше времени, чем идёт настоящая смена с чертами, навыками, укладом и перком. Повод
-// взяться: жалоба на расхождение обещанного и запущенного либо следующая правка множителей длительности.
 export function computeReceiptView(
     receipt: ReceiptDto,
     resources: ResourceDto[],
@@ -234,6 +231,7 @@ export function computeReceiptView(
     useOptional: boolean,
     zealCharges?: number,
     domikType?: DomikTypeDto,
+    plannedDuration?: ManufactureDurationResult | null,
 ): ReceiptView {
     const withOptional = useOptional && receipt.optionalInputResources.length > 0;
     const inputs = mergeResources(
@@ -241,7 +239,7 @@ export function computeReceiptView(
     );
     const durationSeconds = receipt.durationSeconds;
     const multiplier = domikType != null && zealApplies(receipt, domikType) ? zealMultiplier(zealCharges ?? 0) : 1;
-    const effectiveDurationSeconds = Math.max(1, Math.floor(durationSeconds / multiplier));
+    const effectiveDurationSeconds = plannedDuration?.seconds ?? Math.max(1, Math.floor(durationSeconds / multiplier));
     const hasResources = hasResourcesFor(inputs, resources);
     const hasPlodders = freePlodders >= receipt.plodderCount;
 

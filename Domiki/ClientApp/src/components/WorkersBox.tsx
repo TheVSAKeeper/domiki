@@ -13,6 +13,7 @@ import { genderForm, traitLabel } from '../utils/gender';
 import { pluralRu } from '../utils/plural';
 import { flyoutLeft, flyoutWidth, useFlyoutTop } from '../utils/flyout';
 import { TermTip } from './TermTip';
+import { wikiFactsFallback } from '../utils/wikiFactsFallback';
 
 type WorkerState = 'expedition' | 'errand' | 'incidentMissing' | 'incidentSearch' | 'domikIncidentSearch' | 'busy' | 'resting' | 'away' | 'free';
 
@@ -40,7 +41,7 @@ const stateLabels: Record<WorkerState, string> = { expedition: 'В экспед�
 const tallyLabels: Record<WorkerState, string> = { expedition: 'в пути', errand: 'в поручении', incidentMissing: 'задержались', incidentSearch: 'в поисках', domikIncidentSearch: 'разбираются', busy: 'за работой', resting: 'отдыхают', away: 'в отходе', free: 'свободны' };
 const tallyOrder: WorkerState[] = ['free', 'busy', 'resting', 'away', 'incidentMissing', 'incidentSearch', 'domikIncidentSearch', 'errand', 'expedition'];
 const stateTerms: Partial<Record<WorkerState, string>> = { away: 'worker_away', incidentMissing: 'worker_missing', incidentSearch: 'worker_search', domikIncidentSearch: 'worker_domik_search' };
-const FATIGUE_THRESHOLD_SECONDS = 28800;
+const FATIGUE_THRESHOLD_SECONDS = Number(wikiFactsFallback.fatigueHours) * 3600;
 
 const useShownPortraits = () => {
     const [shown, setShown] = useState<ReadonlySet<number>>(() => new Set());

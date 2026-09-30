@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { DomikDto, DomikTypeDto, ManufactureDto, ReceiptDto, ResourceDto, WorkerDto } from '../types/api';
+import type { DomikDto, DomikTypeDto, GameStateDto, ManufactureDto, ReceiptDto, ResourceDto, WorkerDto } from '../types/api';
+import { planManufacture, predictState } from './optimistic';
 import { canAffordUpgrade, computeReceiptView, goldVeinView, instaFinishBlock, instaFinishCost, isWorkerFree, manufactureProgressPercent, progressPercent, residentsGain, resourceShortfall, resourceSourceMap, sortDomiks, tradeDeal, tradeRatio, weatherEffects, workIntensity, zealApplies, zealMultiplier } from './game';
 import type { WorkIntensity } from './game';
 
@@ -162,6 +163,63 @@ describe('computeReceiptView', () => {
     it('uses zeal charges for the effective duration', () => {
         const view = computeReceiptView({ ...receipt, durationSeconds: 3600 }, [{ typeId: 2, value: 10 }], 2, false, 24, mineType);
         expect(view).toMatchObject({ durationSeconds: 3600, effectiveDurationSeconds: 900, zealMultiplier: 4 });
+    });
+
+    describe('с составом смены', () => {
+        const nowMs = Date.UTC(2026, 8, 30, 12, 0, 0);
+        const shiftReceipt: ReceiptDto = { ...receipt, durationSeconds: 1000, plodderCount: 1 };
+        const forge: DomikTypeDto = {
+            ...mineType,
+            id: 5,
+            logicName: 'forge',
+            levels: [{ value: 1, resources: [], modificators: [], receiptIds: [1], upgradeSeconds: 0, maxManufactureCount: 2 }],
+        };
+        const worker = (id: number, over: Partial<WorkerDto> = {}): WorkerDto => ({
+            id, name: `Трудяга ${String(id)}`, gender: 0, traitId: 0, traitName: '', traitLogicName: '', traitDurationPercent: 0,
+            noFatigue: false, noSick: false, manufactureId: null, expeditionId: null, errandId: null, incidentId: null,
+            workedSeconds: 0, restUntil: null, sickUntil: null, sickTypeId: null, isAway: false, skills: [], ...over,
+        });
+        const skilled = (bonusPercent: number) => ({ skills: [{ domikTypeId: forge.id, bonusPercent }] }) as Partial<WorkerDto>;
+        const gameState = (over: Partial<GameStateDto>): GameStateDto => ({
+            domiks: [{ id: 1, typeId: forge.id, level: 1, finishDate: null, upgradeSeconds: null, manufactures: [] }],
+            domikTypes: [forge],
+            receipts: [shiftReceipt],
+            resources: [{ typeId: 2, value: 100 }],
+            blueprints: [],
+            workers: [worker(1)],
+            villageLevel: { level: 1 },
+            village: { profileNeighborId: null },
+            villageProfiles: [],
+            relocation: { perks: [] },
+            goals: { zealCharges: 0 },
+            ...over,
+        } as unknown as GameStateDto);
+
+        it.each<[string, Partial<GameStateDto>, number[], number]>([
+            ['черта Работящий у авто-подбора умной артели', { villageLevel: { level: 8 } as GameStateDto['villageLevel'], workers: [worker(1), worker(2, { traitDurationPercent: -20 })] }, [], 800],
+            ['навык у трудяги, выбранного вручную', { workers: [worker(1), worker(2, skilled(25))] }, [2], 750],
+            ['черта и навык под рвением ×4', { workers: [worker(1, { traitDurationPercent: 10, ...skilled(20) })], goals: { zealCharges: 17 } as GameStateDto['goals'] }, [], 220],
+        ])('%s: карточка обещает столько же, сколько нарисует смена', (_, over, workerIds, expected) => {
+            const state = gameState(over);
+            const plan = planManufacture(state, forge, shiftReceipt, workerIds, nowMs);
+            const card = computeReceiptView(shiftReceipt, state.resources, state.workers.length, false, state.goals.zealCharges, forge, plan?.duration);
+            const legacy = computeReceiptView(shiftReceipt, state.resources, state.workers.length, false, state.goals.zealCharges, forge);
+            const predicted = predictState(state, [{
+                command: { kind: 'StartManufacture', args: { domikId: 1, receiptId: 1, useOptional: false, autoRepeat: false, workerIds } },
+                queuedAtMs: nowMs,
+            }]);
+
+            expect(card.effectiveDurationSeconds).toBe(expected);
+            expect(predicted.state.domiks[0]?.manufactures?.[0]?.durationSeconds).toBe(expected);
+            expect(legacy.effectiveDurationSeconds).not.toBe(expected);
+        });
+
+        it('без свободных трудяг оставляет оценку по рвению', () => {
+            const state = gameState({ workers: [worker(1, { manufactureId: 7, traitDurationPercent: -20 })] });
+            const plan = planManufacture(state, forge, shiftReceipt, [], nowMs);
+            expect(plan).toBeNull();
+            expect(computeReceiptView(shiftReceipt, state.resources, 0, false, 0, forge, plan?.duration).effectiveDurationSeconds).toBe(1000);
+        });
     });
 });
 
